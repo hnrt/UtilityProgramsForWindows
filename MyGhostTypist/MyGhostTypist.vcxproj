@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{3e6e28ff-7355-46f8-a99e-31319d3a4768}</ProjectGuid>
+    <RootNamespace>MyGhostTypist</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>res;$(SolutionDir)CoreLib\inc\;$(SolutionDir)KeyboardMouse\inc\;$(SolutionDir)KeyboardMouseBridge\inc\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /cy $(SolutionDir)KeyboardMouse\bin\x64\$(Configuration)\KeyboardMouse64.dll $(SolutionDir)MyGhostTypist\bin\$(Platform)\$(Configuration)\
+xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32.dll $(SolutionDir)MyGhostTypist\bin\$(Platform)\$(Configuration)\
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>res;$(SolutionDir)CoreLib\inc\;$(SolutionDir)KeyboardMouse\inc\;$(SolutionDir)KeyboardMouseBridge\inc\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /cy $(SolutionDir)KeyboardMouse\bin\x64\$(Configuration)\KeyboardMouse64.dll $(SolutionDir)MyGhostTypist\bin\$(Platform)\$(Configuration)\
+xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32.dll $(SolutionDir)MyGhostTypist\bin\$(Platform)\$(Configuration)\
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Action.cpp" />
+    <ClCompile Include="src\ActionTarget.cpp" />
+    <ClCompile Include="src\ComboBox.cpp" />
+    <ClCompile Include="src\Configuration.cpp" />
+    <ClCompile Include="src\ConfigurationDialogBox.cpp" />
+    <ClCompile Include="src\ConfigurationImpl.cpp" />
+    <ClCompile Include="src\ConfigurationTreeView.cpp" />
+    <ClCompile Include="src\Credentials.cpp" />
+    <ClCompile Include="src\CredentialsCollection.cpp" />
+    <ClCompile Include="src\FindChildWindow.cpp" />
+    <ClCompile Include="src\FindTopLevelWindow.cpp" />
+    <ClCompile Include="src\FindWindowTarget.cpp" />
+    <ClCompile Include="src\KeystrokeManager.cpp" />
+    <ClCompile Include="src\KeystrokeManagerLayout.cpp" />
+    <ClCompile Include="src\MainWindow.cpp" />
+    <ClCompile Include="src\NullTarget.cpp" />
+    <ClCompile Include="src\Target.cpp" />
+    <ClCompile Include="src\TargetCollection.cpp" />
+    <ClCompile Include="src\WinMain.cpp" />
+    <ClCompile Include="src\XmlDocument.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Action.h" />
+    <ClInclude Include="src\ActionTarget.h" />
+    <ClInclude Include="src\ComboBox.h" />
+    <ClInclude Include="src\Configuration.h" />
+    <ClInclude Include="src\ConfigurationDialogBox.h" />
+    <ClInclude Include="src\ConfigurationImpl.h" />
+    <ClInclude Include="src\ConfigurationTreeView.h" />
+    <ClInclude Include="src\Credentials.h" />
+    <ClInclude Include="src\CredentialsCollection.h" />
+    <ClInclude Include="src\FindChildWindow.h" />
+    <ClInclude Include="src\FindTopLevelWindow.h" />
+    <ClInclude Include="src\FindWindowTarget.h" />
+    <ClInclude Include="src\KeystrokeManager.h" />
+    <ClInclude Include="src\MainWindow.h" />
+    <ClInclude Include="src\NullTarget.h" />
+    <ClInclude Include="src\resource.h" />
+    <ClInclude Include="src\Target.h" />
+    <ClInclude Include="src\TargetCollection.h" />
+    <ClInclude Include="src\TargetConstants.h" />
+    <ClInclude Include="src\WindowMetrics.h" />
+    <ClInclude Include="src\XmlDocument.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="res\MyGhostTypist.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="res\layout0409.xml" />
+    <Xml Include="res\layout0411.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\ghost.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

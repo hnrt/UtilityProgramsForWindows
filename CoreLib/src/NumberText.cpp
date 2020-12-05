@@ -1,0 +1,105 @@
+#include "pch.h"
+#include "hnrt/String.h"
+#include "hnrt/NumberText.h"
+#include "NumberTextInternal.h"
+
+
+using namespace hnrt;
+
+
+NumberFormatter::NumberFormatter()
+{
+    if (!GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SGROUPING, m_szGrouping, _countof(m_szGrouping)))
+    {
+        wcscpy_s(m_szGrouping, L"3;0");
+    }
+    if (!GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SDECIMAL, m_szDecimal, _countof(m_szDecimal)))
+    {
+        wcscpy_s(m_szDecimal, L".");
+    }
+    if (!GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_STHOUSAND, m_szThousand, _countof(m_szThousand)))
+    {
+        wcscpy_s(m_szThousand, L",");
+    }
+    m_numfmt.NumDigits = 0;
+    m_numfmt.LeadingZero = 0;
+    m_numfmt.Grouping = static_cast<UINT>(wcstoul(m_szGrouping, nullptr, 10));
+    m_numfmt.lpDecimalSep = m_szDecimal;
+    m_numfmt.lpThousandSep = m_szThousand;
+    m_numfmt.NegativeOrder = 1;
+}
+
+
+static NumberFormatter s_NumberFormatter;
+
+
+NumberText::NumberText(int value)
+    : StringBuffer(32)
+{
+    WCHAR sz[32];
+    _snwprintf_s(sz, _TRUNCATE, L"%d", value);
+    GetNumberFormatEx(LOCALE_NAME_USER_DEFAULT, 0, sz, &s_NumberFormatter, m_ptr, static_cast<int>(m_cap));
+}
+
+
+NumberText::NumberText(unsigned int value)
+    : StringBuffer(32)
+{
+    WCHAR sz[32];
+    _snwprintf_s(sz, _TRUNCATE, L"%u", value);
+    GetNumberFormatEx(LOCALE_NAME_USER_DEFAULT, 0, sz, &s_NumberFormatter, m_ptr, static_cast<int>(m_cap));
+}
+
+
+NumberText::NumberText(short value)
+    : StringBuffer(16)
+{
+    WCHAR sz[16];
+    _snwprintf_s(sz, _TRUNCATE, L"%d", value);
+    GetNumberFormatEx(LOCALE_NAME_USER_DEFAULT, 0, sz, &s_NumberFormatter, m_ptr, static_cast<int>(m_cap));
+}
+
+
+NumberText::NumberText(unsigned short value)
+    : StringBuffer(16)
+{
+    WCHAR sz[16];
+    _snwprintf_s(sz, _TRUNCATE, L"%u", value);
+    GetNumberFormatEx(LOCALE_NAME_USER_DEFAULT, 0, sz, &s_NumberFormatter, m_ptr, static_cast<int>(m_cap));
+}
+
+
+NumberText::NumberText(long value)
+    : StringBuffer(32)
+{
+    WCHAR sz[32];
+    _snwprintf_s(sz, _TRUNCATE, L"%ld", value);
+    GetNumberFormatEx(LOCALE_NAME_USER_DEFAULT, 0, sz, &s_NumberFormatter, m_ptr, static_cast<int>(m_cap));
+}
+
+
+NumberText::NumberText(unsigned long value)
+    : StringBuffer(32)
+{
+    WCHAR sz[32];
+    _snwprintf_s(sz, _TRUNCATE, L"%lu", value);
+    GetNumberFormatEx(LOCALE_NAME_USER_DEFAULT, 0, sz, &s_NumberFormatter, m_ptr, static_cast<int>(m_cap));
+}
+
+
+NumberText::NumberText(long long value)
+    : StringBuffer(64)
+{
+    WCHAR sz[64];
+    _snwprintf_s(sz, _TRUNCATE, L"%lld", value);
+    GetNumberFormatEx(LOCALE_NAME_USER_DEFAULT, 0, sz, &s_NumberFormatter, m_ptr, static_cast<int>(m_cap));
+}
+
+
+NumberText::NumberText(unsigned long long value)
+    : StringBuffer(64)
+{
+    WCHAR sz[64];
+    _snwprintf_s(sz, _TRUNCATE, L"%llu", value);
+    GetNumberFormatEx(LOCALE_NAME_USER_DEFAULT, 0, sz, &s_NumberFormatter, m_ptr, static_cast<int>(m_cap));
+}

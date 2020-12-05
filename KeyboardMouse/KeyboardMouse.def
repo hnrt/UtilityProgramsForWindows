@@ -1,0 +1,11 @@
+EXPORTS
+	RunServer
+	StartServer
+	StopServer
+	GetBlockInputState
+	SetBlockInputState
+	SetToggleKeySequence
+	StartAgent
+	StopAgent
+	GetWindowKeyboardState
+	SetWindowKeyboardState

@@ -1,0 +1,1 @@
+New-SelfSignedCertificate -Subject "pc.example.com" -DnsName "pc.example.com" -CertStoreLocation "cert:\LocalMachine\My" -KeyAlgorithm RSA -KeyLength 2048 -KeyExportPolicy Exportable -NotAfter (Get-Date).AddYears(10) 

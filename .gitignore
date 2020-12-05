@@ -1,0 +1,19 @@
+# Compiled Object files
+*.obj
+
+# Compiled Dynamic libraries
+*.dll
+
+# Compiled Static libraries
+*.lib
+
+# Executables
+*.exe
+
+# custom
+*.user
+*.aps
+.vs
+obj
+lib
+bin
