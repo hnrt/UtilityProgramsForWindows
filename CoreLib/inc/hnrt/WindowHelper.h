@@ -12,6 +12,7 @@ namespace hnrt
     public:
 
         WindowHelper(HWND hwnd = nullptr);
+        WindowHelper(HWND hwnd, int nDlgItem);
         WindowHelper(const WindowHelper& rhs);
         ~WindowHelper() = default;
         WindowHelper& operator =(const WindowHelper& rhs);
@@ -25,15 +26,23 @@ namespace hnrt
         PCWSTR get_WindowText() const;
         void set_WindowText(PCWSTR pszWindowText);
         WindowHelper get_Parent() const;
-        bool get_IsTopLevel() const;
+        DWORD get_Style() const;
+        DWORD get_ExStyle() const;
+        DWORD get_Id() const;
+        bool get_IsDisabled() const;
         bool get_IsVisible() const;
+        bool get_IsChild() const;
         __declspec(property(get = get_ProcessId, put = set_ProcessId)) DWORD ProcessId;
         __declspec(property(get = get_ThreadId)) DWORD ThreadId;
         __declspec(property(get = get_ClassName, put = set_ClassName)) PCWSTR ClassName;
         __declspec(property(get = get_WindowText, put = set_WindowText)) PCWSTR WindowText;
         __declspec(property(get = get_Parent)) WindowHelper Parent;
-        __declspec(property(get = get_IsTopLevel)) bool IsTopLevel;
+        __declspec(property(get = get_Style)) DWORD Style;
+        __declspec(property(get = get_ExStyle)) DWORD ExStyle;
+        __declspec(property(get = get_Id)) DWORD Id;
+        __declspec(property(get = get_IsDisabled)) bool IsDisabled;
         __declspec(property(get = get_IsVisible)) bool IsVisible;
+        __declspec(property(get = get_IsChild)) bool IsChild;
 
         static HWND FindTopLevelWindow(PCWSTR pszClassName, PCWSTR pszWindowText, DWORD dwProcessId);
         HWND FindChildWindow(PCWSTR pszClassName, PCWSTR pszWindowText);
@@ -50,6 +59,15 @@ namespace hnrt
 
     inline WindowHelper::WindowHelper(HWND hwnd)
         : m_hwnd(hwnd)
+        , m_dwProcessId(0)
+        , m_dwThreadId(0)
+        , m_ClassName()
+        , m_WindowText()
+    {
+    }
+
+    inline WindowHelper::WindowHelper(HWND hwnd, int nDlgItem)
+        : m_hwnd(GetDlgItem(hwnd, nDlgItem))
         , m_dwProcessId(0)
         , m_dwThreadId(0)
         , m_ClassName()
@@ -139,7 +157,7 @@ namespace hnrt
             while (true)
             {
                 int rc = GetClassNameW(m_hwnd, m_ClassName, static_cast<int>(m_ClassName.Len));
-                if (rc < m_ClassName.Len - 1)
+                if (rc < static_cast<int>(m_ClassName.Len) - 1)
                 {
                     break;
                 }
@@ -165,15 +183,33 @@ namespace hnrt
         return WindowHelper(GetParent(m_hwnd));
     }
 
-    inline bool WindowHelper::get_IsTopLevel() const
+    inline DWORD WindowHelper::get_Style() const
     {
-        DWORD dwStyle = GetWindowLongW(m_hwnd, GWL_STYLE);
-        return (dwStyle & WS_CHILD) ? false : true;
+        return GetWindowLongW(m_hwnd, GWL_STYLE);
+    }
+
+    inline DWORD WindowHelper::get_ExStyle() const
+    {
+        return GetWindowLongW(m_hwnd, GWL_EXSTYLE);
+    }
+
+    inline DWORD WindowHelper::get_Id() const
+    {
+        return GetWindowLongW(m_hwnd, GWL_ID);
+    }
+
+    inline bool WindowHelper::get_IsDisabled() const
+    {
+        return (Style & WS_DISABLED) ? true : false;
     }
 
     inline bool WindowHelper::get_IsVisible() const
     {
-        DWORD dwStyle = GetWindowLongW(m_hwnd, GWL_STYLE);
-        return (dwStyle & WS_VISIBLE) ? true : false;
+        return (Style & WS_VISIBLE) ? true : false;
+    }
+
+    inline bool WindowHelper::get_IsChild() const
+    {
+        return (Style & WS_CHILD) ? true : false;
     }
 }

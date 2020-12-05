@@ -6,6 +6,7 @@
 #include "hnrt/Debug.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/WindowsPlatform.h"
+#include "hnrt/WindowHelper.h"
 
 
 #define WINDOW_CLASSNAME L"KeyboardMouseServerMessageWindowClass"
@@ -426,19 +427,18 @@ LRESULT ServerWindow::SetInputMode(HWND hwnd, LONG value)
 
 AgentHook* ServerWindow::AddAgentHook(HWND hwnd)
 {
-    DWORD dwProcessId = 0;
-    DWORD dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
-    if (dwThreadId)
+    WindowHelper w(hwnd);
+    if (w.ThreadId)
     {
-        std::map<DWORD, AgentHook*>::iterator iter = m_AgentHooks.find(dwThreadId);
+        std::map<DWORD, AgentHook*>::iterator iter = m_AgentHooks.find(w.ThreadId);
         if (iter != m_AgentHooks.end())
         {
             return iter->second;
         }
         else
         {
-            AgentHook* pAgentHook = new AgentHook(m_hModule, hwnd, dwThreadId);
-            m_AgentHooks.insert(std::pair<DWORD, AgentHook*>(dwThreadId, pAgentHook));
+            AgentHook* pAgentHook = new AgentHook(m_hModule, hwnd, w.ThreadId);
+            m_AgentHooks.insert(std::pair<DWORD, AgentHook*>(w.ThreadId, pAgentHook));
             return pAgentHook;
         }
     }
@@ -451,18 +451,14 @@ AgentHook* ServerWindow::AddAgentHook(HWND hwnd)
 
 AgentHook* ServerWindow::GetAgentHook(HWND hwnd)
 {
-    DWORD dwProcessId = 0;
-    DWORD dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
-    std::map<DWORD, AgentHook*>::iterator iter = m_AgentHooks.find(dwThreadId);
+    std::map<DWORD, AgentHook*>::iterator iter = m_AgentHooks.find(WindowHelper(hwnd).ThreadId);
     return iter != m_AgentHooks.end() ? iter->second : nullptr;
 }
 
 
 AgentHook* ServerWindow::RemoveAgentHook(HWND hwnd)
 {
-    DWORD dwProcessId = 0;
-    DWORD dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
-    std::map<DWORD, AgentHook*>::iterator iter = m_AgentHooks.find(dwThreadId);
+    std::map<DWORD, AgentHook*>::iterator iter = m_AgentHooks.find(WindowHelper(hwnd).ThreadId);
     if (iter != m_AgentHooks.end())
     {
         AgentHook* pAgentHook = iter->second;

@@ -2,6 +2,7 @@
 #include "WindowFinder.h"
 #include "hnrt/Args.h"
 #include "hnrt/Exception.h"
+#include "hnrt/WindowHelper.h"
 
 
 using namespace hnrt;
@@ -11,6 +12,7 @@ WindowFinder::WindowFinder()
     : m_windowList()
     , m_dwStyleMask(WS_DISABLED | WS_VISIBLE)
     , m_dwStyleRequired(WS_VISIBLE)
+    , m_Depth(0)
 {
 }
 
@@ -47,57 +49,52 @@ void WindowFinder::ParseCommandLine(int argc, wchar_t* argv[])
 
 void WindowFinder::Run()
 {
+    m_Depth = 0;
     EnumWindows(EnumWindowsCallback, reinterpret_cast<LPARAM>(this));
-
-    for (std::list<WindowInfo*>::const_iterator iter = m_windowList.begin(); iter != m_windowList.end(); iter++)
-    {
-        WindowInfo* pInfo = *iter;
-        if ((pInfo->Style & m_dwStyleMask) != m_dwStyleRequired)
-        {
-            continue;
-        }
-        pInfo->FindChildren();
-        wprintf(L"\"%s\" %s %08lX %08lX%s\n",
-            pInfo->Text ? (*iter)->Text : L"",
-            pInfo->ClassName,
-            pInfo->Style,
-            pInfo->ExStyle,
-            pInfo->IsDisabled && !pInfo->IsVisible ? L" [DISABLED+INVISIBLE]" :
-            pInfo->IsDisabled ? L" [DISABLED]" :
-            !pInfo->IsVisible ? L" [INVISIBLE]" :
-            L"");
-        for (std::list<WindowInfo*>::const_iterator iter = pInfo->Begin(); iter != pInfo->End(); iter++)
-        {
-            Put(*iter, 1);
-        }
-    }
 }
 
 
-BOOL CALLBACK WindowFinder::EnumWindowsCallback(
-    _In_ HWND   hwnd,
-    _In_ LPARAM lParam)
+BOOL CALLBACK WindowFinder::EnumWindowsCallback(HWND hwnd, LPARAM lParam)
 {
     WindowFinder* pThis = reinterpret_cast<WindowFinder*>(lParam);
-    pThis->m_windowList.push_back(new WindowInfo(hwnd));
-    return TRUE;
+    return pThis->Put(hwnd);
 }
 
 
-void WindowFinder::Put(const WindowInfo* pInfo, int depth)
+BOOL WindowFinder::Put(HWND hwnd)
 {
-    for (int i = 0; i < depth; i++)
+    WindowHelper w(hwnd);
+    if (!m_Depth)
     {
-        wprintf(L"    ");
+        if ((w.Style & m_dwStyleMask) != m_dwStyleRequired)
+        {
+            return TRUE;
+        }
+        wprintf(L"\"%s\" %s %08lX %08lX%s\n",
+            w.WindowText ? w.WindowText : L"",
+            w.ClassName,
+            w.Style,
+            w.ExStyle,
+            w.IsDisabled && !w.IsVisible ? L" [DISABLED+INVISIBLE]" :
+            w.IsDisabled ? L" [DISABLED]" :
+            !w.IsVisible ? L" [INVISIBLE]" :
+            L"");
     }
-    wprintf(L"\"%s\" %s %08lX %08lX %ld\n",
-        pInfo->Text ? pInfo->Text : L"",
-        pInfo->ClassName,
-        pInfo->Style,
-        pInfo->ExStyle,
-        pInfo->Id);
-    for (std::list<WindowInfo*>::const_iterator iter = pInfo->Begin(); iter != pInfo->End(); iter++)
+    else
     {
-        Put(*iter, depth + 1);
+        for (int i = 0; i < m_Depth; i++)
+        {
+            wprintf(L"    ");
+        }
+        wprintf(L"\"%s\" %s %08lX %08lX %ld\n",
+            w.WindowText ? w.WindowText : L"",
+            w.ClassName,
+            w.Style,
+            w.ExStyle,
+            w.Id);
     }
+    m_Depth++;
+    EnumChildWindows(w, EnumWindowsCallback, reinterpret_cast<LPARAM>(this));
+    m_Depth--;
+    return TRUE;
 }

@@ -8,6 +8,7 @@
 #include "hnrt/Win32Exception.h"
 #include "hnrt/String.h"
 #include "hnrt/WindowsPlatform.h"
+#include "hnrt/WindowHelper.h"
 #include "hnrt/Path.h"
 
 
@@ -309,9 +310,7 @@ BOOL Client::StartAgent(HWND hwnd)
     LRESULT lRet = FALSE;
     if (hwnd)
     {
-        DWORD dwProcessId = 0;
-        DWORD dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
-        int bitness = WindowsPlatform::ProcessBitness(dwProcessId);
+        int bitness = WindowsPlatform::ProcessBitness(WindowHelper(hwnd).ProcessId);
         if (bitness == 64)
         {
             lRet = SendMessageW(reinterpret_cast<HWND>(static_cast<DWORD_PTR>(m_pServerBlock->hwndMessage64)), WM_APP_START_AGENT, reinterpret_cast<WPARAM>(hwnd), 0);
@@ -330,9 +329,7 @@ BOOL Client::StopAgent(HWND hwnd)
     LRESULT lRet = FALSE;
     if (hwnd)
     {
-        DWORD dwProcessId = 0;
-        DWORD dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
-        int bitness = WindowsPlatform::ProcessBitness(dwProcessId);
+        int bitness = WindowsPlatform::ProcessBitness(WindowHelper(hwnd).ProcessId);
         if (bitness == 64 && m_pServerBlock->hwndMessage64)
         {
             lRet = SendMessageW(reinterpret_cast<HWND>(static_cast<DWORD_PTR>(m_pServerBlock->hwndMessage64)), WM_APP_STOP_AGENT, reinterpret_cast<WPARAM>(hwnd), 0);
@@ -362,9 +359,7 @@ DWORD Client::GetKeyboardState(HWND hwnd, DWORD dwMask)
     if (hwnd)
     {
         HWND hwndServer;
-        DWORD dwProcessId = 0;
-        DWORD dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
-        int bitness = WindowsPlatform::ProcessBitness(dwProcessId);
+        int bitness = WindowsPlatform::ProcessBitness(WindowHelper(hwnd).ProcessId);
         if (bitness == 64)
         {
             hwndServer = reinterpret_cast<HWND>(static_cast<DWORD_PTR>(m_pServerBlock->hwndMessage64));
@@ -430,9 +425,7 @@ DWORD Client::SetKeyboardState(HWND hwnd, DWORD dwState, DWORD dwMask)
     if (hwnd)
     {
         HWND hwndServer;
-        DWORD dwProcessId = 0;
-        DWORD dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
-        int bitness = WindowsPlatform::ProcessBitness(dwProcessId);
+        int bitness = WindowsPlatform::ProcessBitness(WindowHelper(hwnd).ProcessId);
         if (bitness == 64)
         {
             hwndServer = reinterpret_cast<HWND>(static_cast<DWORD_PTR>(m_pServerBlock->hwndMessage64));

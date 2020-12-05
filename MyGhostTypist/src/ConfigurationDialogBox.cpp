@@ -395,7 +395,7 @@ INT_PTR ConfigurationDialogBox::OnLeftButtonDown(HWND hwnd, WPARAM wParam, LPARA
                 m_tv.AddFindWindow(L"?", L"?"); // discards current pTarget - needs to be refreshed
                 pTarget = m_tv.SelectedTarget;
             }
-            if (hwndInterest.IsTopLevel)
+            if (!hwndInterest.IsChild)
             {
                 DBGPUT(L"class=\"%s\" text=\"%s\" process=%lu thread=%lu", hwndInterest.ClassName, hwndInterest.WindowText, hwndInterest.ProcessId, hwndInterest.ThreadId);
                 pTarget->FindWindowTargetPtr->Set(hwndInterest.ClassName, hwndInterest.WindowText);
@@ -408,7 +408,7 @@ INT_PTR ConfigurationDialogBox::OnLeftButtonDown(HWND hwnd, WPARAM wParam, LPARA
                 while ((hwndInterest = hwndInterest.Parent))
                 {
                     DBGPUT(L"class=\"%s\" text=\"%s\" process=%lu thread=%lu", hwndInterest.ClassName, hwndInterest.WindowText, hwndInterest.ProcessId, hwndInterest.ThreadId);
-                    if (hwndInterest.IsTopLevel)
+                    if (!hwndInterest.IsChild)
                     {
                         DBGPUT(L"This is what I want.");
                         pTarget->FindWindowTargetPtr->Set(hwndInterest.ClassName, hwndInterest.WindowText, hwndFirst.ClassName, hwndFirst.WindowText);

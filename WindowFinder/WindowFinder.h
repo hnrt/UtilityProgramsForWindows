@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "WindowInfo.h"
+#include <Windows.h>
 #include <list>
 
 
@@ -20,13 +20,13 @@ namespace hnrt
 
     private:
 
-        static BOOL CALLBACK EnumWindowsCallback(
-            _In_ HWND   hwnd,
-            _In_ LPARAM lParam);
-        static void Put(const WindowInfo* pInfo, int depth);
+        BOOL Put(HWND hwnd);
 
-        std::list<WindowInfo*> m_windowList;
+        static BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam);
+
+        std::list<HWND> m_windowList;
         DWORD m_dwStyleMask;
         DWORD m_dwStyleRequired;
+        int m_Depth;
     };
 }
