@@ -77,7 +77,7 @@ bool FindWindowTarget::Find(HWND* phwnd1, HWND* phwnd2) const
             Buffer<WCHAR> szWt(pWtSp - m_pszWindowText + 1);
             wcsncpy_s(szCn, szCn.Len, m_pszClassName, szCn.Len - 1);
             wcsncpy_s(szWt, szWt.Len, m_pszWindowText, szWt.Len - 1);
-            HWND hwnd1 = FindWindowW(szCn, szWt);
+            hwnd1 = FindWindowW(szCn, szWt);
             if (hwnd1)
             {
                 size_t cchSp = wcslen(SEPARATOR);
