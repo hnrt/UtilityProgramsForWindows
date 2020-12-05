@@ -10,7 +10,7 @@ namespace hnrt
     {
     public:
 
-        ComLibrary(DWORD dwCoInit = COINIT_MULTITHREADED);
+        ComLibrary(DWORD dwCoInit = COINIT_APARTMENTTHREADED);
         ComLibrary(const ComLibrary&) = delete;
         ~ComLibrary();
         void operator =(const ComLibrary&) = delete;

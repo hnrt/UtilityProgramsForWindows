@@ -78,7 +78,7 @@ const IP_ADAPTER_ADDRESSES* AdapterAddressCollection::operator [](ULONG index) c
 
 const IP_ADAPTER_ADDRESSES* AdapterAddressCollection::FindSameSubnetIPv4(PCWSTR pszIPv4)
 {
-    wchar_t* pStop = nullptr;
+    PWCHAR pStop = nullptr;
     ULONG a1 = wcstoul(pszIPv4, &pStop, 10);
     if (*pStop != L'.')
     {

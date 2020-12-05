@@ -33,7 +33,7 @@ DoubleNullTerminatedStringArray& DoubleNullTerminatedStringArray::operator =(con
     if (src.m_pszz)
     {
         size_t count = 0;
-        wchar_t* pCur = src.m_pszz;
+        PWCHAR pCur = src.m_pszz;
         while (true)
         {
             count++;
@@ -45,7 +45,7 @@ DoubleNullTerminatedStringArray& DoubleNullTerminatedStringArray::operator =(con
         }
         pCur++;
         m_pszz = Allocate(m_pszz, pCur - src.m_pszz);
-        size_t cb = (pCur - src.m_pszz) * sizeof(wchar_t);
+        size_t cb = (pCur - src.m_pszz) * sizeof(WCHAR);
         memcpy_s(m_pszz, cb, src.m_pszz, cb);
         m_count = count;
     }
@@ -66,9 +66,9 @@ PCWSTR DoubleNullTerminatedStringArray::operator [](ULONG index)
         throw Exception(L"DoubleNullTerminatedStringArray::operator []: Index out of range.");
     }
 
-    wchar_t* pCur = m_pszz;
+    PWCHAR pCur = m_pszz;
 
-    unsigned long skip = index;
+    ULONG skip = index;
     while (skip--)
     {
         pCur += wcslen(pCur) + 1;
@@ -105,7 +105,7 @@ DoubleNullTerminatedStringArray& DoubleNullTerminatedStringArray::Add(PCWSTR psz
     size_t cch1;
     if (m_pszz)
     {
-        wchar_t* pCur = m_pszz;
+        PWCHAR pCur = m_pszz;
         while (true)
         {
             count++;
@@ -125,9 +125,9 @@ DoubleNullTerminatedStringArray& DoubleNullTerminatedStringArray::Add(PCWSTR psz
     count++;
     size_t cch2 = wcslen(psz) + 1;
 
-    wchar_t* pszz = Allocate(m_pszz, cch1 + cch2 + 1);
-    size_t cb = (cch2 + 1) * sizeof(wchar_t);
-    memcpy_s(pszz + cch1, (cch2 + 1) * sizeof(wchar_t), psz, cch2 * sizeof(wchar_t));
+    PWCHAR pszz = Allocate(m_pszz, cch1 + cch2 + 1);
+    size_t cb = (cch2 + 1) * sizeof(WCHAR);
+    memcpy_s(pszz + cch1, (cch2 + 1) * sizeof(WCHAR), psz, cch2 * sizeof(WCHAR));
     pszz[cch1 + cch2] = L'\0';
 
     m_pszz = pszz;

@@ -233,7 +233,7 @@ void KeyCatcher::Save()
         case WM_SYSDEADCHAR:
             s.AppendFormat(L"%s", WindowsMessage(km.uMessage).Name);
             {
-                wchar_t c = static_cast<wchar_t>(km.wParam);
+                WCHAR c = static_cast<WCHAR>(km.wParam);
                 if (iswprint(c) && c != L'\"')
                 {
                     s.AppendFormat(L",\"%c\"", c);
@@ -252,7 +252,7 @@ void KeyCatcher::Save()
         }
     }
     FileWriter f(m_pszFileName);
-    f.Write(s.Ptr, s.Len * sizeof(wchar_t));
+    f.Write(s.Ptr, s.Len * sizeof(WCHAR));
     f.Close();
 }
 

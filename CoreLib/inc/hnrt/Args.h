@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include <Windows.h>
+
+
 namespace hnrt
 {
     class Args
@@ -8,7 +11,7 @@ namespace hnrt
     public:
 
         ~Args() {}
-        Args(int argc, wchar_t *argv[], int startIndex = 1);
+        Args(int argc, PWSTR argv[], int startIndex = 1);
         Args(const Args&) = delete;
         bool Exists(int delta = 0) const { return 0 < m_index + delta && m_index + delta < m_argc; }
         PCWSTR operator *() const { return m_index < m_argc ? m_argv[m_index] : nullptr; }
@@ -22,7 +25,7 @@ namespace hnrt
 
     private:
 
-        wchar_t** m_argv;
+        PWSTR* m_argv;
         int m_argc;
         int m_index;
     };

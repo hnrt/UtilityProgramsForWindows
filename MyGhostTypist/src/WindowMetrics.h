@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <Windows.h>
 #include <string.h>
 
 
@@ -55,7 +56,7 @@ namespace hnrt
 
     inline bool LTRB::Parse(PCWSTR psz)
     {
-        wchar_t* pEnd;
+        PWSTR pEnd;
         long n1 = wcstol(psz, &pEnd, 10);
         if (*pEnd == L'\0')
         {

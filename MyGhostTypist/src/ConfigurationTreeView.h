@@ -44,7 +44,7 @@ namespace hnrt
         void MoveUpSelectedCredentials();
         void MoveDownSelectedCredentials();
         void AddTarget();
-        void AddFindWindow(PCWSTR pszClassName, const wchar_t *pszWindowText);
+        void AddFindWindow(PCWSTR pszClassName, PCWSTR pszWindowText);
         void AddActionItem(PCWSTR);
         void RemoveSelectedTarget();
         void RemoveSelectedActionItem();

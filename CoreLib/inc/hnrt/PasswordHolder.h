@@ -18,7 +18,7 @@ namespace hnrt
         PCWSTR get_Encrypted() const;
         void set_Encrypted(PCWSTR psz);
         PCWSTR get_PlainText() const;
-        void set_PlainText(const wchar_t *psz);
+        void set_PlainText(PCWSTR psz);
         void ClearPlainText();
         __declspec(property(get = get_Encrypted, put = set_Encrypted)) PCWSTR Encrypted;
         __declspec(property(get = get_PlainText, put = set_PlainText)) PCWSTR PlainText;
@@ -26,7 +26,7 @@ namespace hnrt
     private:
 
         RefPtr<Secret> m_pSecret;
-        Buffer<wchar_t> m_Encrypted;
-        Buffer<wchar_t> m_PlainText;
+        Buffer<WCHAR> m_Encrypted;
+        Buffer<WCHAR> m_PlainText;
     };
 }

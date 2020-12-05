@@ -26,7 +26,7 @@ namespace hnrt
 
     protected:
 
-        wchar_t* m_pszz;
+        PWCHAR m_pszz;
         size_t m_count;
     };
 

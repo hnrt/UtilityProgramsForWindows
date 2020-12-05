@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <Windows.h>
 #include <malloc.h>
 
 
@@ -10,8 +11,8 @@ namespace hnrt
     void* Realloc(void* ptr, size_t nbytes);
     void* Calloc(size_t count, size_t nbytes);
 
-    char* Clone(const char* psz);
-    wchar_t* Clone(PCWSTR psz);
+    PSTR Clone(PCSTR psz);
+    PWSTR Clone(PCWSTR psz);
 
     template<typename T>
     T* Allocate(size_t count)

@@ -17,7 +17,7 @@ namespace hnrt
         void operator =(const RefObj& src);
         virtual ULONG AddRef();
         virtual ULONG Release();
-        unsigned long get_RefCnt() const;
+        ULONG get_RefCnt() const;
         __declspec(property(get = get_RefCnt)) ULONG RefCnt;
 
     protected:

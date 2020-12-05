@@ -9,7 +9,7 @@ using namespace hnrt;
 
 struct CoInitFlags
 {
-    wchar_t Text[64];
+    WCHAR Text[64];
     CoInitFlags(DWORD dwCoInit)
     {
         StringBuffer sb(64);
@@ -71,9 +71,9 @@ PCWSTR ComLibrary::ToString(HRESULT hr)
 #undef  CASE
     default: break;
     }
-    static unsigned long next = 0;
-    static wchar_t buf[16][10];
-    unsigned long index = _InterlockedIncrement(&next) % 16;
+    static ULONG next = 0;
+    static WCHAR buf[16][10];
+    ULONG index = InterlockedIncrement(&next) % 16;
     _snwprintf_s(buf[index], _TRUNCATE, L"%08X", static_cast<int>(hr));
     return buf[index];
 }

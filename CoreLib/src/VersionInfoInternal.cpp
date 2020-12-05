@@ -62,12 +62,12 @@ VersionInfoInternal::VersionInfoInternal(PCWSTR pszFileName)
     {
         throw Exception(L"VerQueryValue(\\VarFileInfo\\Translation)");
     }
-    m_cStringFileInfo = static_cast<unsigned long>(uLen / (2 * sizeof(WORD)));
+    m_cStringFileInfo = static_cast<ULONG>(uLen / (2 * sizeof(WORD)));
     if (m_cStringFileInfo)
     {
         m_pStringFileInfo = new StringFileInfo[m_cStringFileInfo];
         memset(m_pStringFileInfo, 0, m_cStringFileInfo * sizeof(StringFileInfo));
-        for (unsigned long index = 0; index < m_cStringFileInfo; index++)
+        for (ULONG index = 0; index < m_cStringFileInfo; index++)
         {
             m_pStringFileInfo[index].wLanguage = *pTranslation++;
             m_pStringFileInfo[index].wCodePage = *pTranslation++;
@@ -96,7 +96,7 @@ VersionInfoInternal::~VersionInfoInternal()
 }
 
 
-void VersionInfoInternal::QueryString(WORD wLanguage, WORD wCodePage, PCWSTR pszName, wchar_t*& pszValue)
+void VersionInfoInternal::QueryString(WORD wLanguage, WORD wCodePage, PCWSTR pszName, PWSTR& pszValue)
 {
     StringBuffer sb(80);
     sb.AppendFormat(L"\\StringFileInfo\\%04x%04x\\%s", wLanguage, wCodePage, pszName);
@@ -108,13 +108,13 @@ void VersionInfoInternal::QueryString(WORD wLanguage, WORD wCodePage, PCWSTR psz
 }
 
 
-bool VersionInfoInternal::Select(unsigned short wLanguage)
+bool VersionInfoInternal::Select(WORD wLanguage)
 {
     if (wLanguage == 0xFFFF)
     {
         wLanguage = GetUserDefaultLangID();
     }
-    for (unsigned long index = 0; index < m_cStringFileInfo; index++)
+    for (ULONG index = 0; index < m_cStringFileInfo; index++)
     {
         if (m_pStringFileInfo[index].wLanguage == wLanguage)
         {
@@ -122,7 +122,7 @@ bool VersionInfoInternal::Select(unsigned short wLanguage)
             return true;
         }
     }
-    for (unsigned long index = 0; index < m_cStringFileInfo; index++)
+    for (ULONG index = 0; index < m_cStringFileInfo; index++)
     {
         if (LANGID(m_pStringFileInfo[index].wLanguage) == LANGID(wLanguage))
         {

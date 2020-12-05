@@ -15,7 +15,7 @@ using namespace hnrt;
 ////////////////////////////////////////////////////////////////////////////
 
 
-typedef std::stack<wchar_t*> FuncNameStack;
+typedef std::stack<PWSTR> FuncNameStack;
 
 
 static DWORD s_dwTlsIndex = TlsAlloc();
@@ -35,7 +35,7 @@ static PCWSTR GetFuncName()
 }
 
 
-static void PushFuncName(wchar_t* pszFuncName)
+static void PushFuncName(PWSTR pszFuncName)
 {
     FuncNameStack* pStack = reinterpret_cast<FuncNameStack*>(TlsGetValue(s_dwTlsIndex));
     if (!pStack)
@@ -47,7 +47,7 @@ static void PushFuncName(wchar_t* pszFuncName)
 }
 
 
-static wchar_t* PopFuncName()
+static PWSTR PopFuncName()
 {
     FuncNameStack* pStack = reinterpret_cast<FuncNameStack*>(TlsGetValue(s_dwTlsIndex));
     if (!pStack)
@@ -58,7 +58,7 @@ static wchar_t* PopFuncName()
     {
         throw Exception(L"Debug::PopFuncName: Empty stack.");
     }
-    wchar_t* pszFuncName = pStack->top();
+    PWSTR pszFuncName = pStack->top();
     pStack->pop();
     return pszFuncName;
 }

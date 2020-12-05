@@ -246,7 +246,7 @@ void MsiFileReader::CommandDescribeTable()
     {
         throw Exception(L"No such table.");
     }
-    static const wchar_t szFormat[] = { L"%s%s%s%s%s%s%s%s%s%s%s\n" };
+    static const WCHAR szFormat[] = { L"%s%s%s%s%s%s%s%s%s%s%s\n" };
     if (m_bHeader)
     {
         wprintf(szFormat,

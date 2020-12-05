@@ -53,7 +53,7 @@ int KeyboardBitMap::Parse(PCWSTR psz, int* piErrors)
         DBGPUT(L"return=0 errors=0");
         return 0;
     }
-    Buffer<wchar_t> szCopy(wcslen(psz) + 1 + 3);
+    Buffer<WCHAR> szCopy(wcslen(psz) + 1 + 3);
     wcscpy_s(szCopy + 3, szCopy.Len - 3, psz);
     int iParsed = 0;
     int iErrors = 0;

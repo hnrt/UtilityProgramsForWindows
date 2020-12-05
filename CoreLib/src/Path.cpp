@@ -4,6 +4,7 @@
 #include "hnrt/String.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/ComException.h"
+#include "hnrt/WindowsHandle.h"
 
 
 using namespace hnrt;
@@ -14,7 +15,7 @@ using namespace hnrt;
 #define EXTENSION_LEADER_CHAR L'.'
 
 
-const wchar_t Path::DirectorySeparatorChar = DIRECTORY_SEPARATOR_CHAR;
+const WCHAR Path::DirectorySeparatorChar = DIRECTORY_SEPARATOR_CHAR;
 PCWSTR Path::DirectorySeparator = L"\\";
 
 
@@ -238,7 +239,7 @@ int Path::Compare(PCWSTR psz1, PCWSTR psz2)
 }
 
 
-int Path::Compare(const char* psz1, const char* psz2)
+int Path::Compare(PCSTR psz1, PCSTR psz2)
 {
     return String::CaseCompare(psz1, psz2);
 }
@@ -336,11 +337,10 @@ INT64 Path::GetSize(PCWSTR psz)
 {
     LARGE_INTEGER size;
     size.QuadPart = -1LL;
-    HANDLE h = CreateFileW(psz, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    WindowsHandle h = CreateFileW(psz, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (h != INVALID_HANDLE_VALUE)
     {
         GetFileSizeEx(h, &size);
-        CloseHandle(h);
     }
     return size.QuadPart;
 }

@@ -16,14 +16,14 @@
 using namespace hnrt;
 
 
-static std::map<PCWSTR, wchar_t, StringLessThan> s_CharNameMap;
+static std::map<PCWSTR, WCHAR, StringLessThan> s_CharNameMap;
 
 
 void KeystrokeManager::LoadLayout(PCWSTR pszFileName)
 {
     if (!s_CharNameMap.size())
     {
-#define INSERT(x,y) s_CharNameMap.insert(std::pair<PCWSTR, wchar_t>(x,y))
+#define INSERT(x,y) s_CharNameMap.insert(std::pair<PCWSTR, WCHAR>(x,y))
         INSERT(L"SPACE", 0x0020);
         INSERT(L"EXCLAMATION_MARK", 0x0021);
         INSERT(L"QUOTATION_MARK", 0x0022);
@@ -181,7 +181,7 @@ void KeystrokeManager::LoadLayout(PCWSTR pszFileName)
             throw ComException(hr, L"%s: Failed to get layout child name.", pszFileName);
         }
 
-        std::map<PCWSTR, wchar_t, StringLessThan>::const_iterator iter = s_CharNameMap.find(strName);
+        std::map<PCWSTR, WCHAR, StringLessThan>::const_iterator iter = s_CharNameMap.find(strName);
         if (iter == s_CharNameMap.end())
         {
             throw Exception(L"%s: Invalid element: %s", pszFileName, strName);
@@ -199,7 +199,7 @@ void KeystrokeManager::LoadLayout(PCWSTR pszFileName)
         PCWSTR pEnd = pStart;
         while (true)
         {
-            wchar_t c = *pEnd++;
+            WCHAR c = *pEnd++;
             if (c == L'\0')
             {
                 PCWSTR psz = String::Copy(pStart, (pEnd - 1) - pStart);

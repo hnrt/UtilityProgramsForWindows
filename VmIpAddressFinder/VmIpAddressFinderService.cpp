@@ -90,7 +90,7 @@ void VmIpAddressFinder::RunService()
 
 PCWSTR VmIpAddressFinder::GetServiceCommandPath()
 {
-    wchar_t szFileName[MAX_PATH] = { 0 };
+    WCHAR szFileName[MAX_PATH] = { 0 };
     GetModuleFileNameW(NULL, szFileName, MAX_PATH);
     return String::Format(L"\"%s\" -run", szFileName);
 }

@@ -8,11 +8,11 @@
 using namespace hnrt;
 
 
-typedef std::map<unsigned long, PCWSTR> MessageMap;
-typedef std::pair<unsigned long, PCWSTR> MessageMapEntry;
+typedef std::map<DWORD, PCWSTR> MessageMap;
+typedef std::pair<DWORD, PCWSTR> MessageMapEntry;
 
 
-PCWSTR ErrorMessage::Get(unsigned long code)
+PCWSTR ErrorMessage::Get(DWORD code)
 {
     static SpinLock::Type lockValue = SPIN_LOCK_INITIALIZER;
     static MessageMap msgMap;
@@ -22,7 +22,7 @@ PCWSTR ErrorMessage::Get(unsigned long code)
     {
         return iter->second;
     }
-    wchar_t* psz = nullptr;
+    PWSTR psz = nullptr;
     if (!FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, code, 0, reinterpret_cast<LPWSTR>(&psz), 260, NULL))
     {
         return String::Format(L"Error %lu", code);
@@ -37,8 +37,6 @@ PCWSTR ErrorMessage::Get(unsigned long code)
         }
     }
     pCur[0] = L'\0';
-    PCWSTR psz2 = String::Copy(psz);
-    msgMap.insert(MessageMapEntry(code, psz2));
-    LocalFree(reinterpret_cast<HLOCAL>(psz));
-    return psz2;
+    msgMap.insert(MessageMapEntry(code, psz));
+    return psz;
 }

@@ -6,7 +6,7 @@
 using namespace hnrt;
 
 
-static const wchar_t s_EncodingTable[65] = { L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" };
+static const WCHAR s_EncodingTable[65] = { L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" };
 
 
 Base64Encoder::Base64Encoder()

@@ -376,7 +376,7 @@ void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName,
 
 void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName, long lValue)
 {
-    wchar_t szValue[MAX_PATH];
+    WCHAR szValue[MAX_PATH];
     _snwprintf_s(szValue, _TRUNCATE, L"%ld", lValue);
     SetAttribute(pElement, pszName, szValue);
 }
@@ -384,7 +384,7 @@ void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName,
 
 void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName, const LTRB& value)
 {
-    wchar_t szValue[MAX_PATH];
+    WCHAR szValue[MAX_PATH];
     _snwprintf_s(szValue, _TRUNCATE, L"%ld,%ld,%ld,%ld", value.Left, value.Top, value.Right, value.Bottom);
     SetAttribute(pElement, pszName, szValue);
 }

@@ -21,7 +21,7 @@ PCWSTR String::Copy(PCWSTR psz, size_t cch)
     }
     else if (cch < MAX_PATH)
     {
-        wchar_t buf[MAX_PATH];
+        WCHAR buf[MAX_PATH];
         wcsncpy_s(buf, psz, cch);
         return StringStore::Get(buf);
     }
@@ -47,7 +47,7 @@ PCWSTR String::Append(PCWSTR psz1, PCWSTR psz2, size_t cch2)
     }
     if (cch1 + cch2 < MAX_PATH)
     {
-        wchar_t buf[MAX_PATH];
+        WCHAR buf[MAX_PATH];
         wcsncpy_s(buf, psz1, cch1);
         wcsncpy_s(buf + cch1, _countof(buf) - cch1, psz2, cch2);
         return StringStore::Get(buf);
@@ -84,7 +84,7 @@ PCWSTR String::VaFormat(PCWSTR pszFormat, va_list argList)
     }
     else if (cch < MAX_PATH)
     {
-        wchar_t buf[MAX_PATH];
+        WCHAR buf[MAX_PATH];
         _vsnwprintf_s(buf, _TRUNCATE, pszFormat, argList);
         return StringStore::Get(buf);
     }
@@ -120,7 +120,7 @@ PCWSTR String::VaAppendFormat(PCWSTR psz, PCWSTR pszFormat, va_list argList)
     }
     else if (cch1 + cch2 < MAX_PATH)
     {
-        wchar_t buf[MAX_PATH];
+        WCHAR buf[MAX_PATH];
         wcsncpy_s(buf, psz, cch1);
         _vsnwprintf_s(buf + cch1, _countof(buf) - cch1, _TRUNCATE, pszFormat, argList);
         return StringStore::Get(buf);

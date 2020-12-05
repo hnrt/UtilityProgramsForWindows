@@ -53,7 +53,7 @@ PCWSTR ComboBox::get_Selected() const
         {
             return L"";
         }
-        Buffer<wchar_t> buf(length + 1);
+        Buffer<WCHAR> buf(length + 1);
         GetWindowTextW(m_hwnd, &buf, static_cast<int>(buf.Len));
         return StringStore::Get(buf);
     }
@@ -64,7 +64,7 @@ PCWSTR ComboBox::get_Selected() const
         {
             return L"";
         }
-        Buffer<wchar_t> buf(length + 1);
+        Buffer<WCHAR> buf(length + 1);
         length = SendMessageW(m_hwnd, CB_GETLBTEXT, index, reinterpret_cast<LPARAM>(&buf));
         if (length == CB_ERR)
         {

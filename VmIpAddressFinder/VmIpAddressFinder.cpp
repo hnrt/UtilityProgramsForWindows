@@ -434,8 +434,8 @@ void VmIpAddressFinder::ExecQuery(IWbemServices* pServices, PCWSTR pszQuery, Key
 {
     RefPtr<IEnumWbemClassObject> pEnum;
     HRESULT hr = pServices->ExecQuery(
-        const_cast<wchar_t*>(L"WQL"),
-        const_cast<wchar_t*>(pszQuery),
+        const_cast<PWSTR>(L"WQL"),
+        const_cast<PWSTR>(pszQuery),
         WBEM_FLAG_RETURN_IMMEDIATELY,
         NULL,
         &pEnum);

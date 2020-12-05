@@ -9,20 +9,20 @@ namespace hnrt
 {
     struct StringFileInfo
     {
-        unsigned short wLanguage;
-        unsigned short wCodePage;
-        wchar_t* pszComments;
-        wchar_t* pszCompanyName;
-        wchar_t* pszFileDescription;
-        wchar_t* pszFileVersion;
-        wchar_t* pszInternalName;
-        wchar_t* pszLegalCopyright;
-        wchar_t* pszLegalTrademarks;
-        wchar_t* pszOriginalFilename;
-        wchar_t* pszProductName;
-        wchar_t* pszProductVersion;
-        wchar_t* pszPrivateBuild;
-        wchar_t* pszSpecialBuild;
+        USHORT wLanguage;
+        USHORT wCodePage;
+        PWSTR pszComments;
+        PWSTR pszCompanyName;
+        PWSTR pszFileDescription;
+        PWSTR pszFileVersion;
+        PWSTR pszInternalName;
+        PWSTR pszLegalCopyright;
+        PWSTR pszLegalTrademarks;
+        PWSTR pszOriginalFilename;
+        PWSTR pszProductName;
+        PWSTR pszProductVersion;
+        PWSTR pszPrivateBuild;
+        PWSTR pszSpecialBuild;
     };
 
     class VersionInfo
@@ -35,26 +35,26 @@ namespace hnrt
         VersionInfo(const VersionInfo&) = delete;
         virtual ~VersionInfo();
         void operator =(const VersionInfo&) = delete;
-        virtual bool Select(unsigned short wLanguage = 0xFFFF) = 0;
-        unsigned short get_FileVersionMajor() const;
-        unsigned short get_FileVersionMinor() const;
-        unsigned short get_FileVersionPatch() const;
-        unsigned short get_FileVersionBuild() const;
-        unsigned short get_ProductVersionMajor() const;
-        unsigned short get_ProductVersionMinor() const;
-        unsigned short get_ProductVersionPatch() const;
-        unsigned short get_ProductVersionBuild() const;
-        unsigned long get_FileFlagsMask() const;
-        unsigned long get_FileFlags() const;
-        unsigned long get_FileOS() const;
-        unsigned long get_FileType() const;
-        unsigned long get_FileSubtype() const;
-        const StringFileInfo& operator[](unsigned long index) const;
-        unsigned long get_BlockCount() const;
-        unsigned long get_CurrentIndex() const;
-        void set_CurrentIndex(unsigned long value);
-        unsigned short get_Language() const;
-        unsigned short get_CodePage() const;
+        virtual bool Select(USHORT wLanguage = 0xFFFF) = 0;
+        USHORT get_FileVersionMajor() const;
+        USHORT get_FileVersionMinor() const;
+        USHORT get_FileVersionPatch() const;
+        USHORT get_FileVersionBuild() const;
+        USHORT get_ProductVersionMajor() const;
+        USHORT get_ProductVersionMinor() const;
+        USHORT get_ProductVersionPatch() const;
+        USHORT get_ProductVersionBuild() const;
+        ULONG get_FileFlagsMask() const;
+        ULONG get_FileFlags() const;
+        ULONG get_FileOS() const;
+        ULONG get_FileType() const;
+        ULONG get_FileSubtype() const;
+        const StringFileInfo& operator[](ULONG index) const;
+        ULONG get_BlockCount() const;
+        ULONG get_CurrentIndex() const;
+        void set_CurrentIndex(ULONG value);
+        USHORT get_Language() const;
+        USHORT get_CodePage() const;
         PCWSTR get_Comments() const;
         PCWSTR get_CompanyName() const;
         PCWSTR get_FileDescription() const;
@@ -67,23 +67,23 @@ namespace hnrt
         PCWSTR get_ProductVersion() const;
         PCWSTR get_PrivateBuild() const;
         PCWSTR get_SpecialBuild() const;
-        __declspec(property(get = get_FileVersionMajor)) unsigned short FileVersionMajor;
-        __declspec(property(get = get_FileVersionMinor)) unsigned short FileVersionMinor;
-        __declspec(property(get = get_FileVersionPatch)) unsigned short FileVersionPatch;
-        __declspec(property(get = get_FileVersionBuild)) unsigned short FileVersionBuild;
-        __declspec(property(get = get_ProductVersionMajor)) unsigned short ProductVersionMajor;
-        __declspec(property(get = get_ProductVersionMinor)) unsigned short ProductVersionMinor;
-        __declspec(property(get = get_ProductVersionPatch)) unsigned short ProductVersionPatch;
-        __declspec(property(get = get_ProductVersionBuild)) unsigned short ProductVersionBuild;
-        __declspec(property(get = get_FileFlagsMask)) unsigned long FileFlagsMask;
-        __declspec(property(get = get_FileFlags)) unsigned long FileFlags;
-        __declspec(property(get = get_FileOS)) unsigned long FileOS;
-        __declspec(property(get = get_FileType)) unsigned long FileType;
-        __declspec(property(get = get_FileSubtype)) unsigned long FileSubtype;
-        __declspec(property(get = get_BlockCount)) unsigned long BlockCount;
-        __declspec(property(get = get_CurrentIndex, put = set_CurrentIndex)) unsigned long CurrentIndex;
-        __declspec(property(get = get_Language)) unsigned short Language;
-        __declspec(property(get = get_CodePage)) unsigned short CodePage;
+        __declspec(property(get = get_FileVersionMajor)) USHORT FileVersionMajor;
+        __declspec(property(get = get_FileVersionMinor)) USHORT FileVersionMinor;
+        __declspec(property(get = get_FileVersionPatch)) USHORT FileVersionPatch;
+        __declspec(property(get = get_FileVersionBuild)) USHORT FileVersionBuild;
+        __declspec(property(get = get_ProductVersionMajor)) USHORT ProductVersionMajor;
+        __declspec(property(get = get_ProductVersionMinor)) USHORT ProductVersionMinor;
+        __declspec(property(get = get_ProductVersionPatch)) USHORT ProductVersionPatch;
+        __declspec(property(get = get_ProductVersionBuild)) USHORT ProductVersionBuild;
+        __declspec(property(get = get_FileFlagsMask)) ULONG FileFlagsMask;
+        __declspec(property(get = get_FileFlags)) ULONG FileFlags;
+        __declspec(property(get = get_FileOS)) ULONG FileOS;
+        __declspec(property(get = get_FileType)) ULONG FileType;
+        __declspec(property(get = get_FileSubtype)) ULONG FileSubtype;
+        __declspec(property(get = get_BlockCount)) ULONG BlockCount;
+        __declspec(property(get = get_CurrentIndex, put = set_CurrentIndex)) ULONG CurrentIndex;
+        __declspec(property(get = get_Language)) USHORT Language;
+        __declspec(property(get = get_CodePage)) USHORT CodePage;
         __declspec(property(get = get_Comments)) PCWSTR Comments;
         __declspec(property(get = get_CompanyName)) PCWSTR CompanyName;
         __declspec(property(get = get_FileDescription)) PCWSTR FileDescription;
@@ -101,16 +101,16 @@ namespace hnrt
 
         VersionInfo();
 
-        unsigned short m_wFileVersion[4];
-        unsigned short m_wProductVersion[4];
-        unsigned long m_dwFileFlagsMask;
-        unsigned long m_dwFileFlags;
-        unsigned long m_dwFileOS;
-        unsigned long m_dwFileType;
-        unsigned long m_dwFileSubtype;
-        unsigned long m_cStringFileInfo;
+        USHORT m_wFileVersion[4];
+        USHORT m_wProductVersion[4];
+        ULONG m_dwFileFlagsMask;
+        ULONG m_dwFileFlags;
+        ULONG m_dwFileOS;
+        ULONG m_dwFileType;
+        ULONG m_dwFileSubtype;
+        ULONG m_cStringFileInfo;
         StringFileInfo* m_pStringFileInfo;
-        unsigned long m_dwCurrentIndex;
+        ULONG m_dwCurrentIndex;
     };
 
     inline VersionInfo::VersionInfo()
@@ -133,43 +133,43 @@ namespace hnrt
         delete[] m_pStringFileInfo;
     }
 
-    inline unsigned short VersionInfo::get_FileVersionMajor() const { return m_wFileVersion[0]; }
+    inline USHORT VersionInfo::get_FileVersionMajor() const { return m_wFileVersion[0]; }
 
-    inline unsigned short VersionInfo::get_FileVersionMinor() const { return m_wFileVersion[1]; }
+    inline USHORT VersionInfo::get_FileVersionMinor() const { return m_wFileVersion[1]; }
 
-    inline unsigned short VersionInfo::get_FileVersionPatch() const { return m_wFileVersion[2]; }
+    inline USHORT VersionInfo::get_FileVersionPatch() const { return m_wFileVersion[2]; }
 
-    inline unsigned short VersionInfo::get_FileVersionBuild() const { return m_wFileVersion[3]; }
+    inline USHORT VersionInfo::get_FileVersionBuild() const { return m_wFileVersion[3]; }
 
-    inline unsigned short VersionInfo::get_ProductVersionMajor() const { return m_wProductVersion[0]; }
+    inline USHORT VersionInfo::get_ProductVersionMajor() const { return m_wProductVersion[0]; }
 
-    inline unsigned short VersionInfo::get_ProductVersionMinor() const { return m_wProductVersion[1]; }
+    inline USHORT VersionInfo::get_ProductVersionMinor() const { return m_wProductVersion[1]; }
 
-    inline unsigned short VersionInfo::get_ProductVersionPatch() const { return m_wProductVersion[2]; }
+    inline USHORT VersionInfo::get_ProductVersionPatch() const { return m_wProductVersion[2]; }
 
-    inline unsigned short VersionInfo::get_ProductVersionBuild() const { return m_wProductVersion[3]; }
+    inline USHORT VersionInfo::get_ProductVersionBuild() const { return m_wProductVersion[3]; }
 
-    inline unsigned long VersionInfo::get_FileFlagsMask() const { return m_dwFileFlagsMask; }
+    inline ULONG VersionInfo::get_FileFlagsMask() const { return m_dwFileFlagsMask; }
 
-    inline unsigned long VersionInfo::get_FileFlags() const { return m_dwFileFlags; }
+    inline ULONG VersionInfo::get_FileFlags() const { return m_dwFileFlags; }
 
-    inline unsigned long VersionInfo::get_FileOS() const { return m_dwFileOS; }
+    inline ULONG VersionInfo::get_FileOS() const { return m_dwFileOS; }
 
-    inline unsigned long VersionInfo::get_FileType() const { return m_dwFileType; }
+    inline ULONG VersionInfo::get_FileType() const { return m_dwFileType; }
 
-    inline unsigned long VersionInfo::get_FileSubtype() const { return m_dwFileSubtype; }
+    inline ULONG VersionInfo::get_FileSubtype() const { return m_dwFileSubtype; }
 
-    inline const StringFileInfo& VersionInfo::operator[](unsigned long index) const { return m_pStringFileInfo[index]; }
+    inline const StringFileInfo& VersionInfo::operator[](ULONG index) const { return m_pStringFileInfo[index]; }
 
-    inline unsigned long VersionInfo::get_BlockCount() const { return m_cStringFileInfo; }
+    inline ULONG VersionInfo::get_BlockCount() const { return m_cStringFileInfo; }
 
-    inline unsigned long VersionInfo::get_CurrentIndex() const { return m_dwCurrentIndex; }
+    inline ULONG VersionInfo::get_CurrentIndex() const { return m_dwCurrentIndex; }
 
-    inline void VersionInfo::set_CurrentIndex(unsigned long value) { m_dwCurrentIndex = value; }
+    inline void VersionInfo::set_CurrentIndex(ULONG value) { m_dwCurrentIndex = value; }
 
-    inline unsigned short VersionInfo::get_Language() const { return m_pStringFileInfo[m_dwCurrentIndex].wLanguage; }
+    inline USHORT VersionInfo::get_Language() const { return m_pStringFileInfo[m_dwCurrentIndex].wLanguage; }
 
-    inline unsigned short VersionInfo::get_CodePage() const { return m_pStringFileInfo[m_dwCurrentIndex].wCodePage; }
+    inline USHORT VersionInfo::get_CodePage() const { return m_pStringFileInfo[m_dwCurrentIndex].wCodePage; }
 
     inline PCWSTR VersionInfo::get_Comments() const { return m_pStringFileInfo[m_dwCurrentIndex].pszComments; }
 

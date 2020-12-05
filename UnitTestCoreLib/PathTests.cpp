@@ -229,7 +229,7 @@ namespace UnitTestCoreLib
 	TEST_METHOD(TestGetKnownFolder)
 	{
 	    PCWSTR psz;
-	    wchar_t buf[260];
+	    WCHAR buf[260];
 
 	    psz = Path::GetKnownFolder(FOLDERID_Windows);
 	    Assert::AreEqual(L"C:\\WINDOWS", ToUpper(psz, buf));
@@ -378,7 +378,7 @@ namespace UnitTestCoreLib
     private:
 
 	template<size_t N>
-	wchar_t* ToUpper(PCWSTR psz, wchar_t (&szBuf)[N])
+	PWSTR ToUpper(PCWSTR psz, WCHAR (&szBuf)[N])
 	{
 	    wcscpy_s(szBuf, psz);
 	    errno_t err = _wcsupr_s(szBuf);

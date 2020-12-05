@@ -43,9 +43,9 @@ void* hnrt::Calloc(size_t count, size_t nbytes)
 }
 
 
-char* hnrt::Clone(const char* psz)
+PSTR hnrt::Clone(PCSTR psz)
 {
-    char* psz2 = _strdup(psz);
+    PSTR psz2 = _strdup(psz);
     if (!psz2)
     {
         throw std::bad_alloc();
@@ -54,9 +54,9 @@ char* hnrt::Clone(const char* psz)
 }
 
 
-wchar_t* hnrt::Clone(PCWSTR psz)
+PWSTR hnrt::Clone(PCWSTR psz)
 {
-    wchar_t* psz2 = _wcsdup(psz);
+    PWSTR psz2 = _wcsdup(psz);
     if (!psz2)
     {
         throw std::bad_alloc();

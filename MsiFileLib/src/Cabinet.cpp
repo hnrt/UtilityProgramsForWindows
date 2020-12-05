@@ -23,13 +23,7 @@ static DWORD s_dwTlsIndex = TlsAlloc();
 ////////////////////////////////////////////////////////////////////////////
 
 
-static const wchar_t s_szOnMemoryPseudoPath[] = { L"A:\\OnMemory.cab" };
-
-
-Cabinet::~Cabinet()
-{
-    FDIDestroy(m_hfdi);
-}
+static const WCHAR s_szOnMemoryPseudoPath[] = { L"A:\\OnMemory.cab" };
 
 
 Cabinet::Cabinet()
@@ -48,6 +42,12 @@ Cabinet::Cabinet()
     {
         throw Exception(L"FDICreate failed unexpectedly.");
     }
+}
+
+
+Cabinet::~Cabinet()
+{
+    FDIDestroy(m_hfdi);
 }
 
 
@@ -289,18 +289,18 @@ INT_PTR Cabinet::OnClose(PCSTR pszFileAcp, INT_PTR hf)
 ////////////////////////////////////////////////////////////////////////////
 
 
+CabinetFileStream::CabinetFileStream(HANDLE h)
+    : m_h(h)
+{
+}
+
+
 CabinetFileStream::~CabinetFileStream()
 {
     if (m_h != INVALID_HANDLE_VALUE)
     {
         CloseHandle(m_h);
     }
-}
-
-
-CabinetFileStream::CabinetFileStream(HANDLE h)
-    : m_h(h)
-{
 }
 
 
@@ -384,15 +384,15 @@ long DIAMONDAPI CabinetFileStream::Seek(long dist, int seektype)
 ////////////////////////////////////////////////////////////////////////////
 
 
-CabinetMemoryStream::~CabinetMemoryStream()
-{
-}
-
-
 CabinetMemoryStream::CabinetMemoryStream(const void* pData, size_t cbSize)
     : m_pStart(reinterpret_cast<const BYTE*>(pData))
     , m_pEnd(reinterpret_cast<const BYTE*>(pData) + cbSize)
     , m_pCurrent(reinterpret_cast<const BYTE*>(pData))
+{
+}
+
+
+CabinetMemoryStream::~CabinetMemoryStream()
 {
 }
 
