@@ -227,6 +227,7 @@
     <ClInclude Include="inc\hnrt\VirtualKey.h" />
     <ClInclude Include="inc\hnrt\WhileInScope.h" />
     <ClInclude Include="inc\hnrt\Win32Exception.h" />
+    <ClInclude Include="inc\hnrt\WindowHelper.h" />
     <ClInclude Include="inc\hnrt\WindowsHandle.h" />
     <ClInclude Include="inc\hnrt\WindowsMessage.h" />
     <ClInclude Include="inc\hnrt\WindowsPlatform.h" />
@@ -288,6 +289,7 @@
     <ClCompile Include="src\VersionInfoInternal.cpp" />
     <ClCompile Include="src\VirtualKey.cpp" />
     <ClCompile Include="src\Win32Exception.cpp" />
+    <ClCompile Include="src\WindowsHelper.cpp" />
     <ClCompile Include="src\WindowsMessage.cpp" />
     <ClCompile Include="src\WindowsPlatform.cpp" />
     <ClCompile Include="src\ZipArchive.cpp" />

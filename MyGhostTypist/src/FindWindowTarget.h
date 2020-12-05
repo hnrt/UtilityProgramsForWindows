@@ -20,7 +20,6 @@ namespace hnrt
         void Set(PCWSTR pszClassName, PCWSTR pszWindowText);
         void Set(PCWSTR pszClassName, PCWSTR pszWindowText, PCWSTR pszClassName2, PCWSTR pszWindowText2);
         bool Find(HWND* phwnd1 = nullptr, HWND* phwnd2 = nullptr) const;
-        bool FindConsole(HWND* phwnd1 = nullptr, HWND* phwnd2 = nullptr) const;
         PCWSTR get_ClassName() const;
         PCWSTR get_WindowText() const;
         __declspec(property(get = get_ClassName)) PCWSTR ClassName;

@@ -9,6 +9,7 @@
 #include "hnrt/String.h"
 #include "hnrt/VirtualKey.h"
 #include "hnrt/WhileInScope.h"
+#include "hnrt/WindowHelper.h"
 #include "resource.h"
 
 
@@ -385,46 +386,35 @@ INT_PTR ConfigurationDialogBox::OnLeftButtonDown(HWND hwnd, WPARAM wParam, LPARA
         y += ptBase.y;
         DBGPUT(L"absolute=(%ld,%ld)", x, y);
         POINT pt = { x, y };
-        HWND hwndInterest = WindowFromPoint(pt);
+        WindowHelper hwndInterest = WindowFromPoint(pt);
         if (hwndInterest)
         {
             RefPtr<Target> pTarget = m_tv.SelectedTarget;
             if (pTarget->IsTypeNull)
             {
-                m_tv.AddFindWindow(L"", L""); // discards current pTarget - needs to be refreshed
+                m_tv.AddFindWindow(L"?", L"?"); // discards current pTarget - needs to be refreshed
                 pTarget = m_tv.SelectedTarget;
             }
-            DWORD dwProcessId = 0;
-            DWORD dwThreadId = GetWindowThreadProcessId(hwndInterest, &dwProcessId);
-            WCHAR szClassName[MAX_PATH] = { 0 };
-            WCHAR szWindowText[MAX_PATH] = { 0 };
-            GetClassNameW(hwndInterest, szClassName, _countof(szClassName));
-            GetWindowTextW(hwndInterest, szWindowText, _countof(szWindowText));
-            DBGPUT(L"class=\"%s\" text=\"%s\" process=%lu thread=%lu", szClassName, szWindowText, dwProcessId, dwThreadId);
-            if (FindWindowW(szClassName, szWindowText) == hwndInterest || !(hwndInterest = GetParent(hwndInterest)))
+            if (hwndInterest.IsTopLevel)
             {
-                pTarget->FindWindowTargetPtr->Set(szClassName, szWindowText);
+                DBGPUT(L"class=\"%s\" text=\"%s\" process=%lu thread=%lu", hwndInterest.ClassName, hwndInterest.WindowText, hwndInterest.ProcessId, hwndInterest.ThreadId);
+                pTarget->FindWindowTargetPtr->Set(hwndInterest.ClassName, hwndInterest.WindowText);
             }
             else
             {
+                WindowHelper hwndFirst = hwndInterest;
+                DBGPUT(L"class=\"%s\" text=\"%s\" process=%lu thread=%lu", hwndFirst.ClassName, hwndFirst.WindowText, hwndFirst.ProcessId, hwndFirst.ThreadId);
                 DBGPUT(L"Checking parent...");
-                WCHAR szClassName0[MAX_PATH];
-                WCHAR szWindowText0[MAX_PATH];
-                wcscpy_s(szClassName0, szClassName);
-                wcscpy_s(szWindowText0, szWindowText);
-                while (true)
+                while ((hwndInterest = hwndInterest.Parent))
                 {
-                    dwProcessId = 0;
-                    dwThreadId = GetWindowThreadProcessId(hwndInterest, &dwProcessId);
-                    GetClassNameW(hwndInterest, szClassName, _countof(szClassName));
-                    GetWindowTextW(hwndInterest, szWindowText, _countof(szWindowText));
-                    DBGPUT(L"class=\"%s\" text=\"%s\" process=%lu thread=%lu", szClassName, szWindowText, dwProcessId, dwThreadId);
-                    if (FindWindowW(szClassName, szWindowText) == hwndInterest || !(hwndInterest = GetParent(hwndInterest)))
+                    DBGPUT(L"class=\"%s\" text=\"%s\" process=%lu thread=%lu", hwndInterest.ClassName, hwndInterest.WindowText, hwndInterest.ProcessId, hwndInterest.ThreadId);
+                    if (hwndInterest.IsTopLevel)
                     {
+                        DBGPUT(L"This is what I want.");
+                        pTarget->FindWindowTargetPtr->Set(hwndInterest.ClassName, hwndInterest.WindowText, hwndFirst.ClassName, hwndFirst.WindowText);
                         break;
                     }
                 }
-                pTarget->FindWindowTargetPtr->Set(szClassName, szWindowText, szClassName0, szWindowText0);
             }
             OnFindWindowSelected(hwnd, pTarget->FindWindowTargetPtr);
         }

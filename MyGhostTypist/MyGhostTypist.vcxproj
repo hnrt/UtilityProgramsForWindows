@@ -107,8 +107,6 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
     <ClCompile Include="src\ConfigurationTreeView.cpp" />
     <ClCompile Include="src\Credentials.cpp" />
     <ClCompile Include="src\CredentialsCollection.cpp" />
-    <ClCompile Include="src\FindChildWindow.cpp" />
-    <ClCompile Include="src\FindTopLevelWindow.cpp" />
     <ClCompile Include="src\FindWindowTarget.cpp" />
     <ClCompile Include="src\KeystrokeManager.cpp" />
     <ClCompile Include="src\KeystrokeManagerLayout.cpp" />
@@ -129,8 +127,6 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
     <ClInclude Include="src\ConfigurationTreeView.h" />
     <ClInclude Include="src\Credentials.h" />
     <ClInclude Include="src\CredentialsCollection.h" />
-    <ClInclude Include="src\FindChildWindow.h" />
-    <ClInclude Include="src\FindTopLevelWindow.h" />
     <ClInclude Include="src\FindWindowTarget.h" />
     <ClInclude Include="src\KeystrokeManager.h" />
     <ClInclude Include="src\MainWindow.h" />
