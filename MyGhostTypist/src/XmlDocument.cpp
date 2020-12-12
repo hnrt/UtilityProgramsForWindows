@@ -419,3 +419,75 @@ void XmlDocument::SetText(MSXML2::IXMLDOMElement* pElement, PCWSTR pszFormat, ..
     }
     va_end(argList);
 }
+
+
+XmlElementLoader::XmlElementLoader()
+    : m_map()
+{
+}
+
+
+XmlElementLoader::~XmlElementLoader()
+{
+    for (Map::iterator iter = m_map.begin(); iter != m_map.end(); iter++)
+    {
+        delete iter->second;
+        iter->second = nullptr;
+    }
+}
+
+
+XmlElementLoader& XmlElementLoader::Add(PCWSTR pszName, XmlElementLoadAction* pAction)
+{
+    m_map.insert(Entry(pszName, pAction));
+    return *this;
+}
+
+
+XmlElementLoader& XmlElementLoader::Load(MSXML2::IXMLDOMNode* pParent)
+{
+    MSXML2::IXMLDOMNodeListPtr pChildren;
+    HRESULT hr = pParent->get_childNodes(&pChildren);
+    if (FAILED(hr))
+    {
+        throw ComException(hr, L"Failed to get children.");
+    }
+    while (true)
+    {
+        MSXML2::IXMLDOMNodePtr pChild;
+        hr = pChildren->nextNode(&pChild);
+        if (FAILED(hr))
+        {
+            throw ComException(hr, L"Failed to get child.");
+        }
+        else if (hr == S_FALSE)
+        {
+            break;
+        }
+#pragma warning(push)
+#pragma warning(disable:26812)
+        MSXML2::DOMNodeType type;
+#pragma warning(pop)
+        hr = pChild->get_nodeType(&type);
+        if (FAILED(hr))
+        {
+            throw ComException(hr, L"Failed to get child type.");
+        }
+        else if (type != MSXML2::DOMNodeType::NODE_ELEMENT)
+        {
+            continue;
+        }
+        CComBSTR strName;
+        hr = pChild->get_nodeName(&strName);
+        if (FAILED(hr))
+        {
+            throw ComException(hr, L"Failed to get child name.");
+        }
+        Map::iterator iter = m_map.find(strName);
+        if (iter != m_map.end())
+        {
+            iter->second->Invoke(pChild);
+        }
+    }
+    return *this;
+}

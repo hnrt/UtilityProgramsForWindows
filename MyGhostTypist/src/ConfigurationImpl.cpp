@@ -82,11 +82,11 @@ void ConfigurationImpl::Load()
         m_bSave = true;
     }
 
-    XmlDocument::LoadChildren<ConfigurationImpl, void (ConfigurationImpl::*)(MSXML2::IXMLDOMNode*)>(document.DocumentElement, this,
-        L"ui", &ConfigurationImpl::LoadUI,
-        L"credentials-list", &ConfigurationImpl::LoadCredentialsList,
-        L"target-list", &ConfigurationImpl::LoadTargetList,
-        nullptr);
+    XmlElementLoader()
+        .Add(L"ui", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadUI))
+        .Add(L"credentials-list", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadCredentialsList))
+        .Add(L"target-list", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTargetList))
+        .Load(document.DocumentElement);
 
     if (m_bSave)
     {
@@ -99,10 +99,10 @@ void ConfigurationImpl::LoadUI(MSXML2::IXMLDOMNode* pNode)
 {
     XmlDocument::GetAttribute(pNode, L"width", m_Window.Width);
     XmlDocument::GetAttribute(pNode, L"padding", m_Window.Padding);
-    XmlDocument::LoadChildren<ConfigurationImpl, void (ConfigurationImpl::*)(MSXML2::IXMLDOMNode*)>(pNode, this,
-        L"font", &ConfigurationImpl::LoadFont,
-        L"button", &ConfigurationImpl::LoadButton,
-        nullptr);
+    XmlElementLoader()
+        .Add(L"font", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadFont))
+        .Add(L"button", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadButton))
+        .Load(pNode);
 }
 
 
@@ -122,9 +122,9 @@ void ConfigurationImpl::LoadButton(MSXML2::IXMLDOMNode* pNode)
 
 void ConfigurationImpl::LoadCredentialsList(MSXML2::IXMLDOMNode* pNode)
 {
-    XmlDocument::LoadChildren<ConfigurationImpl, void (ConfigurationImpl::*)(MSXML2::IXMLDOMNode*)>(pNode, this,
-        L"credentials", &ConfigurationImpl::LoadCredentials,
-        nullptr);
+    XmlElementLoader()
+        .Add(L"credentials", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadCredentials))
+        .Load(pNode);
 }
 
 
@@ -136,10 +136,10 @@ void ConfigurationImpl::LoadCredentials(MSXML2::IXMLDOMNode* pNode)
     {
         m_CredentialsList[m_CredentialsList.Count - 1]->Key = pszName;
     }
-    XmlDocument::LoadChildren<ConfigurationImpl, void (ConfigurationImpl::*)(MSXML2::IXMLDOMNode*)>(pNode, this,
-        L"username", &ConfigurationImpl::LoadUsername,
-        L"password", &ConfigurationImpl::LoadPassword,
-        nullptr);
+    XmlElementLoader()
+        .Add(L"username", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadUsername))
+        .Add(L"password", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadPassword))
+        .Load(pNode);
     m_CredentialsList[m_CredentialsList.Count - 1]->Callback = this;
 }
 
@@ -185,9 +185,9 @@ void ConfigurationImpl::LoadTargetList(MSXML2::IXMLDOMNode* pNode)
 {
     XmlDocument::GetAttribute(pNode, L"interval", m_TypingInterval);
     XmlDocument::GetAttribute(pNode, L"delay", m_TypingDelay);
-    XmlDocument::LoadChildren<ConfigurationImpl, void(ConfigurationImpl::*)(MSXML2::IXMLDOMNode*)>(pNode, this,
-        L"target", &ConfigurationImpl::LoadTarget,
-        nullptr);
+    XmlElementLoader()
+        .Add(L"target", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTarget))
+        .Load(pNode);
 }
 
 
@@ -198,9 +198,9 @@ void ConfigurationImpl::LoadTarget(MSXML2::IXMLDOMNode* pNode)
     XmlDocument::GetAttribute(pNode, L"name", pszName);
     bool bVisible = true;
     XmlDocument::GetAttribute(pNode, L"visible", bVisible);
-    XmlDocument::LoadChildren<ConfigurationImpl, void(ConfigurationImpl::*)(MSXML2::IXMLDOMNode*)>(pNode, this,
-        L"FindWindow", &ConfigurationImpl::LoadFindWindow,
-        nullptr);
+    XmlElementLoader()
+        .Add(L"FindWindow", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadFindWindow))
+        .Load(pNode);
     if (index == m_TargetList.Count)
     {
         RefPtr<Target> pTarget = Target::CreateNull(pszName);
@@ -229,12 +229,12 @@ void ConfigurationImpl::LoadFindWindow(MSXML2::IXMLDOMNode* pNode)
     XmlDocument::GetAttribute(pNode, L"text", pszWindowText);
     RefPtr<Target> pTarget = Target::CreateFindWindow(nullptr, pszClassName, pszWindowText);
     m_TargetList.Append(pTarget);
-    XmlDocument::LoadChildren<ConfigurationImpl, void(ConfigurationImpl::*)(MSXML2::IXMLDOMNode*)>(pNode, this,
-        L"TypeUsername", &ConfigurationImpl::LoadTypeUsername,
-        L"TypePassword", &ConfigurationImpl::LoadTypePassword,
-        L"TypeDeleteSequence", &ConfigurationImpl::LoadTypeDeleteSequence,
-        L"Type", &ConfigurationImpl::LoadType,
-        nullptr);
+    XmlElementLoader()
+        .Add(L"TypeUsername", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypeUsername))
+        .Add(L"TypePassword", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypePassword))
+        .Add(L"TypeDeleteSequence", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypeDeleteSequence))
+        .Add(L"Type", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadType))
+        .Load(pNode);
 }
 
 

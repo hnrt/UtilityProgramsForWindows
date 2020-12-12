@@ -59,4 +59,33 @@ namespace hnrt
         bool m_bSave;
         bool m_bLoading;
     };
+
+    class ConfigurationElementLoadAction
+        : public XmlElementLoadAction
+    {
+    public:
+
+        ConfigurationElementLoadAction(ConfigurationImpl* pinst, void (ConfigurationImpl::* pfn)(MSXML2::IXMLDOMNode*));
+        ConfigurationElementLoadAction(const ConfigurationElementLoadAction&) = delete;
+        virtual ~ConfigurationElementLoadAction() = default;
+        void operator =(const ConfigurationElementLoadAction&) = delete;
+        virtual void Invoke(MSXML2::IXMLDOMNode* pNode);
+
+    private:
+
+        ConfigurationImpl* m_pinst;
+        void (ConfigurationImpl::*m_pfn)(MSXML2::IXMLDOMNode*);
+    };
+
+    inline ConfigurationElementLoadAction::ConfigurationElementLoadAction(ConfigurationImpl* pinst, void (ConfigurationImpl::* pfn)(MSXML2::IXMLDOMNode*))
+        : XmlElementLoadAction()
+        , m_pinst(pinst)
+        , m_pfn(pfn)
+    {
+    }
+
+    inline void ConfigurationElementLoadAction::Invoke(MSXML2::IXMLDOMNode* pNode)
+    {
+        (m_pinst->*m_pfn)(pNode);
+    }
 }

@@ -15,6 +15,36 @@
 
 namespace hnrt
 {
+    class XmlElementLoadAction
+    {
+    public:
+
+        XmlElementLoadAction() = default;
+        XmlElementLoadAction(const XmlElementLoadAction&) = delete;
+        virtual ~XmlElementLoadAction() = default;
+        void operator =(const XmlElementLoadAction&) = delete;
+        virtual void Invoke(MSXML2::IXMLDOMNode*) = 0;
+    };
+
+    class XmlElementLoader
+    {
+    public:
+
+        XmlElementLoader();
+        XmlElementLoader(const XmlElementLoader&) = delete;
+        ~XmlElementLoader();
+        void operator =(const XmlElementLoader&) = delete;
+        XmlElementLoader& Add(PCWSTR pszName, XmlElementLoadAction* pAction);
+        XmlElementLoader& Load(MSXML2::IXMLDOMNode* pParent);
+
+    private:
+
+        typedef std::map<PCWSTR, XmlElementLoadAction*, StringLessThan> Map;
+        typedef std::pair<PCWSTR, XmlElementLoadAction*> Entry;
+
+        Map m_map;
+    };
+
     class XmlDocument
     {
     public:
@@ -25,8 +55,6 @@ namespace hnrt
         void operator =(const XmlDocument&) = delete;
         void Load(PCWSTR pszFileName);
         void LoadXML(PCWSTR psz);
-        template<typename T, typename U>
-        static void LoadChildren(MSXML2::IXMLDOMNode* pParent, T* pInstance, ...);
         void Save(PCWSTR pszFileName);
         void Indent();
         MSXML2::IXMLDOMElement* BuildDocumentRoot(PCWSTR pszName);
@@ -54,64 +82,6 @@ namespace hnrt
         MSXML2::IXMLDOMDocument2Ptr m_pDocument;
         MSXML2::IXMLDOMElementPtr m_pDocumentElement;
     };
-
-    template<typename T, typename U>
-    void XmlDocument::LoadChildren(MSXML2::IXMLDOMNode* pParent, T* pInstance, ...)
-    {
-        std::map<PCWSTR, U, StringLessThan> map;
-        va_list argList;
-        va_start(argList, pInstance);
-        PCWSTR pszName;
-        while ((pszName = va_arg(argList, PCWSTR)))
-        {
-            U pCallback = va_arg(argList, U);
-            map.insert(std::pair<PCWSTR, U>(pszName, pCallback));
-        }
-        va_end(argList);
-        MSXML2::IXMLDOMNodeListPtr pChildren;
-        HRESULT hr = pParent->get_childNodes(&pChildren);
-        if (FAILED(hr))
-        {
-            throw ComException(hr, L"Failed to get children.");
-        }
-        while (true)
-        {
-            MSXML2::IXMLDOMNodePtr pChild;
-            hr = pChildren->nextNode(&pChild);
-            if (FAILED(hr))
-            {
-                throw ComException(hr, L"Failed to get child.");
-            }
-            else if (hr == S_FALSE)
-            {
-                break;
-            }
-#pragma warning(push)
-#pragma warning(disable:26812)
-            MSXML2::DOMNodeType type;
-#pragma warning(pop)
-            hr = pChild->get_nodeType(&type);
-            if (FAILED(hr))
-            {
-                throw ComException(hr, L"Failed to get child type.");
-            }
-            else if (type != MSXML2::DOMNodeType::NODE_ELEMENT)
-            {
-                continue;
-            }
-            CComBSTR strName;
-            hr = pChild->get_nodeName(&strName);
-            if (FAILED(hr))
-            {
-                throw ComException(hr, L"Failed to get child name.");
-            }
-            typename std::map<PCWSTR, U, StringLessThan>::iterator iter = map.find(strName);
-            if (iter != map.end())
-            {
-                (pInstance->*(iter->second))(pChild);
-            }
-        }
-    }
 
     inline MSXML2::IXMLDOMElement* XmlDocument::get_DocumentElement()
     {
