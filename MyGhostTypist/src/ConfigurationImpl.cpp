@@ -1,6 +1,4 @@
 #include "ConfigurationImpl.h"
-#include "FindWindowTarget.h"
-#include "Action.h"
 #include "hnrt/Debug.h"
 #include "hnrt/Path.h"
 #include "hnrt/Win32Exception.h"
@@ -44,6 +42,8 @@ ConfigurationImpl::ConfigurationImpl()
     , m_pszFileName(Path::Combine(m_pszAppDir, CFG_FILENAME))
     , m_bSave(false)
     , m_bLoading(false)
+    , m_Version(0)
+    , m_pTarget()
 {
     DBGFNC(L"ConfigurationImpl::ctor");
     PCWSTR pszDir = Path::GetDirectoryName(m_pszFileName);
@@ -80,6 +80,11 @@ void ConfigurationImpl::Load()
     {
         document.LoadXML(s_szDefaultConfiguration);
         m_bSave = true;
+    }
+
+    if (!XmlDocument::GetAttribute(document.DocumentElement, L"version", m_Version))
+    {
+        m_Version = 0;
     }
 
     XmlElementLoader()
@@ -193,31 +198,75 @@ void ConfigurationImpl::LoadTargetList(MSXML2::IXMLDOMNode* pNode)
 
 void ConfigurationImpl::LoadTarget(MSXML2::IXMLDOMNode* pNode)
 {
-    size_t index = m_TargetList.Count;
     PCWSTR pszName;
     XmlDocument::GetAttribute(pNode, L"name", pszName);
     bool bVisible = true;
     XmlDocument::GetAttribute(pNode, L"visible", bVisible);
-    XmlElementLoader()
-        .Add(L"FindWindow", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadFindWindow))
-        .Load(pNode);
-    if (index == m_TargetList.Count)
+    m_pTarget = Target::Create(pszName, bVisible);
+    m_TargetList.Append(m_pTarget);
+    if (m_Version == 0)
     {
-        RefPtr<Target> pTarget = Target::CreateNull(pszName);
-        pTarget->IsVisible = bVisible;
-        pTarget->Callback = this;
-        m_TargetList.Append(pTarget);
+        XmlElementLoader()
+            .Add(L"FindWindow", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadFindWindowV0))
+            .Load(pNode);
     }
     else
     {
-        while (index < m_TargetList.Count)
-        {
-            m_TargetList[index]->Name = pszName;
-            m_TargetList[index]->IsVisible = bVisible;
-            m_TargetList[index]->Callback = this;
-            index++;
-        }
+        XmlElementLoader()
+            .Add(L"SetForegroundWindow", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadSetForegroundWindow))
+            .Add(L"TypeUsername", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypeUsername))
+            .Add(L"TypePassword", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypePassword))
+            .Add(L"TypeDeleteSequence", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypeDeleteSequence))
+            .Add(L"Type", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadType))
+            .Load(pNode);
     }
+}
+
+
+void ConfigurationImpl::LoadFindWindowV0(MSXML2::IXMLDOMNode* pNode)
+{
+    PCWSTR pszClassName;
+    XmlDocument::GetAttribute(pNode, L"class", pszClassName);
+    PCWSTR pszWindowText;
+    XmlDocument::GetAttribute(pNode, L"text", pszWindowText);
+    RefPtr<Action> pAction;
+    static const WCHAR pszSeparator[] = { L"@@@###@@@" };
+    static size_t cchSp = wcslen(pszSeparator);
+    PCWSTR pCnSp = wcsstr(pszClassName, pszSeparator);
+    PCWSTR pWtSp = wcsstr(pszWindowText, pszSeparator);
+    if (pCnSp && pWtSp)
+    {
+        Buffer<WCHAR> szCn(pCnSp - pszClassName + 1);
+        Buffer<WCHAR> szWt(pWtSp - pszWindowText + 1);
+        wcsncpy_s(szCn, szCn.Len, pszClassName, szCn.Len - 1);
+        wcsncpy_s(szWt, szWt.Len, pszWindowText, szWt.Len - 1);
+        pAction = Action::SetForegroundWindow(szCn, szWt);
+        dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr)->Append(pCnSp + cchSp, pWtSp + cchSp);
+    }
+    else
+    {
+        pAction = Action::SetForegroundWindow(pszClassName, pszWindowText);
+    }
+    m_pTarget->Append(pAction);
+    XmlElementLoader()
+        .Add(L"TypeUsername", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypeUsername))
+        .Add(L"TypePassword", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypePassword))
+        .Add(L"TypeDeleteSequence", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypeDeleteSequence))
+        .Add(L"Type", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadType))
+        .Load(pNode);
+}
+
+
+void ConfigurationImpl::LoadSetForegroundWindow(MSXML2::IXMLDOMNode* pNode)
+{
+    PCWSTR pszClassName;
+    XmlDocument::GetAttribute(pNode, L"class", pszClassName);
+    PCWSTR pszWindowText;
+    XmlDocument::GetAttribute(pNode, L"text", pszWindowText);
+    m_pTarget->Append(Action::SetForegroundWindow(pszClassName, pszWindowText));
+    XmlElementLoader()
+        .Add(L"FindWindow", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadFindWindow))
+        .Load(pNode);
 }
 
 
@@ -227,13 +276,9 @@ void ConfigurationImpl::LoadFindWindow(MSXML2::IXMLDOMNode* pNode)
     XmlDocument::GetAttribute(pNode, L"class", pszClassName);
     PCWSTR pszWindowText;
     XmlDocument::GetAttribute(pNode, L"text", pszWindowText);
-    RefPtr<Target> pTarget = Target::CreateFindWindow(nullptr, pszClassName, pszWindowText);
-    m_TargetList.Append(pTarget);
+    dynamic_cast<SetForegroundWindowAction*>((*m_pTarget.Ptr)[m_pTarget->Count - 1].Ptr)->Append(pszClassName, pszWindowText);
     XmlElementLoader()
-        .Add(L"TypeUsername", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypeUsername))
-        .Add(L"TypePassword", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypePassword))
-        .Add(L"TypeDeleteSequence", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypeDeleteSequence))
-        .Add(L"Type", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadType))
+        .Add(L"FindWindow", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadFindWindow))
         .Load(pNode);
 }
 
@@ -245,7 +290,7 @@ void ConfigurationImpl::LoadTypeUsername(MSXML2::IXMLDOMNode* pNode)
     {
         pszName = nullptr;
     }
-    m_TargetList[m_TargetList.Count - 1]->ActionTargetPtr->Append(Action::TypeUsername(pszName));
+    m_pTarget->Append(Action::TypeUsername(pszName));
 }
 
 
@@ -256,13 +301,13 @@ void ConfigurationImpl::LoadTypePassword(MSXML2::IXMLDOMNode* pNode)
     {
         pszName = nullptr;
     }
-    m_TargetList[m_TargetList.Count - 1]->ActionTargetPtr->Append(Action::TypePassword(pszName));
+    m_pTarget->Append(Action::TypePassword(pszName));
 }
 
 
 void ConfigurationImpl::LoadTypeDeleteSequence(MSXML2::IXMLDOMNode* pNode)
 {
-    m_TargetList[m_TargetList.Count - 1]->ActionTargetPtr->Append(Action::TypeDeleteSequence());
+    m_pTarget->Append(Action::TypeDeleteSequence());
 }
 
 
@@ -271,11 +316,11 @@ void ConfigurationImpl::LoadType(MSXML2::IXMLDOMNode* pNode)
     PCWSTR pszKey;
     if (XmlDocument::GetAttribute(pNode, L"key", pszKey))
     {
-        m_TargetList[m_TargetList.Count - 1]->ActionTargetPtr->Append(pszKey);
+        m_pTarget->Append(Action::TypeKey(pszKey));
     }
     else
     {
-        m_TargetList[m_TargetList.Count - 1]->ActionTargetPtr->Append(Action::TypeUnicode(XmlDocument::GetText(pNode)));
+        m_pTarget->Append(Action::TypeUnicode(XmlDocument::GetText(pNode)));
     }
 }
 
@@ -288,6 +333,7 @@ void ConfigurationImpl::Save()
 
     XmlDocument document;
     MSXML2::IXMLDOMElement* pRoot = document.BuildDocumentRoot(L"configuration");
+    XmlDocument::SetAttribute(pRoot, L"version", 1L);
     BuildUI(document, pRoot);
     BuildCredentialsList(document, pRoot);
     BuildTargetList(document, pRoot);
@@ -314,17 +360,17 @@ void ConfigurationImpl::BuildUI(XmlDocument& document, MSXML2::IXMLDOMElement* p
 void ConfigurationImpl::BuildCredentialsList(XmlDocument& document, MSXML2::IXMLDOMElement* pParent)
 {
     MSXML2::IXMLDOMElementPtr pCC = document.AppendElement(L"credentials-list", pParent);
-    for (size_t index = 0; index < m_CredentialsList.Count; index++)
+    for (ULONG index = 0; index < m_CredentialsList.Count; index++)
     {
         BuildCredentials(document, pCC, index);
     }
 }
 
 
-void ConfigurationImpl::BuildCredentials(XmlDocument& document, MSXML2::IXMLDOMElement* pParent, size_t index)
+void ConfigurationImpl::BuildCredentials(XmlDocument& document, MSXML2::IXMLDOMElement* pParent, ULONG index)
 {
     MSXML2::IXMLDOMElementPtr pC = document.AppendElement(L"credentials", pParent);
-    if (m_CredentialsList[index]->Key)
+    if (m_CredentialsList[index]->Key && m_CredentialsList[index]->Key[0])
     {
         XmlDocument::SetAttribute(pC, L"name", m_CredentialsList[index]->Key);
     }
@@ -341,71 +387,75 @@ void ConfigurationImpl::BuildTargetList(XmlDocument& document, MSXML2::IXMLDOMEl
     MSXML2::IXMLDOMElementPtr pTT = document.AppendElement(L"target-list", pParent);
     XmlDocument::SetAttribute(pTT, L"interval", m_TypingInterval);
     XmlDocument::SetAttribute(pTT, L"delay", m_TypingDelay);
-    for (size_t index = 0; index < m_TargetList.Count; index++)
+    for (ULONG index = 0; index < m_TargetList.Count; index++)
     {
         BuildTarget(document, pTT, index);
     }
 }
 
 
-void ConfigurationImpl::BuildTarget(XmlDocument& document, MSXML2::IXMLDOMElement* pParent, size_t index)
+void ConfigurationImpl::BuildTarget(XmlDocument& document, MSXML2::IXMLDOMElement* pParent, ULONG index)
 {
-    RefPtr<Target> pTarget = m_TargetList[index];
+    m_pTarget = m_TargetList[index];
     MSXML2::IXMLDOMElementPtr pT = document.AppendElement(L"target", pParent);
-    XmlDocument::SetAttribute(pT, L"name", pTarget->Name);
-    XmlDocument::SetAttribute(pT, L"visible", pTarget->IsVisible);
-    if (pTarget->IsTypeFindWindow)
+    XmlDocument::SetAttribute(pT, L"name", m_pTarget->Name);
+    XmlDocument::SetAttribute(pT, L"visible", m_pTarget->IsVisible);
+    for (ULONG index = 0; index < m_pTarget->Count; index++)
     {
-        FindWindowTarget* pFindWindowTarget = pTarget->FindWindowTargetPtr;
-        MSXML2::IXMLDOMElementPtr pFW = document.AppendElement(L"FindWindow", pT);
-        XmlDocument::SetAttribute(pFW, L"class", pFindWindowTarget->ClassName);
-        XmlDocument::SetAttribute(pFW, L"text", pFindWindowTarget->WindowText);
-        for (ActionListConstIter iter = pFindWindowTarget->Begin(); iter != pFindWindowTarget->End(); iter++)
+        RefPtr<Action> pAction = (*m_pTarget.Ptr)[index];
+        switch (pAction->Type)
         {
-            PCWSTR psz = *iter;
-            switch (Action::GetClass(psz))
+        case AC_SETFOREGROUNDWINDOW:
+        {
+            MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"SetForegroundWindow", pT);
+            SetForegroundWindowAction* pActionX = dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr);
+            XmlDocument::SetAttribute(pX, L"class", pActionX->ClassName);
+            XmlDocument::SetAttribute(pX, L"text", pActionX->WindowText);
+            for (SetForegroundWindowAction::ConstIter iter = pActionX->Begin; iter != pActionX->End; iter++)
             {
-            case AC_TYPEUSERNAME:
-                if ((psz = Action::GetValue(psz)))
-                {
-                    MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"TypeUsername", pFW);
-                    XmlDocument::SetAttribute(pX, L"name", psz);
-                }
-                else
-                {
-                    document.AppendElement(L"TypeUsername", pFW);
-                }
-                break;
-            case AC_TYPEPASSWORD:
-                if ((psz = Action::GetValue(psz)))
-                {
-                    MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"TypePassword", pFW);
-                    XmlDocument::SetAttribute(pX, L"name", psz);
-                }
-                else
-                {
-                    document.AppendElement(L"TypePassword", pFW);
-                }
-                break;
-            case AC_TYPEDELETESEQUENCE:
-                document.AppendElement(L"TypeDeleteSequence", pFW);
-                break;
-            case AC_TYPEUNICODE:
+                pX = document.AppendElement(L"FindWindow", pX);
+                XmlDocument::SetAttribute(pX, L"class", iter->first);
+                XmlDocument::SetAttribute(pX, L"text", iter->second);
+            }
+            break;
+        }
+        case AC_TYPEKEY:
+        {
+            MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"Type", pT);
+            XmlDocument::SetAttribute(pX, L"key", dynamic_cast<TypeKeyAction*>(pAction.Ptr)->Key);
+            break;
+        }
+        case AC_TYPEUNICODE:
+        {
+            MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"Type", pT);
+            XmlDocument::SetText(pX, L"%s", dynamic_cast<TypeUnicodeAction*>(pAction.Ptr)->Text);
+            break;
+        }
+        case AC_TYPEUSERNAME:
+        {
+            MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"TypeUsername", pT);
+            PCWSTR pszName = dynamic_cast<TypeUsernameAction*>(pAction.Ptr)->Name;
+            if (pszName && pszName[0])
             {
-                psz = Action::GetValue(psz);
-                MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"Type", pFW);
-                XmlDocument::SetText(pX, L"%s", psz);
-                break;
+                XmlDocument::SetAttribute(pX, L"name", pszName);
             }
-            case AC_TYPEKEY:
+            break;
+        }
+        case AC_TYPEPASSWORD:
+        {
+            MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"TypePassword", pT);
+            PCWSTR pszName = dynamic_cast<TypePasswordAction*>(pAction.Ptr)->Name;
+            if (pszName && pszName[0])
             {
-                MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"Type", pFW);
-                XmlDocument::SetAttribute(pX, L"key", psz);
-                break;
+                XmlDocument::SetAttribute(pX, L"name", pszName);
             }
-            default:
-                break;
-            }
+            break;
+        }
+        case AC_TYPEDELETESEQUENCE:
+            document.AppendElement(L"TypeDeleteSequence", pT);
+            break;
+        default:
+            break;
         }
     }
 }
@@ -413,7 +463,7 @@ void ConfigurationImpl::BuildTarget(XmlDocument& document, MSXML2::IXMLDOMElemen
 
 void ConfigurationImpl::OnCredentialsCollectionUpdate(CredentialsCollection& collection)
 {
-    for (size_t index = 0; index < collection.Count; index++)
+    for (ULONG index = 0; index < collection.Count; index++)
     {
         collection[index]->Callback = this;
     }
@@ -435,7 +485,7 @@ void ConfigurationImpl::OnCredentialsUpdate(Credentials& credentials)
 
 void ConfigurationImpl::OnTargetCollectionUpdate(TargetCollection& collection)
 {
-    for (size_t index = 0; index < collection.Count; index++)
+    for (ULONG index = 0; index < collection.Count; index++)
     {
         collection[index]->Callback = this;
     }

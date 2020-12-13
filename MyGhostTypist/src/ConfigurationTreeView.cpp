@@ -1,7 +1,6 @@
 #include "ConfigurationTreeView.h"
-#include "ActionTarget.h"
-#include "Action.h"
-#include "FindWindowTarget.h"
+#include "Target.h"
+#include "hnrt/Debug.h"
 #include "hnrt/Exception.h"
 
 
@@ -43,7 +42,7 @@ void ConfigurationTreeView::Init(HWND hwnd)
     tvins.hInsertAfter = TVI_FIRST;
     tvins.item.mask = TVIF_PARAM;
     tvins.item.lParam = ~0;
-    for (size_t index = 0; index < m_cc.Count; index++)
+    for (ULONG index = 0; index < m_cc.Count; index++)
     {
         tvins.hInsertAfter = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
     }
@@ -58,20 +57,29 @@ void ConfigurationTreeView::Init(HWND hwnd)
     tvins.hInsertAfter = TVI_FIRST;
     tvins.item.mask = TVIF_PARAM;
     tvins.item.lParam = ~0;
-    for (size_t index = 0; index < m_tt.Count; index++)
+    for (ULONG index = 0; index < m_tt.Count; index++)
     {
         RefPtr<Target> pT = m_tt[index];
         tvins.hParent = m_hTT;
         HTREEITEM hT = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
-        if (pT->IsTypeAction)
+        tvins.hParent = hT;
+        tvins.hInsertAfter = TVI_FIRST;
+        for (ULONG index2 = 0; index2 < pT->Count; index2++)
         {
-            tvins.hParent = hT;
-            tvins.hInsertAfter = TVI_FIRST;
             tvins.hInsertAfter = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
-            size_t count = pT->ActionTargetPtr->Count;
-            for (size_t index2 = 0; index2 < count; index2++)
+            RefPtr<Action> pA = (*pT.Ptr)[index2];
+            if (pA->Type == AC_SETFOREGROUNDWINDOW)
             {
-                tvins.hInsertAfter = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
+                HTREEITEM hA0 = tvins.hInsertAfter;
+                tvins.hParent = hA0;
+                tvins.hInsertAfter = TVI_FIRST;
+                auto pAx = dynamic_cast<SetForegroundWindowAction*>(pA.Ptr);
+                for (auto iter = pAx->Begin; iter != pAx->End; iter++)
+                {
+                    tvins.hParent = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
+                }
+                tvins.hParent = hT;
+                tvins.hInsertAfter = hA0;
             }
         }
         SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(hT));
@@ -111,13 +119,9 @@ void ConfigurationTreeView::OnNotify(HWND hwnd, WPARAM wParam, LPARAM lParam)
             {
                 m_cbs.OnCredentialsSelected(hwnd, SelectedCredentials);
             }
-            else if (IsFindWindowSelected)
-            {
-                m_cbs.OnFindWindowSelected(hwnd, reinterpret_cast<FindWindowTarget*>(SelectedTarget.Ptr));
-            }
             else if (IsActionItemSelected)
             {
-                m_cbs.OnActionItemSelected(hwnd, reinterpret_cast<ActionTarget*>(SelectedTarget.Ptr), SelectedActionItemIndex);
+                m_cbs.OnActionItemSelected(hwnd, SelectedTarget, SelectedActionItemIndex);
             }
         }
         else
@@ -154,7 +158,7 @@ void ConfigurationTreeView::RemoveSelectedCredentials()
 {
     if (IsCredentialsSelected)
     {
-        size_t index = SelectedCredentialsIndex;
+        ULONG index = SelectedCredentialsIndex;
         std::vector<HTREEITEM> hChildren;
         GetItemsFromCredentialsList(hChildren);
         SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(hChildren[index]));
@@ -168,13 +172,13 @@ void ConfigurationTreeView::MoveUpSelectedCredentials()
 {
     if (IsCredentialsSelected)
     {
-        size_t index = SelectedCredentialsIndex;
+        ULONG index = SelectedCredentialsIndex;
         if (index > 0)
         {
             m_cc.Move(index, index - 1);
             std::vector<HTREEITEM> hChildren;
             GetItemsFromCredentialsList(hChildren);
-            SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hChildren[index - 1]));
+            SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hChildren[static_cast<size_t>(index) - 1]));
         }
     }
 }
@@ -184,13 +188,13 @@ void ConfigurationTreeView::MoveDownSelectedCredentials()
 {
     if (IsCredentialsSelected)
     {
-        size_t index = SelectedCredentialsIndex;
+        ULONG index = SelectedCredentialsIndex;
         if (index + 1 < m_cc.Count)
         {
             m_cc.Move(index, index + 1);
             std::vector<HTREEITEM> hChildren;
             GetItemsFromCredentialsList(hChildren);
-            SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hChildren[index + 1]));
+            SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hChildren[static_cast<size_t>(index) + 1]));
         }
     }
 }
@@ -205,65 +209,39 @@ void ConfigurationTreeView::AddTarget()
     tvins.item.lParam = ~0;
     HTREEITEM hItem = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
     SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(m_hTT));
-    m_tt.Append(Target::CreateNull(L"(new)"));
+    m_tt.Append(Target::Create(L"(new)"));
     SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hItem));
 }
 
 
-void ConfigurationTreeView::AddFindWindow(PCWSTR pszClassName, PCWSTR pszWindowText)
+void ConfigurationTreeView::AddActionItem(RefPtr<Action> pAction)
 {
-    if (IsTargetSelected)
+    if (IsActionItemSelected || IsTargetSelected)
     {
         RefPtr<Target> pTarget = SelectedTarget;
-        if (pTarget->IsTypeNull)
-        {
-            size_t index = SelectedTargetIndex;
-            std::vector<HTREEITEM> hChildren;
-            GetItemsFromTargetList(hChildren);
-            TVINSERTSTRUCT tvins = { 0 };
-            tvins.hParent = hChildren[index];
-            tvins.hInsertAfter = TVI_FIRST;
-            tvins.item.mask = TVIF_PARAM;
-            tvins.item.lParam = ~0;
-            SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins));
-            SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(hChildren[index]));
-            m_tt.Assign(index, Target::CreateFindWindow(pTarget->Name, pszClassName, pszWindowText));
-        }
-    }
-}
-
-
-void ConfigurationTreeView::AddActionItem(PCWSTR pszAction)
-{
-    if (IsActionItemSelected || IsFindWindowSelected || IsTargetSelected)
-    {
-        RefPtr<Target> pTarget = SelectedTarget;
-        if (pTarget->IsTypeAction)
-        {
-            std::vector<HTREEITEM> hChildren;
-            GetItemsFromTargetList(hChildren);
-            TVINSERTSTRUCT tvins = { 0 };
-            tvins.hParent = hChildren[SelectedTargetIndex];
-            tvins.hInsertAfter = TVI_LAST;
-            tvins.item.mask = TVIF_PARAM;
-            tvins.item.lParam = ~0;
-            HTREEITEM hItem = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
-            pTarget->ActionTargetPtr->Append(pszAction);
-            SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hItem));
-        }
+        std::vector<HTREEITEM> hChildren;
+        GetItemsFromTargetList(hChildren);
+        TVINSERTSTRUCT tvins = { 0 };
+        tvins.hParent = hChildren[SelectedTargetIndex];
+        tvins.hInsertAfter = TVI_LAST;
+        tvins.item.mask = TVIF_PARAM;
+        tvins.item.lParam = ~0;
+        HTREEITEM hItem = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
+        pTarget->Append(pAction);
+        SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hItem));
     }
 }
 
 
 void ConfigurationTreeView::RemoveSelectedTarget()
 {
-    if (IsTargetSelected || IsFindWindowSelected)
+    if (IsTargetSelected)
     {
-        size_t index = SelectedTargetIndex;
+        ULONG index = SelectedTargetIndex;
         std::vector<HTREEITEM> hChildren;
         GetItemsFromTargetList(hChildren);
-        SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(hChildren[index]));
         SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, 0);
+        SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(hChildren[index]));
         m_tt.Delete(index);
     }
 }
@@ -273,24 +251,36 @@ void ConfigurationTreeView::RemoveSelectedActionItem()
 {
     if (IsActionItemSelected)
     {
-        size_t index1 = SelectedTargetIndex;
-        size_t index2 = SelectedActionItemIndex;
+        ULONG index1 = SelectedTargetIndex;
+        ULONG index2 = SelectedActionItemIndex;
         std::vector<HTREEITEM> hChildren1;
         GetItemsFromTargetList(hChildren1);
         std::vector<HTREEITEM> hChildren2;
         GetItemsFromTarget(m_tt[index1], hChildren1[index1], hChildren2);
-        SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(hChildren2[index2]));
         SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, 0);
-        m_tt[index1]->ActionTargetPtr->Delete(index2);
+        if (index2)
+        {
+            SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(hChildren2[index2]));
+            m_tt[index1]->Delete(index2);
+        }
+        else
+        {
+            while (m_tt[index1]->Count)
+            {
+                index2 = m_tt[index1]->Count - 1;
+                SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(hChildren2[index2]));
+                m_tt[index1]->Delete(index2);
+            }
+        }
     }
 }
 
 
 void ConfigurationTreeView::MoveUpSelectedTarget()
 {
-    if (IsTargetSelected || IsFindWindowSelected)
+    if (IsTargetSelected)
     {
-        size_t index = SelectedTargetIndex;
+        ULONG index = SelectedTargetIndex;
         if (index > 0)
         {
             RefPtr<Target> pTarget = m_tt[index];
@@ -299,21 +289,28 @@ void ConfigurationTreeView::MoveUpSelectedTarget()
             SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(hChildren[index]));
             TVINSERTSTRUCT tvins = { 0 };
             tvins.hParent = m_hTT;
-            tvins.hInsertAfter = index > 1 ? hChildren[index - 2] : TVI_FIRST;
+            tvins.hInsertAfter = index > 1 ? hChildren[static_cast<size_t>(index) - 2] : TVI_FIRST;
             tvins.item.mask = TVIF_PARAM;
             tvins.item.lParam = ~0;
             HTREEITEM hItem = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
-            if (pTarget->IsTypeAction)
+            for (ULONG index2 = 0; index2 < pTarget->Count; index2++)
             {
                 tvins.hParent = hItem;
                 tvins.hInsertAfter = TVI_LAST;
-                SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins));
-                for (ActionListConstIter iter = pTarget->ActionTargetPtr->Begin(); iter != pTarget->ActionTargetPtr->End(); iter++)
+                HTREEITEM hItem2 = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
+                RefPtr<Action> pAction = (*pTarget.Ptr)[index2];
+                if (pAction->Type == AC_SETFOREGROUNDWINDOW)
                 {
-                    SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins));
+                    auto pActionEx = dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr);
+                    for (auto iter = pActionEx->Begin; iter != pActionEx->End; iter++)
+                    {
+                        tvins.hParent = hItem2;
+                        tvins.hInsertAfter = TVI_LAST;
+                        hItem2 = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
+                    }
                 }
-                SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(hItem));
             }
+            SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(hItem));
             m_tt.Move(index, index - 1);
             SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hItem));
         }
@@ -326,15 +323,16 @@ void ConfigurationTreeView::MoveUpSelectedActionItem()
     if (IsActionItemSelected)
     {
         RefPtr<Target> pTarget = SelectedTarget;
-        size_t index = SelectedActionItemIndex;
-        if (index > 0)
+        ULONG from = SelectedActionItemIndex;
+        ULONG to = from - 1;
+        if (from > 1)
         {
-            pTarget->ActionTargetPtr->Move(index, index - 1);
+            pTarget->Move(from, to);
             std::vector<HTREEITEM> hTT;
             GetItemsFromTargetList(hTT);
             std::vector<HTREEITEM> hAA;
             GetItemsFromTarget(pTarget, hTT[SelectedTargetIndex], hAA);
-            SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hAA[1 + index - 1]));
+            SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hAA[to]));
         }
     }
 }
@@ -342,9 +340,9 @@ void ConfigurationTreeView::MoveUpSelectedActionItem()
 
 void ConfigurationTreeView::MoveDownSelectedTarget()
 {
-    if (IsTargetSelected || IsFindWindowSelected)
+    if (IsTargetSelected)
     {
-        size_t index = SelectedTargetIndex;
+        ULONG index = SelectedTargetIndex;
         if (index + 1 < m_tt.Count)
         {
             RefPtr<Target> pTarget = m_tt[index];
@@ -353,21 +351,28 @@ void ConfigurationTreeView::MoveDownSelectedTarget()
             SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(hChildren[index]));
             TVINSERTSTRUCT tvins = { 0 };
             tvins.hParent = m_hTT;
-            tvins.hInsertAfter = hChildren[index + 1];
+            tvins.hInsertAfter = hChildren[static_cast<size_t>(index) + 1];
             tvins.item.mask = TVIF_PARAM;
             tvins.item.lParam = ~0;
             HTREEITEM hItem = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
-            if (pTarget->IsTypeAction)
+            for (ULONG index2 = 0; index2 < pTarget->Count; index2++)
             {
                 tvins.hParent = hItem;
                 tvins.hInsertAfter = TVI_LAST;
-                SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins));
-                for (ActionListConstIter iter = pTarget->ActionTargetPtr->Begin(); iter != pTarget->ActionTargetPtr->End(); iter++)
+                HTREEITEM hItem2 = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
+                RefPtr<Action> pAction = (*pTarget.Ptr)[index2];
+                if (pAction->Type == AC_SETFOREGROUNDWINDOW)
                 {
-                    SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins));
+                    auto pActionEx = dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr);
+                    for (auto iter = pActionEx->Begin; iter != pActionEx->End; iter++)
+                    {
+                        tvins.hParent = hItem2;
+                        tvins.hInsertAfter = TVI_LAST;
+                        hItem2 = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
+                    }
                 }
-                SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(hItem));
             }
+            SendMessageW(m_hwnd, TVM_EXPAND, TVE_EXPAND, reinterpret_cast<LPARAM>(hItem));
             m_tt.Move(index, index + 1);
             SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hItem));
         }
@@ -380,15 +385,16 @@ void ConfigurationTreeView::MoveDownSelectedActionItem()
     if (IsActionItemSelected)
     {
         RefPtr<Target> pTarget = SelectedTarget;
-        size_t index = SelectedActionItemIndex;
-        if (index + 1 < pTarget->ActionTargetPtr->Count)
+        ULONG from = SelectedActionItemIndex;
+        ULONG to = from + 1;
+        if (0 < from && to < pTarget->Count)
         {
-            pTarget->ActionTargetPtr->Move(index, index + 1);
             std::vector<HTREEITEM> hTT;
             GetItemsFromTargetList(hTT);
             std::vector<HTREEITEM> hAA;
             GetItemsFromTarget(pTarget, hTT[SelectedTargetIndex], hAA);
-            SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hAA[1 + index + 1]));
+            pTarget->Move(from, to);
+            SendMessageW(m_hwnd, TVM_SELECTITEM, TVGN_CARET, reinterpret_cast<LPARAM>(hAA[to]));
         }
     }
 }
@@ -409,7 +415,7 @@ void ConfigurationTreeView::OnCredentialsUpdate(Credentials& credentials)
     {
         std::vector<HTREEITEM> hChildren;
         GetItemsFromCredentialsList(hChildren);
-        for (size_t index = 0; index < m_cc.Count; index++)
+        for (ULONG index = 0; index < m_cc.Count; index++)
         {
             if (m_cc[index].Ptr == &credentials)
             {
@@ -436,7 +442,7 @@ void ConfigurationTreeView::OnTargetUpdate(Target& target)
     {
         std::vector<HTREEITEM> hChildren;
         GetItemsFromTargetList(hChildren);
-        for (size_t index = 0; index < m_tt.Count; index++)
+        for (ULONG index = 0; index < m_tt.Count; index++)
         {
             if (m_tt[index].Ptr == &target)
             {
@@ -461,7 +467,7 @@ void ConfigurationTreeView::RefreshCredentialsList()
     {
         std::vector<HTREEITEM> hChildren;
         GetItemsFromCredentialsList(hChildren);
-        for (size_t index = 0; index < m_cc.Count; index++)
+        for (ULONG index = 0; index < m_cc.Count; index++)
         {
             RefreshCredentials(index, hChildren[index]);
         }
@@ -469,7 +475,7 @@ void ConfigurationTreeView::RefreshCredentialsList()
 }
 
 
-void ConfigurationTreeView::RefreshCredentials(size_t index, HTREEITEM hItem)
+void ConfigurationTreeView::RefreshCredentials(ULONG index, HTREEITEM hItem)
 {
     WCHAR szText[MAX_PATH] = { 0 };
     TVITEM item = { 0 };
@@ -485,7 +491,7 @@ void ConfigurationTreeView::RefreshCredentials(size_t index, HTREEITEM hItem)
     {
         _snwprintf_s(szText, _TRUNCATE, L"%s", m_cc[index]->Username);
     }
-    item.lParam = CTV_INDEX(CTV_CITEM_LEVEL1, CTV_CITEM_LEVEL2_MIN + index);
+    item.lParam = CTV_INDEX(CTV_CITEM_LEVEL1, CTV_CITEM_LEVEL2_MIN + static_cast<size_t>(index));
     SendMessageW(m_hwnd, TVM_SETITEM, 0, reinterpret_cast<LPARAM>(&item));
     m_cc[index]->Callback = this;
 }
@@ -497,7 +503,7 @@ void ConfigurationTreeView::RefreshTargetList()
     {
         std::vector<HTREEITEM> hChildren;
         GetItemsFromTargetList(hChildren);
-        for (size_t index = 0; index < m_tt.Count; index++)
+        for (ULONG index = 0; index < m_tt.Count; index++)
         {
             RefreshTarget(index, hChildren[index]);
         }
@@ -505,59 +511,82 @@ void ConfigurationTreeView::RefreshTargetList()
 }
 
 
-void ConfigurationTreeView::RefreshTarget(size_t index, HTREEITEM hT)
+void ConfigurationTreeView::RefreshTarget(ULONG index, HTREEITEM hT)
 {
+    DBGFNC(L"ConfigurationTreeView::RefreshTarget");
+    DBGPUT(L"index=%lu", index);
+    RefPtr<Target> pTarget = m_tt[index];
     WCHAR szText[MAX_PATH] = { 0 };
     TVITEM item = { 0 };
     item.mask = TVIF_TEXT | TVIF_PARAM;
     item.pszText = szText;
     item.cchTextMax = _countof(szText);
     item.hItem = hT;
-    _snwprintf_s(szText, _TRUNCATE, L"%s", m_tt[index]->Name);
-    item.lParam = CTV_INDEX(CTV_TNAME_LEVEL1, CTV_TNAME_LEVEL2_MIN + index);
+    _snwprintf_s(szText, _TRUNCATE, L"%s", pTarget->Name);
+    item.lParam = CTV_INDEX(CTV_TNAME_LEVEL1, CTV_TNAME_LEVEL2_MIN + static_cast<size_t>(index));
     SendMessageW(m_hwnd, TVM_SETITEM, 0, reinterpret_cast<LPARAM>(&item));
     std::vector<HTREEITEM> hChildren;
-    GetItemsFromTarget(m_tt[index], hT, hChildren);
-    if (m_tt[index]->IsTypeFindWindow)
+    GetItemsFromTarget(pTarget, hT, hChildren);
+    for (ULONG index2 = 0; index2 < pTarget->Count; index2++)
     {
-        FindWindowTarget* pFW = m_tt[index]->FindWindowTargetPtr;
-        item.hItem = hChildren[0];
-        _snwprintf_s(szText, _TRUNCATE, L"FindWindow class=\"%s\" text=\"%s\"", pFW->ClassName, pFW->WindowText);
-        item.lParam = CTV_INDEX(CTV_TITEM_LEVEL1_MIN + index, CTV_TITEM_LEVEL2);
-        SendMessageW(m_hwnd, TVM_SETITEM, 0, reinterpret_cast<LPARAM>(&item));
-        for (size_t index2 = 0; index2 < pFW->Count; index2++)
+        RefPtr<Action> pAction = (*pTarget.Ptr)[index2];
+        switch (pAction->Type)
         {
-            PCWSTR psz = (*pFW)[index2];
-            item.hItem = hChildren[1 + index2];
-            switch (Action::GetClass(psz))
+        case AC_SETFOREGROUNDWINDOW:
+        {
+            HTREEITEM hX = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CHILD, reinterpret_cast<LPARAM>(hChildren[index2])));
+            if (hX)
             {
-            case AC_TYPEUSERNAME:
-                psz = Action::GetValue(psz);
-                _snwprintf_s(szText, _TRUNCATE, psz ? L"TypeUsername [%s]" : L"TypeUsername", psz);
-                break;
-            case AC_TYPEPASSWORD:
-                psz = Action::GetValue(psz);
-                _snwprintf_s(szText, _TRUNCATE, psz ? L"TypePassword [%s]" : L"TypePassword", psz);
-                break;
-            case AC_TYPEDELETESEQUENCE:
-                _snwprintf_s(szText, _TRUNCATE, L"TypeDeleteSequence");
-                break;
-            case AC_TYPEUNICODE:
-                psz = Action::GetValue(psz);
-                _snwprintf_s(szText, _TRUNCATE, L"Type \"%s\"", psz);
-                break;
-            case AC_TYPEKEY:
-                _snwprintf_s(szText, _TRUNCATE, L"Type %s", psz);
-                break;
-            default:
-                _snwprintf_s(szText, _TRUNCATE, L"?");
-                break;
+                SendMessageW(m_hwnd, TVM_DELETEITEM, 0, reinterpret_cast<LPARAM>(hX));
             }
-            item.lParam = CTV_INDEX(CTV_AITEM_LEVEL1_MIN + index, CTV_AITEM_LEVEL2_MIN + index2);
-            SendMessageW(m_hwnd, TVM_SETITEM, 0, reinterpret_cast<LPARAM>(&item));
+            TVINSERTSTRUCT tvins = { 0 };
+            tvins.hParent = hChildren[index2];
+            tvins.hInsertAfter = TVI_LAST;
+            tvins.item.mask = TVIF_TEXT | TVIF_PARAM;
+            tvins.item.pszText = szText;
+            tvins.item.cchTextMax = _countof(szText);
+            auto pActionEx = dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr);
+            for (auto iter = pActionEx->Begin; iter != pActionEx->End; iter++)
+            {
+                _snwprintf_s(szText, _TRUNCATE, L"FindWindow class=\"%s\" text=\"%s\"", iter->first, iter->second);
+                tvins.item.lParam = CTV_INDEX(CTV_AITEM_LEVEL1_MIN + static_cast<size_t>(index), CTV_AITEM_LEVEL2_MIN + static_cast<size_t>(index2));
+                DBGPUT(L"tvins.hParent=%p item.pszText=\"%s\" item.lParam=%zu", tvins.hParent, tvins.item.pszText, tvins.item.lParam);
+                tvins.hParent = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
+            }
+            _snwprintf_s(szText, _TRUNCATE, L"SetForegroundWindow class=\"%s\" text=\"%s\"", pActionEx->ClassName, pActionEx->WindowText);
+            break;
         }
+        case AC_TYPEKEY:
+            _snwprintf_s(szText, _TRUNCATE, L"Type %s", dynamic_cast<TypeKeyAction*>(pAction.Ptr)->Key);
+            break;
+        case AC_TYPEUNICODE:
+            _snwprintf_s(szText, _TRUNCATE, L"Type \"%s\"", dynamic_cast<TypeUnicodeAction*>(pAction.Ptr)->Text);
+            break;
+        case AC_TYPEUSERNAME:
+        {
+            PCWSTR psz = dynamic_cast<TypeUsernameAction*>(pAction.Ptr)->Name;
+            _snwprintf_s(szText, _TRUNCATE, psz && *psz ? L"TypeUsername [%s]" : L"TypeUsername", psz);
+            break;
+        }
+        case AC_TYPEPASSWORD:
+        {
+            PCWSTR psz = dynamic_cast<TypePasswordAction*>(pAction.Ptr)->Name;
+            _snwprintf_s(szText, _TRUNCATE, psz && *psz ? L"TypePassword [%s]" : L"TypePassword", psz);
+            break;
+        }
+        case AC_TYPEDELETESEQUENCE:
+            _snwprintf_s(szText, _TRUNCATE, L"TypeDeleteSequence");
+            break;
+        default:
+            _snwprintf_s(szText, _TRUNCATE, L"?");
+            break;
+        }
+        item.hItem = hChildren[index2];
+        item.lParam = CTV_INDEX(CTV_AITEM_LEVEL1_MIN + static_cast<size_t>(index), CTV_AITEM_LEVEL2_MIN + static_cast<size_t>(index2));
+        DBGPUT(L"item.hItem=%p item.pszText=\"%s\" item.lParam=%zu", item.hItem, item.pszText, item.lParam);
+        SendMessageW(m_hwnd, TVM_SETITEM, 0, reinterpret_cast<LPARAM>(&item));
     }
-    m_tt[index]->Callback = this;
+    pTarget->Callback = this;
 }
 
 
@@ -566,7 +595,7 @@ void ConfigurationTreeView::GetItemsFromCredentialsList(std::vector<HTREEITEM>& 
     if (m_cc.Count)
     {
         HTREEITEM h = INVALID_HTREEITEM;
-        for (size_t index = 0; index < m_cc.Count; index++)
+        for (ULONG index = 0; index < m_cc.Count; index++)
         {
             if (index == 0)
             {
@@ -586,17 +615,11 @@ void ConfigurationTreeView::GetItemsFromTargetList(std::vector<HTREEITEM>& hh)
 {
     if (m_tt.Count)
     {
-        HTREEITEM h = INVALID_HTREEITEM;
-        for (size_t index = 0; index < m_tt.Count; index++)
+        HTREEITEM h = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CHILD, reinterpret_cast<LPARAM>(m_hTT)));
+        hh.push_back(h);
+        for (ULONG index = 1; index < m_tt.Count; index++)
         {
-            if (index == 0)
-            {
-                h = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CHILD, reinterpret_cast<LPARAM>(m_hTT)));
-            }
-            else
-            {
-                h = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(h)));
-            }
+            h = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(h)));
             hh.push_back(h);
         }
     }
@@ -605,17 +628,14 @@ void ConfigurationTreeView::GetItemsFromTargetList(std::vector<HTREEITEM>& hh)
 
 void ConfigurationTreeView::GetItemsFromTarget(RefPtr<Target> pTarget, HTREEITEM hParent, std::vector<HTREEITEM>& hChildren)
 {
-    if (pTarget->IsTypeAction)
+    if (pTarget->Count)
     {
         HTREEITEM hChild = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_CHILD, reinterpret_cast<LPARAM>(hParent)));
-        if (hChild)
+        hChildren.push_back(hChild);
+        for (ULONG index = 1; index < pTarget->Count; index++)
         {
+            hChild = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(hChild)));
             hChildren.push_back(hChild);
-            for (size_t index = 0; index < pTarget->ActionTargetPtr->Count; index++)
-            {
-                hChild = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_GETNEXTITEM, TVGN_NEXT, reinterpret_cast<LPARAM>(hChild)));
-                hChildren.push_back(hChild);
-            }
         }
     }
 }
@@ -623,30 +643,31 @@ void ConfigurationTreeView::GetItemsFromTarget(RefPtr<Target> pTarget, HTREEITEM
 
 bool ConfigurationTreeView::get_IsActionItemSelected() const
 {
-    size_t index1 = CTV_LEVEL1 - CTV_AITEM_LEVEL1_MIN;
-    size_t index2 = CTV_LEVEL2 - CTV_AITEM_LEVEL2_MIN;
-    return index1 < m_tt.Count&& m_tt[index1]->IsTypeAction&& index2 < m_tt[index1]->ActionTargetPtr->Count;
+    ULONG index1 = CTV_LEVEL1 - CTV_AITEM_LEVEL1_MIN;
+    ULONG index2 = CTV_LEVEL2 - CTV_AITEM_LEVEL2_MIN;
+    return index1 < m_tt.Count && index2 < m_tt[index1]->Count;
 }
 
 
-size_t ConfigurationTreeView::get_SelectedActionItemIndex() const
+ULONG ConfigurationTreeView::get_SelectedActionItemIndex() const
 {
-    size_t index1 = CTV_LEVEL1 - CTV_AITEM_LEVEL1_MIN;
-    size_t index2 = CTV_LEVEL2 - CTV_AITEM_LEVEL2_MIN;
-    return index1 < m_tt.Count&& m_tt[index1]->IsTypeAction&& index2 < m_tt[index1]->ActionTargetPtr->Count ? index2 : static_cast<size_t>(-1);
+    ULONG index1 = CTV_LEVEL1 - CTV_AITEM_LEVEL1_MIN;
+    ULONG index2 = CTV_LEVEL2 - CTV_AITEM_LEVEL2_MIN;
+    return index1 < m_tt.Count && index2 < m_tt[index1]->Count ? static_cast<ULONG>(index2) : static_cast<ULONG>(-1);
 }
 
 
-PCWSTR ConfigurationTreeView::get_SelectedActionItem() const
+RefPtr<Action> ConfigurationTreeView::get_SelectedActionItem() const
 {
-    return IsActionItemSelected ? (*SelectedTarget->ActionTargetPtr)[SelectedActionItemIndex] : nullptr;
+    return IsActionItemSelected ? (*SelectedTarget.Ptr)[SelectedActionItemIndex] : RefPtr<Action>();
 }
 
 
-void ConfigurationTreeView::set_SelectedActionItem(PCWSTR psz)
+void ConfigurationTreeView::set_SelectedActionItem(RefPtr<Action> pAction)
 {
     if (IsActionItemSelected)
     {
-        SelectedTarget->ActionTargetPtr->Assign(SelectedActionItemIndex, psz);
+        (*SelectedTarget.Ptr)[SelectedActionItemIndex] = pAction;
+        SelectedTarget->InvokeCallback();
     }
 }

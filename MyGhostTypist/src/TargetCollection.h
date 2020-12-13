@@ -24,17 +24,17 @@ namespace hnrt
         TargetCollection(const TargetCollection&) = delete;
         ~TargetCollection() = default;
         void operator =(const TargetCollection&) = delete;
-        const RefPtr<Target> operator[](size_t index) const;
-        RefPtr<Target> operator[](size_t index);
+        const RefPtr<Target> operator[](ULONG index) const;
+        RefPtr<Target> operator[](ULONG index);
         TargetCollection& Append(RefPtr<Target> pTarget);
-        TargetCollection& Delete(size_t index);
-        TargetCollection& Insert(size_t index, RefPtr<Target> pTarget);
-        TargetCollection& Move(size_t from, size_t to);
-        TargetCollection& Assign(size_t index, RefPtr<Target> pTarget);
+        TargetCollection& Delete(ULONG index);
+        TargetCollection& Insert(ULONG index, RefPtr<Target> pTarget);
+        TargetCollection& Move(ULONG from, ULONG to);
+        TargetCollection& Assign(ULONG index, RefPtr<Target> pTarget);
         TargetCollection& Clear();
-        size_t get_Count() const;
+        ULONG get_Count() const;
         void set_Callback(TargetCollectionCallback* pCallbak);
-        __declspec(property(get = get_Count)) size_t Count;
+        __declspec(property(get = get_Count)) ULONG Count;
         __declspec(property(put = set_Callback)) TargetCollectionCallback* Callback;
 
     private:
@@ -43,19 +43,19 @@ namespace hnrt
         TargetCollectionCallback* m_pCallback;
     };
 
-    inline const RefPtr<Target> TargetCollection::operator[](size_t index) const
+    inline const RefPtr<Target> TargetCollection::operator[](ULONG index) const
     {
         return index < Count ? m_collection[index] : RefPtr<Target>();
     }
 
-    inline RefPtr<Target> TargetCollection::operator[](size_t index)
+    inline RefPtr<Target> TargetCollection::operator[](ULONG index)
     {
         return index < Count ? m_collection[index] : RefPtr<Target>();
     }
 
-    inline size_t TargetCollection::get_Count() const
+    inline ULONG TargetCollection::get_Count() const
     {
-        return m_collection.size();
+        return static_cast<ULONG>(m_collection.size());
     }
 
     inline void TargetCollection::set_Callback(TargetCollectionCallback* pCallbak)

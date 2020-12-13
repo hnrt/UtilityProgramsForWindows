@@ -1,6 +1,5 @@
 #include "ConfigurationDialogBox.h"
 #include <windowsx.h>
-#include "FindWindowTarget.h"
 #include "Action.h"
 #include "hnrt/Debug.h"
 #include "hnrt/Buffer.h"
@@ -186,7 +185,7 @@ INT_PTR ConfigurationDialogBox::OnUpButtonClicked(HWND hwnd)
     {
         m_tv.MoveUpSelectedActionItem();
     }
-    else if (m_tv.IsFindWindowSelected || m_tv.IsTargetSelected)
+    else if (m_tv.IsTargetSelected)
     {
         m_tv.MoveUpSelectedTarget();
     }
@@ -204,7 +203,7 @@ INT_PTR ConfigurationDialogBox::OnDownButtonClicked(HWND hwnd)
     {
         m_tv.MoveDownSelectedActionItem();
     }
-    else if (m_tv.IsFindWindowSelected || m_tv.IsTargetSelected)
+    else if (m_tv.IsTargetSelected)
     {
         m_tv.MoveDownSelectedTarget();
     }
@@ -221,7 +220,7 @@ INT_PTR ConfigurationDialogBox::OnAddButtonClicked(HWND hwnd)
         SetFocus(GetDlgItem(hwnd, IDC_USERNAME_EDIT));
         return TRUE;
     }
-    else if (m_tv.IsActionItemSelected || m_tv.IsFindWindowSelected || m_tv.IsTargetSelected || m_tv.IsTargetListSelected)
+    else if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected || m_tv.IsTargetListSelected)
     {
         m_tv.AddTarget();
         UpdateMoveButtons(hwnd);
@@ -239,7 +238,7 @@ INT_PTR ConfigurationDialogBox::OnRemoveButtonClicked(HWND hwnd)
         m_tv.RemoveSelectedCredentials();
         return TRUE;
     }
-    else if (m_tv.IsFindWindowSelected || m_tv.IsTargetSelected)
+    else if (m_tv.IsTargetSelected)
     {
         m_tv.RemoveSelectedTarget();
         return TRUE;
@@ -282,16 +281,16 @@ INT_PTR ConfigurationDialogBox::OnEditNotified(HWND hwnd, WORD wControlId, WORD 
             }
             return TRUE;
         case IDC_TARGET_EDIT:
-            if (m_tv.IsTargetSelected || m_tv.IsFindWindowSelected || m_tv.IsActionItemSelected)
+            if (m_tv.IsTargetSelected || m_tv.IsActionItemSelected)
             {
                 m_tv.SelectedTarget->Name = buf;
             }
             return TRUE;
         case IDC_UNICODE_EDIT:
-            if (m_tv.IsActionItemSelected && m_tv.SelectedTarget->IsTypeAction)
+            if (m_tv.IsActionItemSelected)
             {
-                PCWSTR psz = m_tv.SelectedActionItem;
-                if (Action::GetClass(psz) == AC_TYPEUNICODE)
+                RefPtr<Action> pAction = m_tv.SelectedActionItem;
+                if (pAction->Type == AC_TYPEUNICODE)
                 {
                     m_tv.SelectedActionItem = Action::TypeUnicode(buf);
                 }
@@ -312,14 +311,14 @@ INT_PTR ConfigurationDialogBox::OnComboBoxNotified(HWND hwnd, WORD wControlId, W
         switch (wControlId)
         {
         case IDC_CREDKEY_COMBO:
-            if (m_tv.IsActionItemSelected && m_tv.SelectedTarget->IsTypeAction)
+            if (m_tv.IsActionItemSelected)
             {
                 PCWSTR pszSelected = m_cbCredentials.Selected;
-                PCWSTR pszAction = m_tv.SelectedActionItem;
-                switch (Action::GetClass(pszAction))
+                RefPtr<Action> pAction = m_tv.SelectedActionItem;
+                switch (pAction->Type)
                 {
                 case AC_TYPEUSERNAME:
-                    if (*pszSelected && wcscmp(pszSelected, DEFAULT_CREDENTIALS))
+                    if (*pszSelected && String::Compare(pszSelected, DEFAULT_CREDENTIALS))
                     {
                         m_tv.SelectedActionItem = Action::TypeUsername(pszSelected);
                     }
@@ -329,7 +328,7 @@ INT_PTR ConfigurationDialogBox::OnComboBoxNotified(HWND hwnd, WORD wControlId, W
                     }
                     break;
                 case AC_TYPEPASSWORD:
-                    if (*pszSelected && wcscmp(pszSelected, DEFAULT_CREDENTIALS))
+                    if (*pszSelected && String::Compare(pszSelected, DEFAULT_CREDENTIALS))
                     {
                         m_tv.SelectedActionItem = Action::TypePassword(pszSelected);
                     }
@@ -389,34 +388,30 @@ INT_PTR ConfigurationDialogBox::OnLeftButtonDown(HWND hwnd, WPARAM wParam, LPARA
         WindowHelper hwndInterest = WindowFromPoint(pt);
         if (hwndInterest)
         {
+            DBGPUT(L"class=\"%s\" text=\"%s\" process=%lu thread=%lu", hwndInterest.ClassName, hwndInterest.WindowText, hwndInterest.ProcessId, hwndInterest.ThreadId);
             RefPtr<Target> pTarget = m_tv.SelectedTarget;
-            if (pTarget->IsTypeNull)
+            RefPtr<Action> pAction = Action::SetForegroundWindow(hwndInterest.ClassName, hwndInterest.WindowText);
+            while (hwndInterest.IsChild)
             {
-                m_tv.AddFindWindow(L"?", L"?"); // discards current pTarget - needs to be refreshed
-                pTarget = m_tv.SelectedTarget;
-            }
-            if (!hwndInterest.IsChild)
-            {
+                hwndInterest = hwndInterest.Parent;
+                if (!hwndInterest)
+                {
+                    DBGPUT(L"No parent.");
+                    break;
+                }
                 DBGPUT(L"class=\"%s\" text=\"%s\" process=%lu thread=%lu", hwndInterest.ClassName, hwndInterest.WindowText, hwndInterest.ProcessId, hwndInterest.ThreadId);
-                pTarget->FindWindowTargetPtr->Set(hwndInterest.ClassName, hwndInterest.WindowText);
+                dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr)->Prepend(hwndInterest.ClassName, hwndInterest.WindowText);
+            }
+            if (pTarget->Count)
+            {
+                (*pTarget.Ptr)[0] = pAction;
+                pTarget->InvokeCallback();
             }
             else
             {
-                WindowHelper hwndFirst = hwndInterest;
-                DBGPUT(L"class=\"%s\" text=\"%s\" process=%lu thread=%lu", hwndFirst.ClassName, hwndFirst.WindowText, hwndFirst.ProcessId, hwndFirst.ThreadId);
-                DBGPUT(L"Checking parent...");
-                while ((hwndInterest = hwndInterest.Parent))
-                {
-                    DBGPUT(L"class=\"%s\" text=\"%s\" process=%lu thread=%lu", hwndInterest.ClassName, hwndInterest.WindowText, hwndInterest.ProcessId, hwndInterest.ThreadId);
-                    if (!hwndInterest.IsChild)
-                    {
-                        DBGPUT(L"This is what I want.");
-                        pTarget->FindWindowTargetPtr->Set(hwndInterest.ClassName, hwndInterest.WindowText, hwndFirst.ClassName, hwndFirst.WindowText);
-                        break;
-                    }
-                }
+                m_tv.AddActionItem(pAction);
             }
-            OnFindWindowSelected(hwnd, pTarget->FindWindowTargetPtr);
+            OnActionItemSelected(hwnd, pTarget, 0);
         }
         SetForegroundWindow(hwnd);
         return TRUE;
@@ -427,7 +422,7 @@ INT_PTR ConfigurationDialogBox::OnLeftButtonDown(HWND hwnd, WPARAM wParam, LPARA
 
 INT_PTR ConfigurationDialogBox::OnUsernameButtonClicked(HWND hwnd)
 {
-    if (m_tv.IsActionItemSelected || m_tv.IsFindWindowSelected || m_tv.IsTargetSelected)
+    if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
     {
         PCWSTR pszSelected = m_cbCredentials.Selected;
         if (*pszSelected && wcscmp(pszSelected, DEFAULT_CREDENTIALS))
@@ -445,7 +440,7 @@ INT_PTR ConfigurationDialogBox::OnUsernameButtonClicked(HWND hwnd)
 
 INT_PTR ConfigurationDialogBox::OnPasswordButtonClicked(HWND hwnd)
 {
-    if (m_tv.IsActionItemSelected || m_tv.IsFindWindowSelected || m_tv.IsTargetSelected)
+    if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
     {
         PCWSTR pszSelected = m_cbCredentials.Selected;
         if (*pszSelected && wcscmp(pszSelected, DEFAULT_CREDENTIALS))
@@ -463,7 +458,7 @@ INT_PTR ConfigurationDialogBox::OnPasswordButtonClicked(HWND hwnd)
 
 INT_PTR ConfigurationDialogBox::OnDeleteSequenceButtonClicked(HWND hwnd)
 {
-    if (m_tv.IsActionItemSelected || m_tv.IsFindWindowSelected || m_tv.IsTargetSelected)
+    if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
     {
         m_tv.AddActionItem(Action::TypeDeleteSequence());
     }
@@ -473,7 +468,7 @@ INT_PTR ConfigurationDialogBox::OnDeleteSequenceButtonClicked(HWND hwnd)
 
 INT_PTR ConfigurationDialogBox::OnUnicodeButtonClicked(HWND hwnd)
 {
-    if (m_tv.IsActionItemSelected || m_tv.IsFindWindowSelected || m_tv.IsTargetSelected)
+    if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
     {
         m_tv.AddActionItem(Action::TypeUnicode(L""));
         SetFocus(GetDlgItem(hwnd, IDC_UNICODE_EDIT));
@@ -484,9 +479,9 @@ INT_PTR ConfigurationDialogBox::OnUnicodeButtonClicked(HWND hwnd)
 
 INT_PTR ConfigurationDialogBox::OnReturnButtonClicked(HWND hwnd)
 {
-    if (m_tv.IsActionItemSelected || m_tv.IsFindWindowSelected || m_tv.IsTargetSelected)
+    if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
     {
-        m_tv.AddActionItem(VirtualKey(static_cast<unsigned char>(VK_RETURN)).Name);
+        m_tv.AddActionItem(Action::TypeKey(VirtualKey(static_cast<unsigned char>(VK_RETURN)).Name));
     }
     return TRUE;
 }
@@ -494,9 +489,9 @@ INT_PTR ConfigurationDialogBox::OnReturnButtonClicked(HWND hwnd)
 
 INT_PTR ConfigurationDialogBox::OnTabButtonClicked(HWND hwnd)
 {
-    if (m_tv.IsActionItemSelected || m_tv.IsFindWindowSelected || m_tv.IsTargetSelected)
+    if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
     {
-        m_tv.AddActionItem(VirtualKey(static_cast<unsigned char>(VK_TAB)).Name);
+        m_tv.AddActionItem(Action::TypeKey(VirtualKey(static_cast<unsigned char>(VK_TAB)).Name));
     }
     return TRUE;
 }
@@ -552,7 +547,7 @@ void ConfigurationDialogBox::OnCredentialsSelected(HWND hwnd, RefPtr<Credentials
     DBGPUT(L"%s %s", pC->Username, pC->Key ? pC->Key : L"");
     WhileInScope<bool> wis(m_bChanging, true, false);;
     LONG prev = InterlockedExchange(&m_tvstate, TV_CRED);
-    EnableWindow(GetDlgItem(hwnd, IDC_UP_BUTTON), pC.Ptr != m_tv.CredentialsList[(size_t)0].Ptr ? TRUE : FALSE);
+    EnableWindow(GetDlgItem(hwnd, IDC_UP_BUTTON), pC.Ptr != m_tv.CredentialsList[0UL].Ptr ? TRUE : FALSE);
     EnableWindow(GetDlgItem(hwnd, IDC_DOWN_BUTTON), pC.Ptr != m_tv.CredentialsList[m_tv.CredentialsList.Count - 1].Ptr ? TRUE : FALSE);
     EnableWindow(GetDlgItem(hwnd, IDC_ADD_BUTTON), TRUE);
     EnableWindow(GetDlgItem(hwnd, IDC_REMOVE_BUTTON), m_tv.CredentialsList.Count > 1 ? TRUE : FALSE);
@@ -621,7 +616,7 @@ void ConfigurationDialogBox::OnTargetSelected(HWND hwnd, RefPtr<Target> pTarget)
     }
     // Target
     EnableWindow(GetDlgItem(hwnd, IDC_TARGET_EDIT), TRUE);
-    BOOL bCanType = pTarget->IsTypeFindWindow ? TRUE : FALSE;
+    BOOL bCanType = pTarget->Count ? TRUE : FALSE;
     EnableWindow(GetDlgItem(hwnd, IDC_FINDWINDOW_BUTTON), TRUE);
     EnableWindow(GetDlgItem(hwnd, IDC_USERNAME_BUTTON), bCanType);
     EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD_BUTTON), bCanType);
@@ -640,52 +635,14 @@ void ConfigurationDialogBox::OnTargetSelected(HWND hwnd, RefPtr<Target> pTarget)
 }
 
 
-void ConfigurationDialogBox::OnFindWindowSelected(HWND hwnd, FindWindowTarget* pTarget)
-{
-    DBGFNC(L"ConfigurationDialogBox::OnFindWindowSelected");
-    DBGPUT(L"%s", pTarget->Name);
-    WhileInScope<bool> wis(m_bChanging, true, false);;
-    LONG prev = InterlockedExchange(&m_tvstate, TV_FINDWINDOW);
-    EnableWindow(GetDlgItem(hwnd, IDC_UP_BUTTON), FALSE);
-    EnableWindow(GetDlgItem(hwnd, IDC_DOWN_BUTTON), FALSE);
-    if (prev != TV_ACTIONITEM && prev != TV_FINDWINDOW && prev != TV_TARGET)
-    {
-        EnableWindow(GetDlgItem(hwnd, IDC_ADD_BUTTON), TRUE);
-        EnableWindow(GetDlgItem(hwnd, IDC_REMOVE_BUTTON), TRUE);
-    }
-    // Credentials
-    if (prev == TV_CRED)
-    {
-        DisableCredentialsGroup(hwnd);
-    }
-    // Target
-    EnableWindow(GetDlgItem(hwnd, IDC_TARGET_EDIT), TRUE);
-    EnableWindow(GetDlgItem(hwnd, IDC_FINDWINDOW_BUTTON), TRUE);
-    EnableWindow(GetDlgItem(hwnd, IDC_USERNAME_BUTTON), TRUE);
-    EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD_BUTTON), TRUE);
-    EnableWindow(GetDlgItem(hwnd, IDC_CREDKEY_COMBO), TRUE);
-    EnableWindow(GetDlgItem(hwnd, IDC_UNICODE_EDIT), FALSE);
-    EnableWindow(GetDlgItem(hwnd, IDC_UNICODE_BUTTON), TRUE);
-    EnableWindow(GetDlgItem(hwnd, IDC_RETURN_BUTTON), TRUE);
-    EnableWindow(GetDlgItem(hwnd, IDC_TAB_BUTTON), TRUE);
-    EnableWindow(GetDlgItem(hwnd, IDC_DELETESEQUENCE_BUTTON), TRUE);
-    SetDlgItemTextW(hwnd, IDC_TARGET_EDIT, pTarget->Name);
-    SetDlgItemTextW(hwnd, IDC_UNICODE_EDIT, L"");
-    if (prev == TV_CRED || prev == TV_CLIST || prev == TV_UNSELECTED)
-    {
-        LoadCredKeyCombo(hwnd);
-    }
-}
-
-
-void ConfigurationDialogBox::OnActionItemSelected(HWND hwnd, ActionTarget* pTarget, size_t index)
+void ConfigurationDialogBox::OnActionItemSelected(HWND hwnd, RefPtr<Target> pTarget, ULONG index)
 {
     DBGFNC(L"ConfigurationDialogBox::OnTargetItemSelected");
-    DBGPUT(L"%s: %s", pTarget->Name, (*pTarget)[index]);
+    DBGPUT(L"%s: %lu", pTarget->Name, index);
     WhileInScope<bool> wis(m_bChanging, true, false);;
     LONG prev = InterlockedExchange(&m_tvstate, TV_ACTIONITEM);
-    EnableWindow(GetDlgItem(hwnd, IDC_UP_BUTTON), index > 0 ? TRUE : FALSE);
-    EnableWindow(GetDlgItem(hwnd, IDC_DOWN_BUTTON), index + 1 < pTarget->Count ? TRUE : FALSE);
+    EnableWindow(GetDlgItem(hwnd, IDC_UP_BUTTON), index > 1 ? TRUE : FALSE);
+    EnableWindow(GetDlgItem(hwnd, IDC_DOWN_BUTTON), 0 < index && index + 1 < pTarget->Count ? TRUE : FALSE);
     if (prev != TV_ACTIONITEM && prev != TV_FINDWINDOW && prev != TV_TARGET)
     {
         EnableWindow(GetDlgItem(hwnd, IDC_ADD_BUTTON), TRUE);
@@ -711,33 +668,31 @@ void ConfigurationDialogBox::OnActionItemSelected(HWND hwnd, ActionTarget* pTarg
     {
         LoadCredKeyCombo(hwnd);
     }
-    PCWSTR pszAction = (*pTarget)[index];
-    PCWSTR pszValue;
-    switch (Action::GetClass(pszAction))
+    RefPtr<Action> pAction = (*pTarget.Ptr)[index];
+    if (pAction->Type == AC_TYPEUNICODE)
     {
-    case AC_TYPEUSERNAME:
-    case AC_TYPEPASSWORD:
-        pszValue = Action::GetValue(pszAction);
-        if (pszValue && *pszValue)
-        {
-            m_cbCredentials.Set(pszValue);
-        }
-        else
-        {
-            m_cbCredentials.Select(DEFAULT_CREDENTIALS);
-        }
-        EnableWindow(GetDlgItem(hwnd, IDC_UNICODE_EDIT), FALSE);
-        SetDlgItemTextW(hwnd, IDC_UNICODE_EDIT, L"");
-        break;
-    case AC_TYPEUNICODE:
-        pszValue = Action::GetValue(pszAction);
         EnableWindow(GetDlgItem(hwnd, IDC_UNICODE_EDIT), TRUE);
-        SetDlgItemTextW(hwnd, IDC_UNICODE_EDIT, pszValue);
-        break;
-    default:
+        SetDlgItemTextW(hwnd, IDC_UNICODE_EDIT, dynamic_cast<TypeUnicodeAction*>(pAction.Ptr)->Text);
+    }
+    else
+    {
         EnableWindow(GetDlgItem(hwnd, IDC_UNICODE_EDIT), FALSE);
         SetDlgItemTextW(hwnd, IDC_UNICODE_EDIT, L"");
-        break;
+        if (pAction->Type == AC_TYPEUSERNAME || pAction->Type == AC_TYPEPASSWORD)
+        {
+            PCWSTR pszName =
+                pAction->Type == AC_TYPEUSERNAME ? dynamic_cast<TypeUsernameAction*>(pAction.Ptr)->Name :
+                pAction->Type == AC_TYPEPASSWORD ? dynamic_cast<TypePasswordAction*>(pAction.Ptr)->Name :
+                nullptr;
+            if (pszName && *pszName)
+            {
+                m_cbCredentials.Set(pszName);
+            }
+            else
+            {
+                m_cbCredentials.Select(DEFAULT_CREDENTIALS);
+            }
+        }
     }
 }
 
@@ -776,21 +731,21 @@ void ConfigurationDialogBox::UpdateMoveButtons(HWND hwnd)
 {
     if (m_tv.IsCredentialsSelected)
     {
-        size_t index = m_tv.SelectedCredentialsIndex;
+        ULONG index = m_tv.SelectedCredentialsIndex;
         EnableWindow(GetDlgItem(hwnd, IDC_UP_BUTTON), index > 0 ? TRUE : FALSE);
         EnableWindow(GetDlgItem(hwnd, IDC_DOWN_BUTTON), index < m_tv.CredentialsList.Count - 1 ? TRUE : FALSE);
     }
-    else if (m_tv.IsTargetSelected || m_tv.IsFindWindowSelected)
+    else if (m_tv.IsTargetSelected)
     {
-        size_t index = m_tv.SelectedTargetIndex;
+        ULONG index = m_tv.SelectedTargetIndex;
         EnableWindow(GetDlgItem(hwnd, IDC_UP_BUTTON), index > 0 ? TRUE : FALSE);
         EnableWindow(GetDlgItem(hwnd, IDC_DOWN_BUTTON), index < m_tv.TargetList.Count - 1 ? TRUE : FALSE);
     }
     else if (m_tv.IsActionItemSelected)
     {
-        size_t index = m_tv.SelectedActionItemIndex;
-        EnableWindow(GetDlgItem(hwnd, IDC_UP_BUTTON), index > 0 ? TRUE : FALSE);
-        EnableWindow(GetDlgItem(hwnd, IDC_DOWN_BUTTON), index < m_tv.SelectedTarget->ActionTargetPtr->Count - 1 ? TRUE : FALSE);
+        ULONG index = m_tv.SelectedActionItemIndex;
+        EnableWindow(GetDlgItem(hwnd, IDC_UP_BUTTON), index > 1 ? TRUE : FALSE);
+        EnableWindow(GetDlgItem(hwnd, IDC_DOWN_BUTTON), index < m_tv.SelectedTarget->Count - 1 ? TRUE : FALSE);
     }
     else
     {
@@ -811,28 +766,34 @@ void ConfigurationDialogBox::LoadCredKeyCombo(HWND hwnd)
             m_cbCredentials.Add(m_tv.CredentialsList[index]->Key);
         }
     }
-    if (m_tv.IsActionItemSelected || m_tv.IsFindWindowSelected || m_tv.IsTargetSelected)
+    if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
     {
         RefPtr<Target> pTarget = m_tv.SelectedTarget;
-        if (pTarget->IsTypeAction)
+        for (Target::ActionIter iter = pTarget->Begin; iter != pTarget->End; iter++)
         {
-            for (ActionListConstIter iter = pTarget->ActionTargetPtr->Begin(); iter != pTarget->ActionTargetPtr->End(); iter++)
+            RefPtr<Action> pAction = *iter;
+            PCWSTR pszName;
+            if (pAction->Type == AC_TYPEUSERNAME)
             {
-                PCWSTR psz = *iter;
-                switch (Action::GetClass(psz))
-                {
-                case AC_TYPEUSERNAME:
-                case AC_TYPEPASSWORD:
-                    psz = Action::GetValue(psz);
-                    if (!m_cbCredentials.Select(psz ? psz : DEFAULT_CREDENTIALS))
-                    {
-                        m_cbCredentials.Set(psz ? psz : DEFAULT_CREDENTIALS);
-                    }
-                    return;
-                default:
-                    break;
-                }
+                pszName = dynamic_cast<TypeUsernameAction*>(pAction.Ptr)->Name;
             }
+            else if (pAction->Type == AC_TYPEPASSWORD)
+            {
+                pszName = dynamic_cast<TypePasswordAction*>(pAction.Ptr)->Name;
+            }
+            else
+            {
+                continue;
+            }
+            if (!pszName)
+            {
+                pszName = DEFAULT_CREDENTIALS;
+            }
+            if (!m_cbCredentials.Select(pszName))
+            {
+                m_cbCredentials.Set(pszName);
+            }
+            return;
         }
     }
     m_cbCredentials.Select(DEFAULT_CREDENTIALS);

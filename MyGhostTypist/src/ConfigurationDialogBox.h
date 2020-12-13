@@ -51,8 +51,7 @@ namespace hnrt
         virtual void OnCredentialsSelected(HWND hwnd, RefPtr<Credentials>);
         virtual void OnTargetListSelected(HWND hwnd);
         virtual void OnTargetSelected(HWND hwnd, RefPtr<Target>);
-        virtual void OnFindWindowSelected(HWND hwnd, FindWindowTarget*);
-        virtual void OnActionItemSelected(HWND hwnd, ActionTarget*, size_t);
+        virtual void OnActionItemSelected(HWND hwnd, RefPtr<Target>, ULONG);
         void DisableCredentialsGroup(HWND hwnd);
         void DisableTargetGroup(HWND hwnd);
         void UpdateMoveButtons(HWND hwnd);

@@ -99,7 +99,6 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Action.cpp" />
-    <ClCompile Include="src\ActionTarget.cpp" />
     <ClCompile Include="src\ComboBox.cpp" />
     <ClCompile Include="src\Configuration.cpp" />
     <ClCompile Include="src\ConfigurationDialogBox.cpp" />
@@ -107,7 +106,6 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
     <ClCompile Include="src\ConfigurationTreeView.cpp" />
     <ClCompile Include="src\Credentials.cpp" />
     <ClCompile Include="src\CredentialsCollection.cpp" />
-    <ClCompile Include="src\FindWindowTarget.cpp" />
     <ClCompile Include="src\KeystrokeManager.cpp" />
     <ClCompile Include="src\KeystrokeManagerLayout.cpp" />
     <ClCompile Include="src\MainWindow.cpp" />
@@ -119,7 +117,6 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Action.h" />
-    <ClInclude Include="src\ActionTarget.h" />
     <ClInclude Include="src\ComboBox.h" />
     <ClInclude Include="src\Configuration.h" />
     <ClInclude Include="src\ConfigurationDialogBox.h" />
@@ -127,7 +124,6 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
     <ClInclude Include="src\ConfigurationTreeView.h" />
     <ClInclude Include="src\Credentials.h" />
     <ClInclude Include="src\CredentialsCollection.h" />
-    <ClInclude Include="src\FindWindowTarget.h" />
     <ClInclude Include="src\KeystrokeManager.h" />
     <ClInclude Include="src\MainWindow.h" />
     <ClInclude Include="src\NullTarget.h" />

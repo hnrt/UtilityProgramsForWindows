@@ -3,6 +3,7 @@
 
 #include "Configuration.h"
 #include "XmlDocument.h"
+#include "Target.h"
 
 
 #define CFG_FILENAME L"configuration.xml"
@@ -43,6 +44,8 @@ namespace hnrt
 
         void LoadTargetList(MSXML2::IXMLDOMNode* pNode);
         void LoadTarget(MSXML2::IXMLDOMNode* pNode);
+        void LoadFindWindowV0(MSXML2::IXMLDOMNode* pNode);
+        void LoadSetForegroundWindow(MSXML2::IXMLDOMNode* pNode);
         void LoadFindWindow(MSXML2::IXMLDOMNode* pNode);
         void LoadTypeUsername(MSXML2::IXMLDOMNode* pNode);
         void LoadTypePassword(MSXML2::IXMLDOMNode* pNode);
@@ -51,13 +54,15 @@ namespace hnrt
 
         void BuildUI(XmlDocument& document, MSXML2::IXMLDOMElement* pParent);
         void BuildCredentialsList(XmlDocument& document, MSXML2::IXMLDOMElement* pParent);
-        void BuildCredentials(XmlDocument& document, MSXML2::IXMLDOMElement* pParent, size_t index);
+        void BuildCredentials(XmlDocument& document, MSXML2::IXMLDOMElement* pParent, ULONG index);
         void BuildTargetList(XmlDocument& document, MSXML2::IXMLDOMElement* pParent);
-        void BuildTarget(XmlDocument& document, MSXML2::IXMLDOMElement* pParent, size_t index);
+        void BuildTarget(XmlDocument& document, MSXML2::IXMLDOMElement* pParent, ULONG index);
 
         PCWSTR m_pszFileName;
         bool m_bSave;
         bool m_bLoading;
+        long m_Version;
+        RefPtr<Target> m_pTarget;
     };
 
     class ConfigurationElementLoadAction

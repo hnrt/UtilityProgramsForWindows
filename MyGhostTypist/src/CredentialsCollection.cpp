@@ -7,7 +7,7 @@ using namespace hnrt;
 
 const RefPtr<Credentials> CredentialsCollection::operator[](PCWSTR pszKey) const
 {
-    for (size_t index = 0; index < Count; index++)
+    for (ULONG index = 0; index < Count; index++)
     {
         if (m_collection[index]->Key && !wcscmp(pszKey, m_collection[index]->Key))
         {
@@ -20,7 +20,7 @@ const RefPtr<Credentials> CredentialsCollection::operator[](PCWSTR pszKey) const
 
 RefPtr<Credentials> CredentialsCollection::operator[](PCWSTR pszKey)
 {
-    for (size_t index = 0; index < Count; index++)
+    for (ULONG index = 0; index < Count; index++)
     {
         if (m_collection[index]->Key && !wcscmp(pszKey, m_collection[index]->Key))
         {
@@ -42,7 +42,7 @@ CredentialsCollection& CredentialsCollection::Append(RefPtr<Credentials> pCreden
 }
 
 
-CredentialsCollection& CredentialsCollection::Delete(size_t index)
+CredentialsCollection& CredentialsCollection::Delete(ULONG index)
 {
     if (index < Count)
     {
@@ -56,7 +56,7 @@ CredentialsCollection& CredentialsCollection::Delete(size_t index)
 }
 
 
-CredentialsCollection& CredentialsCollection::Insert(size_t index, RefPtr<Credentials> pCredentials)
+CredentialsCollection& CredentialsCollection::Insert(ULONG index, RefPtr<Credentials> pCredentials)
 {
     if (index < Count)
     {
@@ -75,7 +75,7 @@ CredentialsCollection& CredentialsCollection::Insert(size_t index, RefPtr<Creden
 }
 
 
-CredentialsCollection& CredentialsCollection::Move(size_t from, size_t to)
+CredentialsCollection& CredentialsCollection::Move(ULONG from, ULONG to)
 {
     if (from < Count)
     {

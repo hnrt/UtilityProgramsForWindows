@@ -3,13 +3,13 @@
 
 #include "hnrt/RefObj.h"
 #include "hnrt/RefPtr.h"
+#include "Action.h"
+#include <vector>
 
 
 namespace hnrt
 {
     class Target;
-    class ActionTarget;
-    class FindWindowTarget;
 
     class TargetCallback
     {
@@ -23,54 +23,45 @@ namespace hnrt
     {
     public:
 
-        static RefPtr<Target> CreateNull(PCWSTR pszName = nullptr);
-        static RefPtr<Target> CreateFindWindow(PCWSTR pszName, PCWSTR pszClassName, PCWSTR pszWindowText);
+        typedef std::vector<RefPtr<Action>>::iterator ActionIter;
 
-    protected:
-
-        Target(PCWSTR pszType, PCWSTR pszName = nullptr);
-
-    public:
+        static RefPtr<Target> Create(PCWSTR pszName = nullptr, bool bIsVisible = true);
 
         Target(const Target&) = delete;
         virtual ~Target() = default;
         void operator =(const Target&) = delete;
-        virtual RefPtr<Target> Clone() const = 0;
-        PCWSTR get_Type() const;
+        RefPtr<Target> Clone() const;
+        const RefPtr<Action>& operator [](ULONG index) const;
+        RefPtr<Action>& operator [](ULONG index);
+        void InvokeCallback();
+        void Append(RefPtr<Action> pAction);
+        void Delete(ULONG index);
+        void Insert(ULONG index, RefPtr<Action> pAction);
+        void Move(ULONG from, ULONG to);
         PCWSTR get_Name() const;
         void set_Name(PCWSTR pszName);
         bool get_IsVisible() const;
         void set_IsVisible(bool value);
+        ULONG get_Count() const;
+        ActionIter get_Begin();
+        ActionIter get_End();
         void set_Callback(TargetCallback* pCallbak);
-        bool get_IsTypeNull() const;
-        bool get_IsTypeAction() const;
-        bool get_IsTypeFindWindow() const;
-        const ActionTarget* get_ActionTargetPtr() const;
-        ActionTarget* get_ActionTargetPtr();
-        const FindWindowTarget* get_FindWindowTargetPtr() const;
-        FindWindowTarget* get_FindWindowTargetPtr();
-        __declspec(property(get = get_Type)) PCWSTR Type;
         __declspec(property(get = get_Name, put = set_Name)) PCWSTR Name;
         __declspec(property(get = get_IsVisible, put = set_IsVisible)) bool IsVisible;
+        __declspec(property(get = get_Count)) ULONG Count;
+        __declspec(property(get = get_Begin)) ActionIter Begin;
+        __declspec(property(get = get_End)) ActionIter End;
         __declspec(property(put = set_Callback)) TargetCallback* Callback;
-        __declspec(property(get = get_IsTypeNull)) bool IsTypeNull;
-        __declspec(property(get = get_IsTypeAction)) bool IsTypeAction;
-        __declspec(property(get = get_IsTypeFindWindow)) bool IsTypeFindWindow;
-        __declspec(property(get = get_ActionTargetPtr)) ActionTarget* ActionTargetPtr;
-        __declspec(property(get = get_FindWindowTargetPtr)) FindWindowTarget* FindWindowTargetPtr;
 
     protected:
 
-        PCWSTR m_pszType;
+        Target(PCWSTR pszName = nullptr, bool bIsVisible = true);
+
         PCWSTR m_pszName;
         bool m_bIsVisible;
+        std::vector<RefPtr<Action>> m_Actions;
         TargetCallback* m_pCallback;
     };
-
-    inline PCWSTR Target::get_Type() const
-    {
-        return m_pszType;
-    }
 
     inline PCWSTR Target::get_Name() const
     {
@@ -80,6 +71,21 @@ namespace hnrt
     inline bool Target::get_IsVisible() const
     {
         return m_bIsVisible;
+    }
+
+    inline ULONG Target::get_Count() const
+    {
+        return static_cast<ULONG>(m_Actions.size());
+    }
+
+    inline Target::ActionIter Target::get_Begin()
+    {
+        return m_Actions.begin();
+    }
+
+    inline Target::ActionIter Target::get_End()
+    {
+        return m_Actions.end();
     }
 
     inline void Target::set_Callback(TargetCallback* pCallbak)

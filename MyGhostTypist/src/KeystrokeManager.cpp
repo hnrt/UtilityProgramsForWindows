@@ -195,12 +195,11 @@ bool KeystrokeManager::TypeNext()
             DBGPUT(L"%s %s", (ks.Flags & KEYEVENTF_KEYUP) == 0 ? L"KEYDOWN" : L"KEYUP", VirtualKey(ks.VirtualKey).Name);
         }
 #endif
-        INPUT si;
+        INPUT si = { 0 };
         si.type = INPUT_KEYBOARD;
         si.ki.wVk = ks.VirtualKey;
         si.ki.wScan = ks.ScanCode;
         si.ki.dwFlags = ks.Flags;
-        si.ki.time = 0;
         si.ki.dwExtraInfo = GetMessageExtraInfo();
         SendInput(1, &si, sizeof(INPUT));
         return true;

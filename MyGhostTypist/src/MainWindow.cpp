@@ -1,7 +1,6 @@
 #include "MainWindow.h"
 #include <CommCtrl.h>
 #include "Configuration.h"
-#include "FindWindowTarget.h"
 #include "Action.h"
 #include "KeystrokeManager.h"
 #include "ConfigurationDialogBox.h"
@@ -45,6 +44,8 @@ MainWindow::MainWindow(HINSTANCE hInstance)
     , m_bSizing(false)
     , m_pKeystrokeManager()
     , m_bProcessing(false)
+    , m_pTarget()
+    , m_ActionIter()
     , m_KeyboardMouseBridge()
     , m_hwndTarget(nullptr)
     , m_PreviousKeyboardState(0)
@@ -202,7 +203,7 @@ LRESULT MainWindow::OnTimer(HWND hwnd,WPARAM wParam, LPARAM lParam)
     case TIMERID_KEYSTROKE:
         if (m_bProcessing)
         {
-            m_bProcessing = m_pKeystrokeManager->TypeNext();
+            m_bProcessing = ContinueProcess();
             if (!m_bProcessing)
             {
                 EndProcess();
@@ -222,7 +223,7 @@ LRESULT MainWindow::OnTimer(HWND hwnd,WPARAM wParam, LPARAM lParam)
 
 LRESULT MainWindow::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
 {
-    WORD wControlId = LOWORD(wParam);
+    DWORD wControlId = LOWORD(wParam);
     switch (wControlId)
     {
     case IDM_FILE_EXIT:
@@ -259,18 +260,16 @@ LRESULT MainWindow::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
 }
 
 
-void MainWindow::OnButtonClicked(HWND hwnd, size_t index)
+void MainWindow::OnButtonClicked(HWND hwnd, DWORD index)
 {
     DBGFNC(L"MainWindow::OnButtonClicked");
-    RefPtr<Target> pTarget = m_pCfg->TargetList[index];
-    if (pTarget->IsTypeFindWindow)
+    m_pTarget = m_pCfg->TargetList[index];
+    m_ActionIter = m_pTarget->Begin;
+    ShowWindow(hwnd, SW_MINIMIZE);
+    m_bProcessing = StartProcess();
+    if (!m_bProcessing)
     {
-        ShowWindow(hwnd, SW_MINIMIZE);
-        m_bProcessing = StartProcess(pTarget->FindWindowTargetPtr);
-        if (!m_bProcessing)
-        {
-            ShowWindow(hwnd, SW_NORMAL);
-        }
+        ShowWindow(hwnd, SW_NORMAL);
     }
 }
 
@@ -413,7 +412,7 @@ void MainWindow::DoLayout(HWND hwnd, UINT uHint)
     // in client coordinates
     LONG x = m_pCfg->PaddingLeft + m_pCfg->ButtonMarginLeft;
     LONG y = m_pCfg->PaddingTop;
-    for (int i = 0; i < m_cButtons; i++)
+    for (ULONG i = 0; i < m_cButtons; i++)
     {
         RefPtr<Target> pTarget = m_pCfg->TargetList[i];
         if (!pTarget->IsVisible)
@@ -458,25 +457,32 @@ void MainWindow::CheckButtonStatus()
     for (size_t index = 0; index < m_pCfg->TargetList.Count; index++)
     {
         RefPtr<Target> pTarget = m_pCfg->TargetList[index];
-        if (!pTarget->IsVisible)
+        if (pTarget->Count)
         {
-            continue;
-        }
-        if (pTarget->IsTypeFindWindow)
-        {
-            EnableWindow(m_hButtons[index], pTarget->FindWindowTargetPtr->Find() ? TRUE : FALSE);
+            SetForegroundWindowAction* pAction = dynamic_cast<SetForegroundWindowAction*>(pTarget->Begin->Ptr);
+            if (pAction)
+            {
+                EnableWindow(m_hButtons[index], pAction->Find() ? TRUE : FALSE);
+            }
         }
     }
 }
 
 
-bool MainWindow::StartProcess(FindWindowTarget* pTarget)
+bool MainWindow::StartProcess()
 {
-    DBGFNC(L"MainWindow::StartProcess<FindWindowTarget>");
-    DBGPUT(L"class=\"%s\" text=\"%s\"", pTarget->ClassName, pTarget->WindowText);
+    DBGFNC(L"MainWindow::StartProcess");
+    SetForegroundWindowAction* pAction = dynamic_cast<SetForegroundWindowAction*>(m_ActionIter->Ptr);
+    m_ActionIter++;
+    if (!pAction)
+    {
+        DBGPUT(L"Action#1 is not of SetForegroundWindowAction.");
+        return false;
+    }
+    DBGPUT(L"class=\"%s\" text=\"%s\"", pAction->ClassName, pAction->WindowText);
     HWND hwndTopLevel;
     HWND hwndTarget;
-    if (!pTarget->Find(&hwndTopLevel, &hwndTarget))
+    if (!pAction->Find(&hwndTopLevel, &hwndTarget))
     {
         DBGPUT(L"Window not found.");
         return false;
@@ -515,64 +521,91 @@ bool MainWindow::StartProcess(FindWindowTarget* pTarget)
         m_CurrentKeyboardState = m_PreviousKeyboardState = 0;
     }
     m_pKeystrokeManager->Delay = m_pCfg->TypingDelay;
-    for (size_t index = 0; index < pTarget->Count; index++)
+    return true;
+}
+
+
+bool MainWindow::ContinueProcess()
+{
+    if (m_pKeystrokeManager->TypeNext())
     {
-        PCWSTR psz = (*pTarget)[index];
-        switch (Action::GetClass(psz))
+        return true;
+    }
+    while (m_ActionIter != m_pTarget->End)
+    {
+        RefPtr<Action> pAction = *m_ActionIter;
+        switch (pAction->Type)
         {
-        case AC_TYPEUSERNAME:
-            psz = Action::GetValue(psz);
-            if (psz)
+        case AC_TYPEKEY:
+        {
+            m_ActionIter++;
+            PCWSTR pszKey = dynamic_cast<TypeKeyAction*>(pAction.Ptr)->Key;
+            if (pszKey)
             {
-                RefPtr<Credentials> pCredentials = m_pCfg->CredentialsList[psz];
-                if (pCredentials.Ptr)
+                VirtualKey vk(pszKey);
+                if (vk.Value)
                 {
-                    m_pKeystrokeManager->Add(pCredentials->Username);
+                    m_pKeystrokeManager->Add(vk);
+                    m_pKeystrokeManager->TypeNext();
+                    return true;
                 }
-            }
-            else
-            {
-                RefPtr<Credentials> pCredentials = m_pCfg->CredentialsList.DefaultCredentials;
-                m_pKeystrokeManager->Add(pCredentials->Username);
             }
             break;
-        case AC_TYPEPASSWORD:
-            psz = Action::GetValue(psz);
-            if (psz)
+        }
+        case AC_TYPEUNICODE:
+        {
+            m_ActionIter++;
+            PCWSTR pszText = dynamic_cast<TypeUnicodeAction*>(pAction.Ptr)->Text;
+            if (pszText && pszText[0])
             {
-                RefPtr<Credentials> pCredentials = m_pCfg->CredentialsList[psz];
-                if (pCredentials.Ptr)
-                {
-                    m_pKeystrokeManager->Add(pCredentials->Password);
-                }
+                m_pKeystrokeManager->Add(pszText);
+                m_pKeystrokeManager->TypeNext();
+                return true;
             }
-            else
+            break;
+        }
+        case AC_TYPEUSERNAME:
+        {
+            m_ActionIter++;
+            PCWSTR pszName = dynamic_cast<TypeUsernameAction*>(pAction.Ptr)->Name;
+            RefPtr<Credentials> pCredentials = pszName ? m_pCfg->CredentialsList[pszName] : m_pCfg->CredentialsList.DefaultCredentials;
+            if (pCredentials && pCredentials->Username && pCredentials->Username[0])
             {
-                RefPtr<Credentials> pCredentials = m_pCfg->CredentialsList.DefaultCredentials;
+                m_pKeystrokeManager->Add(pCredentials->Username);
+                m_pKeystrokeManager->TypeNext();
+                return true;
+            }
+            break;
+        }
+        case AC_TYPEPASSWORD:
+        {
+            m_ActionIter++;
+            PCWSTR pszName = dynamic_cast<TypePasswordAction*>(pAction.Ptr)->Name;
+            RefPtr<Credentials> pCredentials = pszName ? m_pCfg->CredentialsList[pszName] : m_pCfg->CredentialsList.DefaultCredentials;
+            if (pCredentials && pCredentials->Password && pCredentials->Password[0])
+            {
                 m_pKeystrokeManager->Add(pCredentials->Password);
                 pCredentials->ClearPlainText();
+                m_pKeystrokeManager->TypeNext();
+                return true;
             }
             break;
+        }
         case AC_TYPEDELETESEQUENCE:
+            m_ActionIter++;
             m_pKeystrokeManager->Add(VK_END);
             m_pKeystrokeManager->Add(VK_LSHIFT, KM_KEYDOWN);
             m_pKeystrokeManager->Add(VK_HOME);
             m_pKeystrokeManager->Add(VK_LSHIFT, KM_KEYUP);
             m_pKeystrokeManager->Add(VK_DELETE);
-            break;
-        case AC_TYPEUNICODE:
-            psz = Action::GetValue(psz);
-            m_pKeystrokeManager->Add(psz);
-            break;
-        case AC_TYPEKEY:
-            m_pKeystrokeManager->Add(VirtualKey(psz));
-            break;
+            m_pKeystrokeManager->TypeNext();
+            return true;
         default:
-            DBGPUT(L"%s: Not supported.", psz);
+            m_ActionIter++;
             break;
         }
     }
-    return true;
+    return false;
 }
 
 

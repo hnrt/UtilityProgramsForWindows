@@ -22,7 +22,7 @@ TargetCollection& TargetCollection::Append(RefPtr<Target> pTarget)
 }
 
 
-TargetCollection& TargetCollection::Delete(size_t index)
+TargetCollection& TargetCollection::Delete(ULONG index)
 {
     if (index < Count)
     {
@@ -36,7 +36,7 @@ TargetCollection& TargetCollection::Delete(size_t index)
 }
 
 
-TargetCollection& TargetCollection::Insert(size_t index, RefPtr<Target> pTarget)
+TargetCollection& TargetCollection::Insert(ULONG index, RefPtr<Target> pTarget)
 {
     if (index < Count)
     {
@@ -54,7 +54,7 @@ TargetCollection& TargetCollection::Insert(size_t index, RefPtr<Target> pTarget)
 }
 
 
-TargetCollection& TargetCollection::Move(size_t from, size_t to)
+TargetCollection& TargetCollection::Move(ULONG from, ULONG to)
 {
     if (from < Count)
     {
@@ -88,7 +88,7 @@ TargetCollection& TargetCollection::Clear()
 }
 
 
-TargetCollection& TargetCollection::Assign(size_t index, RefPtr<Target> pTarget)
+TargetCollection& TargetCollection::Assign(ULONG index, RefPtr<Target> pTarget)
 {
     if (index < Count)
     {

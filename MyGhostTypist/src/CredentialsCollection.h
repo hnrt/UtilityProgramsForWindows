@@ -25,19 +25,19 @@ namespace hnrt
         CredentialsCollection(const CredentialsCollection&) = delete;
         ~CredentialsCollection() = default;
         void operator =(const CredentialsCollection&) = delete;
-        const RefPtr<Credentials> operator[](size_t index) const;
-        RefPtr<Credentials> operator[](size_t index);
+        const RefPtr<Credentials> operator[](ULONG index) const;
+        RefPtr<Credentials> operator[](ULONG index);
         const RefPtr<Credentials> operator[](PCWSTR pszKey) const;
         RefPtr<Credentials> operator[](PCWSTR pszKey);
         CredentialsCollection& Append(RefPtr<Credentials> pCredentials);
-        CredentialsCollection& Delete(size_t index);
-        CredentialsCollection& Insert(size_t index, RefPtr<Credentials> pCredentials);
-        CredentialsCollection& Move(size_t from, size_t to);
+        CredentialsCollection& Delete(ULONG index);
+        CredentialsCollection& Insert(ULONG index, RefPtr<Credentials> pCredentials);
+        CredentialsCollection& Move(ULONG from, ULONG to);
         CredentialsCollection& Clear();
-        size_t get_Count() const;
+        ULONG get_Count() const;
         void set_Callback(CredentialsCollectionCallback* pCallback);
         RefPtr<Credentials> get_DefaultCredentials() const;
-        __declspec(property(get = get_Count)) size_t Count;
+        __declspec(property(get = get_Count)) ULONG Count;
         __declspec(property(put = set_Callback)) CredentialsCollectionCallback* Callback;
         __declspec(property(get = get_DefaultCredentials)) RefPtr<Credentials> DefaultCredentials;
 
@@ -53,19 +53,19 @@ namespace hnrt
     {
     }
 
-    inline const RefPtr<Credentials> CredentialsCollection::operator[](size_t index) const
+    inline const RefPtr<Credentials> CredentialsCollection::operator[](ULONG index) const
     {
         return index < Count ? m_collection[index] : RefPtr<Credentials>();
     }
 
-    inline RefPtr<Credentials> CredentialsCollection::operator[](size_t index)
+    inline RefPtr<Credentials> CredentialsCollection::operator[](ULONG index)
     {
         return index < Count ? m_collection[index] : RefPtr<Credentials>();
     }
 
-    inline size_t CredentialsCollection::get_Count() const
+    inline ULONG CredentialsCollection::get_Count() const
     {
-        return m_collection.size();
+        return static_cast<ULONG>(m_collection.size());
     }
 
     inline void CredentialsCollection::set_Callback(CredentialsCollectionCallback* pCallback)
@@ -82,7 +82,7 @@ namespace hnrt
             pC->Password = L"";
             return pC;
         }
-        size_t index = 0;
+        ULONG index = 0;
         while (true)
         {
             RefPtr<Credentials> pC = m_collection[index];

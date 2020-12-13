@@ -21,8 +21,7 @@ namespace hnrt
         virtual void OnCredentialsSelected(HWND hwnd, RefPtr<Credentials>) = 0;
         virtual void OnTargetListSelected(HWND hwnd) = 0;
         virtual void OnTargetSelected(HWND hwnd, RefPtr<Target>) = 0;
-        virtual void OnFindWindowSelected(HWND hwnd, FindWindowTarget*) = 0;
-        virtual void OnActionItemSelected(HWND hwnd, ActionTarget*, size_t) = 0;
+        virtual void OnActionItemSelected(HWND hwnd, RefPtr<Target>, ULONG) = 0;
     };
 
     class ConfigurationTreeView
@@ -44,8 +43,7 @@ namespace hnrt
         void MoveUpSelectedCredentials();
         void MoveDownSelectedCredentials();
         void AddTarget();
-        void AddFindWindow(PCWSTR pszClassName, PCWSTR pszWindowText);
-        void AddActionItem(PCWSTR);
+        void AddActionItem(RefPtr<Action> pAction);
         void RemoveSelectedTarget();
         void RemoveSelectedActionItem();
         void MoveUpSelectedTarget();
@@ -63,28 +61,26 @@ namespace hnrt
         bool get_IsCredentialsSelected() const;
         bool get_IsTargetListSelected() const;
         bool get_IsTargetSelected() const;
-        bool get_IsFindWindowSelected() const;
         bool get_IsActionItemSelected() const;
-        size_t get_SelectedCredentialsIndex() const;
+        ULONG get_SelectedCredentialsIndex() const;
         RefPtr<Credentials> get_SelectedCredentials() const;
-        size_t get_SelectedTargetIndex() const;
+        ULONG get_SelectedTargetIndex() const;
         RefPtr<Target> get_SelectedTarget() const;
-        size_t get_SelectedActionItemIndex() const;
-        PCWSTR get_SelectedActionItem() const;
-        void set_SelectedActionItem(PCWSTR psz);
+        ULONG get_SelectedActionItemIndex() const;
+        RefPtr<Action> get_SelectedActionItem() const;
+        void set_SelectedActionItem(RefPtr<Action>);
 
         __declspec(property(get = get_IsCredentialsListSelected)) bool IsCredentialsListSelected;
         __declspec(property(get = get_IsCredentialsSelected)) bool IsCredentialsSelected;
         __declspec(property(get = get_IsTargetListSelected)) bool IsTargetListSelected;
         __declspec(property(get = get_IsTargetSelected)) bool IsTargetSelected;
-        __declspec(property(get = get_IsFindWindowSelected)) bool IsFindWindowSelected;
         __declspec(property(get = get_IsActionItemSelected)) bool IsActionItemSelected;
-        __declspec(property(get = get_SelectedCredentialsIndex)) size_t SelectedCredentialsIndex;
+        __declspec(property(get = get_SelectedCredentialsIndex)) ULONG SelectedCredentialsIndex;
         __declspec(property(get = get_SelectedCredentials)) RefPtr<Credentials> SelectedCredentials;
-        __declspec(property(get = get_SelectedTargetIndex)) size_t SelectedTargetIndex;
+        __declspec(property(get = get_SelectedTargetIndex)) ULONG SelectedTargetIndex;
         __declspec(property(get = get_SelectedTarget)) RefPtr<Target> SelectedTarget;
-        __declspec(property(get = get_SelectedActionItemIndex)) size_t SelectedActionItemIndex;
-        __declspec(property(get = get_SelectedActionItem, put = set_SelectedActionItem)) PCWSTR SelectedActionItem;
+        __declspec(property(get = get_SelectedActionItemIndex)) ULONG SelectedActionItemIndex;
+        __declspec(property(get = get_SelectedActionItem, put = set_SelectedActionItem)) RefPtr<Action> SelectedActionItem;
 
         virtual void OnCredentialsCollectionUpdate(CredentialsCollection&);
         virtual void OnCredentialsUpdate(Credentials&);
@@ -95,9 +91,9 @@ namespace hnrt
 
         void Refresh();
         void RefreshCredentialsList();
-        void RefreshCredentials(size_t, HTREEITEM);
+        void RefreshCredentials(ULONG, HTREEITEM);
         void RefreshTargetList();
-        void RefreshTarget(size_t, HTREEITEM);
+        void RefreshTarget(ULONG, HTREEITEM);
         void GetItemsFromCredentialsList(std::vector<HTREEITEM>&);
         void GetItemsFromTargetList(std::vector<HTREEITEM>&);
         void GetItemsFromTarget(RefPtr<Target>, HTREEITEM, std::vector<HTREEITEM>&);
@@ -108,7 +104,7 @@ namespace hnrt
         ConfigurationTreeViewCallbacks& m_cbs;
         HTREEITEM m_hCC;
         HTREEITEM m_hTT;
-        size_t m_Selected;
+        ULONG m_Selected;
     };
 
     inline CredentialsCollection& ConfigurationTreeView::get_cc()
@@ -136,7 +132,7 @@ namespace hnrt
 #define CTV_TITEM_LEVEL1_MIN 2
 #define CTV_TITEM_LEVEL2 0
 #define CTV_AITEM_LEVEL1_MIN 2
-#define CTV_AITEM_LEVEL2_MIN 1
+#define CTV_AITEM_LEVEL2_MIN 0
 #define CTV_LEVEL1 (m_Selected / CTV_LEVEL_BASE)
 #define CTV_LEVEL2 (m_Selected % CTV_LEVEL_BASE)
 
@@ -147,7 +143,7 @@ namespace hnrt
 
     inline bool ConfigurationTreeView::get_IsCredentialsSelected() const
     {
-        size_t index1 = CTV_LEVEL1;
+        ULONG index1 = CTV_LEVEL1;
         return index1 == CTV_CITEM_LEVEL1;
     }
 
@@ -158,50 +154,43 @@ namespace hnrt
 
     inline bool ConfigurationTreeView::get_IsTargetSelected() const
     {
-        size_t index1 = CTV_LEVEL1;
-        size_t index2 = CTV_LEVEL2 - CTV_TNAME_LEVEL2_MIN;
+        ULONG index1 = CTV_LEVEL1;
+        ULONG index2 = CTV_LEVEL2 - CTV_TNAME_LEVEL2_MIN;
         return index1 == CTV_TNAME_LEVEL1 && index2 < m_tt.Count;
     }
 
-    inline bool ConfigurationTreeView::get_IsFindWindowSelected() const
+    inline ULONG ConfigurationTreeView::get_SelectedCredentialsIndex() const
     {
-        size_t index1 = CTV_LEVEL1 - CTV_TITEM_LEVEL1_MIN;
-        size_t index2 = CTV_LEVEL2;
-        return index1 < m_tt.Count && m_tt[index1]->IsTypeFindWindow && index2 == CTV_TITEM_LEVEL2;
-    }
-
-    inline size_t ConfigurationTreeView::get_SelectedCredentialsIndex() const
-    {
-        size_t index1 = CTV_LEVEL1;
-        size_t index2 = CTV_LEVEL2 - CTV_CITEM_LEVEL2_MIN;
-        return index1 == CTV_CITEM_LEVEL1 && index2 < m_cc.Count ? index2 : static_cast<size_t>(-1);
+        ULONG index1 = CTV_LEVEL1;
+        ULONG index2 = CTV_LEVEL2 - CTV_CITEM_LEVEL2_MIN;
+        return index1 == CTV_CITEM_LEVEL1 && index2 < m_cc.Count ? index2 : static_cast<ULONG>(-1);
     }
 
     inline RefPtr<Credentials> ConfigurationTreeView::get_SelectedCredentials() const
     {
-        size_t index1 = CTV_LEVEL1;
-        size_t index2 = CTV_LEVEL2 - CTV_CITEM_LEVEL2_MIN;
+        ULONG index1 = CTV_LEVEL1;
+        ULONG index2 = CTV_LEVEL2 - CTV_CITEM_LEVEL2_MIN;
         return index1 == CTV_CITEM_LEVEL1 && index2 < m_cc.Count ? m_cc[index2] : RefPtr<Credentials>();
     }
 
-    inline size_t ConfigurationTreeView::get_SelectedTargetIndex() const
+    inline ULONG ConfigurationTreeView::get_SelectedTargetIndex() const
     {
-        size_t index1 = CTV_LEVEL1;
+        ULONG index1 = CTV_LEVEL1;
         if (index1 == CTV_TNAME_LEVEL1)
         {
-            size_t index2 = CTV_LEVEL2 - CTV_TNAME_LEVEL2_MIN;
-            return index2 < m_tt.Count ? index2 : static_cast<size_t>(-1);
+            ULONG index2 = CTV_LEVEL2 - CTV_TNAME_LEVEL2_MIN;
+            return index2 < m_tt.Count ? index2 : static_cast<ULONG>(-1);
         }
         else
         {
             index1 -= CTV_TITEM_LEVEL1_MIN;
-            return index1 < m_tt.Count ? index1 : static_cast<size_t>(-1);
+            return index1 < m_tt.Count ? index1 : static_cast<ULONG>(-1);
         }
     }
 
     inline RefPtr<Target> ConfigurationTreeView::get_SelectedTarget() const
     {
-        size_t index = SelectedTargetIndex;
+        ULONG index = SelectedTargetIndex;
         return index < m_tt.Count ? m_tt[index] : RefPtr<Target>();
     }
 }

@@ -1,29 +1,22 @@
 #include "Target.h"
 #include "TargetConstants.h"
-#include "NullTarget.h"
-#include "FindWindowTarget.h"
-#include "hnrt/StringStore.h"
+#include "hnrt/String.h"
+#include "hnrt/Exception.h"
 
 
 using namespace hnrt;
 
 
-RefPtr<Target> Target::CreateNull(PCWSTR pszName)
+RefPtr<Target> Target::Create(PCWSTR pszName, bool bIsVisible)
 {
-    return RefPtr<Target>(new NullTarget(pszName));
+    return RefPtr<Target>(new Target(pszName, bIsVisible));
 }
 
 
-RefPtr<Target> Target::CreateFindWindow(PCWSTR pszName, PCWSTR pszClassName, PCWSTR pszWindowText)
-{
-    return RefPtr<Target>(new FindWindowTarget(pszName, pszClassName, pszWindowText));
-}
-
-
-Target::Target(PCWSTR pszType, PCWSTR pszName)
-    : m_pszType(pszType)
-    , m_pszName(StringStore::Get(pszName))
-    , m_bIsVisible(true)
+Target::Target(PCWSTR pszName, bool bIsVisible)
+    : m_pszName(String::Copy(pszName))
+    , m_bIsVisible(bIsVisible)
+    , m_Actions()
     , m_pCallback(nullptr)
 {
 }
@@ -31,7 +24,7 @@ Target::Target(PCWSTR pszType, PCWSTR pszName)
 
 void Target::set_Name(PCWSTR pszName)
 {
-    m_pszName = StringStore::Get(pszName);
+    m_pszName = String::Copy(pszName);
     if (m_pCallback)
     {
         m_pCallback->OnTargetUpdate(*this);
@@ -49,43 +42,97 @@ void Target::set_IsVisible(bool value)
 }
 
 
-bool Target::get_IsTypeNull() const
+RefPtr<Target> Target::Clone() const
 {
-    return !wcscmp(m_pszType, NULL_TARGET_TYPE);
+    Target* pCloned = new Target(m_pszName, m_bIsVisible);
+    for (std::vector<RefPtr<Action>>::const_iterator iter = m_Actions.begin(); iter != m_Actions.end(); iter++)
+    {
+        pCloned->m_Actions.push_back((*iter)->Clone());
+    }
+    return RefPtr<Target>(pCloned);
 }
 
 
-bool Target::get_IsTypeAction() const
+const RefPtr<Action>& Target::operator [](ULONG index) const
 {
-    return get_IsTypeFindWindow();
+    if (index < Count)
+    {
+        return m_Actions[index];
+    }
+    else
+    {
+        throw Exception(L"Target::operator [](ULONG) const: Index out of range.");
+    }
 }
 
 
-bool Target::get_IsTypeFindWindow() const
+RefPtr<Action>& Target::operator [](ULONG index)
 {
-    return !wcscmp(m_pszType, FINDWINDOW_TARGET_TYPE);
+    if (index < Count)
+    {
+        return m_Actions[index];
+    }
+    else
+    {
+        throw Exception(L"Target::operator [](ULONG): Index out of range.");
+    }
 }
 
 
-const ActionTarget* Target::get_ActionTargetPtr() const
+void Target::InvokeCallback()
 {
-    return dynamic_cast<const ActionTarget*>(this);
+    if (m_pCallback)
+    {
+        m_pCallback->OnTargetUpdate(*this);
+    }
 }
 
 
-ActionTarget* Target::get_ActionTargetPtr()
+void Target::Append(RefPtr<Action> pAction)
 {
-    return dynamic_cast<ActionTarget*>(this);
+    m_Actions.push_back(pAction);
+    InvokeCallback();
 }
 
 
-const FindWindowTarget* Target::get_FindWindowTargetPtr() const
+void Target::Delete(ULONG index)
 {
-    return dynamic_cast<const FindWindowTarget*>(this);
+    if (index < Count)
+    {
+        m_Actions.erase(m_Actions.begin() + index);
+        InvokeCallback();
+    }
 }
 
 
-FindWindowTarget* Target::get_FindWindowTargetPtr()
+void Target::Insert(ULONG index, RefPtr<Action> pAction)
 {
-    return dynamic_cast<FindWindowTarget*>(this);
+    if (index < Count)
+    {
+        m_Actions.insert(m_Actions.begin() + index, pAction);
+    }
+    else
+    {
+        m_Actions.push_back(pAction);
+    }
+    InvokeCallback();
+}
+
+
+void Target::Move(ULONG from, ULONG to)
+{
+    if (from < Count)
+    {
+        RefPtr<Action> pAction = m_Actions[from];
+        m_Actions.erase(m_Actions.begin() + from);
+        if (to < Count)
+        {
+            m_Actions.insert(m_Actions.begin() + to, pAction);
+        }
+        else
+        {
+            m_Actions.push_back(pAction);
+        }
+        InvokeCallback();
+    }
 }
