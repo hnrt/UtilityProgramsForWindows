@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "hnrt/PasswordHolder.h"
+#include "hnrt/SecretFactory.h"
 #include "hnrt/Base64.h"
 #include "hnrt/Win32Exception.h"
 
@@ -8,17 +9,17 @@ using namespace hnrt;
 
 
 PasswordHolder::PasswordHolder(const unsigned char key[SECRET_KEY_LENGTH], const unsigned char iv[SECRET_IV_LENGTH])
-    : m_pSecret(Secret::Create(key, iv))
-    , m_Encrypted()
+    : m_pSecret(SecretFactory::Create(key, iv))
     , m_PlainText()
+    , m_Encrypted()
 {
 }
 
 
 PasswordHolder::~PasswordHolder()
 {
-    wmemset(m_Encrypted.Ptr, 0, m_Encrypted.Len);
     wmemset(m_PlainText.Ptr, 0, m_PlainText.Len);
+    wmemset(m_Encrypted.Ptr, 0, m_Encrypted.Len);
 }
 
 
@@ -46,17 +47,16 @@ PCWSTR PasswordHolder::get_PlainText() const
             {
                 throw Exception(L"PasswordHolder failed base64 decoding.");
             }
-            PasswordHolder* pThis = const_cast<PasswordHolder*>(this);
-            pThis->m_pSecret->Decrypt(dec.Ptr, dec.Len);
-            int cch = MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<LPCCH>(pThis->m_pSecret->Ptr), -1, NULL, 0);
+            m_pSecret->Decrypt(dec.Ptr, dec.Len);
+            int cch = MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<LPCCH>(m_pSecret->Ptr), -1, NULL, 0);
             if (cch < 0)
             {
-                pThis->m_pSecret->ClearBuffer();
+                m_pSecret->ClearBuffer();
                 throw Win32Exception(GetLastError(), L"PasswordHolder failed text encoding conversion to UTF-16.");
             }
-            pThis->m_PlainText.Resize(cch);
-            MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<LPCCH>(pThis->m_pSecret->Ptr), -1, pThis->m_PlainText.Ptr, cch);
-            pThis->m_pSecret->ClearBuffer();
+            m_PlainText.Resize(cch);
+            MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<LPCCH>(m_pSecret->Ptr), -1, m_PlainText.Ptr, cch);
+            m_pSecret->ClearBuffer();
         }
     }
     return m_PlainText.Ptr;

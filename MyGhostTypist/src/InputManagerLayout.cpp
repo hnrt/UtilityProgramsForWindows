@@ -1,5 +1,4 @@
-#include "KeystrokeManager.h"
-#include <Windows.h>
+#include "InputManager.h"
 #include <atlbase.h>
 #include "hnrt/ComException.h"
 #include "hnrt/String.h"
@@ -19,7 +18,7 @@ using namespace hnrt;
 static std::map<PCWSTR, WCHAR, StringLessThan> s_CharNameMap;
 
 
-void KeystrokeManager::LoadLayout(PCWSTR pszFileName)
+void InputManager::LoadKeyboardLayoutFile(PCWSTR pszFileName)
 {
     if (!s_CharNameMap.size())
     {
@@ -213,7 +212,7 @@ void KeystrokeManager::LoadLayout(PCWSTR pszFileName)
                 VirtualKey vk(psz);
                 if (vk.Value == VK_SHIFT)
                 {
-                    flags |= KM_FLAG_SHIFT;
+                    flags |= IM_FLAG_SHIFT;
                 }
                 else
                 {
@@ -223,6 +222,6 @@ void KeystrokeManager::LoadLayout(PCWSTR pszFileName)
             }
         }
 
-        DBGPUT(L"map[%s=%04X]=%04X (%s%s)", strName, iter->second, m_map[iter->second], (m_map[iter->second] & KM_FLAG_SHIFT) ? L"VK_SHIFT+" : L"", VirtualKey((WORD)(m_map[iter->second] & KM_MASK_VIRTUALKEY)).Name);
+        DBGPUT(L"map[%s=%04X]=%04X (%s%s)", strName, iter->second, m_map[iter->second], (m_map[iter->second] & IM_FLAG_SHIFT) ? L"VK_SHIFT+" : L"", VirtualKey((WORD)(m_map[iter->second] & IM_MASK_VIRTUALKEY)).Name);
     }
 }

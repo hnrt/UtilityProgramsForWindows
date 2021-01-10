@@ -2,7 +2,7 @@
 #include <CommCtrl.h>
 #include "Configuration.h"
 #include "Action.h"
-#include "KeystrokeManager.h"
+#include "InputManager.h"
 #include "ConfigurationDialogBox.h"
 #include "hnrt/Debug.h"
 #include "hnrt/ResourceString.h"
@@ -13,6 +13,7 @@
 #include "hnrt/Buffer.h"
 #include "hnrt/VersionInfo.h"
 #include "hnrt/WindowsPlatform.h"
+#include "hnrt/UiAutomationFactory.h"
 #include "resource.h"
 
 
@@ -42,12 +43,13 @@ MainWindow::MainWindow(HINSTANCE hInstance)
     , m_bMaximized(false)
     , m_PreferredHeight(-1)
     , m_bSizing(false)
-    , m_pKeystrokeManager()
+    , m_pInputManager()
     , m_bProcessing(false)
     , m_pTarget()
     , m_ActionIter()
     , m_KeyboardMouseBridge()
     , m_hwndTarget(nullptr)
+    , m_pAutomation()
     , m_PreviousKeyboardState(0)
     , m_CurrentKeyboardState(0)
 {
@@ -87,8 +89,8 @@ MainWindow::~MainWindow()
 HWND MainWindow::Initialize(int nCmdShow)
 {
     m_pCfg->Load();
-    m_pKeystrokeManager = KeystrokeManager::Create(m_pCfg->AppDir);
-    m_pKeystrokeManager->Interval = m_pCfg->TypingInterval;
+    m_pInputManager = InputManager::Create(m_pCfg->AppDir);
+    m_pInputManager->Interval = m_pCfg->TypingInterval;
     if (!m_KeyboardMouseBridge.SetToggleKeySequence(L"LCONTROL+LSHIFT+ESCAPE"))
     {
         throw Exception(L"SetToggleKeySequence failed.");
@@ -167,7 +169,7 @@ HFONT MainWindow::CreateFontByNameAndSize(HWND hwnd, PCWSTR pszName, long size)
 void MainWindow::OnCreate(HWND hwnd)
 {
     DBGFNC(L"MainWindow::OnCreate");
-    m_pKeystrokeManager->Start(hwnd, TIMERID_KEYSTROKE);
+    m_pInputManager->Start(hwnd, TIMERID_KEYSTROKE);
     RecreateViewMenus(hwnd);
     RecreateButtons(hwnd);
     CheckButtonStatus();
@@ -178,7 +180,7 @@ void MainWindow::OnCreate(HWND hwnd)
 void MainWindow::OnDestroy(HWND hwnd)
 {
     DBGFNC(L"MainWindow::OnDestroy");
-    m_pKeystrokeManager->Stop();
+    m_pInputManager->Stop();
     PostQuitMessage(EXIT_SUCCESS);
 }
 
@@ -459,7 +461,7 @@ void MainWindow::CheckButtonStatus()
         RefPtr<Target> pTarget = m_pCfg->TargetList[index];
         if (pTarget->Count)
         {
-            SetForegroundWindowAction* pAction = dynamic_cast<SetForegroundWindowAction*>(pTarget->Begin->Ptr);
+            auto pAction = dynamic_cast<const SetForegroundWindowAction*>(pTarget->Begin->Ptr);
             if (pAction)
             {
                 EnableWindow(m_hButtons[index], pAction->Find() ? TRUE : FALSE);
@@ -472,7 +474,7 @@ void MainWindow::CheckButtonStatus()
 bool MainWindow::StartProcess()
 {
     DBGFNC(L"MainWindow::StartProcess");
-    SetForegroundWindowAction* pAction = dynamic_cast<SetForegroundWindowAction*>(m_ActionIter->Ptr);
+    auto pAction = dynamic_cast<const SetForegroundWindowAction*>(m_ActionIter->Ptr);
     m_ActionIter++;
     if (!pAction)
     {
@@ -520,33 +522,48 @@ bool MainWindow::StartProcess()
     {
         m_CurrentKeyboardState = m_PreviousKeyboardState = 0;
     }
-    m_pKeystrokeManager->Delay = m_pCfg->TypingDelay;
+    m_pAutomation = UiAutomationFactory::Create(hwndTarget, pAction->AccName, pAction->AccRole);
+    if (m_pAutomation)
+    {
+        DBGPUT(L"AA: DefaultAction=%s", m_pAutomation->DefaultAction);
+    }
+    else
+    {
+        m_pAutomation = UiAutomationFactory::Create(hwndTopLevel, pAction->AccName, pAction->AccRole);
+        if (m_pAutomation)
+        {
+            DBGPUT(L"AA: Alternative: DefaultAction=%s", m_pAutomation->DefaultAction);
+        }
+    }
+    m_pInputManager->Delay = m_pCfg->TypingDelay;
     return true;
 }
 
 
 bool MainWindow::ContinueProcess()
 {
-    if (m_pKeystrokeManager->TypeNext())
+    DBGFNC(L"MainWindow::ContinueProcess");
+    if (m_pInputManager->SendNext())
     {
         return true;
     }
     while (m_ActionIter != m_pTarget->End)
     {
         RefPtr<Action> pAction = *m_ActionIter;
+        m_ActionIter++;
+        DBGPUT(L"ActionType=%ld", pAction->Type);
         switch (pAction->Type)
         {
         case AC_TYPEKEY:
         {
-            m_ActionIter++;
             PCWSTR pszKey = dynamic_cast<TypeKeyAction*>(pAction.Ptr)->Key;
             if (pszKey)
             {
                 VirtualKey vk(pszKey);
                 if (vk.Value)
                 {
-                    m_pKeystrokeManager->Add(vk);
-                    m_pKeystrokeManager->TypeNext();
+                    m_pInputManager->AddKeyboardInput(vk);
+                    m_pInputManager->SendNext();
                     return true;
                 }
             }
@@ -554,54 +571,96 @@ bool MainWindow::ContinueProcess()
         }
         case AC_TYPEUNICODE:
         {
-            m_ActionIter++;
             PCWSTR pszText = dynamic_cast<TypeUnicodeAction*>(pAction.Ptr)->Text;
             if (pszText && pszText[0])
             {
-                m_pKeystrokeManager->Add(pszText);
-                m_pKeystrokeManager->TypeNext();
+                if ((pAction->Flags & AC_FLAG_AA) && m_pAutomation)
+                {
+                    m_pAutomation->Value = pszText;
+                }
+                else
+                {
+                    m_pInputManager->AddKeyboardInput(pszText);
+                    m_pInputManager->SendNext();
+                }
                 return true;
             }
             break;
         }
         case AC_TYPEUSERNAME:
         {
-            m_ActionIter++;
             PCWSTR pszName = dynamic_cast<TypeUsernameAction*>(pAction.Ptr)->Name;
-            RefPtr<Credentials> pCredentials = pszName ? m_pCfg->CredentialsList[pszName] : m_pCfg->CredentialsList.DefaultCredentials;
+            RefPtr<Credentials> pCredentials = pszName && *pszName ? m_pCfg->CredentialsList[pszName] : m_pCfg->CredentialsList.DefaultCredentials;
             if (pCredentials && pCredentials->Username && pCredentials->Username[0])
             {
-                m_pKeystrokeManager->Add(pCredentials->Username);
-                m_pKeystrokeManager->TypeNext();
+                if ((pAction->Flags & AC_FLAG_AA) && m_pAutomation)
+                {
+                    m_pAutomation->Value = pCredentials->Username;
+                }
+                else
+                {
+                    m_pInputManager->AddKeyboardInput(pCredentials->Username);
+                    m_pInputManager->SendNext();
+                }
                 return true;
             }
             break;
         }
         case AC_TYPEPASSWORD:
         {
-            m_ActionIter++;
             PCWSTR pszName = dynamic_cast<TypePasswordAction*>(pAction.Ptr)->Name;
-            RefPtr<Credentials> pCredentials = pszName ? m_pCfg->CredentialsList[pszName] : m_pCfg->CredentialsList.DefaultCredentials;
+            RefPtr<Credentials> pCredentials = pszName && *pszName ? m_pCfg->CredentialsList[pszName] : m_pCfg->CredentialsList.DefaultCredentials;
             if (pCredentials && pCredentials->Password && pCredentials->Password[0])
             {
-                m_pKeystrokeManager->Add(pCredentials->Password);
+                if ((pAction->Flags & AC_FLAG_AA) && m_pAutomation)
+                {
+                    m_pAutomation->Value = pCredentials->Password;
+                }
+                else
+                {
+                    m_pInputManager->AddKeyboardInput(pCredentials->Password);
+                    m_pInputManager->SendNext();
+                }
                 pCredentials->ClearPlainText();
-                m_pKeystrokeManager->TypeNext();
                 return true;
             }
             break;
         }
         case AC_TYPEDELETESEQUENCE:
-            m_ActionIter++;
-            m_pKeystrokeManager->Add(VK_END);
-            m_pKeystrokeManager->Add(VK_LSHIFT, KM_KEYDOWN);
-            m_pKeystrokeManager->Add(VK_HOME);
-            m_pKeystrokeManager->Add(VK_LSHIFT, KM_KEYUP);
-            m_pKeystrokeManager->Add(VK_DELETE);
-            m_pKeystrokeManager->TypeNext();
+            m_pInputManager->AddKeyboardInput(VK_END);
+            m_pInputManager->AddKeyboardInput(VK_LSHIFT, KEYEVENTF_KEYDOWN);
+            m_pInputManager->AddKeyboardInput(VK_HOME);
+            m_pInputManager->AddKeyboardInput(VK_LSHIFT, KEYEVENTF_KEYUP);
+            m_pInputManager->AddKeyboardInput(VK_DELETE);
+            m_pInputManager->SendNext();
             return true;
+        case AC_LEFTCLICK:
+            if ((pAction->Flags & AC_FLAG_AA) && m_pAutomation)
+            {
+                RECT rect = { 0 };
+                if (m_pAutomation->Locate(rect))
+                {
+                    DBGPUT(L"AA: (%ld,%ld) %ldx%ld", rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+                    m_pInputManager->AddMouseMove((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2);
+                    m_pInputManager->AddMouseClickLeft();
+                    m_pInputManager->SendNext();
+                    return true;
+                }
+            }
+            else if (m_hwndTarget)
+            {
+                RECT rect = { 0 };
+                if (GetWindowRect(m_hwndTarget, &rect))
+                {
+                    DBGPUT(L"GetWindowRect: (%ld,%ld) %ldx%ld", rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+                    m_pInputManager->AddMouseMove((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2);
+                    m_pInputManager->AddMouseClickLeft();
+                    m_pInputManager->SendNext();
+                    return true;
+                }
+            }
+            return false;
         default:
-            m_ActionIter++;
             break;
         }
     }
@@ -611,6 +670,7 @@ bool MainWindow::ContinueProcess()
 
 void MainWindow::EndProcess()
 {
+    DBGFNC(L"MainWindow::EndProcess");
     if (m_PreviousKeyboardState != m_CurrentKeyboardState)
     {
         m_CurrentKeyboardState = m_KeyboardMouseBridge.SetKeyboardState(m_hwndTarget, m_PreviousKeyboardState, KEYBOARD_FLAG_OPENCLOSE);

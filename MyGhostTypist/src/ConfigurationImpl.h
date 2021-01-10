@@ -51,6 +51,7 @@ namespace hnrt
         void LoadTypePassword(MSXML2::IXMLDOMNode* pNode);
         void LoadTypeDeleteSequence(MSXML2::IXMLDOMNode* pNode);
         void LoadType(MSXML2::IXMLDOMNode* pNode);
+        void LoadLeftClick(MSXML2::IXMLDOMNode* pNode);
 
         void BuildUI(XmlDocument& document, MSXML2::IXMLDOMElement* pParent);
         void BuildCredentialsList(XmlDocument& document, MSXML2::IXMLDOMElement* pParent);

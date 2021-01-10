@@ -44,24 +44,37 @@ RefPtr<Action> Action::TypeDeleteSequence()
 }
 
 
+RefPtr<Action> Action::LeftClick()
+{
+    return RefPtr<Action>(new LeftClickAction());
+}
+
+
 SetForegroundWindowAction::SetForegroundWindowAction(PCWSTR pszClassName, PCWSTR pszWindowText)
     : Action(AC_SETFOREGROUNDWINDOW)
     , m_Stack()
+    , m_pszAccName(nullptr)
+    , m_AccRole(-1)
 {
     m_Stack.push_back(std::pair<PCWSTR, PCWSTR>(String::Copy(pszClassName), String::Copy(pszWindowText)));
 }
 
 
 SetForegroundWindowAction::SetForegroundWindowAction(const SetForegroundWindowAction& src)
-    : Action(AC_SETFOREGROUNDWINDOW)
+    : Action(src)
     , m_Stack(src.m_Stack)
+    , m_pszAccName(src.m_pszAccName)
+    , m_AccRole(src.m_AccRole)
 {
 }
 
 
 SetForegroundWindowAction& SetForegroundWindowAction::operator =(const SetForegroundWindowAction & src)
 {
+    Action::operator =(src);
     m_Stack = src.m_Stack;
+    m_pszAccName = src.m_pszAccName;
+    m_AccRole = src.m_AccRole;
     return *this;
 }
 
@@ -114,6 +127,25 @@ bool SetForegroundWindowAction::Find(HWND* phwnd1, HWND* phwnd2) const
 }
 
 
+void SetForegroundWindowAction::SetActiveAccessibility(PCWSTR pszName, LONG lRole)
+{
+    m_pszAccName = pszName ? String::Copy(pszName) : nullptr;
+    m_AccRole = lRole;
+}
+
+
+void SetForegroundWindowAction::SetActiveAccessibility(PCWSTR pszName)
+{
+    m_pszAccName = pszName ? String::Copy(pszName) : nullptr;
+}
+
+
+void SetForegroundWindowAction::SetActiveAccessibility(LONG lRole)
+{
+    m_AccRole = lRole;
+}
+
+
 PCWSTR SetForegroundWindowAction::get_ClassName() const
 {
     return m_Stack.at(0).first;
@@ -135,7 +167,7 @@ TypeKeyAction::TypeKeyAction(PCWSTR psz)
 
 
 TypeKeyAction::TypeKeyAction(const TypeKeyAction& src)
-    : Action(AC_TYPEKEY)
+    : Action(src)
     , m_psz(src.m_psz)
 {
 }
@@ -143,6 +175,7 @@ TypeKeyAction::TypeKeyAction(const TypeKeyAction& src)
 
 TypeKeyAction& TypeKeyAction::operator =(const TypeKeyAction& src)
 {
+    Action::operator =(src);
     m_psz = src.m_psz;
     return *this;
 }
@@ -156,7 +189,7 @@ TypeUnicodeAction::TypeUnicodeAction(PCWSTR psz)
 
 
 TypeUnicodeAction::TypeUnicodeAction(const TypeUnicodeAction& src)
-    : Action(AC_TYPEUNICODE)
+    : Action(src)
     , m_psz(src.m_psz)
 {
 }
@@ -164,6 +197,7 @@ TypeUnicodeAction::TypeUnicodeAction(const TypeUnicodeAction& src)
 
 TypeUnicodeAction& TypeUnicodeAction::operator =(const TypeUnicodeAction& src)
 {
+    Action::operator =(src);
     m_psz = src.m_psz;
     return *this;
 }
@@ -177,7 +211,7 @@ TypeUsernameAction::TypeUsernameAction(PCWSTR psz)
 
 
 TypeUsernameAction::TypeUsernameAction(const TypeUsernameAction& src)
-    : Action(AC_TYPEUSERNAME)
+    : Action(src)
     , m_psz(src.m_psz)
 {
 }
@@ -185,6 +219,7 @@ TypeUsernameAction::TypeUsernameAction(const TypeUsernameAction& src)
 
 TypeUsernameAction& TypeUsernameAction::operator =(const TypeUsernameAction& src)
 {
+    Action::operator =(src);
     m_psz = src.m_psz;
     return *this;
 }
@@ -198,7 +233,7 @@ TypePasswordAction::TypePasswordAction(PCWSTR psz)
 
 
 TypePasswordAction::TypePasswordAction(const TypePasswordAction& src)
-    : Action(AC_TYPEPASSWORD)
+    : Action(src)
     , m_psz(src.m_psz)
 {
 }
@@ -206,6 +241,7 @@ TypePasswordAction::TypePasswordAction(const TypePasswordAction& src)
 
 TypePasswordAction& TypePasswordAction::operator =(const TypePasswordAction& src)
 {
+    Action::operator =(src);
     m_psz = src.m_psz;
     return *this;
 }

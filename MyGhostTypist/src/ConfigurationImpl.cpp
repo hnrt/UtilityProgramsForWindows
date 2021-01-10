@@ -177,7 +177,16 @@ void ConfigurationImpl::LoadPassword(MSXML2::IXMLDOMNode* pNode)
     PCWSTR pszValue = XmlDocument::GetText(pNode);
     if (bEncrypted)
     {
-        m_CredentialsList[m_CredentialsList.Count - 1]->EncryptedPassword = pszValue;
+        if (m_Version < 2L)
+        {
+            RefPtr<Credentials> oldCred = Credentials::Create(m_Version);
+            oldCred->EncryptedPassword = pszValue;
+            m_CredentialsList[m_CredentialsList.Count - 1]->Password = oldCred->Password;
+        }
+        else
+        {
+            m_CredentialsList[m_CredentialsList.Count - 1]->EncryptedPassword = pszValue;
+        }
     }
     else
     {
@@ -218,6 +227,7 @@ void ConfigurationImpl::LoadTarget(MSXML2::IXMLDOMNode* pNode)
             .Add(L"TypePassword", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypePassword))
             .Add(L"TypeDeleteSequence", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadTypeDeleteSequence))
             .Add(L"Type", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadType))
+            .Add(L"LeftClick", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadLeftClick))
             .Load(pNode);
     }
 }
@@ -263,7 +273,18 @@ void ConfigurationImpl::LoadSetForegroundWindow(MSXML2::IXMLDOMNode* pNode)
     XmlDocument::GetAttribute(pNode, L"class", pszClassName);
     PCWSTR pszWindowText;
     XmlDocument::GetAttribute(pNode, L"text", pszWindowText);
-    m_pTarget->Append(Action::SetForegroundWindow(pszClassName, pszWindowText));
+    auto pAction = Action::SetForegroundWindow(pszClassName, pszWindowText);
+    m_pTarget->Append(pAction);
+    PCWSTR pszAccName;
+    if (XmlDocument::GetAttribute(pNode, L"accName", pszAccName))
+    {
+        dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr)->SetActiveAccessibility(pszAccName);
+    }
+    LONG accRole;
+    if (XmlDocument::GetAttribute(pNode, L"accRole", accRole))
+    {
+        dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr)->SetActiveAccessibility(accRole);
+    }
     XmlElementLoader()
         .Add(L"FindWindow", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadFindWindow))
         .Load(pNode);
@@ -290,7 +311,16 @@ void ConfigurationImpl::LoadTypeUsername(MSXML2::IXMLDOMNode* pNode)
     {
         pszName = nullptr;
     }
-    m_pTarget->Append(Action::TypeUsername(pszName));
+    auto pAction = Action::TypeUsername(pszName);
+    bool bAA;
+    if (XmlDocument::GetAttribute(pNode, L"aa", bAA))
+    {
+        if (bAA)
+        {
+            pAction->Flags = pAction->Flags | AC_FLAG_AA;
+        }
+    }
+    m_pTarget->Append(pAction);
 }
 
 
@@ -301,7 +331,16 @@ void ConfigurationImpl::LoadTypePassword(MSXML2::IXMLDOMNode* pNode)
     {
         pszName = nullptr;
     }
-    m_pTarget->Append(Action::TypePassword(pszName));
+    auto pAction = Action::TypePassword(pszName);
+    bool bAA;
+    if (XmlDocument::GetAttribute(pNode, L"aa", bAA))
+    {
+        if (bAA)
+        {
+            pAction->Flags = pAction->Flags | AC_FLAG_AA;
+        }
+    }
+    m_pTarget->Append(pAction);
 }
 
 
@@ -313,15 +352,40 @@ void ConfigurationImpl::LoadTypeDeleteSequence(MSXML2::IXMLDOMNode* pNode)
 
 void ConfigurationImpl::LoadType(MSXML2::IXMLDOMNode* pNode)
 {
+    RefPtr<Action> pAction;
     PCWSTR pszKey;
     if (XmlDocument::GetAttribute(pNode, L"key", pszKey))
     {
-        m_pTarget->Append(Action::TypeKey(pszKey));
+        pAction = Action::TypeKey(pszKey);
     }
     else
-    {
-        m_pTarget->Append(Action::TypeUnicode(XmlDocument::GetText(pNode)));
+    {        
+        pAction = Action::TypeUnicode(XmlDocument::GetText(pNode));
     }
+    bool bAA;
+    if (XmlDocument::GetAttribute(pNode, L"aa", bAA))
+    {
+        if (bAA)
+        {
+            pAction->Flags = pAction->Flags | AC_FLAG_AA;
+        }
+    }
+    m_pTarget->Append(pAction);
+}
+
+
+void ConfigurationImpl::LoadLeftClick(MSXML2::IXMLDOMNode* pNode)
+{
+    auto pAction = Action::LeftClick();
+    bool bAA;
+    if (XmlDocument::GetAttribute(pNode, L"aa", bAA))
+    {
+        if (bAA)
+        {
+            pAction->Flags = pAction->Flags | AC_FLAG_AA;
+        }
+    }
+    m_pTarget->Append(pAction);
 }
 
 
@@ -333,7 +397,7 @@ void ConfigurationImpl::Save()
 
     XmlDocument document;
     MSXML2::IXMLDOMElement* pRoot = document.BuildDocumentRoot(L"configuration");
-    XmlDocument::SetAttribute(pRoot, L"version", 1L);
+    XmlDocument::SetAttribute(pRoot, L"version", 2L);
     BuildUI(document, pRoot);
     BuildCredentialsList(document, pRoot);
     BuildTargetList(document, pRoot);
@@ -407,10 +471,18 @@ void ConfigurationImpl::BuildTarget(XmlDocument& document, MSXML2::IXMLDOMElemen
         {
         case AC_SETFOREGROUNDWINDOW:
         {
-            MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"SetForegroundWindow", pT);
-            SetForegroundWindowAction* pActionX = dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr);
+            auto pX = document.AppendElement(L"SetForegroundWindow", pT);
+            auto pActionX = dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr);
             XmlDocument::SetAttribute(pX, L"class", pActionX->ClassName);
             XmlDocument::SetAttribute(pX, L"text", pActionX->WindowText);
+            if (pActionX->AccName)
+            {
+                XmlDocument::SetAttribute(pX, L"accName", pActionX->AccName);
+            }
+            if (pActionX->AccRole > 0)
+            {
+                XmlDocument::SetAttribute(pX, L"accRole", pActionX->AccRole);
+            }
             for (SetForegroundWindowAction::ConstIter iter = pActionX->Begin; iter != pActionX->End; iter++)
             {
                 pX = document.AppendElement(L"FindWindow", pX);
@@ -421,39 +493,64 @@ void ConfigurationImpl::BuildTarget(XmlDocument& document, MSXML2::IXMLDOMElemen
         }
         case AC_TYPEKEY:
         {
-            MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"Type", pT);
+            auto pX = document.AppendElement(L"Type", pT);
             XmlDocument::SetAttribute(pX, L"key", dynamic_cast<TypeKeyAction*>(pAction.Ptr)->Key);
+            if ((pAction->Flags & AC_FLAG_AA))
+            {
+                XmlDocument::SetAttribute(pX, L"aa", true);
+            }
             break;
         }
         case AC_TYPEUNICODE:
         {
-            MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"Type", pT);
+            auto pX = document.AppendElement(L"Type", pT);
+            if ((pAction->Flags & AC_FLAG_AA))
+            {
+                XmlDocument::SetAttribute(pX, L"aa", true);
+            }
             XmlDocument::SetText(pX, L"%s", dynamic_cast<TypeUnicodeAction*>(pAction.Ptr)->Text);
             break;
         }
         case AC_TYPEUSERNAME:
         {
-            MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"TypeUsername", pT);
-            PCWSTR pszName = dynamic_cast<TypeUsernameAction*>(pAction.Ptr)->Name;
+            auto pX = document.AppendElement(L"TypeUsername", pT);
+            auto pszName = dynamic_cast<TypeUsernameAction*>(pAction.Ptr)->Name;
             if (pszName && pszName[0])
             {
                 XmlDocument::SetAttribute(pX, L"name", pszName);
+            }
+            if ((pAction->Flags & AC_FLAG_AA))
+            {
+                XmlDocument::SetAttribute(pX, L"aa", true);
             }
             break;
         }
         case AC_TYPEPASSWORD:
         {
-            MSXML2::IXMLDOMElementPtr pX = document.AppendElement(L"TypePassword", pT);
-            PCWSTR pszName = dynamic_cast<TypePasswordAction*>(pAction.Ptr)->Name;
+            auto pX = document.AppendElement(L"TypePassword", pT);
+            auto pszName = dynamic_cast<TypePasswordAction*>(pAction.Ptr)->Name;
             if (pszName && pszName[0])
             {
                 XmlDocument::SetAttribute(pX, L"name", pszName);
+            }
+            if ((pAction->Flags & AC_FLAG_AA))
+            {
+                XmlDocument::SetAttribute(pX, L"aa", true);
             }
             break;
         }
         case AC_TYPEDELETESEQUENCE:
             document.AppendElement(L"TypeDeleteSequence", pT);
             break;
+        case AC_LEFTCLICK:
+        {
+            auto pX = document.AppendElement(L"LeftClick", pT);
+            if ((pAction->Flags & AC_FLAG_AA))
+            {
+                XmlDocument::SetAttribute(pX, L"aa", true);
+            }
+            break;
+        }
         default:
             break;
         }

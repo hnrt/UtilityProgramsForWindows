@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "hnrt/Secret.h"
+#include "hnrt/SecretFactory.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/Debug.h"
 #include "hnrt/PasswordHolder.h"
@@ -24,7 +24,7 @@ namespace UnitTestCoreLib
 
 	    PCWSTR pszKey = L"some considered to be unnatural.";
 	    PCWSTR pszIV = L"202008231156xxxx";
-	    RefPtr<Secret> secret = Secret::Create(pszKey, pszIV);
+	    RefPtr<Secret> secret = SecretFactory::Create(pszKey, pszIV);
 
 	    secret->Encrypt(input.Ptr, input.Len);
 	    Buffer<char> output;
@@ -117,7 +117,7 @@ namespace UnitTestCoreLib
 	    {
 		0x1c, 0x0c, 0xbf, 0x99, 0x06, 0x75, 0x4b, 0xea, 0x9e, 0x84, 0xac, 0xfa, 0x3f, 0xc6, 0x3a, 0x55
 	    };
-	    RefPtr<Secret> secret = Secret::Create(key, iv);
+	    RefPtr<Secret> secret = SecretFactory::Create(key, iv);
 	    int cb = WideCharToMultiByte(CP_UTF8, 0, pszInput, -1, NULL, 0, NULL, NULL);
 	    Buffer<char> tmp(cb);
 	    WideCharToMultiByte(CP_UTF8, 0, pszInput, -1, tmp, cb, NULL, NULL);

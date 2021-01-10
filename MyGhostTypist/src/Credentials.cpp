@@ -1,14 +1,14 @@
 #include "Credentials.h"
+#include <Lmcons.h>
+#include <sddl.h>
+#pragma comment(lib,"Advapi32")
 #include "hnrt/StringStore.h"
+#include "hnrt/Win32Exception.h"
+#include "hnrt/Debug.h"
+#include "hnrt/StringBuffer.h"
 
 
 using namespace hnrt;
-
-
-RefPtr<Credentials> Credentials::Create()
-{
-    return RefPtr<Credentials>(new Credentials());
-}
 
 
 static const unsigned char s_KEY[SECRET_KEY_LENGTH] =
@@ -24,10 +24,69 @@ static const unsigned char s_IV[SECRET_IV_LENGTH] =
 };
 
 
-Credentials::Credentials()
+RefPtr<Credentials> Credentials::Create(LONG version)
+{
+    switch (version)
+    {
+    case 0:
+    case 1:
+        return RefPtr<Credentials>(new Credentials(s_KEY, s_IV));
+    default:
+        break;
+    }
+    WCHAR szUserName[UNLEN + 1] = { 0 };
+    DWORD dwUserNameLen = _countof(szUserName);
+    if (!GetUserNameW(szUserName, &dwUserNameLen))
+    {
+        throw Win32Exception(GetLastError(), L"Failed to get user name.");
+    }
+    DWORD cbSid = 0;
+    DWORD cchDomainName = 0;
+    SID_NAME_USE sidNameUse = SidTypeUser;
+    if (!LookupAccountNameW(NULL, szUserName, nullptr, &cbSid, nullptr, &cchDomainName, &sidNameUse))
+    {
+        DWORD dwError = GetLastError();
+        if (dwError != ERROR_INSUFFICIENT_BUFFER)
+        {
+            throw Win32Exception(GetLastError(), L"Failed to get the sid length.");
+        }
+    }
+    Buffer<BYTE> sid(cbSid);
+    Buffer<WCHAR> szDomainName(cchDomainName);
+    if (!LookupAccountNameW(NULL, szUserName, sid.Ptr, &cbSid, szDomainName.Ptr, &cchDomainName, &sidNameUse))
+    {
+        throw Win32Exception(GetLastError(), L"Failed to get the sid length.");
+    }
+#if _DEBUG
+    LPWSTR pszSid = nullptr;
+    if (ConvertSidToStringSidW(sid.Ptr, &pszSid))
+    {
+        DBGPUT(L"UserName=%s DomainName=%s SID=%s", szUserName, szDomainName.Ptr, pszSid);
+        LocalFree(reinterpret_cast<HLOCAL>(pszSid));
+    }
+    else
+    {
+        DBGPUT(L"UserName=%s DomainName=%s", szUserName, szDomainName.Ptr);
+    }
+#endif
+    unsigned char key[SECRET_KEY_LENGTH];
+    for (ULONG index = 0; index < SECRET_KEY_LENGTH; index++)
+    {
+        key[index] = s_KEY[index] ^ sid[index % cbSid];
+    }
+    unsigned char iv[SECRET_IV_LENGTH];
+    for (ULONG index = 0; index < SECRET_IV_LENGTH; index++)
+    {
+        iv[index] = s_IV[index] ^ sid[index % cbSid];
+    }
+    return RefPtr<Credentials>(new Credentials(key, iv));
+}
+
+
+Credentials::Credentials(const unsigned char key[SECRET_KEY_LENGTH], const unsigned char iv[SECRET_IV_LENGTH])
     : RefObj()
     , m_pszUsername(nullptr)
-    , m_Password(s_KEY, s_IV)
+    , m_Password(key, iv)
     , m_pszKey(nullptr)
     , m_pCallback(nullptr)
 {
@@ -36,11 +95,11 @@ Credentials::Credentials()
 
 RefPtr<Credentials> Credentials::Clone() const
 {
-    Credentials* pCloned = new Credentials();
-    pCloned->m_pszUsername = m_pszUsername;
-    pCloned->m_Password.Encrypted = m_Password.Encrypted;
-    pCloned->m_pszKey = m_pszKey;
-    return RefPtr<Credentials>(pCloned);
+    RefPtr<Credentials> pCloned = Credentials::Create();
+    pCloned->Username = Username;
+    pCloned->EncryptedPassword = EncryptedPassword;
+    pCloned->Key = Key;
+    return pCloned;
 }
 
 

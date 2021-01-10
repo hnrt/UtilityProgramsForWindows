@@ -18,6 +18,10 @@ StringBuffer::StringBuffer(size_t capacity)
     , m_cap(capacity)
     , m_len(0)
 {
+    if (m_cap)
+    {
+        m_ptr[0] = L'\0';
+    }
 }
 
 

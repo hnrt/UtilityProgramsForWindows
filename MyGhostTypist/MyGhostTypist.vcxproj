@@ -99,6 +99,7 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Action.cpp" />
+    <ClCompile Include="src\ActionCollection.cpp" />
     <ClCompile Include="src\ComboBox.cpp" />
     <ClCompile Include="src\Configuration.cpp" />
     <ClCompile Include="src\ConfigurationDialogBox.cpp" />
@@ -106,17 +107,18 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
     <ClCompile Include="src\ConfigurationTreeView.cpp" />
     <ClCompile Include="src\Credentials.cpp" />
     <ClCompile Include="src\CredentialsCollection.cpp" />
-    <ClCompile Include="src\KeystrokeManager.cpp" />
-    <ClCompile Include="src\KeystrokeManagerLayout.cpp" />
+    <ClCompile Include="src\InputManager.cpp" />
+    <ClCompile Include="src\InputManagerLayout.cpp" />
     <ClCompile Include="src\MainWindow.cpp" />
-    <ClCompile Include="src\NullTarget.cpp" />
     <ClCompile Include="src\Target.cpp" />
     <ClCompile Include="src\TargetCollection.cpp" />
     <ClCompile Include="src\WinMain.cpp" />
     <ClCompile Include="src\XmlDocument.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="res\resource.h" />
     <ClInclude Include="src\Action.h" />
+    <ClInclude Include="src\ActionCollection.h" />
     <ClInclude Include="src\ComboBox.h" />
     <ClInclude Include="src\Configuration.h" />
     <ClInclude Include="src\ConfigurationDialogBox.h" />
@@ -124,9 +126,8 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
     <ClInclude Include="src\ConfigurationTreeView.h" />
     <ClInclude Include="src\Credentials.h" />
     <ClInclude Include="src\CredentialsCollection.h" />
-    <ClInclude Include="src\KeystrokeManager.h" />
+    <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\MainWindow.h" />
-    <ClInclude Include="src\NullTarget.h" />
     <ClInclude Include="src\resource.h" />
     <ClInclude Include="src\Target.h" />
     <ClInclude Include="src\TargetCollection.h" />

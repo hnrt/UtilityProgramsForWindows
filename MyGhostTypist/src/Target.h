@@ -3,8 +3,7 @@
 
 #include "hnrt/RefObj.h"
 #include "hnrt/RefPtr.h"
-#include "Action.h"
-#include <vector>
+#include "ActionCollection.h"
 
 
 namespace hnrt
@@ -22,8 +21,6 @@ namespace hnrt
         : public RefObj
     {
     public:
-
-        typedef std::vector<RefPtr<Action>>::iterator ActionIter;
 
         static RefPtr<Target> Create(PCWSTR pszName = nullptr, bool bIsVisible = true);
 
@@ -43,14 +40,14 @@ namespace hnrt
         bool get_IsVisible() const;
         void set_IsVisible(bool value);
         ULONG get_Count() const;
-        ActionIter get_Begin();
-        ActionIter get_End();
+        ActionCollection::ConstIter get_Begin();
+        ActionCollection::ConstIter get_End();
         void set_Callback(TargetCallback* pCallbak);
         __declspec(property(get = get_Name, put = set_Name)) PCWSTR Name;
         __declspec(property(get = get_IsVisible, put = set_IsVisible)) bool IsVisible;
         __declspec(property(get = get_Count)) ULONG Count;
-        __declspec(property(get = get_Begin)) ActionIter Begin;
-        __declspec(property(get = get_End)) ActionIter End;
+        __declspec(property(get = get_Begin)) ActionCollection::ConstIter Begin;
+        __declspec(property(get = get_End)) ActionCollection::ConstIter End;
         __declspec(property(put = set_Callback)) TargetCallback* Callback;
 
     protected:
@@ -59,7 +56,7 @@ namespace hnrt
 
         PCWSTR m_pszName;
         bool m_bIsVisible;
-        std::vector<RefPtr<Action>> m_Actions;
+        ActionCollection m_Actions;
         TargetCallback* m_pCallback;
     };
 
@@ -75,17 +72,17 @@ namespace hnrt
 
     inline ULONG Target::get_Count() const
     {
-        return static_cast<ULONG>(m_Actions.size());
+        return m_Actions.Count;
     }
 
-    inline Target::ActionIter Target::get_Begin()
+    inline ActionCollection::ConstIter Target::get_Begin()
     {
-        return m_Actions.begin();
+        return m_Actions.CBegin;
     }
 
-    inline Target::ActionIter Target::get_End()
+    inline ActionCollection::ConstIter Target::get_End()
     {
-        return m_Actions.end();
+        return m_Actions.CEnd;
     }
 
     inline void Target::set_Callback(TargetCallback* pCallbak)

@@ -190,6 +190,8 @@
     <ClInclude Include="inc\hnrt\AdapterAddressCollection.h" />
     <ClInclude Include="inc\hnrt\Args.h" />
     <ClInclude Include="inc\hnrt\Base64.h" />
+    <ClInclude Include="inc\hnrt\BCryptAlgHandle.h" />
+    <ClInclude Include="inc\hnrt\BCryptKeyHandle.h" />
     <ClInclude Include="inc\hnrt\Buffer.h" />
     <ClInclude Include="inc\hnrt\ByteString.h" />
     <ClInclude Include="inc\hnrt\ComException.h" />
@@ -206,7 +208,6 @@
     <ClInclude Include="inc\hnrt\Heap.h" />
     <ClInclude Include="inc\hnrt\Impersonator.h" />
     <ClInclude Include="inc\hnrt\KeyboardBitMap.h" />
-    <ClInclude Include="inc\hnrt\Keystroke.h" />
     <ClInclude Include="inc\hnrt\KeystrokeMessageFlags.h" />
     <ClInclude Include="inc\hnrt\KeyValueMap.h" />
     <ClInclude Include="inc\hnrt\NumberText.h" />
@@ -217,11 +218,15 @@
     <ClInclude Include="inc\hnrt\ResourceString.h" />
     <ClInclude Include="inc\hnrt\Secret.h" />
     <ClInclude Include="inc\hnrt\SecretBuffer.h" />
+    <ClInclude Include="inc\hnrt\SecretFactory.h" />
     <ClInclude Include="inc\hnrt\Service.h" />
     <ClInclude Include="inc\hnrt\SharedMemory.h" />
     <ClInclude Include="inc\hnrt\SidPtr.h" />
     <ClInclude Include="inc\hnrt\StringCollection.h" />
     <ClInclude Include="inc\hnrt\StringStore.h" />
+    <ClInclude Include="inc\hnrt\SyntheticInput.h" />
+    <ClInclude Include="inc\hnrt\UiAutomation.h" />
+    <ClInclude Include="inc\hnrt\UiAutomationFactory.h" />
     <ClInclude Include="inc\hnrt\Unicode.h" />
     <ClInclude Include="inc\hnrt\VersionInfo.h" />
     <ClInclude Include="inc\hnrt\VirtualKey.h" />
@@ -243,6 +248,7 @@
     <ClInclude Include="src\SecretInternal.h" />
     <ClInclude Include="src\StringStoreInternal.h" />
     <ClInclude Include="inc\hnrt\String.h" />
+    <ClInclude Include="src\UiAutomationInternal.h" />
     <ClInclude Include="src\VersionInfoInternal.h" />
     <ClInclude Include="src\ZipInternal.h" />
   </ItemGroup>
@@ -278,6 +284,7 @@
     <ClCompile Include="src\ResourceReader.cpp" />
     <ClCompile Include="src\ResourceString.cpp" />
     <ClCompile Include="src\SecretBuffer.cpp" />
+    <ClCompile Include="src\SecretFactory.cpp" />
     <ClCompile Include="src\SecretInternal.cpp" />
     <ClCompile Include="src\Service.cpp" />
     <ClCompile Include="src\SidPtr.cpp" />
@@ -286,6 +293,9 @@
     <ClCompile Include="src\StringStore.cpp" />
     <ClCompile Include="src\StringStoreInternal.cpp" />
     <ClCompile Include="src\String.cpp" />
+    <ClCompile Include="src\SyntheticInput.cpp" />
+    <ClCompile Include="src\UiAutomationFactory.cpp" />
+    <ClCompile Include="src\UiAutomationInternal.cpp" />
     <ClCompile Include="src\VersionInfoInternal.cpp" />
     <ClCompile Include="src\VirtualKey.cpp" />
     <ClCompile Include="src\Win32Exception.cpp" />

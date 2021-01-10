@@ -9,6 +9,7 @@
 #include "hnrt/VirtualKey.h"
 #include "hnrt/WhileInScope.h"
 #include "hnrt/WindowHelper.h"
+#include "hnrt/UiAutomationFactory.h"
 #include "resource.h"
 
 
@@ -136,6 +137,12 @@ INT_PTR ConfigurationDialogBox::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lPara
 
     case IDC_FINDWINDOW_BUTTON:
         return OnFindWindowButtonClicked(hwnd);
+
+    case IDC_AA_CHECK:
+        return OnUseAaClicked(hwnd);
+
+    case IDC_LEFTCLICK_BUTTON:
+        return OnLeftClickButtonClicked(hwnd);
 
     case IDC_USERNAME_BUTTON:
         return OnUsernameButtonClicked(hwnd);
@@ -391,6 +398,21 @@ INT_PTR ConfigurationDialogBox::OnLeftButtonDown(HWND hwnd, WPARAM wParam, LPARA
             DBGPUT(L"class=\"%s\" text=\"%s\" process=%lu thread=%lu", hwndInterest.ClassName, hwndInterest.WindowText, hwndInterest.ProcessId, hwndInterest.ThreadId);
             RefPtr<Target> pTarget = m_tv.SelectedTarget;
             RefPtr<Action> pAction = Action::SetForegroundWindow(hwndInterest.ClassName, hwndInterest.WindowText);
+            RefPtr<UiAutomation> pAutomation = UiAutomationFactory::Create(hwndInterest, pt);
+            if (pAutomation)
+            {
+                PCWSTR pszName = pAutomation->Name;
+                DWORD dwRole = pAutomation->Role;
+                dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr)->SetActiveAccessibility(pszName, dwRole);
+                if (pszName)
+                {
+                    DBGPUT(L"aa: name=\"%s\" role=%s", pszName, UiAutomation::GetRoleName(dwRole));
+                }
+                else
+                {
+                    DBGPUT(L"aa: name=null role=%s", UiAutomation::GetRoleName(dwRole));
+                }
+            }
             while (hwndInterest.IsChild)
             {
                 hwndInterest = hwndInterest.Parent;
@@ -417,6 +439,33 @@ INT_PTR ConfigurationDialogBox::OnLeftButtonDown(HWND hwnd, WPARAM wParam, LPARA
         return TRUE;
     }
     return FALSE;
+}
+
+
+INT_PTR ConfigurationDialogBox::OnUseAaClicked(HWND hwnd)
+{
+    if (m_tv.IsActionItemSelected)
+    {
+        if (SendDlgItemMessageW(hwnd, IDC_AA_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        {
+            m_tv.SelectedActionItem->Flags = m_tv.SelectedActionItem->Flags | AC_FLAG_AA;
+        }
+        else
+        {
+            m_tv.SelectedActionItem->Flags = m_tv.SelectedActionItem->Flags & ~AC_FLAG_AA;
+        }
+    }
+    return TRUE;
+}
+
+
+INT_PTR ConfigurationDialogBox::OnLeftClickButtonClicked(HWND hwnd)
+{
+    if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
+    {
+        m_tv.AddActionItem(Action::LeftClick());
+    }
+    return TRUE;
 }
 
 
@@ -618,6 +667,9 @@ void ConfigurationDialogBox::OnTargetSelected(HWND hwnd, RefPtr<Target> pTarget)
     EnableWindow(GetDlgItem(hwnd, IDC_TARGET_EDIT), TRUE);
     BOOL bCanType = pTarget->Count ? TRUE : FALSE;
     EnableWindow(GetDlgItem(hwnd, IDC_FINDWINDOW_BUTTON), TRUE);
+    EnableWindow(GetDlgItem(hwnd, IDC_AA_CHECK), FALSE);
+    SendDlgItemMessageW(hwnd, IDC_AA_CHECK, BM_SETCHECK, BST_UNCHECKED, 0);
+    EnableWindow(GetDlgItem(hwnd, IDC_LEFTCLICK_BUTTON), bCanType);
     EnableWindow(GetDlgItem(hwnd, IDC_USERNAME_BUTTON), bCanType);
     EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD_BUTTON), bCanType);
     EnableWindow(GetDlgItem(hwnd, IDC_CREDKEY_COMBO), bCanType);
@@ -656,6 +708,8 @@ void ConfigurationDialogBox::OnActionItemSelected(HWND hwnd, RefPtr<Target> pTar
     // Target
     EnableWindow(GetDlgItem(hwnd, IDC_TARGET_EDIT), TRUE);
     EnableWindow(GetDlgItem(hwnd, IDC_FINDWINDOW_BUTTON), TRUE);
+    EnableWindow(GetDlgItem(hwnd, IDC_AA_CHECK), TRUE);
+    EnableWindow(GetDlgItem(hwnd, IDC_LEFTCLICK_BUTTON), TRUE);
     EnableWindow(GetDlgItem(hwnd, IDC_USERNAME_BUTTON), TRUE);
     EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD_BUTTON), TRUE);
     EnableWindow(GetDlgItem(hwnd, IDC_CREDKEY_COMBO), TRUE);
@@ -669,6 +723,7 @@ void ConfigurationDialogBox::OnActionItemSelected(HWND hwnd, RefPtr<Target> pTar
         LoadCredKeyCombo(hwnd);
     }
     RefPtr<Action> pAction = (*pTarget.Ptr)[index];
+    SendDlgItemMessageW(hwnd, IDC_AA_CHECK, BM_SETCHECK, (pAction->Flags & AC_FLAG_AA) ? BST_CHECKED : BST_UNCHECKED, 0);
     if (pAction->Type == AC_TYPEUNICODE)
     {
         EnableWindow(GetDlgItem(hwnd, IDC_UNICODE_EDIT), TRUE);
@@ -693,6 +748,11 @@ void ConfigurationDialogBox::OnActionItemSelected(HWND hwnd, RefPtr<Target> pTar
                 m_cbCredentials.Select(DEFAULT_CREDENTIALS);
             }
         }
+        else if (pAction->Type != AC_LEFTCLICK)
+        {
+            EnableWindow(GetDlgItem(hwnd, IDC_AA_CHECK), FALSE);
+            SendDlgItemMessageW(hwnd, IDC_AA_CHECK, BM_SETCHECK, BST_UNCHECKED, 0);
+        }
     }
 }
 
@@ -713,6 +773,8 @@ void ConfigurationDialogBox::DisableTargetGroup(HWND hwnd)
 {
     EnableWindow(GetDlgItem(hwnd, IDC_TARGET_EDIT), FALSE);
     EnableWindow(GetDlgItem(hwnd, IDC_FINDWINDOW_BUTTON), FALSE);
+    EnableWindow(GetDlgItem(hwnd, IDC_AA_CHECK), FALSE);
+    EnableWindow(GetDlgItem(hwnd, IDC_LEFTCLICK_BUTTON), FALSE);
     EnableWindow(GetDlgItem(hwnd, IDC_USERNAME_BUTTON), FALSE);
     EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD_BUTTON), FALSE);
     EnableWindow(GetDlgItem(hwnd, IDC_CREDKEY_COMBO), FALSE);
@@ -769,7 +831,7 @@ void ConfigurationDialogBox::LoadCredKeyCombo(HWND hwnd)
     if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
     {
         RefPtr<Target> pTarget = m_tv.SelectedTarget;
-        for (Target::ActionIter iter = pTarget->Begin; iter != pTarget->End; iter++)
+        for (auto iter = pTarget->Begin; iter != pTarget->End; iter++)
         {
             RefPtr<Action> pAction = *iter;
             PCWSTR pszName;

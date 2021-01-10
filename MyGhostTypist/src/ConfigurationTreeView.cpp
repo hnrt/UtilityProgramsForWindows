@@ -2,6 +2,8 @@
 #include "Target.h"
 #include "hnrt/Debug.h"
 #include "hnrt/Exception.h"
+#include "hnrt/StringBuffer.h"
+#include "hnrt/UiAutomation.h"
 
 
 using namespace hnrt;
@@ -553,7 +555,41 @@ void ConfigurationTreeView::RefreshTarget(ULONG index, HTREEITEM hT)
                 DBGPUT(L"tvins.hParent=%p item.pszText=\"%s\" item.lParam=%zu", tvins.hParent, tvins.item.pszText, tvins.item.lParam);
                 tvins.hParent = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
             }
-            _snwprintf_s(szText, _TRUNCATE, L"SetForegroundWindow class=\"%s\" text=\"%s\"", pActionEx->ClassName, pActionEx->WindowText);
+            StringBuffer buf(80);
+            if (pActionEx->AccRole > 0)
+            {
+                if (pActionEx->AccName)
+                {
+                    const size_t Threshold = 30;
+                    const WCHAR* pStart = pActionEx->AccName;
+                    const WCHAR* pEnd = wcspbrk(pStart, L"\r\n");
+                    if (pEnd)
+                    {
+                        if (pEnd - pStart < Threshold)
+                        {
+                            buf.AppendFormat(L" name=\"%.*s...\"", (int)(pEnd - pStart), pStart);
+                        }
+                        else
+                        {
+                            buf.AppendFormat(L" name=\"%.*s...\"", (int)(Threshold - 3), pStart);
+                        }
+                    }
+                    else if (wcslen(pStart) < Threshold)
+                    {
+                        buf.AppendFormat(L" name=\"%s\"", pStart);
+                    }
+                    else
+                    {
+                        buf.AppendFormat(L" name=\"%.*s...\"", (int)(Threshold - 3), pStart);
+                    }
+                }
+                else
+                {
+                    buf.AppendFormat(L" name=null");
+                }
+                buf.AppendFormat(L" role=%s", UiAutomation::GetRoleName(pActionEx->AccRole));
+            }
+            _snwprintf_s(szText, _TRUNCATE, L"SetForegroundWindow class=\"%s\" text=\"%s\"%s", pActionEx->ClassName, pActionEx->WindowText, buf.Ptr);
             break;
         }
         case AC_TYPEKEY:
@@ -576,6 +612,9 @@ void ConfigurationTreeView::RefreshTarget(ULONG index, HTREEITEM hT)
         }
         case AC_TYPEDELETESEQUENCE:
             _snwprintf_s(szText, _TRUNCATE, L"TypeDeleteSequence");
+            break;
+        case AC_LEFTCLICK:
+            _snwprintf_s(szText, _TRUNCATE, L"LeftClick");
             break;
         default:
             _snwprintf_s(szText, _TRUNCATE, L"?");

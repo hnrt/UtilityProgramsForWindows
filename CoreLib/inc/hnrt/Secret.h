@@ -2,22 +2,18 @@
 
 
 #include "hnrt/RefObj.h"
-#include "hnrt/RefPtr.h"
+
+
+#define SECRET_KEY_LENGTH 32
+#define SECRET_IV_LENGTH 16
 
 
 namespace hnrt
 {
-    #define SECRET_KEY_LENGTH 32
-    #define SECRET_IV_LENGTH 16
-
     class Secret
         : public RefObj
     {
     public:
-
-        static RefPtr<Secret> Create();
-        static RefPtr<Secret> Create(const unsigned char key[SECRET_KEY_LENGTH], const unsigned char iv[SECRET_IV_LENGTH]);
-        static RefPtr<Secret> Create(PCWSTR pszKey, PCWSTR pszIV);
 
         Secret(const Secret&) = delete;
         virtual ~Secret() = default;
@@ -38,4 +34,9 @@ namespace hnrt
 
         Secret();
     };
+
+    inline Secret::Secret()
+        : RefObj()
+    {
+    }
 }

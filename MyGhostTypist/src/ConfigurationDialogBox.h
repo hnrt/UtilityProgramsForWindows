@@ -39,7 +39,9 @@ namespace hnrt
         INT_PTR OnComboBoxNotified(HWND hwnd, WORD wControlId, WORD wNotification);
         INT_PTR OnShowPasswordClicked(HWND hwnd);
         INT_PTR OnFindWindowButtonClicked(HWND hwnd);
+        INT_PTR OnUseAaClicked(HWND hwnd);
         INT_PTR OnLeftButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam);
+        INT_PTR OnLeftClickButtonClicked(HWND hwnd);
         INT_PTR OnUsernameButtonClicked(HWND hwnd);
         INT_PTR OnPasswordButtonClicked(HWND hwnd);
         INT_PTR OnDeleteSequenceButtonClicked(HWND hwnd);

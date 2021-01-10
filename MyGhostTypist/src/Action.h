@@ -15,6 +15,10 @@
 #define AC_TYPEUSERNAME 4
 #define AC_TYPEPASSWORD 5
 #define AC_TYPEDELETESEQUENCE 6
+#define AC_LEFTCLICK 7
+
+
+#define AC_FLAG_AA (1UL<<0)
 
 
 namespace hnrt
@@ -30,42 +34,60 @@ namespace hnrt
         static RefPtr<Action> TypeUsername(PCWSTR psz = nullptr);
         static RefPtr<Action> TypePassword(PCWSTR psz = nullptr);
         static RefPtr<Action> TypeDeleteSequence();
+        static RefPtr<Action> LeftClick();
 
         Action(const Action& src);
         virtual ~Action() = default;
         virtual Action& operator =(const Action& src);
         virtual RefPtr<Action> Clone() const = 0;
         LONG get_Type() const;
+        DWORD get_Flags() const;
+        void set_Flags(DWORD flags);
         __declspec(property(get = get_Type)) LONG Type;
+        __declspec(property(get = get_Flags, put = set_Flags)) DWORD Flags;
 
     protected:
 
         Action(LONG type);
 
-        LONG m_type;
+        LONG m_Type;
+        DWORD m_Flags;
     };
 
     inline Action::Action(LONG type)
         : RefObj()
-        , m_type(type)
+        , m_Type(type)
+        , m_Flags(0UL)
     {
     }
 
     inline Action::Action(const Action& src)
         : RefObj()
-        , m_type(src.m_type)
+        , m_Type(src.m_Type)
+        , m_Flags(src.m_Flags)
     {
     }
 
     inline Action& Action::operator =(const Action& src)
     {
-        m_type = src.m_type;
+        m_Type = src.m_Type;
+        m_Flags = src.m_Flags;
         return *this;
     }
 
     inline LONG Action::get_Type() const
     {
-        return m_type;
+        return m_Type;
+    }
+
+    inline DWORD Action::get_Flags() const
+    {
+        return m_Flags;
+    }
+
+    inline void Action::set_Flags(DWORD flags)
+    {
+        m_Flags = flags;
     }
 
     class SetForegroundWindowAction
@@ -84,18 +106,27 @@ namespace hnrt
         void Prepend(PCWSTR pszClassName, PCWSTR pszWindowText);
         void Append(PCWSTR pszClassName, PCWSTR pszWindowText);
         bool Find(HWND* phwnd1 = nullptr, HWND* phwnd2 = nullptr) const;
+        void SetActiveAccessibility(PCWSTR pszName, LONG lRole);
+        void SetActiveAccessibility(PCWSTR pszName);
+        void SetActiveAccessibility(LONG lRole);
         PCWSTR get_ClassName() const;
         PCWSTR get_WindowText() const;
         ConstIter get_Begin() const;
         ConstIter get_End() const;
+        PCWSTR get_AccName() const;
+        LONG get_AccRole() const;
         __declspec(property(get = get_ClassName)) PCWSTR ClassName;
         __declspec(property(get = get_WindowText)) PCWSTR WindowText;
         __declspec(property(get = get_Begin)) ConstIter Begin;
         __declspec(property(get = get_End)) ConstIter End;
+        __declspec(property(get = get_AccName)) PCWSTR AccName;
+        __declspec(property(get = get_AccRole)) LONG AccRole;
 
     protected:
 
         std::vector<std::pair<PCWSTR, PCWSTR>> m_Stack;
+        PCWSTR m_pszAccName;
+        LONG m_AccRole;
     };
 
     inline RefPtr<Action> SetForegroundWindowAction::Clone() const
@@ -111,6 +142,16 @@ namespace hnrt
     inline SetForegroundWindowAction::ConstIter SetForegroundWindowAction::get_End() const
     {
         return m_Stack.end();
+    }
+
+    inline PCWSTR SetForegroundWindowAction::get_AccName() const
+    {
+        return m_pszAccName;
+    }
+
+    inline LONG SetForegroundWindowAction::get_AccRole() const
+    {
+        return m_AccRole;
     }
 
     class TypeKeyAction
@@ -255,5 +296,38 @@ namespace hnrt
     inline RefPtr<Action> TypeDeleteSequenceAction::Clone() const
     {
         return RefPtr<Action>(new TypeDeleteSequenceAction(*this));
+    }
+
+    class LeftClickAction
+        : public Action
+    {
+    public:
+
+        LeftClickAction();
+        LeftClickAction(const LeftClickAction& src);
+        virtual ~LeftClickAction() = default;
+        virtual LeftClickAction& operator =(const LeftClickAction& src);
+        virtual RefPtr<Action> Clone() const;
+    };
+
+    inline LeftClickAction::LeftClickAction()
+        : Action(AC_LEFTCLICK)
+    {
+    }
+
+    inline LeftClickAction::LeftClickAction(const LeftClickAction& src)
+        : Action(src)
+    {
+    }
+
+    inline LeftClickAction& LeftClickAction::operator =(const LeftClickAction& src)
+    {
+        Action::operator=(src);
+        return *this;
+    }
+
+    inline RefPtr<Action> LeftClickAction::Clone() const
+    {
+        return RefPtr<Action>(new LeftClickAction(*this));
     }
 }

@@ -4,13 +4,14 @@
 #include <Windows.h>
 #include "hnrt/ComLibrary.h"
 #include "hnrt/KeyboardMouseBridge.h"
+#include "hnrt/UiAutomation.h"
 #include "Configuration.h"
 #include "Target.h"
 
 
 namespace hnrt
 {
-    class KeystrokeManager;
+    class InputManager;
 
     class MainWindow
         : public ComLibrary
@@ -54,12 +55,13 @@ namespace hnrt
         bool m_bMaximized;
         LONG m_PreferredHeight;
         bool m_bSizing;
-        RefPtr<KeystrokeManager> m_pKeystrokeManager;
+        RefPtr<InputManager> m_pInputManager;
         bool m_bProcessing;
         RefPtr<Target> m_pTarget;
-        Target::ActionIter m_ActionIter;
+        ActionCollection::ConstIter m_ActionIter;
         KeyboardMouseBridge m_KeyboardMouseBridge;
         HWND m_hwndTarget;
+        RefPtr<UiAutomation> m_pAutomation;
         DWORD m_PreviousKeyboardState;
         DWORD m_CurrentKeyboardState;
     };

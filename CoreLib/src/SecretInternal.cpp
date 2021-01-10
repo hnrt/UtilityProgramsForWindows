@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "SecretInternal.h"
+#include "hnrt/BCryptKeyHandle.h"
 #include "hnrt/Debug.h"
 #include "hnrt/Exception.h"
 
@@ -15,30 +16,6 @@
 using namespace hnrt;
 
 
-RefPtr<Secret> Secret::Create()
-{
-    return RefPtr<Secret>(new SecretInternal());
-}
-
-
-RefPtr<Secret> Secret::Create(const unsigned char key[SECRET_KEY_LENGTH], const unsigned char iv[SECRET_IV_LENGTH])
-{
-    return RefPtr<Secret>(new SecretInternal(key, iv));
-}
-
-
-RefPtr<Secret> Secret::Create(PCWSTR pszKey, PCWSTR pszIV)
-{
-    return RefPtr<Secret>(new SecretInternal(pszKey, pszIV));
-}
-
-
-Secret::Secret()
-    : RefObj()
-{
-}
-
-
 #define KEY_SALT 0x43
 #define IV_SALT 0x12
 
@@ -50,7 +27,6 @@ SecretInternal::SecretInternal()
     , m_KeyBlob()
     , m_Processed()
 {
-    DBGFNC(L"SecretInternal::ctor");
     Initialize();
     memset(m_IV, 0, sizeof(m_IV));
 }
@@ -63,7 +39,6 @@ SecretInternal::SecretInternal(const unsigned char key[SECRET_KEY_LENGTH], const
     , m_KeyBlob()
     , m_Processed()
 {
-    DBGFNC(L"SecretInternal::ctor(key,iv)");
     Initialize();
     SetKey(key, SECRET_KEY_LENGTH);
     SetIV(iv, SECRET_IV_LENGTH);
@@ -77,7 +52,6 @@ SecretInternal::SecretInternal(PCWSTR pszKey, PCWSTR pszIV)
     , m_KeyBlob()
     , m_Processed()
 {
-    DBGFNC(L"SecretInternal::ctor(pszKey,pszIV)");
     Initialize();
     SetKey(pszKey);
     SetIV(pszIV);
@@ -86,7 +60,6 @@ SecretInternal::SecretInternal(PCWSTR pszKey, PCWSTR pszIV)
 
 SecretInternal::~SecretInternal()
 {
-    DBGFNC(L"SecretInternal::dtor");
     m_Processed.Resize(0);
     m_KeyBlob.Resize(0);
     memset(m_IV, 0, sizeof(m_IV));
@@ -95,8 +68,6 @@ SecretInternal::~SecretInternal()
 
 void SecretInternal::Initialize()
 {
-    DBGFNC(L"SecretInternal::Initialize");
-
     NTSTATUS status = BCryptOpenAlgorithmProvider(&m_hAlg, BCRYPT_AES_ALGORITHM, NULL, 0);
     if (!NT_SUCCESS(status))
     {
@@ -116,7 +87,6 @@ void SecretInternal::Initialize()
     {
         throw Exception(L"BCryptGetProperty(OBJECT_LENGTH) failed. status=%08lX", status);
     }
-    DBGPUT(L"BCRYPT_OBJECT_LENGTH=%ld", cbObject);
 
     m_Object.Resize(cbObject);
 }
@@ -126,7 +96,7 @@ void SecretInternal::InitializeKeyBlob(unsigned char key[SECRET_KEY_LENGTH])
 {
     AddSalt(key, SECRET_KEY_LENGTH, KEY_SALT);
 
-    SecretKeyHandle hKey;
+    BCryptKeyHandle hKey;
     NTSTATUS status = BCryptGenerateSymmetricKey(m_hAlg, &hKey, m_Object.Ptr, (ULONG)m_Object.Len, key, SECRET_KEY_LENGTH, 0);
     if (!NT_SUCCESS(status))
     {
@@ -234,15 +204,13 @@ void SecretInternal::ClearBuffer()
 
 void SecretInternal::Encrypt(const void* ptr, size_t len)
 {
-    DBGFNC(L"SecretInternal::Encrypt(%p,%zu)", ptr, len);
-
     NTSTATUS status;
 
     SecretBuffer src(sizeof(ULONG) + len);
     *reinterpret_cast<ULONG*>(src.Ptr) = static_cast<ULONG>(len);
     memcpy_s(src.Ptr + sizeof(ULONG), src.Len - sizeof(ULONG), ptr, len);
 
-    SecretKeyHandle key;
+    BCryptKeyHandle key;
     status = BCryptImportKey(m_hAlg, NULL, BCRYPT_OPAQUE_KEY_BLOB, &key, m_Object.Ptr, (ULONG)m_Object.Len, m_KeyBlob.Ptr, (ULONG)m_KeyBlob.Len, 0);
     if (!NT_SUCCESS(status))
     {
@@ -259,7 +227,6 @@ void SecretInternal::Encrypt(const void* ptr, size_t len)
     {
         throw Exception(L"BCryptEncrypt(size) failed. status=%08lX", status);
     }
-    DBGPUT(L"cbCipherText=%lu", cbCipherText);
 
     m_Processed.Resize(cbCipherText);
 
@@ -273,11 +240,9 @@ void SecretInternal::Encrypt(const void* ptr, size_t len)
 
 void SecretInternal::Decrypt(const void* ptr, size_t len)
 {
-    DBGFNC(L"SecretInternal::Decrypt(%p,%zu)", ptr, len);
-
     NTSTATUS status;
 
-    SecretKeyHandle key;
+    BCryptKeyHandle key;
     status = BCryptImportKey(m_hAlg, NULL, BCRYPT_OPAQUE_KEY_BLOB, &key, m_Object.Ptr, (ULONG)m_Object.Len, m_KeyBlob.Ptr, (ULONG)m_KeyBlob.Len, 0);
     if (!NT_SUCCESS(status))
     {
@@ -294,7 +259,6 @@ void SecretInternal::Decrypt(const void* ptr, size_t len)
     {
         throw Exception(L"BCryptDecrypt(size) failed. status=%08lX", status);
     }
-    DBGPUT(L"cbPlainText=%lu", cbPlainText);
 
     SecretBuffer tmp(cbPlainText);
 

@@ -22,7 +22,7 @@ namespace hnrt
     {
     public:
 
-        static RefPtr<Credentials> Create();
+        static RefPtr<Credentials> Create(LONG version = 2L);
 
         Credentials(const Credentials&) = delete;
         ~Credentials() = default;
@@ -48,6 +48,7 @@ namespace hnrt
     private:
 
         Credentials();
+        Credentials(const unsigned char key[SECRET_KEY_LENGTH], const unsigned char iv[SECRET_IV_LENGTH]);
 
         PCWSTR m_pszUsername;
         PasswordHolder m_Password;

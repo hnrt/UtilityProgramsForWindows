@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include "hnrt/RefPtr.h"
 #include "hnrt/Secret.h"
 #include "hnrt/Buffer.h"
 
@@ -25,8 +26,8 @@ namespace hnrt
 
     private:
 
-        RefPtr<Secret> m_pSecret;
+        mutable RefPtr<Secret> m_pSecret;
+        mutable Buffer<WCHAR> m_PlainText;
         Buffer<WCHAR> m_Encrypted;
-        Buffer<WCHAR> m_PlainText;
     };
 }

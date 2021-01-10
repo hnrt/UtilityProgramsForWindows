@@ -1,7 +1,6 @@
 #include "Target.h"
 #include "TargetConstants.h"
 #include "hnrt/String.h"
-#include "hnrt/Exception.h"
 
 
 using namespace hnrt;
@@ -45,9 +44,9 @@ void Target::set_IsVisible(bool value)
 RefPtr<Target> Target::Clone() const
 {
     Target* pCloned = new Target(m_pszName, m_bIsVisible);
-    for (std::vector<RefPtr<Action>>::const_iterator iter = m_Actions.begin(); iter != m_Actions.end(); iter++)
+    for (auto iter = m_Actions.CBegin; iter != m_Actions.CEnd; iter++)
     {
-        pCloned->m_Actions.push_back((*iter)->Clone());
+        pCloned->m_Actions.Append((*iter)->Clone());
     }
     return RefPtr<Target>(pCloned);
 }
@@ -55,27 +54,13 @@ RefPtr<Target> Target::Clone() const
 
 const RefPtr<Action>& Target::operator [](ULONG index) const
 {
-    if (index < Count)
-    {
-        return m_Actions[index];
-    }
-    else
-    {
-        throw Exception(L"Target::operator [](ULONG) const: Index out of range.");
-    }
+    return m_Actions[index];
 }
 
 
 RefPtr<Action>& Target::operator [](ULONG index)
 {
-    if (index < Count)
-    {
-        return m_Actions[index];
-    }
-    else
-    {
-        throw Exception(L"Target::operator [](ULONG): Index out of range.");
-    }
+    return m_Actions[index];
 }
 
 
@@ -90,7 +75,7 @@ void Target::InvokeCallback()
 
 void Target::Append(RefPtr<Action> pAction)
 {
-    m_Actions.push_back(pAction);
+    m_Actions.Append(pAction);
     InvokeCallback();
 }
 
@@ -99,7 +84,7 @@ void Target::Delete(ULONG index)
 {
     if (index < Count)
     {
-        m_Actions.erase(m_Actions.begin() + index);
+        m_Actions.Delete(index);
         InvokeCallback();
     }
 }
@@ -107,14 +92,7 @@ void Target::Delete(ULONG index)
 
 void Target::Insert(ULONG index, RefPtr<Action> pAction)
 {
-    if (index < Count)
-    {
-        m_Actions.insert(m_Actions.begin() + index, pAction);
-    }
-    else
-    {
-        m_Actions.push_back(pAction);
-    }
+    m_Actions.Insert(index, pAction);
     InvokeCallback();
 }
 
@@ -123,16 +101,7 @@ void Target::Move(ULONG from, ULONG to)
 {
     if (from < Count)
     {
-        RefPtr<Action> pAction = m_Actions[from];
-        m_Actions.erase(m_Actions.begin() + from);
-        if (to < Count)
-        {
-            m_Actions.insert(m_Actions.begin() + to, pAction);
-        }
-        else
-        {
-            m_Actions.push_back(pAction);
-        }
+        m_Actions.Move(from, to);
         InvokeCallback();
     }
 }
