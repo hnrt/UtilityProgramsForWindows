@@ -23,7 +23,7 @@ RefPtr<UiAutomation> UiAutomationFactory::Create(HWND hwnd, POINT pt)
     if (ptr1->IsValid)
     {
         auto ptr2 = ptr1->HitTest(pt);
-        if (ptr2->IsValid)
+        if (ptr2)
         {
             return ptr2;
         }

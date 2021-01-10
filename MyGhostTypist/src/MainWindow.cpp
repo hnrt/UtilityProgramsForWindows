@@ -566,6 +566,12 @@ bool MainWindow::ContinueProcess()
                     m_pInputManager->SendNext();
                     return true;
                 }
+                else
+                {
+                    m_ActionIter = m_pTarget->End;
+                    MessageBoxW(NULL, L"Invalid virtual key name.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
+                    return false;
+                }
             }
             break;
         }
@@ -574,9 +580,18 @@ bool MainWindow::ContinueProcess()
             PCWSTR pszText = dynamic_cast<TypeUnicodeAction*>(pAction.Ptr)->Text;
             if (pszText && pszText[0])
             {
-                if ((pAction->Flags & AC_FLAG_AA) && m_pAutomation)
+                if ((pAction->Flags & AC_FLAG_AA))
                 {
-                    m_pAutomation->Value = pszText;
+                    if (m_pAutomation)
+                    {
+                        m_pAutomation->Value = pszText;
+                    }
+                    else
+                    {
+                        m_ActionIter = m_pTarget->End;
+                        MessageBoxW(NULL, L"Active Accessibility not available.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
+                        return false;
+                    }
                 }
                 else
                 {
@@ -593,9 +608,18 @@ bool MainWindow::ContinueProcess()
             RefPtr<Credentials> pCredentials = pszName && *pszName ? m_pCfg->CredentialsList[pszName] : m_pCfg->CredentialsList.DefaultCredentials;
             if (pCredentials && pCredentials->Username && pCredentials->Username[0])
             {
-                if ((pAction->Flags & AC_FLAG_AA) && m_pAutomation)
+                if ((pAction->Flags & AC_FLAG_AA))
                 {
-                    m_pAutomation->Value = pCredentials->Username;
+                    if (m_pAutomation)
+                    {
+                        m_pAutomation->Value = pCredentials->Username;
+                    }
+                    else
+                    {
+                        m_ActionIter = m_pTarget->End;
+                        MessageBoxW(NULL, L"Active Accessibility not available.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
+                        return false;
+                    }
                 }
                 else
                 {
@@ -612,9 +636,19 @@ bool MainWindow::ContinueProcess()
             RefPtr<Credentials> pCredentials = pszName && *pszName ? m_pCfg->CredentialsList[pszName] : m_pCfg->CredentialsList.DefaultCredentials;
             if (pCredentials && pCredentials->Password && pCredentials->Password[0])
             {
-                if ((pAction->Flags & AC_FLAG_AA) && m_pAutomation)
+                if ((pAction->Flags & AC_FLAG_AA))
                 {
-                    m_pAutomation->Value = pCredentials->Password;
+                    if (m_pAutomation)
+                    {
+                        m_pAutomation->Value = pCredentials->Password;
+                    }
+                    else
+                    {
+                        pCredentials->ClearPlainText();
+                        m_ActionIter = m_pTarget->End;
+                        MessageBoxW(NULL, L"Active Accessibility not available.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
+                        return false;
+                    }
                 }
                 else
                 {
@@ -635,16 +669,31 @@ bool MainWindow::ContinueProcess()
             m_pInputManager->SendNext();
             return true;
         case AC_LEFTCLICK:
-            if ((pAction->Flags & AC_FLAG_AA) && m_pAutomation)
+            if ((pAction->Flags & AC_FLAG_AA))
             {
-                RECT rect = { 0 };
-                if (m_pAutomation->Locate(rect))
+                if (m_pAutomation)
                 {
-                    DBGPUT(L"AA: (%ld,%ld) %ldx%ld", rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
-                    m_pInputManager->AddMouseMove((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2);
-                    m_pInputManager->AddMouseClickLeft();
-                    m_pInputManager->SendNext();
-                    return true;
+                    RECT rect = { 0 };
+                    if (m_pAutomation->Locate(rect))
+                    {
+                        DBGPUT(L"AA: (%ld,%ld) %ldx%ld", rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+                        m_pInputManager->AddMouseMove((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2);
+                        m_pInputManager->AddMouseClickLeft();
+                        m_pInputManager->SendNext();
+                        return true;
+                    }
+                    else
+                    {
+                        m_ActionIter = m_pTarget->End;
+                        MessageBoxW(NULL, L"Active Accessibility failed to locate the UI part.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
+                        return false;
+                    }
+                }
+                else
+                {
+                    m_ActionIter = m_pTarget->End;
+                    MessageBoxW(NULL, L"Active Accessibility not available.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
+                    return false;
                 }
             }
             else if (m_hwndTarget)
@@ -658,7 +707,14 @@ bool MainWindow::ContinueProcess()
                     m_pInputManager->SendNext();
                     return true;
                 }
+                else
+                {
+                    m_ActionIter = m_pTarget->End;
+                    MessageBoxW(NULL, L"Failed to locate the window.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
+                    return false;
+                }
             }
+            m_ActionIter = m_pTarget->End;
             return false;
         default:
             break;
