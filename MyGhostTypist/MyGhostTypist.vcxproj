@@ -130,7 +130,6 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
     <ClInclude Include="src\Ghost.h" />
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\MainWindow.h" />
-    <ClInclude Include="src\resource.h" />
     <ClInclude Include="src\Target.h" />
     <ClInclude Include="src\TargetCollection.h" />
     <ClInclude Include="src\TargetConstants.h" />
