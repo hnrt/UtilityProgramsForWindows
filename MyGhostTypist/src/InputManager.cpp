@@ -40,8 +40,6 @@ InputManager::InputManager()
     : m_Interval(USER_TIMER_MINIMUM)
     , m_Delay(0)
     , m_Queue()
-    , m_hwnd(NULL)
-    , m_uTimerId(0)
 {
     memset(m_map, 0, sizeof(m_map));
 }
@@ -54,42 +52,12 @@ InputManager::~InputManager()
 
 void InputManager::set_Interval(LONG value)
 {
-    if (m_uTimerId)
-    {
-        KillTimer(m_hwnd, m_uTimerId);
-    }
-
     if (value < USER_TIMER_MINIMUM)
     {
         value = USER_TIMER_MINIMUM;
     }
 
     m_Interval = value;
-
-    if (m_uTimerId)
-    {
-        SetTimer(m_hwnd, m_uTimerId, m_Interval, NULL);
-    }
-}
-
-
-void InputManager::Start(HWND hwnd, UINT_PTR uId)
-{
-    if (m_uTimerId)
-    {
-        KillTimer(m_hwnd, m_uTimerId);
-    }
-
-    m_uTimerId = SetTimer(hwnd, uId, m_Interval, NULL);
-    m_hwnd = hwnd;
-}
-
-
-void InputManager::Stop()
-{
-    KillTimer(m_hwnd, m_uTimerId);
-    m_hwnd = NULL;
-    m_uTimerId = 0;
 }
 
 

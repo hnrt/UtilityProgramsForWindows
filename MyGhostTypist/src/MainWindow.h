@@ -6,6 +6,7 @@
 #include "hnrt/KeyboardMouseBridge.h"
 #include "hnrt/UiAutomation.h"
 #include "Configuration.h"
+#include "Ghost.h"
 #include "Target.h"
 
 
@@ -42,10 +43,8 @@ namespace hnrt
         void ToggleButtonVisibility(HWND hwnd, UINT uIndex);
         void DoLayout(HWND hwnd, UINT uHint = ~0U);
         void ForceLayout(HWND hwnd);
+        void LetGhostPlay(HWND hwnd);
         void CheckButtonStatus();
-        bool StartProcess();
-        bool ContinueProcess();
-        void EndProcess();
         void Configure(HWND hwnd);
 
         HINSTANCE m_hInstance;
@@ -55,14 +54,6 @@ namespace hnrt
         bool m_bMaximized;
         LONG m_PreferredHeight;
         bool m_bSizing;
-        RefPtr<InputManager> m_pInputManager;
-        bool m_bProcessing;
-        RefPtr<Target> m_pTarget;
-        ActionCollection::ConstIter m_ActionIter;
-        KeyboardMouseBridge m_KeyboardMouseBridge;
-        HWND m_hwndTarget;
-        RefPtr<UiAutomation> m_pAutomation;
-        DWORD m_PreviousKeyboardState;
-        DWORD m_CurrentKeyboardState;
+        Ghost m_Ghost;
     };
 }

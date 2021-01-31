@@ -107,6 +107,7 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
     <ClCompile Include="src\ConfigurationTreeView.cpp" />
     <ClCompile Include="src\Credentials.cpp" />
     <ClCompile Include="src\CredentialsCollection.cpp" />
+    <ClCompile Include="src\Ghost.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\InputManagerLayout.cpp" />
     <ClCompile Include="src\MainWindow.cpp" />
@@ -126,6 +127,7 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
     <ClInclude Include="src\ConfigurationTreeView.h" />
     <ClInclude Include="src\Credentials.h" />
     <ClInclude Include="src\CredentialsCollection.h" />
+    <ClInclude Include="src\Ghost.h" />
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\MainWindow.h" />
     <ClInclude Include="src\resource.h" />

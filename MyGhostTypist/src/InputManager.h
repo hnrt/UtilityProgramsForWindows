@@ -24,8 +24,6 @@ namespace hnrt
         InputManager(const InputManager&) = delete;
         ~InputManager();
         void operator =(const InputManager&) = delete;
-        void Start(HWND hwnd, UINT_PTR uId);
-        void Stop();
         InputManager& AddMouseMove(LONG x, LONG y);
         InputManager& AddMouseClickLeft();
         InputManager& AddKeyboardInput(PCWSTR psz);
@@ -48,8 +46,6 @@ namespace hnrt
         LONG m_Interval;
         LONG m_Delay;
         std::list<SyntheticInput> m_Queue;
-        HWND m_hwnd;
-        UINT_PTR m_uTimerId;
     };
 
     inline LONG InputManager::get_Interval() const

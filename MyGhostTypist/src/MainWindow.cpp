@@ -43,15 +43,7 @@ MainWindow::MainWindow(HINSTANCE hInstance)
     , m_bMaximized(false)
     , m_PreferredHeight(-1)
     , m_bSizing(false)
-    , m_pInputManager()
-    , m_bProcessing(false)
-    , m_pTarget()
-    , m_ActionIter()
-    , m_KeyboardMouseBridge()
-    , m_hwndTarget(nullptr)
-    , m_pAutomation()
-    , m_PreviousKeyboardState(0)
-    , m_CurrentKeyboardState(0)
+    , m_Ghost()
 {
     if (InterlockedIncrement(&s_RefCnt) == 1)
     {
@@ -70,15 +62,11 @@ MainWindow::MainWindow(HINSTANCE hInstance)
             throw Win32Exception(GetLastError(), L"MainWindow::ctor failed to register a window class.");
         }
     }
-
-    m_KeyboardMouseBridge.StartServer();
 }
 
 
 MainWindow::~MainWindow()
 {
-    m_KeyboardMouseBridge.StopServer();
-
     if (InterlockedDecrement(&s_RefCnt) == 0)
     {
         UnregisterClassW(s_szClassName, m_hInstance);
@@ -89,12 +77,6 @@ MainWindow::~MainWindow()
 HWND MainWindow::Initialize(int nCmdShow)
 {
     m_pCfg->Load();
-    m_pInputManager = InputManager::Create(m_pCfg->AppDir);
-    m_pInputManager->Interval = m_pCfg->TypingInterval;
-    if (!m_KeyboardMouseBridge.SetToggleKeySequence(L"LCONTROL+LSHIFT+ESCAPE"))
-    {
-        throw Exception(L"SetToggleKeySequence failed.");
-    }
     HWND hwnd = CreateWindowExW(0, s_szClassName, String::Format(ResourceString(IDS_CAPTION_ARG), m_pCfg->CredentialsList.DefaultCredentials->Username), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, m_pCfg->Width, CW_USEDEFAULT, NULL, CreateMenuBar(), m_hInstance, this);
     if (!hwnd)
     {
@@ -169,10 +151,11 @@ HFONT MainWindow::CreateFontByNameAndSize(HWND hwnd, PCWSTR pszName, long size)
 void MainWindow::OnCreate(HWND hwnd)
 {
     DBGFNC(L"MainWindow::OnCreate");
-    m_pInputManager->Start(hwnd, TIMERID_KEYSTROKE);
+    m_Ghost.Initialize(m_pCfg);
     RecreateViewMenus(hwnd);
     RecreateButtons(hwnd);
     CheckButtonStatus();
+    SetTimer(hwnd, TIMERID_KEYSTROKE, m_pCfg->TypingInterval > USER_TIMER_MINIMUM ? m_pCfg->TypingInterval : USER_TIMER_MINIMUM, NULL);
     SetTimer(hwnd, TIMERID_FINDWINDOW, 3000, NULL);
 }
 
@@ -180,7 +163,7 @@ void MainWindow::OnCreate(HWND hwnd)
 void MainWindow::OnDestroy(HWND hwnd)
 {
     DBGFNC(L"MainWindow::OnDestroy");
-    m_pInputManager->Stop();
+    m_Ghost.Uninitialize();
     PostQuitMessage(EXIT_SUCCESS);
 }
 
@@ -198,20 +181,12 @@ void MainWindow::OnSize(HWND hwnd, UINT uHint)
 }
 
 
-LRESULT MainWindow::OnTimer(HWND hwnd,WPARAM wParam, LPARAM lParam)
+LRESULT MainWindow::OnTimer(HWND hwnd, WPARAM wParam, LPARAM lParam)
 {
     switch (wParam)
     {
     case TIMERID_KEYSTROKE:
-        if (m_bProcessing)
-        {
-            m_bProcessing = ContinueProcess();
-            if (!m_bProcessing)
-            {
-                EndProcess();
-                ShowWindow(hwnd, SW_NORMAL);
-            }
-        }
+        LetGhostPlay(hwnd);
         return 0;
     case TIMERID_FINDWINDOW:
         CheckButtonStatus();
@@ -243,7 +218,7 @@ LRESULT MainWindow::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
             switch (HIWORD(wParam))
             {
             case BN_CLICKED:
-                if (!m_bProcessing)
+                if (!m_Ghost.IsProcessing())
                 {
                     OnButtonClicked(hwnd, wControlId - BUTTONID_BASE);
                 }
@@ -265,11 +240,8 @@ LRESULT MainWindow::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
 void MainWindow::OnButtonClicked(HWND hwnd, DWORD index)
 {
     DBGFNC(L"MainWindow::OnButtonClicked");
-    m_pTarget = m_pCfg->TargetList[index];
-    m_ActionIter = m_pTarget->Begin;
     ShowWindow(hwnd, SW_MINIMIZE);
-    m_bProcessing = StartProcess();
-    if (!m_bProcessing)
+    if (!m_Ghost.Start(m_pCfg->TargetList[index]))
     {
         ShowWindow(hwnd, SW_NORMAL);
     }
@@ -454,6 +426,39 @@ void MainWindow::ForceLayout(HWND hwnd)
 }
 
 
+void MainWindow::LetGhostPlay(HWND hwnd)
+{
+    if (m_Ghost.IsProcessing())
+    {
+        int rc = m_Ghost.Process();
+        if (rc != GHOST_PROCESSED)
+        {
+            switch (rc)
+            {
+            case GHOST_COMPLETED:
+                break;
+            case GHOST_ERROR_INVALID_VIRTUAL_KEY_NAME:
+                MessageBoxW(hwnd, L"Invalid virtual key name.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
+                break;
+            case GHOST_ERROR_ACTIVE_ACCESSIBILITY_UNAVAILABLE:
+                MessageBoxW(hwnd, L"Active Accessibility not available.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
+                break;
+            case GHOST_ERROR_ACTIVE_ACCESSIBILITY_LOCATE_PART:
+                MessageBoxW(hwnd, L"Active Accessibility failed to locate the UI part.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
+                break;
+            case GHOST_ERROR_LOCATE_WINDOW:
+                MessageBoxW(hwnd, L"Failed to locate the window.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
+                break;
+            default:
+                break;
+            }
+            m_Ghost.End();
+            //ShowWindow(hwnd, SW_NORMAL);
+        }
+    }
+}
+
+
 void MainWindow::CheckButtonStatus()
 {
     for (size_t index = 0; index < m_pCfg->TargetList.Count; index++)
@@ -468,272 +473,6 @@ void MainWindow::CheckButtonStatus()
             }
         }
     }
-}
-
-
-bool MainWindow::StartProcess()
-{
-    DBGFNC(L"MainWindow::StartProcess");
-    auto pAction = dynamic_cast<const SetForegroundWindowAction*>(m_ActionIter->Ptr);
-    m_ActionIter++;
-    if (!pAction)
-    {
-        DBGPUT(L"Action#1 is not of SetForegroundWindowAction.");
-        return false;
-    }
-    DBGPUT(L"class=\"%s\" text=\"%s\"", pAction->ClassName, pAction->WindowText);
-    HWND hwndTopLevel;
-    HWND hwndTarget;
-    if (!pAction->Find(&hwndTopLevel, &hwndTarget))
-    {
-        DBGPUT(L"Window not found.");
-        return false;
-    }
-    DBGPUT(L"toplevel=%p target=%p", hwndTopLevel, hwndTarget);
-    BOOL bRet;
-    bRet = IsIconic(hwndTopLevel);
-    DBGPUT(L"IsIconic returned %s.", bRet ? L"TRUE" : L"FALSE");
-    if (bRet)
-    {
-        bRet = ShowWindow(hwndTopLevel, SW_SHOWNORMAL);
-        DBGPUT(L"ShowWindow(SHOWNORMAL) returned %s.", bRet ? L"TRUE" : L"FALSE");
-    }
-    bRet = SetForegroundWindow(hwndTopLevel);
-    DBGPUT(L"SetForegroundWindow returned %s.", bRet ? L"TRUE" : L"FALSE");
-    if (!bRet)
-    {
-        return false;
-    }
-    m_hwndTarget = hwndTarget;
-    m_KeyboardMouseBridge.SetBlockInputState(KEYBOARD_FLAG_BLOCK /* | MOUSE_FLAG_BLOCK */);
-    if (m_KeyboardMouseBridge.StartAgent(hwndTarget))
-    {
-        m_PreviousKeyboardState = m_KeyboardMouseBridge.GetKeyboardState(hwndTarget, KEYBOARD_FLAG_OPENCLOSE);
-        if (KEYBOARD_STATE_UNPACK_OPENCLOSE(m_PreviousKeyboardState))
-        {
-            m_CurrentKeyboardState = m_KeyboardMouseBridge.SetKeyboardState(hwndTarget, KEYBOARD_STATE_PACK(DWORD, 0, 0, 0), KEYBOARD_FLAG_OPENCLOSE);
-        }
-        else
-        {
-            m_CurrentKeyboardState = m_PreviousKeyboardState;
-        }
-    }
-    else
-    {
-        m_CurrentKeyboardState = m_PreviousKeyboardState = 0;
-    }
-    m_pAutomation = UiAutomationFactory::Create(hwndTarget, pAction->AccName, pAction->AccRole);
-    if (m_pAutomation)
-    {
-        DBGPUT(L"AA: DefaultAction=%s", m_pAutomation->DefaultAction);
-    }
-    else
-    {
-        m_pAutomation = UiAutomationFactory::Create(hwndTopLevel, pAction->AccName, pAction->AccRole);
-        if (m_pAutomation)
-        {
-            DBGPUT(L"AA: Alternative: DefaultAction=%s", m_pAutomation->DefaultAction);
-        }
-    }
-    m_pInputManager->Delay = m_pCfg->TypingDelay;
-    return true;
-}
-
-
-bool MainWindow::ContinueProcess()
-{
-    DBGFNC(L"MainWindow::ContinueProcess");
-    if (m_pInputManager->SendNext())
-    {
-        return true;
-    }
-    while (m_ActionIter != m_pTarget->End)
-    {
-        RefPtr<Action> pAction = *m_ActionIter;
-        m_ActionIter++;
-        DBGPUT(L"ActionType=%ld", pAction->Type);
-        switch (pAction->Type)
-        {
-        case AC_TYPEKEY:
-        {
-            PCWSTR pszKey = dynamic_cast<TypeKeyAction*>(pAction.Ptr)->Key;
-            if (pszKey)
-            {
-                VirtualKey vk(pszKey);
-                if (vk.Value)
-                {
-                    m_pInputManager->AddKeyboardInput(vk);
-                    m_pInputManager->SendNext();
-                    return true;
-                }
-                else
-                {
-                    m_ActionIter = m_pTarget->End;
-                    MessageBoxW(NULL, L"Invalid virtual key name.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
-                    return false;
-                }
-            }
-            break;
-        }
-        case AC_TYPEUNICODE:
-        {
-            PCWSTR pszText = dynamic_cast<TypeUnicodeAction*>(pAction.Ptr)->Text;
-            if (pszText && pszText[0])
-            {
-                if ((pAction->Flags & AC_FLAG_AA))
-                {
-                    if (m_pAutomation)
-                    {
-                        m_pAutomation->Value = pszText;
-                    }
-                    else
-                    {
-                        m_ActionIter = m_pTarget->End;
-                        MessageBoxW(NULL, L"Active Accessibility not available.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
-                        return false;
-                    }
-                }
-                else
-                {
-                    m_pInputManager->AddKeyboardInput(pszText);
-                    m_pInputManager->SendNext();
-                }
-                return true;
-            }
-            break;
-        }
-        case AC_TYPEUSERNAME:
-        {
-            PCWSTR pszName = dynamic_cast<TypeUsernameAction*>(pAction.Ptr)->Name;
-            RefPtr<Credentials> pCredentials = pszName && *pszName ? m_pCfg->CredentialsList[pszName] : m_pCfg->CredentialsList.DefaultCredentials;
-            if (pCredentials && pCredentials->Username && pCredentials->Username[0])
-            {
-                if ((pAction->Flags & AC_FLAG_AA))
-                {
-                    if (m_pAutomation)
-                    {
-                        m_pAutomation->Value = pCredentials->Username;
-                    }
-                    else
-                    {
-                        m_ActionIter = m_pTarget->End;
-                        MessageBoxW(NULL, L"Active Accessibility not available.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
-                        return false;
-                    }
-                }
-                else
-                {
-                    m_pInputManager->AddKeyboardInput(pCredentials->Username);
-                    m_pInputManager->SendNext();
-                }
-                return true;
-            }
-            break;
-        }
-        case AC_TYPEPASSWORD:
-        {
-            PCWSTR pszName = dynamic_cast<TypePasswordAction*>(pAction.Ptr)->Name;
-            RefPtr<Credentials> pCredentials = pszName && *pszName ? m_pCfg->CredentialsList[pszName] : m_pCfg->CredentialsList.DefaultCredentials;
-            if (pCredentials && pCredentials->Password && pCredentials->Password[0])
-            {
-                if ((pAction->Flags & AC_FLAG_AA))
-                {
-                    if (m_pAutomation)
-                    {
-                        m_pAutomation->Value = pCredentials->Password;
-                    }
-                    else
-                    {
-                        pCredentials->ClearPlainText();
-                        m_ActionIter = m_pTarget->End;
-                        MessageBoxW(NULL, L"Active Accessibility not available.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
-                        return false;
-                    }
-                }
-                else
-                {
-                    m_pInputManager->AddKeyboardInput(pCredentials->Password);
-                    m_pInputManager->SendNext();
-                }
-                pCredentials->ClearPlainText();
-                return true;
-            }
-            break;
-        }
-        case AC_TYPEDELETESEQUENCE:
-            m_pInputManager->AddKeyboardInput(VK_END);
-            m_pInputManager->AddKeyboardInput(VK_LSHIFT, KEYEVENTF_KEYDOWN);
-            m_pInputManager->AddKeyboardInput(VK_HOME);
-            m_pInputManager->AddKeyboardInput(VK_LSHIFT, KEYEVENTF_KEYUP);
-            m_pInputManager->AddKeyboardInput(VK_DELETE);
-            m_pInputManager->SendNext();
-            return true;
-        case AC_LEFTCLICK:
-            if ((pAction->Flags & AC_FLAG_AA))
-            {
-                if (m_pAutomation)
-                {
-                    RECT rect = { 0 };
-                    if (m_pAutomation->Locate(rect))
-                    {
-                        DBGPUT(L"AA: (%ld,%ld) %ldx%ld", rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
-                        m_pInputManager->AddMouseMove((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2);
-                        m_pInputManager->AddMouseClickLeft();
-                        m_pInputManager->SendNext();
-                        return true;
-                    }
-                    else
-                    {
-                        m_ActionIter = m_pTarget->End;
-                        MessageBoxW(NULL, L"Active Accessibility failed to locate the UI part.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
-                        return false;
-                    }
-                }
-                else
-                {
-                    m_ActionIter = m_pTarget->End;
-                    MessageBoxW(NULL, L"Active Accessibility not available.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
-                    return false;
-                }
-            }
-            else if (m_hwndTarget)
-            {
-                RECT rect = { 0 };
-                if (GetWindowRect(m_hwndTarget, &rect))
-                {
-                    DBGPUT(L"GetWindowRect: (%ld,%ld) %ldx%ld", rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
-                    m_pInputManager->AddMouseMove((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2);
-                    m_pInputManager->AddMouseClickLeft();
-                    m_pInputManager->SendNext();
-                    return true;
-                }
-                else
-                {
-                    m_ActionIter = m_pTarget->End;
-                    MessageBoxW(NULL, L"Failed to locate the window.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONWARNING);
-                    return false;
-                }
-            }
-            m_ActionIter = m_pTarget->End;
-            return false;
-        default:
-            break;
-        }
-    }
-    return false;
-}
-
-
-void MainWindow::EndProcess()
-{
-    DBGFNC(L"MainWindow::EndProcess");
-    if (m_PreviousKeyboardState != m_CurrentKeyboardState)
-    {
-        m_CurrentKeyboardState = m_KeyboardMouseBridge.SetKeyboardState(m_hwndTarget, m_PreviousKeyboardState, KEYBOARD_FLAG_OPENCLOSE);
-    }
-    m_KeyboardMouseBridge.StopAgent(m_hwndTarget);
-    m_KeyboardMouseBridge.SetBlockInputState(0);
-    m_hwndTarget = nullptr;
 }
 
 
