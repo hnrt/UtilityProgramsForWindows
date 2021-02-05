@@ -46,6 +46,7 @@ namespace hnrt
 
         static HWND FindTopLevelWindow(PCWSTR pszClassName, PCWSTR pszWindowText, DWORD dwProcessId);
         HWND FindChildWindow(PCWSTR pszClassName, PCWSTR pszWindowText);
+        HWND FindChildWindow2(PCWSTR pszClassName, PCWSTR pszWindowText);
         HWND FindImeWindow() const;
 
     private:

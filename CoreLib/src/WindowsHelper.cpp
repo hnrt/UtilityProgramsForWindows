@@ -3,6 +3,7 @@
 #include "hnrt/String.h"
 #include "hnrt/WindowsHandle.h"
 #include <TlHelp32.h>
+#include <list>
 
 
 using namespace hnrt;
@@ -69,6 +70,43 @@ HWND WindowHelper::FindChildWindow(PCWSTR pszClassName, PCWSTR pszWindowText)
     w.WindowText = pszWindowText;
     EnumChildWindows(m_hwnd, EnumChildCallback, reinterpret_cast<LPARAM>(&w));
     return w;
+}
+
+
+struct EnumChildCallback2Context
+{
+    WindowHelper w;
+    std::list<HWND> hh;
+};
+
+
+static BOOL CALLBACK EnumChildCallback2(HWND hwnd, LPARAM lParam)
+{
+    EnumChildCallback2Context* pCC = reinterpret_cast<EnumChildCallback2Context*>(lParam);
+    WindowHelper cur = hwnd;
+    if (!String::Compare(cur.ClassName, pCC->w.ClassName) && !String::Compare(cur.WindowText, pCC->w.WindowText))
+    {
+        pCC->w = hwnd;
+        return FALSE;
+    }
+    pCC->hh.push_back(hwnd);
+    return TRUE;
+}
+
+
+HWND WindowHelper::FindChildWindow2(PCWSTR pszClassName, PCWSTR pszWindowText)
+{
+    EnumChildCallback2Context cc;
+    cc.w.ClassName = pszClassName;
+    cc.w.WindowText = pszWindowText;
+    EnumChildWindows(m_hwnd, EnumChildCallback2, reinterpret_cast<LPARAM>(&cc));
+    while (!cc.w.m_hwnd && cc.hh.size())
+    {
+        HWND hwnd = cc.hh.front();
+        cc.hh.pop_front();
+        EnumChildWindows(hwnd, EnumChildCallback2, reinterpret_cast<LPARAM>(&cc));
+    }
+    return cc.w.m_hwnd;
 }
 
 

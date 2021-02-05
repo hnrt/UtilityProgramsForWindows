@@ -110,6 +110,8 @@ bool SetForegroundWindowAction::Find(HWND* phwnd1, HWND* phwnd2) const
                 hwnd2 = WindowHelper(hwnd2).FindChildWindow(entry.first, entry.second);
                 if (!hwnd2)
                 {
+                    entry = m_Stack.at(m_Stack.size() - 1);
+                    hwnd2 = WindowHelper(hwnd1).FindChildWindow2(entry.first, entry.second);
                     break;
                 }
             }
