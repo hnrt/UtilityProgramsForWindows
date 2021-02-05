@@ -107,13 +107,12 @@ bool SetForegroundWindowAction::Find(HWND* phwnd1, HWND* phwnd2) const
             for (size_t index = 1; index < m_Stack.size(); index++)
             {
                 Entry entry = m_Stack.at(index);
-                hwnd2 = WindowHelper(hwnd2).FindChildWindow(entry.first, entry.second);
-                if (!hwnd2)
+                HWND hwnd3 = WindowHelper(hwnd2).FindChildWindow(entry.first, entry.second);
+                if (!hwnd3)
                 {
-                    entry = m_Stack.at(m_Stack.size() - 1);
-                    hwnd2 = WindowHelper(hwnd1).FindChildWindow2(entry.first, entry.second);
                     break;
                 }
+                hwnd2 = hwnd3;
             }
         }
     }
