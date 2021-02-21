@@ -39,12 +39,18 @@ namespace hnrt
         void set_Name(PCWSTR pszName);
         bool get_IsVisible() const;
         void set_IsVisible(bool value);
+        bool get_BlockKeybd() const;
+        void set_BlockKeybd(bool value);
+        bool get_BlockMouse() const;
+        void set_BlockMouse(bool value);
         ULONG get_Count() const;
         ActionCollection::ConstIter get_Begin();
         ActionCollection::ConstIter get_End();
         void set_Callback(TargetCallback* pCallbak);
         __declspec(property(get = get_Name, put = set_Name)) PCWSTR Name;
         __declspec(property(get = get_IsVisible, put = set_IsVisible)) bool IsVisible;
+        __declspec(property(get = get_BlockKeybd, put = set_BlockKeybd)) bool BlockKeybd;
+        __declspec(property(get = get_BlockMouse, put = set_BlockMouse)) bool BlockMouse;
         __declspec(property(get = get_Count)) ULONG Count;
         __declspec(property(get = get_Begin)) ActionCollection::ConstIter Begin;
         __declspec(property(get = get_End)) ActionCollection::ConstIter End;
@@ -56,6 +62,8 @@ namespace hnrt
 
         PCWSTR m_pszName;
         bool m_bIsVisible;
+        bool m_bBlockKeybd;
+        bool m_bBlockMouse;
         ActionCollection m_Actions;
         TargetCallback* m_pCallback;
     };
@@ -68,6 +76,16 @@ namespace hnrt
     inline bool Target::get_IsVisible() const
     {
         return m_bIsVisible;
+    }
+
+    inline bool Target::get_BlockKeybd() const
+    {
+        return m_bBlockKeybd;
+    }
+
+    inline bool Target::get_BlockMouse() const
+    {
+        return m_bBlockMouse;
     }
 
     inline ULONG Target::get_Count() const

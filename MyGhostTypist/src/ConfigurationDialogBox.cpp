@@ -135,6 +135,12 @@ INT_PTR ConfigurationDialogBox::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lPara
     case IDC_SHOWPASSWORD_CHECK:
         return OnShowPasswordClicked(hwnd);
 
+    case IDC_BLOCK_KEYBD_CHECK:
+        return OnBlockKeybdClicked(hwnd);
+
+    case IDC_BLOCK_MOUSE_CHECK:
+        return OnBlockMouseClicked(hwnd);
+
     case IDC_FINDWINDOW_BUTTON:
         return OnFindWindowButtonClicked(hwnd);
 
@@ -363,6 +369,40 @@ INT_PTR ConfigurationDialogBox::OnShowPasswordClicked(HWND hwnd)
     HWND hwndEdit = GetDlgItem(hwnd, IDC_PASSWORD_EDIT);
     SendMessageW(hwndEdit, EM_SETPASSWORDCHAR, c, 0);
     SetFocus(hwndEdit);
+    return TRUE;
+}
+
+
+INT_PTR ConfigurationDialogBox::OnBlockKeybdClicked(HWND hwnd)
+{
+    if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
+    {
+        if (SendDlgItemMessageW(hwnd, IDC_BLOCK_KEYBD_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        {
+            m_tv.SelectedTarget->BlockKeybd = true;
+        }
+        else
+        {
+            m_tv.SelectedTarget->BlockKeybd = false;
+        }
+    }
+    return TRUE;
+}
+
+
+INT_PTR ConfigurationDialogBox::OnBlockMouseClicked(HWND hwnd)
+{
+    if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
+    {
+        if (SendDlgItemMessageW(hwnd, IDC_BLOCK_MOUSE_CHECK, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        {
+            m_tv.SelectedTarget->BlockMouse = true;
+        }
+        else
+        {
+            m_tv.SelectedTarget->BlockMouse = false;
+        }
+    }
     return TRUE;
 }
 
@@ -665,6 +705,10 @@ void ConfigurationDialogBox::OnTargetSelected(HWND hwnd, RefPtr<Target> pTarget)
     }
     // Target
     EnableWindow(GetDlgItem(hwnd, IDC_TARGET_EDIT), TRUE);
+    EnableWindow(GetDlgItem(hwnd, IDC_BLOCK_KEYBD_CHECK), TRUE);
+    SendDlgItemMessageW(hwnd, IDC_BLOCK_KEYBD_CHECK, BM_SETCHECK, pTarget->BlockKeybd ? BST_CHECKED : BST_UNCHECKED, 0);
+    EnableWindow(GetDlgItem(hwnd, IDC_BLOCK_MOUSE_CHECK), TRUE);
+    SendDlgItemMessageW(hwnd, IDC_BLOCK_MOUSE_CHECK, BM_SETCHECK, pTarget->BlockMouse ? BST_CHECKED : BST_UNCHECKED, 0);
     BOOL bCanType = pTarget->Count ? TRUE : FALSE;
     EnableWindow(GetDlgItem(hwnd, IDC_FINDWINDOW_BUTTON), TRUE);
     EnableWindow(GetDlgItem(hwnd, IDC_AA_CHECK), FALSE);
@@ -707,6 +751,10 @@ void ConfigurationDialogBox::OnActionItemSelected(HWND hwnd, RefPtr<Target> pTar
     }
     // Target
     EnableWindow(GetDlgItem(hwnd, IDC_TARGET_EDIT), TRUE);
+    EnableWindow(GetDlgItem(hwnd, IDC_BLOCK_KEYBD_CHECK), TRUE);
+    SendDlgItemMessageW(hwnd, IDC_BLOCK_KEYBD_CHECK, BM_SETCHECK, pTarget->BlockKeybd ? BST_CHECKED : BST_UNCHECKED, 0);
+    EnableWindow(GetDlgItem(hwnd, IDC_BLOCK_MOUSE_CHECK), TRUE);
+    SendDlgItemMessageW(hwnd, IDC_BLOCK_MOUSE_CHECK, BM_SETCHECK, pTarget->BlockMouse ? BST_CHECKED : BST_UNCHECKED, 0);
     EnableWindow(GetDlgItem(hwnd, IDC_FINDWINDOW_BUTTON), TRUE);
     EnableWindow(GetDlgItem(hwnd, IDC_AA_CHECK), TRUE);
     EnableWindow(GetDlgItem(hwnd, IDC_LEFTCLICK_BUTTON), TRUE);
@@ -772,6 +820,8 @@ void ConfigurationDialogBox::DisableCredentialsGroup(HWND hwnd)
 void ConfigurationDialogBox::DisableTargetGroup(HWND hwnd)
 {
     EnableWindow(GetDlgItem(hwnd, IDC_TARGET_EDIT), FALSE);
+    EnableWindow(GetDlgItem(hwnd, IDC_BLOCK_KEYBD_CHECK), FALSE);
+    EnableWindow(GetDlgItem(hwnd, IDC_BLOCK_MOUSE_CHECK), FALSE);
     EnableWindow(GetDlgItem(hwnd, IDC_FINDWINDOW_BUTTON), FALSE);
     EnableWindow(GetDlgItem(hwnd, IDC_AA_CHECK), FALSE);
     EnableWindow(GetDlgItem(hwnd, IDC_LEFTCLICK_BUTTON), FALSE);
@@ -784,6 +834,9 @@ void ConfigurationDialogBox::DisableTargetGroup(HWND hwnd)
     EnableWindow(GetDlgItem(hwnd, IDC_TAB_BUTTON), FALSE);
     EnableWindow(GetDlgItem(hwnd, IDC_DELETESEQUENCE_BUTTON), FALSE);
     SetDlgItemTextW(hwnd, IDC_TARGET_EDIT, L"");
+    SendDlgItemMessageW(hwnd, IDC_BLOCK_KEYBD_CHECK, BM_SETCHECK, BST_UNCHECKED, 0);
+    SendDlgItemMessageW(hwnd, IDC_BLOCK_MOUSE_CHECK, BM_SETCHECK, BST_UNCHECKED, 0);
+    SendDlgItemMessageW(hwnd, IDC_AA_CHECK, BM_SETCHECK, BST_UNCHECKED, 0);
     SetDlgItemTextW(hwnd, IDC_UNICODE_EDIT, L"");
     m_cbCredentials.Clear();
 }

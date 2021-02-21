@@ -42,7 +42,8 @@
 #define IDC_LEFTCLICK_BUTTON            3001
 #define IDC_BUTTON1                     3002
 #define IDC_AA_CHECK                    3003
-#define IDC_CHECK1                      3004
+#define IDC_BLOCK_KEYBD_CHECK           3004
+#define IDC_BLOCK_MOUSE_CHECK           3005
 
 // Next default values for new objects
 // 
@@ -50,7 +51,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        118
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         3005
+#define _APS_NEXT_CONTROL_VALUE         3006
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

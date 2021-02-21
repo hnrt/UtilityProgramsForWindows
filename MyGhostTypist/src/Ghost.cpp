@@ -98,7 +98,20 @@ bool Ghost::Start(RefPtr<Target> pTarget)
     m_pTarget = pTarget;
     m_hwndTarget = hwndTarget;
 
-    m_KeyboardMouseBridge.SetBlockInputState(KEYBOARD_FLAG_BLOCK /* | MOUSE_FLAG_BLOCK */);
+    if (m_pTarget->BlockKeybd || m_pTarget->BlockMouse)
+    {
+        DWORD dwFlags = 0;
+        if (m_pTarget->BlockKeybd)
+        {
+            dwFlags |= KEYBOARD_FLAG_BLOCK;
+        }
+        if (m_pTarget->BlockMouse)
+        {
+            dwFlags |= MOUSE_FLAG_BLOCK;
+        }
+        m_KeyboardMouseBridge.SetBlockInputState(dwFlags);
+    }
+
     if (m_KeyboardMouseBridge.StartAgent(hwndTarget))
     {
         m_PreviousKeyboardState = m_KeyboardMouseBridge.GetKeyboardState(hwndTarget, KEYBOARD_FLAG_OPENCLOSE);

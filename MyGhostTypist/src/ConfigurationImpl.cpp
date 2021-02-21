@@ -213,6 +213,16 @@ void ConfigurationImpl::LoadTarget(MSXML2::IXMLDOMNode* pNode)
     XmlDocument::GetAttribute(pNode, L"visible", bVisible);
     m_pTarget = Target::Create(pszName, bVisible);
     m_TargetList.Append(m_pTarget);
+    bool bBlockKeybd;
+    if (XmlDocument::GetAttribute(pNode, L"block_keybd", bBlockKeybd))
+    {
+        m_pTarget->BlockKeybd = bBlockKeybd;
+    }
+    bool bBlockMouse;
+    if (XmlDocument::GetAttribute(pNode, L"block_mouse", bBlockMouse))
+    {
+        m_pTarget->BlockMouse = bBlockMouse;
+    }
     if (m_Version == 0)
     {
         XmlElementLoader()
@@ -464,6 +474,14 @@ void ConfigurationImpl::BuildTarget(XmlDocument& document, MSXML2::IXMLDOMElemen
     MSXML2::IXMLDOMElementPtr pT = document.AppendElement(L"target", pParent);
     XmlDocument::SetAttribute(pT, L"name", m_pTarget->Name);
     XmlDocument::SetAttribute(pT, L"visible", m_pTarget->IsVisible);
+    if (m_pTarget->BlockKeybd)
+    {
+        XmlDocument::SetAttribute(pT, L"block_keybd", true);
+    }
+    if (m_pTarget->BlockMouse)
+    {
+        XmlDocument::SetAttribute(pT, L"block_mouse", true);
+    }
     for (ULONG index = 0; index < m_pTarget->Count; index++)
     {
         RefPtr<Action> pAction = (*m_pTarget.Ptr)[index];

@@ -38,6 +38,8 @@ namespace hnrt
         INT_PTR OnEditNotified(HWND hwnd, WORD wControlId, WORD wNotification);
         INT_PTR OnComboBoxNotified(HWND hwnd, WORD wControlId, WORD wNotification);
         INT_PTR OnShowPasswordClicked(HWND hwnd);
+        INT_PTR OnBlockKeybdClicked(HWND hwnd);
+        INT_PTR OnBlockMouseClicked(HWND hwnd);
         INT_PTR OnFindWindowButtonClicked(HWND hwnd);
         INT_PTR OnUseAaClicked(HWND hwnd);
         INT_PTR OnLeftButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam);
