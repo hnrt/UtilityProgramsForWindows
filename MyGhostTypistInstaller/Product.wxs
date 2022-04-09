@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="15D79585-6509-42C7-AAD4-EE4DBC29558C" Name="MyGhostTypist" Language="1041" Version="4.3.0" Manufacturer="hnrt" UpgradeCode="ab7dc5a6-ae75-4733-a2ef-d95297b3225c">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Platform="x64" Description="My Ghost Typist" Comments="Types the keyboard on your behalf"/>
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate />
+
+		<Feature Id="ProductFeature" Title="FeatureCore" Level="1" ConfigurableDirectory="INSTALLFOLDER" Description="The complete package. No more and no less.">
+			<ComponentGroupRef Id="ProductComponents" />
+		</Feature>
+
+		<UIRef Id="WixUI_Mondo"/>
+		<UIRef Id="WixUI_ErrorProgressText"/>
+		<WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+
+		<Property Id="WIXUI_INSTALLDIR" Value="TOP_LEVEL_DIR" />
+	</Product>
+
+	<Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFiles64Folder">
+				<Directory Id="HNRT" Name="hnrt">
+					<Directory Id="INSTALLFOLDER" Name="MyGhostTypist" />
+				</Directory>
+			</Directory>
+		</Directory>
+	</Fragment>
+
+	<Fragment>
+		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+			<Component Id="MyGhostTypist" Guid="7AB6C770-EB00-48EA-9AA5-934349EC2BCA" Win64="yes">
+				<File Id="MyGhostTypistEXE" Name="MyGhostTypist.exe" Source="$(var.BinDir)MyGhostTypist.exe" ProcessorArchitecture="x64" KeyPath="yes"/>
+			</Component>
+			<Component Id="KeyboardMouse32" Guid="9CF551EF-861A-4445-8E56-42441FCBEC47" Win64="yes">
+				<File Id="KeyboardMouse32DLL" Name="KeyboardMouse32.dll" Source="$(var.BinDir)KeyboardMouse32.dll" ProcessorArchitecture="x86" KeyPath="yes"/>
+			</Component>
+			<Component Id="KeyboardMouse64" Guid="EF49135F-8189-4146-952D-8C151C54D49B" Win64="yes">
+				<File Id="KeyboardMouse64DLL" Name="KeyboardMouse64.dll" Source="$(var.BinDir)KeyboardMouse64.dll" ProcessorArchitecture="x64" KeyPath="yes"/>
+			</Component>
+			<Component Id="KeyboardLayoutEnglish" Guid="445F9BE5-AC31-4544-9177-0AC8F38E342C" Win64="yes">
+				<File Id="Layout0409" Name="layout0409.xml" Source="$(var.ResDir)layout0409.xml" KeyPath="yes"/>
+			</Component>
+			<Component Id="KeyboardLayoutJapanese" Guid="52292EA8-DDEB-441E-AFDA-74636E7CB029" Win64="yes">
+				<File Id="Layout0411" Name="layout0411.xml" Source="$(var.ResDir)layout0411.xml" KeyPath="yes"/>
+			</Component>
+		</ComponentGroup>
+	</Fragment>
+</Wix>
