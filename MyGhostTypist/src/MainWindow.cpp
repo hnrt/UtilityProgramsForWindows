@@ -309,14 +309,21 @@ void MainWindow::RecreateButtons(HWND hwnd)
         }
     }
     HFONT hFont = CreateFontByNameAndSize(hwnd, m_pCfg->FontName, m_pCfg->FontSize);
-    m_hButtons = Allocate(m_hButtons, m_pCfg->TargetList.Count);
-    for (UINT_PTR index = 0; index < m_pCfg->TargetList.Count; index++)
+    if (m_pCfg->TargetList.Count > 0)
     {
-        RefPtr<Target> pTarget = m_pCfg->TargetList[index];
-        HWND hwndButton = CreateWindowExW(0, L"Button", pTarget->Name, WS_CHILD | (pTarget->IsVisible ? WS_VISIBLE : 0) | WS_DISABLED | BS_CENTER | BS_VCENTER, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwnd, NULL, m_hInstance, NULL);
-        SetWindowLongW(hwndButton, GWL_ID, BUTTONID_BASE + m_cButtons);
-        SendMessageW(hwndButton, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), TRUE);
-        m_hButtons[m_cButtons++] = hwndButton;
+        m_hButtons = Allocate(m_hButtons, m_pCfg->TargetList.Count);
+        for (UINT_PTR index = 0; index < m_pCfg->TargetList.Count; index++)
+        {
+            RefPtr<Target> pTarget = m_pCfg->TargetList[index];
+            HWND hwndButton = CreateWindowExW(0, L"Button", pTarget->Name, WS_CHILD | (pTarget->IsVisible ? WS_VISIBLE : 0) | WS_DISABLED | BS_CENTER | BS_VCENTER, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwnd, NULL, m_hInstance, NULL);
+            SetWindowLongW(hwndButton, GWL_ID, BUTTONID_BASE + m_cButtons);
+            SendMessageW(hwndButton, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), TRUE);
+            m_hButtons[m_cButtons++] = hwndButton;
+        }
+    }
+    else if (m_hButtons)
+    {
+        Deallocate(m_hButtons);
     }
     m_PreferredHeight = -1;
 }
