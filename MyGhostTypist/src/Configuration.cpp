@@ -12,9 +12,18 @@ using namespace hnrt;
 #define DIR2 L"MyGhostTypist"
 
 
+static PCWSTR GetModuleDirectoryName()
+{
+    WCHAR psz[MAX_PATH] = { 0 };
+    GetModuleFileNameW(NULL, psz, MAX_PATH);
+    return Path::GetDirectoryName(psz);
+}
+
+
 Configuration::Configuration()
     : RefObj()
     , m_pszAppDir(Path::Combine(Path::GetKnownFolder(FOLDERID_RoamingAppData), DIR1, DIR2))
+    , m_pszInstallDir(GetModuleDirectoryName())
     , m_CredentialsList()
     , m_Window()
     , m_Button()

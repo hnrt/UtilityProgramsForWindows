@@ -17,7 +17,7 @@ using namespace hnrt;
 #define FILENAME L"layout%04X.xml"
 
 
-RefPtr<InputManager> InputManager::Create(PCWSTR pszAppDir)
+RefPtr<InputManager> InputManager::Create(PCWSTR pszAppDir, PCWSTR pszInstallDir)
 {
     InputManager* km = new InputManager();
     HKL hkl = GetKeyboardLayout(GetCurrentThreadId());
@@ -25,10 +25,19 @@ RefPtr<InputManager> InputManager::Create(PCWSTR pszAppDir)
     PCWSTR pszFileName = Path::Combine(pszAppDir, String::Format(FILENAME, id));
     if (!Path::Exists(pszFileName))
     {
-        pszFileName = Path::Combine(pszAppDir, String::Format(FILENAME, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US)));
+        pszFileName = Path::Combine(pszInstallDir, String::Format(FILENAME, id));
         if (!Path::Exists(pszFileName))
         {
-            throw Exception(ResourceString(IDS_KEYSTROKE_MANAGER_UNAVAILABLE));
+            id = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
+            pszFileName = Path::Combine(pszAppDir, String::Format(FILENAME, id));
+            if (!Path::Exists(pszFileName))
+            {
+                pszFileName = Path::Combine(pszInstallDir, String::Format(FILENAME, id));
+                if (!Path::Exists(pszFileName))
+                {
+                    throw Exception(ResourceString(IDS_KEYSTROKE_MANAGER_UNAVAILABLE));
+                }
+            }
         }
     }
     km->LoadKeyboardLayoutFile(pszFileName);

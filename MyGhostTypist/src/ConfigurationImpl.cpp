@@ -49,7 +49,23 @@ ConfigurationImpl::ConfigurationImpl()
     PCWSTR pszDir = Path::GetDirectoryName(m_pszFileName);
     if (!Path::Exists(pszDir))
     {
-        throw Exception(L"\"%s\" doesn't exist.", pszDir);
+        PCWSTR pszDir2 = Path::GetDirectoryName(pszDir);
+        if (!Path::Exists(pszDir2))
+        {
+            PCWSTR pszDir3 = Path::GetDirectoryName(pszDir2);
+            if (!Path::Exists(pszDir3))
+            {
+                throw Exception(L"\"%s\" doesn't exist.", pszDir);
+            }
+            if (!CreateDirectoryW(pszDir2, NULL))
+            {
+                throw Win32Exception(GetLastError(), L"Unable to create \"%s\".", pszDir2);
+            }
+        }
+        if (!CreateDirectoryW(pszDir, NULL))
+        {
+            throw Win32Exception(GetLastError(), L"Unable to create \"%s\".", pszDir);
+        }
     }
     m_TargetList.Callback = this;
 

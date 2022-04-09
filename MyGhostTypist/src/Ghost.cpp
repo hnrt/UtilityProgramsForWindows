@@ -26,7 +26,7 @@ void Ghost::Initialize(RefPtr<Configuration> pConfiguration)
 {
     m_pConfiguration = pConfiguration;
 
-    m_pInputManager = InputManager::Create(m_pConfiguration->AppDir);
+    m_pInputManager = InputManager::Create(m_pConfiguration->AppDir, m_pConfiguration->InstallDir);
     m_pInputManager->Interval = m_pConfiguration->TypingInterval > USER_TIMER_MINIMUM ? m_pConfiguration->TypingInterval : USER_TIMER_MINIMUM;
 
     m_KeyboardMouseBridge.StartServer();

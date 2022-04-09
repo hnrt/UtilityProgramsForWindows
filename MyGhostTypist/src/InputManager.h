@@ -19,7 +19,7 @@ namespace hnrt
     {
     public:
 
-        static RefPtr<InputManager> Create(PCWSTR pszAppDir);
+        static RefPtr<InputManager> Create(PCWSTR pszAppDir, PCWSTR pszInstallDir);
 
         InputManager(const InputManager&) = delete;
         ~InputManager();

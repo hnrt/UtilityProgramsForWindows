@@ -25,6 +25,7 @@ namespace hnrt
         virtual void Load() = 0;
         virtual void Save() = 0;
         PCWSTR get_AppDir() const;
+        PCWSTR get_InstallDir() const;
         CredentialsCollection& get_CredentialsList();
         long get_Width() const;
         long get_PaddingLeft() const;
@@ -42,6 +43,7 @@ namespace hnrt
         long get_TypingDelay() const;
         TargetCollection& get_TargetList();
         __declspec(property(get = get_AppDir)) PCWSTR AppDir;
+        __declspec(property(get = get_InstallDir)) PCWSTR InstallDir;
         __declspec(property(get = get_CredentialsList)) CredentialsCollection& CredentialsList;
         __declspec(property(get = get_Width)) long Width;
         __declspec(property(get = get_PaddingLeft)) long PaddingLeft;
@@ -64,6 +66,7 @@ namespace hnrt
         Configuration();
 
         PCWSTR m_pszAppDir;
+        PCWSTR m_pszInstallDir;
         CredentialsCollection m_CredentialsList;
         WindowMetrics m_Window;
         ButtonMetrics m_Button;
@@ -75,6 +78,11 @@ namespace hnrt
     inline PCWSTR Configuration::get_AppDir() const
     {
         return m_pszAppDir;
+    }
+
+    inline PCWSTR Configuration::get_InstallDir() const
+    {
+        return m_pszInstallDir;
     }
 
     inline CredentialsCollection& Configuration::get_CredentialsList()
