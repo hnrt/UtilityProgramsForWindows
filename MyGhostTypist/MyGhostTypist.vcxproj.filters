@@ -80,9 +80,6 @@
     <ClInclude Include="src\Target.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\resource.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="src\ConfigurationImpl.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
