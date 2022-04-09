@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="15D79585-6509-42C7-AAD4-EE4DBC29558C" Name="MyGhostTypist" Language="1041" Version="4.3.0" Manufacturer="hnrt" UpgradeCode="ab7dc5a6-ae75-4733-a2ef-d95297b3225c">
+	<Product Id="FAD0EDD5-C068-41FB-9733-FF8BBF7A8F62" Name="MyGhostTypist" Language="1041" Version="4.3.2" Manufacturer="hnrt" UpgradeCode="ab7dc5a6-ae75-4733-a2ef-d95297b3225c">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Platform="x64" Description="My Ghost Typist" Comments="Types the keyboard on your behalf"/>
 
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
