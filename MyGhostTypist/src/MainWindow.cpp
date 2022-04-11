@@ -31,7 +31,9 @@ static const WCHAR s_szClassName[] = { L"HNRT_GhostTypist" };
 #define IDM_FILE_EXIT 1000
 #define IDM_EDIT_CONFIGURE 1199
 #define IDM_HELP_ABOUT 1300
-#define IDM_VIEW_TARGET_BASE 2000
+#define IDM_EDIT_USERNAME_BASE 2000
+#define IDM_EDIT_PASSWORD_BASE 3000
+#define IDM_VIEW_TARGET_BASE 4000
 
 
 MainWindow::MainWindow(HINSTANCE hInstance)
@@ -152,6 +154,7 @@ void MainWindow::OnCreate(HWND hwnd)
 {
     DBGFNC(L"MainWindow::OnCreate");
     m_Ghost.Initialize(m_pCfg);
+    RecreateEditMenus(hwnd);
     RecreateViewMenus(hwnd);
     RecreateButtons(hwnd);
     CheckButtonStatus();
@@ -227,6 +230,17 @@ LRESULT MainWindow::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
                 break;
             }
         }
+        else if (IDM_EDIT_USERNAME_BASE <= wControlId && wControlId < IDM_EDIT_USERNAME_BASE + m_pCfg->CredentialsList.Count)
+        {
+            DWORD dwIndex = wControlId - IDM_EDIT_USERNAME_BASE;
+            CopyToClipboard(hwnd, m_pCfg->CredentialsList[dwIndex]->Username);
+        }
+        else if (IDM_EDIT_PASSWORD_BASE <= wControlId && wControlId < IDM_EDIT_PASSWORD_BASE + m_pCfg->CredentialsList.Count)
+        {
+            DWORD dwIndex = wControlId - IDM_EDIT_PASSWORD_BASE;
+            CopyToClipboard(hwnd, m_pCfg->CredentialsList[dwIndex]->Password);
+            m_pCfg->CredentialsList[dwIndex]->ClearPlainText();
+        }
         else if (IDM_VIEW_TARGET_BASE <= wControlId && wControlId < IDM_VIEW_TARGET_BASE + m_cButtons)
         {
             ToggleButtonVisibility(hwnd, wControlId - IDM_VIEW_TARGET_BASE);
@@ -279,20 +293,65 @@ HMENU MainWindow::CreateMenuBar()
 }
 
 
+void MainWindow::RecreateEditMenus(HWND hwnd)
+{
+    HMENU hMenuBar = GetMenu(hwnd);
+    HMENU hEditMenu = GetSubMenu(hMenuBar, 1);
+    DeleteMenuItems(hEditMenu);
+    HMENU hCopyMenu = CreateMenu();
+    for (UINT_PTR index = 0; index < m_pCfg->CredentialsList.Count; index++)
+    {
+        PCWSTR pszFormatU, pszFormatP;
+        if (index < 10)
+        {
+            pszFormatU = String::Format(L"%s (&%%d)", ResourceString(IDS_COPY_UN).Ptr);
+            pszFormatP = String::Format(L"%s (&%%d)", ResourceString(IDS_COPY_PW).Ptr);
+        }
+        else
+        {
+            pszFormatU = ResourceString(IDS_COPY_UN);
+            pszFormatP = ResourceString(IDS_COPY_PW);
+        }
+        RefPtr<Credentials> pCredentials = m_pCfg->CredentialsList[index];
+        AppendMenuW(hCopyMenu, MF_STRING, IDM_EDIT_USERNAME_BASE + index, String::Format(pszFormatU, pCredentials->Username, (index * 2 + 1) % 10));
+        AppendMenuW(hCopyMenu, MF_STRING, IDM_EDIT_PASSWORD_BASE + index, String::Format(pszFormatP, pCredentials->Username, (index * 2 + 2) % 10));
+    }
+    AppendMenuW(hEditMenu, MF_STRING | MF_POPUP, reinterpret_cast<UINT_PTR>(hCopyMenu), ResourceString(IDS_COPY_MENU));
+    AppendMenuW(hEditMenu, MF_SEPARATOR, 0, NULL);
+    AppendMenuW(hEditMenu, MF_STRING, IDM_EDIT_CONFIGURE, ResourceString(IDS_CONFIGURE));
+}
+
+
 void MainWindow::RecreateViewMenus(HWND hwnd)
 {
     HMENU hMenuBar = GetMenu(hwnd);
     HMENU hViewMenu = GetSubMenu(hMenuBar, 2);
-    int n = GetMenuItemCount(hViewMenu);
-    while (n > 0)
-    {
-        n--;
-        DeleteMenu(hViewMenu, n, MF_BYPOSITION);
-    }
+    DeleteMenuItems(hViewMenu);
     for (UINT_PTR index = 0; index < m_pCfg->TargetList.Count; index++)
     {
         RefPtr<Target> pTarget = m_pCfg->TargetList[index];
         AppendMenuW(hViewMenu, MF_STRING | (pTarget->IsVisible ? MF_CHECKED : MF_UNCHECKED), IDM_VIEW_TARGET_BASE + index, pTarget->Name);
+    }
+}
+
+
+void MainWindow::DeleteMenuItems(HMENU hMenu)
+{
+    int n = GetMenuItemCount(hMenu);
+    while (n > 0)
+    {
+        n--;
+        MENUITEMINFOW info = { 0 };
+        info.cbSize = sizeof(info);
+        info.fMask = MIIM_SUBMENU;
+        if (GetMenuItemInfoW(hMenu, n, MF_BYPOSITION, &info))
+        {
+            if (info.hSubMenu)
+            {
+                DeleteMenuItems(info.hSubMenu);
+            }
+        }
+        DeleteMenu(hMenu, n, MF_BYPOSITION);
     }
 }
 
@@ -326,6 +385,24 @@ void MainWindow::RecreateButtons(HWND hwnd)
         Deallocate(m_hButtons);
     }
     m_PreferredHeight = -1;
+}
+
+
+void MainWindow::CopyToClipboard(HWND hwnd, PCWSTR psz)
+{
+    SIZE_T cbLen = (wcslen(psz) + 1) * sizeof(WCHAR);
+    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, cbLen);
+    if (hMem == NULL)
+    {
+        MessageBoxW(hwnd, ResourceString(IDS_COPY_FAILURE), ResourceString(IDS_CAPTION), MB_OK | MB_ICONERROR);
+        return;
+    }
+    memcpy_s(GlobalLock(hMem), cbLen, psz, cbLen);
+    GlobalUnlock(hMem);
+    OpenClipboard(hwnd);
+    EmptyClipboard();
+    SetClipboardData(CF_UNICODETEXT, hMem);
+    CloseClipboard();
 }
 
 
@@ -508,6 +585,7 @@ void MainWindow::Configure(HWND hwnd)
         }
         m_pCfg->Save();
         SetWindowTextW(hwnd, String::Format(ResourceString(IDS_CAPTION_ARG), m_pCfg->CredentialsList.DefaultCredentials->Username));
+        RecreateEditMenus(hwnd);
         RecreateViewMenus(hwnd);
         RecreateButtons(hwnd);
         ForceLayout(hwnd);

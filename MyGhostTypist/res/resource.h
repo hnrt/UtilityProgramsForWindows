@@ -20,6 +20,10 @@
 #define IDS_VERSIONINFO                 114
 #define IDS_DEFAULT_LABEL               115
 #define IDS_CONFIGURE                   116
+#define IDS_COPY_UN                     117
+#define IDS_COPY_PW                     118
+#define IDS_COPY_FAILURE                119
+#define IDS_COPY_MENU                   120
 #define IDC_TREE                        1008
 #define IDC_USERNAME_EDIT               2000
 #define IDC_PASSWORD_EDIT               2001

@@ -30,6 +30,7 @@ namespace hnrt
 
         static LRESULT CALLBACK MessageCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
         static HFONT CreateFontByNameAndSize(HWND hwnd, PCWSTR pszName, long size);
+        static void DeleteMenuItems(HMENU hMenu);
         HMENU CreateMenuBar();
         void OnCreate(HWND hwnd);
         void OnDestroy(HWND hwnd);
@@ -38,8 +39,10 @@ namespace hnrt
         LRESULT OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam);
         void OnButtonClicked(HWND hwnd, DWORD index);
         void OnAbout(HWND hwnd);
+        void RecreateEditMenus(HWND hwnd);
         void RecreateViewMenus(HWND hwnd);
         void RecreateButtons(HWND hwnd);
+        void CopyToClipboard(HWND hwnd, PCWSTR psz);
         void ToggleButtonVisibility(HWND hwnd, UINT uIndex);
         void DoLayout(HWND hwnd, UINT uHint = ~0U);
         void ForceLayout(HWND hwnd);

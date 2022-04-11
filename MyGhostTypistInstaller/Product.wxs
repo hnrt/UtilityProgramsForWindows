@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="FAD0EDD5-C068-41FB-9733-FF8BBF7A8F62" Name="MyGhostTypist" Language="1041" Version="4.3.2" Manufacturer="hnrt" UpgradeCode="ab7dc5a6-ae75-4733-a2ef-d95297b3225c">
+	<Product Id="0A8E36E2-EDB7-4979-9C53-EF49BFAC4604" Name="MyGhostTypist" Language="1041" Version="4.4.0" Manufacturer="hnrt" UpgradeCode="ab7dc5a6-ae75-4733-a2ef-d95297b3225c">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Platform="x64" Description="My Ghost Typist" Comments="Types the keyboard on your behalf"/>
 
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-		<MediaTemplate />
+
+		<Media Id="1" Cabinet="mgt.cab"	EmbedCab="yes" DiskPrompt="CD-ROM Disc 1"/>
+		<Property Id="DiskPrompt" Value="MyGhostTypist Installer [1]"/>
 
 		<Feature Id="ProductFeature" Title="FeatureCore" Level="1" ConfigurableDirectory="INSTALLFOLDER" Description="The complete package. No more and no less.">
 			<ComponentGroupRef Id="ProductComponents" />
 		</Feature>
 
-		<UIRef Id="WixUI_Mondo"/>
-		<UIRef Id="WixUI_ErrorProgressText"/>
+		<UIRef Id="WixUI_InstallDir"/>
+		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
 		<WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
-		<Property Id="WIXUI_INSTALLDIR" Value="TOP_LEVEL_DIR" />
 	</Product>
 
 	<Fragment>
