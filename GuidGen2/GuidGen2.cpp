@@ -34,7 +34,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     while (1)
     {
         MSG msg;
-        BOOL bRet = GetMessageW(&msg, hDlg, 0, 0);
+        BOOL bRet = GetMessageW(&msg, NULL, 0, 0);
         if (bRet == -1)
         {
             MessageBoxW(hDlg, L"GetMessage failed.", L"ERROR", MB_OK | MB_ICONERROR);
