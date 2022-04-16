@@ -21,12 +21,31 @@ NumberFormatter::NumberFormatter()
     {
         wcscpy_s(m_szThousand, L",");
     }
+    UINT uNegNumber = 0UL;
+    if (!GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_INEGNUMBER | LOCALE_RETURN_NUMBER, reinterpret_cast<LPWSTR>(&uNegNumber), sizeof(uNegNumber)))
+    {
+        uNegNumber = 1UL;
+    }
     m_numfmt.NumDigits = 0;
     m_numfmt.LeadingZero = 0;
-    m_numfmt.Grouping = static_cast<UINT>(wcstoul(m_szGrouping, nullptr, 10));
+    if (L'0' <= m_szGrouping[0] && m_szGrouping[0] <= L'9')
+    {
+        m_numfmt.Grouping = m_szGrouping[0] - L'0';
+        if (m_szGrouping[1] == L';')
+        {
+            if (L'1' <= m_szGrouping[2] && m_szGrouping[2] <= L'9')
+            {
+                m_numfmt.Grouping = m_numfmt.Grouping * 10 + m_szGrouping[2] - L'0';
+            }
+        }
+    }
+    else
+    {
+        m_numfmt.Grouping = 3;
+    }
     m_numfmt.lpDecimalSep = m_szDecimal;
     m_numfmt.lpThousandSep = m_szThousand;
-    m_numfmt.NegativeOrder = 1;
+    m_numfmt.NegativeOrder = uNegNumber;
 }
 
 
