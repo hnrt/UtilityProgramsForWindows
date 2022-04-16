@@ -191,20 +191,25 @@
     <ClInclude Include="inc\hnrt\Args.h" />
     <ClInclude Include="inc\hnrt\Base64.h" />
     <ClInclude Include="inc\hnrt\BCryptAlgHandle.h" />
+    <ClInclude Include="inc\hnrt\BCryptHashHandle.h" />
     <ClInclude Include="inc\hnrt\BCryptKeyHandle.h" />
     <ClInclude Include="inc\hnrt\Buffer.h" />
+    <ClInclude Include="inc\hnrt\ByteDataFeeder.h" />
     <ClInclude Include="inc\hnrt\ByteString.h" />
     <ClInclude Include="inc\hnrt\ComException.h" />
     <ClInclude Include="inc\hnrt\ComLibrary.h" />
     <ClInclude Include="inc\hnrt\CommandTemplate.h" />
     <ClInclude Include="inc\hnrt\CoreLibrary.h" />
+    <ClInclude Include="inc\hnrt\DataFeeder.h" />
     <ClInclude Include="inc\hnrt\Debug.h" />
     <ClInclude Include="inc\hnrt\DoubleNullTerminatedStringArray.h" />
     <ClInclude Include="inc\hnrt\ErrorMessage.h" />
     <ClInclude Include="inc\hnrt\Exception.h" />
+    <ClInclude Include="inc\hnrt\FileDataFeeder.h" />
     <ClInclude Include="inc\hnrt\FileMapper.h" />
     <ClInclude Include="inc\hnrt\FileWriter.h" />
     <ClInclude Include="inc\hnrt\Guid.h" />
+    <ClInclude Include="inc\hnrt\Hash.h" />
     <ClInclude Include="inc\hnrt\Heap.h" />
     <ClInclude Include="inc\hnrt\Impersonator.h" />
     <ClInclude Include="inc\hnrt\KeyboardBitMap.h" />
@@ -306,6 +311,7 @@
     <ClCompile Include="src\ZipArchiveEntry.cpp" />
     <ClCompile Include="src\ZipFile.cpp" />
     <ClCompile Include="src\ZipInternal.cpp" />
+    <ClCompile Include="src\Hash.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

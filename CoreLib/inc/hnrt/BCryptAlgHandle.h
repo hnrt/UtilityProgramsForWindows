@@ -15,6 +15,7 @@ namespace hnrt
         BCryptAlgHandle(const BCryptAlgHandle&) = delete;
         ~BCryptAlgHandle();
         void operator =(const BCryptAlgHandle&) = delete;
+        void Close();
         operator BCRYPT_ALG_HANDLE() const;
         BCRYPT_ALG_HANDLE* operator &();
 
@@ -30,10 +31,7 @@ namespace hnrt
 
     inline BCryptAlgHandle::~BCryptAlgHandle()
     {
-        if (m_h)
-        {
-            BCryptCloseAlgorithmProvider(m_h, 0);
-        }
+        Close();
     }
 
     inline BCryptAlgHandle::operator BCRYPT_ALG_HANDLE() const
@@ -43,11 +41,16 @@ namespace hnrt
 
     inline BCRYPT_ALG_HANDLE* BCryptAlgHandle::operator &()
     {
+        Close();
+        return &m_h;
+    }
+
+    inline void BCryptAlgHandle::Close()
+    {
         if (m_h)
         {
             BCryptCloseAlgorithmProvider(m_h, 0);
             m_h = nullptr;
         }
-        return &m_h;
     }
 }
