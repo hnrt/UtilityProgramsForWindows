@@ -13,7 +13,7 @@ namespace hnrt
 
 		ByteDataFeeder(const void* pSource, size_t cbSourceLength, DWORD dwCapacity = BYTEDATAFEEDER_DEFAULT_CAPACITY);
 		ByteDataFeeder(const ByteDataFeeder&) = delete;
-		virtual ~ByteDataFeeder();
+		virtual ~ByteDataFeeder() = default;
 		void operator =(const ByteDataFeeder&) = delete;
 		virtual bool HasNext();
 
@@ -27,10 +27,6 @@ namespace hnrt
 		: DataFeeder(dwCapacity)
 		, m_pCur(reinterpret_cast<const BYTE*>(pSource))
 		, m_pEnd(reinterpret_cast<const BYTE*>(pSource) + cbSourceLength)
-	{
-	}
-
-	inline ByteDataFeeder::~ByteDataFeeder()
 	{
 	}
 

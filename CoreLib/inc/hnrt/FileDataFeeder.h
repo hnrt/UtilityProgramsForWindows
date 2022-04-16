@@ -15,18 +15,23 @@ namespace hnrt
 
 		FileDataFeeder(PCWSTR pszFileName, DWORD dwCapacity = FILEDATAFEEDER_DEFAULT_CAPACITY);
 		FileDataFeeder(const FileDataFeeder&) = delete;
-		virtual ~FileDataFeeder();
+		virtual ~FileDataFeeder() = default;
 		void operator =(const FileDataFeeder&) = delete;
 		virtual bool HasNext();
+		ULONGLONG get_TotalLength() const;
+
+		__declspec(property(get = get_TotalLength)) ULONGLONG TotalLength;
 
 	protected:
 
 		WindowsHandle m_h;
+		ULONGLONG m_cbTotalLength;
 	};
 
 	inline FileDataFeeder::FileDataFeeder(PCWSTR pszFileName, DWORD dwCapacity)
 		: DataFeeder(dwCapacity)
 		, m_h(CreateFileW(pszFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL))
+		, m_cbTotalLength(0ULL)
 	{
 		if (m_h == INVALID_HANDLE_VALUE)
 		{
@@ -37,10 +42,6 @@ namespace hnrt
 		}
 	}
 
-	inline FileDataFeeder::~FileDataFeeder()
-	{
-	}
-
 	inline bool FileDataFeeder::HasNext()
 	{
 		if (!ReadFile(m_h, m_pBuffer, m_dwCapacity, &m_dwRead, NULL))
@@ -48,6 +49,12 @@ namespace hnrt
 			DWORD dwError = GetLastError();
 			throw Win32Exception(dwError, L"ReadFile failed.");
 		}
+		m_cbTotalLength += m_dwRead;
 		return m_dwRead > 0UL ? true : false;
+	}
+
+	inline size_t FileDataFeeder::get_TotalLength() const
+	{
+		return m_cbTotalLength;
 	}
 }
