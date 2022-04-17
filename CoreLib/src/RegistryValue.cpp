@@ -205,7 +205,7 @@ static DWORD CountMultiStrings(PWCHAR pszz)
 LSTATUS RegistryValue::Query(HKEY hKey, PCWSTR pszName)
 {
 	Clear();
-	RegistryValueHolder value;
+	RegistryValueHolder value = { 0 };
 	value.qw = 0;
 	DWORD dwType = 0;
 	DWORD dwSize = sizeof(value.qw);
