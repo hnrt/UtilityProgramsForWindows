@@ -9,6 +9,9 @@
 #include "hnrt/Buffer.h"
 #include "hnrt/String.h"
 #include "hnrt/ErrorMessage.h"
+#include "hnrt/RegistryKey.h"
+#include "hnrt/RegistryValue.h"
+#include "hnrt/Debug.h"
 
 
 #pragma comment(lib, "Core")
@@ -30,6 +33,7 @@ Checksum::Checksum()
     , m_hAccelTable(NULL)
     , m_hwnd(NULL)
     , m_hash()
+    , m_uSource(IDC_FILE)
     , m_uMethod(IDC_MD5)
     , m_Width(0)
     , m_Height(0)
@@ -171,7 +175,7 @@ INT_PTR CALLBACK Checksum::ProcessMessage(HWND hDlg, UINT message, WPARAM wParam
 
         case IDC_FILE:
         case IDC_TEXT:
-            GetInstance(hDlg)->OnSelectInput(hDlg, LOWORD(wParam));
+            GetInstance(hDlg)->OnSelectSource(hDlg, LOWORD(wParam));
             break;
 
         case IDC_MD5:
@@ -205,10 +209,23 @@ Checksum* Checksum::GetInstance(HWND hDlg)
 }
 
 
+#define REG_SUBKEY L"SOFTWARE\\hnrt\\Checksum"
+#define REG_NAME_SOURCE L"Source"
+#define REG_NAME_METHOD L"Method"
+
+
 void Checksum::OnCreate(HWND hDlg)
 {
     SetWindowLongPtrW(hDlg, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-    SendDlgItemMessageW(hDlg, IDC_FILE, BM_SETCHECK, BST_CHECKED, 0);
+    RegistryKey hKey;
+    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
+    if (rc == ERROR_SUCCESS)
+    {
+        RegistryValue value;
+        m_uSource = value.GetDWORD(hKey, REG_NAME_SOURCE, 1) == 2 ? IDC_TEXT : IDC_FILE;
+        m_uMethod = ((value.GetDWORD(hKey, REG_NAME_METHOD, 1) - 1) % 5) + IDC_MD5;
+    }
+    SendDlgItemMessageW(hDlg, m_uSource, BM_SETCHECK, BST_CHECKED, 0);
     SendDlgItemMessageW(hDlg, m_uMethod, BM_SETCHECK, BST_CHECKED, 0);
     SendDlgItemMessageW(hDlg, IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(L""));
     SendDlgItemMessageW(hDlg, IDC_CHARSET, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_UTF8));
@@ -219,7 +236,7 @@ void Checksum::OnCreate(HWND hDlg)
     SendDlgItemMessageW(hDlg, IDC_LINEBREAK, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_LF));
     SendDlgItemMessageW(hDlg, IDC_LINEBREAK, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(LABEL_CRLF));
     EnableWindow(GetDlgItem(hDlg, IDC_COPY), FALSE);
-    OnSelectInput(hDlg, IDC_FILE);
+    OnSelectSource(hDlg, m_uSource);
     RECT rectDlg;
     GetWindowRect(hDlg, &rectDlg);
     m_Width = rectDlg.right - rectDlg.left;
@@ -239,6 +256,25 @@ void Checksum::OnCreate(HWND hDlg)
 
 void Checksum::OnDestory(HWND hDlg)
 {
+    RegistryKey hKey;
+    LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY);
+    if (rc == ERROR_SUCCESS)
+    {
+        rc = RegistryValue::SetDWORD(hKey, REG_NAME_SOURCE, m_uSource == IDC_FILE ? 1 : 2);
+        if (rc != ERROR_SUCCESS)
+        {
+            Debug::Put(L"Failed to set DWORD to HKCU\\%s\\%s: %s", REG_SUBKEY, REG_NAME_SOURCE, ErrorMessage::Get(rc));
+        }
+        rc = RegistryValue::SetDWORD(hKey, REG_NAME_METHOD, m_uMethod - IDC_MD5 + 1);
+        if (rc != ERROR_SUCCESS)
+        {
+            Debug::Put(L"Failed to set DWORD to HKCU\\%s\\%s: %s", REG_SUBKEY, REG_NAME_METHOD, ErrorMessage::Get(rc));
+        }
+    }
+    else
+    {
+        Debug::Put(L"Failed to create HKCU\\%s: %s", REG_SUBKEY, ErrorMessage::Get(rc));
+    }
     SetWindowLongPtrW(hDlg, GWLP_USERDATA, 0);
 }
 
@@ -344,15 +380,14 @@ void Checksum::OnBrowse(HWND hDlg)
 
 void Checksum::OnCalculate(HWND hDlg)
 {
-    UINT uInput = isFile(hDlg) ? IDC_FILE : IDC_TEXT;
-    OnSelectInput(hDlg, 0);
+    OnSelectSource(hDlg, 0);
     OnSelectMethod(hDlg, 0);
     EnableWindow(GetDlgItem(hDlg, IDC_CALCULATE), FALSE);
     EnableWindow(GetDlgItem(hDlg, IDC_COPY), FALSE);
     try
     {
         ULONGLONG nBytesIn;
-        if (uInput == IDC_FILE)
+        if (m_uSource == IDC_FILE)
         {
             WCHAR szPath[MAX_PATH] = { 0 };
             SendDlgItemMessageW(hDlg, IDC_PATH, WM_GETTEXT, MAX_PATH, reinterpret_cast<LPARAM>(szPath));
@@ -413,7 +448,7 @@ void Checksum::OnCalculate(HWND hDlg)
         MessageBox(hDlg, e.Message, ResourceString(IDS_CAPTION), MB_OK | MB_ICONERROR);
     }
     EnableWindow(GetDlgItem(hDlg, IDC_CALCULATE), TRUE);
-    OnSelectInput(hDlg, uInput);
+    OnSelectSource(hDlg, m_uSource);
     OnSelectMethod(hDlg, m_uMethod);
 }
 
@@ -436,11 +471,11 @@ void Checksum::OnCopy(HWND hDlg)
 }
 
 
-void Checksum::OnSelectInput(HWND hDlg, UINT uInput)
+void Checksum::OnSelectSource(HWND hDlg, UINT uSource)
 {
-    BOOL bRadio = uInput ? TRUE : FALSE;
-    BOOL bFile = uInput == IDC_FILE ? TRUE : FALSE;
-    BOOL bText = uInput == IDC_TEXT ? TRUE : FALSE;
+    BOOL bRadio = uSource ? TRUE : FALSE;
+    BOOL bFile = uSource == IDC_FILE ? TRUE : FALSE;
+    BOOL bText = uSource == IDC_TEXT ? TRUE : FALSE;
     EnableWindow(GetDlgItem(hDlg, IDC_FILE), bRadio);
     EnableWindow(GetDlgItem(hDlg, IDC_PATH), bFile);
     EnableWindow(GetDlgItem(hDlg, IDC_BROWSE), bFile);
@@ -448,6 +483,10 @@ void Checksum::OnSelectInput(HWND hDlg, UINT uInput)
     EnableWindow(GetDlgItem(hDlg, IDC_CONTENT), bText);
     EnableWindow(GetDlgItem(hDlg, IDC_CHARSET), bText);
     EnableWindow(GetDlgItem(hDlg, IDC_LINEBREAK), bText);
+    if (uSource)
+    {
+        m_uSource = uSource;
+    }
 }
 
 

@@ -55,7 +55,7 @@ namespace hnrt
 		void OnBrowse(HWND hDlg);
 		void OnCalculate(HWND hDlg);
 		void OnCopy(HWND hDlg);
-		void OnSelectInput(HWND hDlg, UINT uInput);
+		void OnSelectSource(HWND hDlg, UINT uSource);
 		void OnSelectMethod(HWND hDlg, UINT uMethod);
 		void Calculate(HWND hDlg, DataFeeder& rDataFeeder);
 		bool isFile(HWND hDlg) const;
@@ -77,6 +77,7 @@ namespace hnrt
 		HACCEL m_hAccelTable;
 		HWND m_hwnd;
 		Hash m_hash;
+		UINT m_uSource;
 		UINT m_uMethod;
 		LONG m_Width;
 		LONG m_Height;
