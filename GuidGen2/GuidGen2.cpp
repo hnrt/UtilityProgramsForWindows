@@ -1,8 +1,13 @@
 ﻿#include "framework.h"
 #include "GuidGen2.h"
+#include "hnrt/RegistryKey.h"
+#include "hnrt/RegistryValue.h"
+#include "hnrt/Debug.h"
+#include "hnrt/ErrorMessage.h"
 
 
 #pragma comment(lib, "Ole32")
+#pragma comment(lib, "Core")
 
 
 using namespace hnrt;
@@ -67,6 +72,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 #define REG_KEY L"SOFTWARE\\hnrt\\GuidGen2"
 #define REG_NAME L"Format"
+#define REG_NAME_LAST L"Last"
 
 
 GuidGenerator2::GuidGenerator2()
@@ -146,17 +152,12 @@ GuidGenerator2* GuidGenerator2::GetInstance(HWND hDlg)
 void GuidGenerator2::OnCreate(HWND hDlg)
 {
     SetWindowLongPtr(hDlg, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-    HKEY hKey = NULL;
-    DWORD dwRet = RegOpenKeyExW(HKEY_CURRENT_USER, REG_KEY, 0, KEY_READ, &hKey);
+    RegistryKey hKey;
+    DWORD dwRet = hKey.Open(HKEY_CURRENT_USER, REG_KEY, 0, KEY_READ);
     if (dwRet == ERROR_SUCCESS)
     {
-        DWORD dwType = 0, dwValue = 0, dwLen = sizeof(DWORD);
-        dwRet = RegQueryValueExW(hKey, REG_NAME, NULL, &dwType, reinterpret_cast<LPBYTE>(&dwValue), &dwLen);
-        if (dwRet == ERROR_SUCCESS && dwType == REG_DWORD)
-        {
-            m_uCurrentlySelected = dwValue + IDC_RADIO_UPPERCASE - 1;
-        }
-        RegCloseKey(hKey);
+        RegistryValue value;
+        m_uCurrentlySelected = value.GetDWORD(hKey, REG_NAME, 1) + IDC_RADIO_UPPERCASE - 1;
     }
     ChangeGuid(hDlg);
     SendDlgItemMessageW(hDlg, m_uCurrentlySelected, BM_SETCHECK, BST_CHECKED, 0);
@@ -165,18 +166,20 @@ void GuidGenerator2::OnCreate(HWND hDlg)
 
 void GuidGenerator2::OnDestory(HWND hDlg)
 {
-    HKEY hKey = NULL;
-    DWORD dwDisposition = 0;
-    DWORD dwRet = RegCreateKeyExW(HKEY_CURRENT_USER, REG_KEY, 0, NULL, 0, KEY_WRITE, NULL, &hKey, &dwDisposition);
+    RegistryKey hKey;
+    DWORD dwRet = hKey.Create(HKEY_CURRENT_USER, REG_KEY, 0, KEY_WRITE);
     if (dwRet == ERROR_SUCCESS)
     {
-        DWORD dwValue = m_uCurrentlySelected - IDC_RADIO_UPPERCASE + 1, dwLen = sizeof(DWORD);
-        dwRet = RegSetValueExW(hKey, REG_NAME, 0, REG_DWORD, reinterpret_cast<LPBYTE>(&dwValue), dwLen);
-        if (dwRet == ERROR_SUCCESS)
+        dwRet = RegistryValue::SetDWORD(hKey, REG_NAME, m_uCurrentlySelected - IDC_RADIO_UPPERCASE + 1);
+        if (dwRet != ERROR_SUCCESS)
         {
-            // OK
+            Debug::Put(L"Failed to set DWORD to HKCU\\%s\\%s: %s", REG_KEY, REG_NAME, ErrorMessage::Get(dwRet));
         }
-        RegCloseKey(hKey);
+        dwRet = RegistryValue::SetSZ(hKey, REG_NAME_LAST, m_szFormatted);
+        if (dwRet != ERROR_SUCCESS)
+        {
+            Debug::Put(L"Failed to set SZ to HKCU\\%s\\%s: %s", REG_KEY, REG_NAME_LAST, ErrorMessage::Get(dwRet));
+        }
     }
     SetWindowLongPtr(hDlg, GWLP_USERDATA, 0L);
 }
