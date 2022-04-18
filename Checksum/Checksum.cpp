@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include "Checksum.h"
+#include "FileDataFeederEx.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/ResourceString.h"
@@ -15,6 +16,12 @@
 
 
 #pragma comment(lib, "Core")
+#pragma comment(lib, "DialogApp")
+
+
+#define REG_SUBKEY L"SOFTWARE\\hnrt\\Checksum"
+#define REG_NAME_SOURCE L"Source"
+#define REG_NAME_METHOD L"Method"
 
 
 #define LABEL_UTF8 L"UTF-8"
@@ -29,192 +36,17 @@ using namespace hnrt;
 
 
 Checksum::Checksum()
-    : m_iExitCode(EXIT_FAILURE)
-    , m_hAccelTable(NULL)
-    , m_hwnd(NULL)
+    : DialogApp(IDD_CHECKSUM)
     , m_hash()
     , m_uSource(IDC_FILE)
     , m_uMethod(IDC_MD5)
-    , m_Width(0)
-    , m_Height(0)
-    , m_LastClientWidth(0)
-    , m_LastClientHeight(0)
 {
 }
-
-
-Checksum::~Checksum()
-{
-}
-
-
-void Checksum::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
-{
-    UNREFERENCED_PARAMETER(lpCmdLine);
-    ResourceString::m_hInstance = hInstance;
-    m_hwnd = CreateDialogParamW(hInstance, MAKEINTRESOURCE(IDD_CHECKSUM), NULL, ProcessMessage, reinterpret_cast<LPARAM>(this));
-    if (!m_hwnd)
-    {
-        throw Exception(ResourceString(IDS_CRDLG_FAILURE));
-    }
-    ShowWindow(m_hwnd, nCmdShow);
-    UpdateWindow(m_hwnd);
-}
-
-
-void Checksum::Run()
-{
-    if (!m_hwnd)
-    {
-        return;
-    }
-    //m_hAccelTable = LoadAcceleratorsW(hInstance, MAKEINTRESOURCEW(IDR_ACCELERATOR1));
-    while (1)
-    {
-        MSG msg;
-        BOOL bRet = GetMessageW(&msg, NULL, 0, 0);
-        if (bRet == -1)
-        {
-            throw Exception(ResourceString(IDS_GETMSG_FAILURE));
-        }
-        else if (!bRet)
-        {
-            m_iExitCode = (int)msg.wParam;
-            break;
-        }
-        /*if (TranslateAcceleratorW(m_hwnd, m_hAccelTable, &msg))
-        {
-            continue;
-        }
-        else*/ if (IsDialogMessage(m_hwnd, &msg))
-        {
-            continue;
-        }
-        else
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
-}
-
-
-bool Checksum::ProcessMessages()
-{
-    MSG msg;
-    while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
-    {
-        if (msg.message == WM_QUIT)
-        {
-            PostQuitMessage(static_cast<int>(msg.wParam));
-            return false;
-        }
-        /*if (TranslateAcceleratorW(m_hwnd, m_hAccelTable, &msg))
-        {
-            continue;
-        }
-        else*/ if (IsDialogMessage(m_hwnd, &msg))
-        {
-            continue;
-        }
-        else
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
-    return true;
-}
-
-
-void Checksum::Close()
-{
-    if (m_hwnd)
-    {
-        DestroyWindow(m_hwnd);
-    }
-}
-
-
-INT_PTR CALLBACK Checksum::ProcessMessage(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        reinterpret_cast<Checksum*>(lParam)->OnCreate(hDlg);
-        break;
-
-    case WM_DESTROY:
-        GetInstance(hDlg)->OnDestory(hDlg);
-        break;
-
-    case WM_CLOSE:
-        GetInstance(hDlg)->OnExit(hDlg);
-        break;
-
-    case WM_COMMAND:
-        switch (LOWORD(wParam))
-        {
-        case IDC_EXIT:
-            GetInstance(hDlg)->OnExit(hDlg);
-            break;
-
-        case IDC_CALCULATE:
-            GetInstance(hDlg)->OnCalculate(hDlg);
-            break;
-
-        case IDC_COPY:
-            GetInstance(hDlg)->OnCopy(hDlg);
-            break;
-
-        case IDC_BROWSE:
-            GetInstance(hDlg)->OnBrowse(hDlg);
-            break;
-
-        case IDC_FILE:
-        case IDC_TEXT:
-            GetInstance(hDlg)->OnSelectSource(hDlg, LOWORD(wParam));
-            break;
-
-        case IDC_MD5:
-        case IDC_SHA1:
-        case IDC_SHA256:
-        case IDC_SHA384:
-        case IDC_SHA512:
-            GetInstance(hDlg)->OnSelectMethod(hDlg, LOWORD(wParam));
-            break;
-
-        default:
-            return (INT_PTR)FALSE;
-        }
-        break;
-
-    case WM_SIZE:
-        GetInstance(hDlg)->OnSize(hDlg, wParam, lParam);
-        break;
-
-    default:
-        return (INT_PTR)FALSE;
-    }
-
-    return (INT_PTR)TRUE;
-}
-
-
-Checksum* Checksum::GetInstance(HWND hDlg)
-{
-    return reinterpret_cast<Checksum*>(GetWindowLongPtrW(hDlg, GWLP_USERDATA));
-}
-
-
-#define REG_SUBKEY L"SOFTWARE\\hnrt\\Checksum"
-#define REG_NAME_SOURCE L"Source"
-#define REG_NAME_METHOD L"Method"
 
 
 void Checksum::OnCreate(HWND hDlg)
 {
-    SetWindowLongPtrW(hDlg, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+    DialogApp::OnCreate(hDlg);
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
     if (rc == ERROR_SUCCESS)
@@ -235,14 +67,6 @@ void Checksum::OnCreate(HWND hDlg)
     SendDlgItemMessageW(hDlg, IDC_LINEBREAK, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(LABEL_CRLF));
     EnableWindow(GetDlgItem(hDlg, IDC_COPY), FALSE);
     OnSelectSource(hDlg, m_uSource);
-    RECT rectDlg;
-    GetWindowRect(hDlg, &rectDlg);
-    m_Width = rectDlg.right - rectDlg.left;
-    m_Height = rectDlg.bottom - rectDlg.top;
-    RECT rectClient;
-    GetClientRect(hDlg, &rectClient);
-    m_LastClientWidth = rectClient.right;
-    m_LastClientHeight = rectClient.bottom;
 }
 
 
@@ -267,90 +91,70 @@ void Checksum::OnDestory(HWND hDlg)
     {
         Debug::Put(L"Failed to create HKCU\\%s: %s", REG_SUBKEY, ErrorMessage::Get(rc));
     }
-    SetWindowLongPtrW(hDlg, GWLP_USERDATA, 0);
+    DialogApp::OnDestory(hDlg);
 }
 
 
-void Checksum::OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam)
+void Checksum::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
-    RECT rect;
-    GetWindowRect(hDlg, &rect);
-    LONG cx = rect.right - rect.left;
-    LONG cy = rect.bottom - rect.top;
-    if (cx < m_Width || cy < m_Height)
-    {
-        SetWindowPos(hDlg, NULL, 0, 0, cx > m_Width ? cx : m_Width, cy > m_Height ? cy : m_Height, SWP_NOMOVE | SWP_NOZORDER);
-        return;
-    }
-    LONG cxClient = LOWORD(lParam);
-    LONG cyClient = HIWORD(lParam);
-    LONG cxDelta = cxClient - m_LastClientWidth;
-    LONG cyDelta = cyClient - m_LastClientHeight;
-    m_LastClientWidth = cxClient;
-    m_LastClientHeight = cyClient;
-    UpdateLayout(hDlg, IDC_EXIT, cxDelta, cyDelta, 0, 0);
-    UpdateLayout(hDlg, IDC_CALCULATE, cxDelta, 0, 0, 0);
-    UpdateLayout(hDlg, IDC_COPY, cxDelta, 0, 0, 0);
-    UpdateLayout(hDlg, IDC_RESULT_BOX, 0, cyDelta, cxDelta, 0);
-    UpdateLayout(hDlg, IDC_RESULT, 0, cyDelta, cxDelta, 0, TRUE);
-    UpdateLayout(hDlg, IDC_METHOD, cxDelta, 0, 0, cyDelta);
-    UpdateLayout(hDlg, IDC_MD5, cxDelta, 0, 0, 0, TRUE);
-    UpdateLayout(hDlg, IDC_SHA1, cxDelta, 0, 0, 0, TRUE);
-    UpdateLayout(hDlg, IDC_SHA256, cxDelta, 0, 0, 0, TRUE);
-    UpdateLayout(hDlg, IDC_SHA384, cxDelta, 0, 0, 0, TRUE);
-    UpdateLayout(hDlg, IDC_SHA512, cxDelta, 0, 0, 0, TRUE);
-    UpdateLayout(hDlg, IDC_SOURCE, 0, 0, cxDelta, cyDelta);
-    UpdateLayout(hDlg, IDC_BROWSE, cxDelta, 0, 0, 0);
-    UpdateLayout(hDlg, IDC_CHARSET, cxDelta, 0, 0, 0);
-    UpdateLayout(hDlg, IDC_LINEBREAK, cxDelta, 0, 0, 0);
-    UpdateLayout(hDlg, IDC_PATH, 0, 0, cxDelta, 0);
-    UpdateLayout(hDlg, IDC_CONTENT, 0, 0, cxDelta, cyDelta);
+    DialogApp::UpdateLayout(hDlg, IDC_EXIT, cxDelta, cyDelta, 0, 0);
+    DialogApp::UpdateLayout(hDlg, IDC_CALCULATE, cxDelta, 0, 0, 0);
+    DialogApp::UpdateLayout(hDlg, IDC_COPY, cxDelta, 0, 0, 0);
+    DialogApp::UpdateLayout(hDlg, IDC_RESULT_BOX, 0, cyDelta, cxDelta, 0);
+    DialogApp::UpdateLayout(hDlg, IDC_RESULT, 0, cyDelta, cxDelta, 0, TRUE);
+    DialogApp::UpdateLayout(hDlg, IDC_METHOD, cxDelta, 0, 0, cyDelta);
+    DialogApp::UpdateLayout(hDlg, IDC_MD5, cxDelta, 0, 0, 0, TRUE);
+    DialogApp::UpdateLayout(hDlg, IDC_SHA1, cxDelta, 0, 0, 0, TRUE);
+    DialogApp::UpdateLayout(hDlg, IDC_SHA256, cxDelta, 0, 0, 0, TRUE);
+    DialogApp::UpdateLayout(hDlg, IDC_SHA384, cxDelta, 0, 0, 0, TRUE);
+    DialogApp::UpdateLayout(hDlg, IDC_SHA512, cxDelta, 0, 0, 0, TRUE);
+    DialogApp::UpdateLayout(hDlg, IDC_SOURCE, 0, 0, cxDelta, cyDelta);
+    DialogApp::UpdateLayout(hDlg, IDC_BROWSE, cxDelta, 0, 0, 0);
+    DialogApp::UpdateLayout(hDlg, IDC_CHARSET, cxDelta, 0, 0, 0);
+    DialogApp::UpdateLayout(hDlg, IDC_LINEBREAK, cxDelta, 0, 0, 0);
+    DialogApp::UpdateLayout(hDlg, IDC_PATH, 0, 0, cxDelta, 0);
+    DialogApp::UpdateLayout(hDlg, IDC_CONTENT, 0, 0, cxDelta, cyDelta);
 }
 
 
-void Checksum::UpdateLayout(HWND hDlg, UINT id, LONG dx, LONG dy, LONG dcx, LONG dcy, BOOL bInvalidate)
+void Checksum::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {
-    HWND hwndChild = GetDlgItem(hDlg, id);
-    UINT uFlags = SWP_NOZORDER;
-    LONG x, y, cx, cy;
-    RECT rect;
-    GetWindowRect(hwndChild, &rect);
-    if (dx || dy)
+    UNREFERENCED_PARAMETER(lParam);
+    UINT idChild = LOWORD(wParam);
+    switch (idChild)
     {
-        POINT pt = { rect.left, rect.top };
-        ScreenToClient(hDlg, &pt);
-        x = pt.x + dx;
-        y = pt.y + dy;
-    }
-    else
-    {
-        x = 0;
-        y = 0;
-        uFlags |= SWP_NOMOVE;
-    }
-    if (dcx || dcy)
-    {
-        cx = rect.right - rect.left + dcx;
-        cy = rect.bottom - rect.top + dcy;
-    }
-    else
-    {
-        cx = 0;
-        cy = 0;
-        uFlags |= SWP_NOSIZE;
-    }
-    SetWindowPos(hwndChild, NULL, x, y, cx, cy, uFlags);
-    if (bInvalidate)
-    {
-        InvalidateRect(hwndChild, NULL, TRUE);
-    }
-}
+    case IDC_EXIT:
+        OnClose(hDlg);
+        break;
 
+    case IDC_CALCULATE:
+        OnCalculate(hDlg);
+        break;
 
-void Checksum::OnExit(HWND hDlg)
-{
-    UNREFERENCED_PARAMETER(hDlg);
-    PostQuitMessage(EXIT_SUCCESS);
+    case IDC_COPY:
+        OnCopy(hDlg);
+        break;
+
+    case IDC_BROWSE:
+        OnBrowse(hDlg);
+        break;
+
+    case IDC_FILE:
+    case IDC_TEXT:
+        OnSelectSource(hDlg, idChild);
+        break;
+
+    case IDC_MD5:
+    case IDC_SHA1:
+    case IDC_SHA256:
+    case IDC_SHA384:
+    case IDC_SHA512:
+        OnSelectMethod(hDlg, idChild);
+        break;
+
+    default:
+        break;
+    }
 }
 
 
@@ -502,67 +306,41 @@ void Checksum::OnSelectMethod(HWND hDlg, UINT uMethod)
 
 void Checksum::Calculate(HWND hDlg, DataFeeder& rDataFeeder)
 {
-    if (isMD5(hDlg))
+    switch (m_uMethod)
+    {
+    case IDC_MD5:
     {
         MD5Hash hash(rDataFeeder);
         SetResult(hDlg, hash);
+        break;
     }
-    else if (isSHA1(hDlg))
+    case IDC_SHA1:
     {
         SHA1Hash hash(rDataFeeder);
         SetResult(hDlg, hash);
+        break;
     }
-    else if (isSHA256(hDlg))
+    case IDC_SHA256:
     {
         SHA256Hash hash(rDataFeeder);
         SetResult(hDlg, hash);
+        break;
     }
-    else if (isSHA384(hDlg))
+    case IDC_SHA384:
     {
         SHA384Hash hash(rDataFeeder);
         SetResult(hDlg, hash);
+        break;
     }
-    else if (isSHA512(hDlg))
+    case IDC_SHA512:
     {
         SHA512Hash hash(rDataFeeder);
         SetResult(hDlg, hash);
+        break;
     }
-}
-
-
-bool Checksum::isFile(HWND hDlg) const
-{
-    return SendDlgItemMessageW(hDlg, IDC_FILE, BM_GETCHECK, 0, 0) == BST_CHECKED;
-}
-
-
-bool Checksum::isMD5(HWND hDlg) const
-{
-    return SendDlgItemMessageW(hDlg, IDC_MD5, BM_GETCHECK, 0, 0) == BST_CHECKED;
-}
-
-
-bool Checksum::isSHA1(HWND hDlg) const
-{
-    return SendDlgItemMessageW(hDlg, IDC_SHA1, BM_GETCHECK, 0, 0) == BST_CHECKED;
-}
-
-
-bool Checksum::isSHA256(HWND hDlg) const
-{
-    return SendDlgItemMessageW(hDlg, IDC_SHA256, BM_GETCHECK, 0, 0) == BST_CHECKED;
-}
-
-
-bool Checksum::isSHA384(HWND hDlg) const
-{
-    return SendDlgItemMessageW(hDlg, IDC_SHA384, BM_GETCHECK, 0, 0) == BST_CHECKED;
-}
-
-
-bool Checksum::isSHA512(HWND hDlg) const
-{
-    return SendDlgItemMessageW(hDlg, IDC_SHA512, BM_GETCHECK, 0, 0) == BST_CHECKED;
+    default:
+        break;
+    }
 }
 
 
@@ -678,56 +456,4 @@ void Checksum::SetResult(HWND hDlg, Hash& rHash)
 {
     m_hash = rHash;
     SendDlgItemMessageW(hDlg, IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(m_hash.Text));
-}
-
-
-FileDataFeederEx::FileDataFeederEx(PCWSTR pszFileName, HWND hDlg)
-    : FileDataFeeder(pszFileName)
-    , m_hDlg(hDlg)
-    , m_LastTick(0ULL)
-{
-}
-
-
-bool FileDataFeederEx::HasNext()
-{
-    bool bRet = FileDataFeeder::HasNext();
-    ULONGLONG tick = GetTickCount64();
-    if (m_LastTick + 100 <= tick || !bRet)
-    {
-        m_LastTick = tick;
-        Checksum& app = *Checksum::GetInstance(m_hDlg);
-        app.SetResultHeader(m_hDlg, TotalLength);
-        if (!app.ProcessMessages())
-        {
-            return false;
-        }
-    }
-    return bRet;
-}
-
-
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                      _In_opt_ HINSTANCE hPrevInstance,
-                      _In_ LPWSTR lpCmdLine,
-                      _In_ int nCmdShow)
-{
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    Checksum app;
-    try
-    {
-        _wsetlocale(LC_ALL, L"");
-        app.Open(hInstance, lpCmdLine, nCmdShow);
-        app.Run();
-        app.Close();
-    }
-    catch (Exception e)
-    {
-        MessageBoxW(NULL, e.Message, ResourceString(IDS_CAPTION), MB_OK | MB_ICONERROR);
-    }
-    catch (...)
-    {
-        MessageBoxW(NULL, ResourceString(IDS_UNKNOWN_FAILURE), ResourceString(IDS_CAPTION), MB_OK | MB_ICONERROR);
-    }
-    return app.ExitCode;
 }
