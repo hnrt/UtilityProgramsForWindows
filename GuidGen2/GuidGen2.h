@@ -1,30 +1,26 @@
 #pragma once
 
 #include "resource.h"
-
-#ifdef CreateDialog
-#undef CreateDialog
-#endif
+#include "hnrt/DialogApp.h"
 
 namespace hnrt
 {
 	class GuidGenerator2
+		: public DialogApp
 	{
 	public:
 
 		GuidGenerator2();
 		GuidGenerator2(const GuidGenerator2&) = delete;
-		~GuidGenerator2() = default;
-		HWND CreateDialog(HINSTANCE hInstance);
+		virtual ~GuidGenerator2() = default;
+		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
 
 	private:
 
-		static INT_PTR CALLBACK ProcessMessage(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-		static GuidGenerator2* GetInstance(HWND hDlg);
+		virtual void OnCreate(HWND hDlg);
+		virtual void OnDestory(HWND hDlg);
+		virtual void OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam);
 
-		void OnCreate(HWND hDlg);
-		void OnDestory(HWND hDlg);
-		void OnExit(HWND hDlg);
 		void ChangeFormat(HWND hDlg, UINT uSelected = 0);
 		void ChangeGuid(HWND hDlg);
 		void CopyToClipboard(HWND hDlg);

@@ -4,6 +4,8 @@
 //
 #define IDD_DIALOG1                     129
 #define IDR_ACCELERATOR1                131
+#define IDS_CAPTION                     132
+#define IDS_UNKNOWN_FAILURE             133
 #define IDC_RADIO_UPPERCASE             1000
 #define IDC_RADIO_LOWERCASE             1001
 #define IDC_RADIO_IMPLEMENT             1002
@@ -24,7 +26,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        132
+#define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         32775
 #define _APS_NEXT_CONTROL_VALUE         1012
 #define _APS_NEXT_SYMED_VALUE           110

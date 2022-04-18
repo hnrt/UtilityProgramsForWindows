@@ -4,70 +4,12 @@
 #include "hnrt/RegistryValue.h"
 #include "hnrt/Debug.h"
 #include "hnrt/ErrorMessage.h"
+#include "hnrt/ResourceString.h"
 
 
 #pragma comment(lib, "Ole32")
 #pragma comment(lib, "Core")
-
-
-using namespace hnrt;
-
-
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-    _In_opt_ HINSTANCE hPrevInstance,
-    _In_ LPWSTR lpCmdLine,
-    _In_ int nCmdShow)
-{
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
-
-    _wsetlocale(LC_ALL, L"");
-
-    GuidGenerator2 app;
-
-    HWND hDlg = app.CreateDialog(hInstance);
-    if (!hDlg)
-    {
-        MessageBoxW(NULL, L"CreateDialog failed.", L"ERROR", MB_OK | MB_ICONERROR);
-        return 1;
-    }
-    ShowWindow(hDlg, nCmdShow);
-    UpdateWindow(hDlg);
-
-    HACCEL hAccelTable = LoadAcceleratorsW(hInstance, MAKEINTRESOURCEW(IDR_ACCELERATOR1));
-
-    while (1)
-    {
-        MSG msg;
-        BOOL bRet = GetMessageW(&msg, NULL, 0, 0);
-        if (bRet == -1)
-        {
-            MessageBoxW(hDlg, L"GetMessage failed.", L"ERROR", MB_OK | MB_ICONERROR);
-            return 1;
-        }
-        else if (!bRet)
-        {
-            break;
-        }
-        if (TranslateAcceleratorW(hDlg, hAccelTable, &msg))
-        {
-            continue;
-        }
-        else if (IsDialogMessage(hDlg, &msg))
-        {
-            continue;
-        }
-        else
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
-
-    DestroyWindow(hDlg);
-
-    return 0;
-}
+#pragma comment(lib, "DialogApp")
 
 
 #define REG_KEY L"SOFTWARE\\hnrt\\GuidGen2"
@@ -75,8 +17,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 #define REG_NAME_LAST L"Last"
 
 
+using namespace hnrt;
+
+
 GuidGenerator2::GuidGenerator2()
-    : m_guid()
+    : DialogApp(IDD_DIALOG1)
+    , m_guid()
     , m_szFormatted()
     , m_uCurrentlySelected(IDC_RADIO_UPPERCASE)
 {
@@ -85,80 +31,24 @@ GuidGenerator2::GuidGenerator2()
 }
 
 
-HWND GuidGenerator2::CreateDialog(HINSTANCE hInstance)
+void GuidGenerator2::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
-    return CreateDialogParamW(hInstance, MAKEINTRESOURCE(IDD_DIALOG1), NULL, ProcessMessage, reinterpret_cast<LPARAM>(this));
-}
-
-
-INT_PTR CALLBACK GuidGenerator2::ProcessMessage(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        reinterpret_cast<GuidGenerator2*>(lParam)->OnCreate(hDlg);
-        return (INT_PTR)TRUE;
-
-    case WM_DESTROY:
-        GetInstance(hDlg)->OnDestory(hDlg);
-        return (INT_PTR)TRUE;
-
-    case WM_CLOSE:
-        GetInstance(hDlg)->OnExit(hDlg);
-        return (INT_PTR)TRUE;
-
-    case WM_COMMAND:
-        switch (LOWORD(wParam))
-        {
-        case IDC_BUTTON_EXIT:
-            GetInstance(hDlg)->OnExit(hDlg);
-            return (INT_PTR)TRUE;
-        case IDC_BUTTON_COPY:
-        case IDM_COPY:
-            GetInstance(hDlg)->CopyToClipboard(hDlg);
-            return (INT_PTR)TRUE;
-        case IDC_BUTTON_NEW:
-            GetInstance(hDlg)->ChangeGuid(hDlg);
-            return (INT_PTR)TRUE;
-        case IDC_RADIO_UPPERCASE:
-        case IDC_RADIO_LOWERCASE:
-        case IDC_RADIO_IMPLEMENT:
-        case IDC_RADIO_DEFINE:
-        case IDC_RADIO_STRUCT:
-        case IDC_RADIO_REGISTRY:
-        case IDC_RADIO_SQUARE:
-        case IDC_RADIO_ANGLE:
-            GetInstance(hDlg)->ChangeFormat(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        default:
-            break;
-        }
-        break;
-
-    default:
-        break;
-    }
-
-    return (INT_PTR)FALSE;
-}
-
-
-GuidGenerator2* GuidGenerator2::GetInstance(HWND hDlg)
-{
-    return reinterpret_cast<GuidGenerator2*>(GetWindowLongPtrW(hDlg, GWLP_USERDATA));
+    DialogApp::Open(hInstance, lpCmdLine, nCmdShow);
+    m_hAccelTable = LoadAcceleratorsW(hInstance, MAKEINTRESOURCEW(IDR_ACCELERATOR1));
 }
 
 
 void GuidGenerator2::OnCreate(HWND hDlg)
 {
-    SetWindowLongPtr(hDlg, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+    DialogApp::OnCreate(hDlg);
     RegistryKey hKey;
-    DWORD dwRet = hKey.Open(HKEY_CURRENT_USER, REG_KEY, 0, KEY_READ);
-    if (dwRet == ERROR_SUCCESS)
+    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_KEY, 0, KEY_READ);
+    if (rc == ERROR_SUCCESS)
     {
         RegistryValue value;
         m_uCurrentlySelected = value.GetDWORD(hKey, REG_NAME, 1) + IDC_RADIO_UPPERCASE - 1;
     }
+    SetWindowTextW(hDlg, ResourceString(IDS_CAPTION));
     ChangeGuid(hDlg);
     SendDlgItemMessageW(hDlg, m_uCurrentlySelected, BM_SETCHECK, BST_CHECKED, 0);
 }
@@ -181,14 +71,37 @@ void GuidGenerator2::OnDestory(HWND hDlg)
             Debug::Put(L"Failed to set SZ to HKCU\\%s\\%s: %s", REG_KEY, REG_NAME_LAST, ErrorMessage::Get(dwRet));
         }
     }
-    SetWindowLongPtr(hDlg, GWLP_USERDATA, 0L);
+    DialogApp::OnDestory(hDlg);
 }
 
 
-void GuidGenerator2::OnExit(HWND hDlg)
+void GuidGenerator2::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {
-    UNREFERENCED_PARAMETER(hDlg);
-    PostQuitMessage(EXIT_SUCCESS);
+    switch (LOWORD(wParam))
+    {
+    case IDC_BUTTON_EXIT:
+        OnClose(hDlg);
+        break;
+    case IDC_BUTTON_COPY:
+    case IDM_COPY:
+        CopyToClipboard(hDlg);
+        break;
+    case IDC_BUTTON_NEW:
+        ChangeGuid(hDlg);
+        break;
+    case IDC_RADIO_UPPERCASE:
+    case IDC_RADIO_LOWERCASE:
+    case IDC_RADIO_IMPLEMENT:
+    case IDC_RADIO_DEFINE:
+    case IDC_RADIO_STRUCT:
+    case IDC_RADIO_REGISTRY:
+    case IDC_RADIO_SQUARE:
+    case IDC_RADIO_ANGLE:
+        ChangeFormat(hDlg, LOWORD(wParam));
+        break;
+    default:
+        break;
+    }
 }
 
 
