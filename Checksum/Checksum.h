@@ -81,8 +81,6 @@ namespace hnrt
 		UINT m_uMethod;
 		LONG m_Width;
 		LONG m_Height;
-		LONG m_PaddingRight;
-		LONG m_PaddingBottom;
 		LONG m_LastClientWidth;
 		LONG m_LastClientHeight;
 	};

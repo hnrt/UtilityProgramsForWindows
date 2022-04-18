@@ -37,8 +37,6 @@ Checksum::Checksum()
     , m_uMethod(IDC_MD5)
     , m_Width(0)
     , m_Height(0)
-    , m_PaddingRight(0)
-    , m_PaddingBottom(0)
     , m_LastClientWidth(0)
     , m_LastClientHeight(0)
 {
@@ -245,12 +243,6 @@ void Checksum::OnCreate(HWND hDlg)
     GetClientRect(hDlg, &rectClient);
     m_LastClientWidth = rectClient.right;
     m_LastClientHeight = rectClient.bottom;
-    RECT rectExit;
-    GetWindowRect(GetDlgItem(hDlg, IDC_EXIT), &rectExit);
-    POINT pt = { rectExit.right, rectExit.bottom };
-    ScreenToClient(hDlg, &pt);
-    m_PaddingRight = m_LastClientWidth - pt.x;
-    m_PaddingBottom = m_LastClientHeight - pt.y;
 }
 
 
