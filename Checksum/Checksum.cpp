@@ -16,7 +16,7 @@
 
 
 #pragma comment(lib, "Core")
-#pragma comment(lib, "DialogApp")
+#pragma comment(lib, "WindowApp")
 
 
 #define REG_SUBKEY L"SOFTWARE\\hnrt\\Checksum"

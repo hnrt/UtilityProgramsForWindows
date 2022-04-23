@@ -9,7 +9,7 @@
 
 #pragma comment(lib, "Ole32")
 #pragma comment(lib, "Core")
-#pragma comment(lib, "DialogApp")
+#pragma comment(lib, "WindowApp")
 
 
 #define REG_KEY L"SOFTWARE\\hnrt\\GuidGen2"
