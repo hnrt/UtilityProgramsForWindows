@@ -70,7 +70,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{dcb74e6f-7eb8-42da-8c28-1dd904e92e59}</ProjectGuid>
-    <RootNamespace>DialogAppLib</RootNamespace>
+    <RootNamespace>WindowAppLib</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
