@@ -5,9 +5,6 @@
 #include "hnrt/Interlocked.h"
 
 
-#pragma comment(lib,"Core")
-
-
 using namespace hnrt;
 
 

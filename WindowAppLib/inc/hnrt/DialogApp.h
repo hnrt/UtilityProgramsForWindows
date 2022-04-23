@@ -8,7 +8,7 @@
 namespace hnrt
 {
 	class DialogApp
-		: protected AnyApp
+		: public AnyApp
 		, protected WindowSize
 		, protected WindowLayout
 	{

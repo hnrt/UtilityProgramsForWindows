@@ -21,9 +21,9 @@ namespace hnrt
 		friend class FileDataFeederEx;
 
 		virtual void OnCreate(HWND hDlg);
-		virtual void OnDestory(HWND hDlg);
+		virtual void OnDestroy(HWND hDlg);
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
-		virtual void OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam);
+		virtual INT_PTR OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam);
 
 		void OnBrowse(HWND hDlg);
 		void OnCalculate(HWND hDlg);

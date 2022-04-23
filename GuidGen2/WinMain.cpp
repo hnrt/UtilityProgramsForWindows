@@ -20,7 +20,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         _wsetlocale(LC_ALL, L"");
         app.Open(hInstance, lpCmdLine, nCmdShow);
         app.Run();
-        app.Close();
+        app.Close(hInstance);
     }
     catch (Exception e)
     {

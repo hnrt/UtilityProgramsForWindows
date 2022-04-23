@@ -40,7 +40,6 @@ void GuidGenerator2::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 
 void GuidGenerator2::OnCreate(HWND hDlg)
 {
-    DialogApp::OnCreate(hDlg);
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_KEY, 0, KEY_READ);
     if (rc == ERROR_SUCCESS)
@@ -54,7 +53,7 @@ void GuidGenerator2::OnCreate(HWND hDlg)
 }
 
 
-void GuidGenerator2::OnDestory(HWND hDlg)
+void GuidGenerator2::OnDestroy(HWND hDlg)
 {
     RegistryKey hKey;
     DWORD dwRet = hKey.Create(HKEY_CURRENT_USER, REG_KEY, 0, KEY_WRITE);
@@ -71,11 +70,10 @@ void GuidGenerator2::OnDestory(HWND hDlg)
             Debug::Put(L"Failed to set SZ to HKCU\\%s\\%s: %s", REG_KEY, REG_NAME_LAST, ErrorMessage::Get(dwRet));
         }
     }
-    DialogApp::OnDestory(hDlg);
 }
 
 
-void GuidGenerator2::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
+INT_PTR GuidGenerator2::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {
     switch (LOWORD(wParam))
     {
@@ -100,8 +98,9 @@ void GuidGenerator2::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
         ChangeFormat(hDlg, LOWORD(wParam));
         break;
     default:
-        break;
+        return FALSE;
     }
+    return TRUE;
 }
 
 

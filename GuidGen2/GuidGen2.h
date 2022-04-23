@@ -18,8 +18,8 @@ namespace hnrt
 	private:
 
 		virtual void OnCreate(HWND hDlg);
-		virtual void OnDestory(HWND hDlg);
-		virtual void OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam);
+		virtual void OnDestroy(HWND hDlg);
+		virtual INT_PTR OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam);
 
 		void ChangeFormat(HWND hDlg, UINT uSelected = 0);
 		void ChangeGuid(HWND hDlg);

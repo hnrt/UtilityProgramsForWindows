@@ -46,7 +46,6 @@ Checksum::Checksum()
 
 void Checksum::OnCreate(HWND hDlg)
 {
-    DialogApp::OnCreate(hDlg);
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
     if (rc == ERROR_SUCCESS)
@@ -70,7 +69,7 @@ void Checksum::OnCreate(HWND hDlg)
 }
 
 
-void Checksum::OnDestory(HWND hDlg)
+void Checksum::OnDestroy(HWND hDlg)
 {
     RegistryKey hKey;
     LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY);
@@ -91,33 +90,32 @@ void Checksum::OnDestory(HWND hDlg)
     {
         Debug::Put(L"Failed to create HKCU\\%s: %s", REG_SUBKEY, ErrorMessage::Get(rc));
     }
-    DialogApp::OnDestory(hDlg);
 }
 
 
 void Checksum::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
-    DialogLayout::UpdateLayout(hDlg, IDC_EXIT, cxDelta, cyDelta, 0, 0);
-    DialogLayout::UpdateLayout(hDlg, IDC_CALCULATE, cxDelta, 0, 0, 0);
-    DialogLayout::UpdateLayout(hDlg, IDC_COPY, cxDelta, 0, 0, 0);
-    DialogLayout::UpdateLayout(hDlg, IDC_RESULT_BOX, 0, cyDelta, cxDelta, 0);
-    DialogLayout::UpdateLayout(hDlg, IDC_RESULT, 0, cyDelta, cxDelta, 0, TRUE);
-    DialogLayout::UpdateLayout(hDlg, IDC_METHOD, cxDelta, 0, 0, cyDelta);
-    DialogLayout::UpdateLayout(hDlg, IDC_MD5, cxDelta, 0, 0, 0, TRUE);
-    DialogLayout::UpdateLayout(hDlg, IDC_SHA1, cxDelta, 0, 0, 0, TRUE);
-    DialogLayout::UpdateLayout(hDlg, IDC_SHA256, cxDelta, 0, 0, 0, TRUE);
-    DialogLayout::UpdateLayout(hDlg, IDC_SHA384, cxDelta, 0, 0, 0, TRUE);
-    DialogLayout::UpdateLayout(hDlg, IDC_SHA512, cxDelta, 0, 0, 0, TRUE);
-    DialogLayout::UpdateLayout(hDlg, IDC_SOURCE, 0, 0, cxDelta, cyDelta);
-    DialogLayout::UpdateLayout(hDlg, IDC_BROWSE, cxDelta, 0, 0, 0);
-    DialogLayout::UpdateLayout(hDlg, IDC_CHARSET, cxDelta, 0, 0, 0);
-    DialogLayout::UpdateLayout(hDlg, IDC_LINEBREAK, cxDelta, 0, 0, 0);
-    DialogLayout::UpdateLayout(hDlg, IDC_PATH, 0, 0, cxDelta, 0);
-    DialogLayout::UpdateLayout(hDlg, IDC_CONTENT, 0, 0, cxDelta, cyDelta);
+    WindowLayout::UpdateLayout(hDlg, IDC_EXIT, cxDelta, cyDelta, 0, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_CALCULATE, cxDelta, 0, 0, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_COPY, cxDelta, 0, 0, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_RESULT_BOX, 0, cyDelta, cxDelta, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_RESULT, 0, cyDelta, cxDelta, 0, TRUE);
+    WindowLayout::UpdateLayout(hDlg, IDC_METHOD, cxDelta, 0, 0, cyDelta);
+    WindowLayout::UpdateLayout(hDlg, IDC_MD5, cxDelta, 0, 0, 0, TRUE);
+    WindowLayout::UpdateLayout(hDlg, IDC_SHA1, cxDelta, 0, 0, 0, TRUE);
+    WindowLayout::UpdateLayout(hDlg, IDC_SHA256, cxDelta, 0, 0, 0, TRUE);
+    WindowLayout::UpdateLayout(hDlg, IDC_SHA384, cxDelta, 0, 0, 0, TRUE);
+    WindowLayout::UpdateLayout(hDlg, IDC_SHA512, cxDelta, 0, 0, 0, TRUE);
+    WindowLayout::UpdateLayout(hDlg, IDC_SOURCE, 0, 0, cxDelta, cyDelta);
+    WindowLayout::UpdateLayout(hDlg, IDC_BROWSE, cxDelta, 0, 0, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_CHARSET, cxDelta, 0, 0, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_LINEBREAK, cxDelta, 0, 0, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_PATH, 0, 0, cxDelta, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_CONTENT, 0, 0, cxDelta, cyDelta);
 }
 
 
-void Checksum::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
+INT_PTR Checksum::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
     UINT idChild = LOWORD(wParam);
@@ -153,8 +151,9 @@ void Checksum::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
         break;
 
     default:
-        break;
+        return FALSE;
     }
+    return TRUE;
 }
 
 

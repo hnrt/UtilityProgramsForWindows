@@ -9,7 +9,7 @@
 namespace hnrt
 {
 	class WindowApp
-		: protected AnyApp
+		: public AnyApp
 		, protected WindowSize
 		, protected WindowLayout
 	{
