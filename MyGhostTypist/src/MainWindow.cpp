@@ -131,14 +131,14 @@ LRESULT MainWindow::OnTimer(HWND hwnd, WPARAM wParam, LPARAM lParam)
     {
     case TIMERID_KEYSTROKE:
         LetGhostPlay(hwnd);
-        return 0;
+        break;
     case TIMERID_FINDWINDOW:
         CheckButtonStatus();
-        return 0;
-    default:
         break;
+    default:
+        return DefWindowProcW(hwnd, WM_TIMER, wParam, lParam);
     }
-    return DefWindowProcW(hwnd, WM_TIMER, wParam, lParam);
+    return 0;
 }
 
 
