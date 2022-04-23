@@ -7,7 +7,8 @@
 namespace hnrt
 {
 	class DialogApp
-		: protected DialogLayout
+		: protected DialogSize
+		, protected DialogLayout
 	{
 	public:
 
@@ -18,6 +19,7 @@ namespace hnrt
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
 		virtual void Run();
 		virtual void Close();
+		void SetAccelerators(HINSTANCE hInstance, UINT id);
 
 		inline int get_ExitCode();
 
@@ -42,7 +44,6 @@ namespace hnrt
 		UINT m_idTemplate;
 		HACCEL m_hAccelTable;
 		HWND m_hwnd;
-		DialogSize m_size;
 	};
 
 	inline int DialogApp::get_ExitCode()

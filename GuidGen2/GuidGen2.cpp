@@ -34,7 +34,7 @@ GuidGenerator2::GuidGenerator2()
 void GuidGenerator2::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
     DialogApp::Open(hInstance, lpCmdLine, nCmdShow);
-    m_hAccelTable = LoadAcceleratorsW(hInstance, MAKEINTRESOURCEW(IDR_ACCELERATOR1));
+    SetAccelerators(hInstance, IDR_ACCELERATOR1);
 }
 
 

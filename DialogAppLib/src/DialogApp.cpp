@@ -11,12 +11,12 @@ using namespace hnrt;
 
 
 DialogApp::DialogApp(UINT idTemplate)
-    : DialogLayout()
+    : DialogSize()
+    , DialogLayout()
     , m_iExitCode(EXIT_FAILURE)
     , m_idTemplate(idTemplate)
     , m_hAccelTable(nullptr)
     , m_hwnd(nullptr)
-	, m_size()
 {
 }
 
@@ -32,7 +32,6 @@ void DialogApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     }
     ShowWindow(m_hwnd, nCmdShow);
     UpdateWindow(m_hwnd);
-    //m_hAccelTable = LoadAcceleratorsW(hInstance, MAKEINTRESOURCEW(IDR_ACCELERATOR1));
 }
 
 
@@ -79,6 +78,12 @@ void DialogApp::Close()
         return;
     }
     DestroyWindow(m_hwnd);
+}
+
+
+void DialogApp::SetAccelerators(HINSTANCE hInstance, UINT id)
+{
+    m_hAccelTable = LoadAcceleratorsW(hInstance, MAKEINTRESOURCEW(id));
 }
 
 
@@ -149,7 +154,7 @@ DialogApp* DialogApp::GetInstance(HWND hDlg)
 void DialogApp::OnCreate(HWND hDlg)
 {
     SetWindowLongPtrW(hDlg, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-    m_size.Initialize(hDlg);
+    InitializeSize(hDlg);
 }
 
 
@@ -168,7 +173,7 @@ void DialogApp::OnClose(HWND hDlg)
 
 void DialogApp::OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {
-    m_size.OnSize(hDlg, wParam, lParam, *this);
+    DialogSize::OnSize(hDlg, wParam, lParam, *this);
 }
 
 

@@ -14,8 +14,8 @@ namespace hnrt
 		DialogSize(const DialogSize&) = delete;
 		~DialogSize() = default;
 		void operator =(const DialogSize&) = delete;
-		void Initialize(HWND hDlg);
-		void SetMinimum(LONG cx, LONG cy);
+		void InitializeSize(HWND hDlg);
+		void SetMinimumSize(LONG cx, LONG cy);
 		void OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam, DialogLayout& rLayout);
 		LONG get_InitialWidth() const;
 		LONG get_InitialHeight() const;

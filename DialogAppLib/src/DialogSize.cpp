@@ -20,7 +20,7 @@ DialogSize::DialogSize()
 }
 
 
-void DialogSize::Initialize(HWND hDlg)
+void DialogSize::InitializeSize(HWND hDlg)
 {
 	RECT rect = { 0, 0, 0, 0 };
 	GetWindowRect(hDlg, &rect);
@@ -39,7 +39,7 @@ void DialogSize::Initialize(HWND hDlg)
 }
 
 
-void DialogSize::SetMinimum(LONG cx, LONG cy)
+void DialogSize::SetMinimumSize(LONG cx, LONG cy)
 {
     m_cxMinimum = cx;
     m_cyMinimum = cy;
