@@ -5,6 +5,7 @@
 #include "InputManager.h"
 #include "ConfigurationDialogBox.h"
 #include "hnrt/Debug.h"
+#include "hnrt/WindowClass.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/String.h"
 #include "hnrt/VirtualKey.h"
@@ -20,8 +21,6 @@
 using namespace hnrt;
 
 
-static long s_RefCnt = 0;
-static ATOM s_ClassAtom = 0;
 static const WCHAR s_szClassName[] = { L"HNRT_GhostTypist" };
 
 
@@ -37,7 +36,8 @@ static const WCHAR s_szClassName[] = { L"HNRT_GhostTypist" };
 
 
 MainWindow::MainWindow(HINSTANCE hInstance)
-    : ComLibrary(COINIT_APARTMENTTHREADED)
+    : WindowApp(s_szClassName)
+    , ComLibrary(COINIT_APARTMENTTHREADED)
     , m_hInstance(hInstance)
     , m_pCfg(Configuration::Create())
     , m_cButtons(0)
@@ -47,95 +47,36 @@ MainWindow::MainWindow(HINSTANCE hInstance)
     , m_bSizing(false)
     , m_Ghost()
 {
-    if (InterlockedIncrement(&s_RefCnt) == 1)
-    {
-        WNDCLASSEXW wc;
-        ZeroMemory(&wc, sizeof(wc));
-        wc.cbSize = sizeof(wc);
-        wc.style = 0;
-        wc.lpfnWndProc = MessageCallback;
-        wc.hInstance = hInstance;
-        wc.hIcon = LoadIconW(hInstance, MAKEINTRESOURCEW(IDI_ICON1));
-        wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-        wc.lpszClassName = s_szClassName;
-        s_ClassAtom = RegisterClassExW(&wc);
-        if (!s_ClassAtom)
-        {
-            throw Win32Exception(GetLastError(), L"MainWindow::ctor failed to register a window class.");
-        }
-    }
 }
 
 
-MainWindow::~MainWindow()
-{
-    if (InterlockedDecrement(&s_RefCnt) == 0)
-    {
-        UnregisterClassW(s_szClassName, m_hInstance);
-    }
-}
-
-
-HWND MainWindow::Initialize(int nCmdShow)
+void MainWindow::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
     m_pCfg->Load();
-    HWND hwnd = CreateWindowExW(0, s_szClassName, String::Format(ResourceString(IDS_CAPTION_ARG), m_pCfg->CredentialsList.DefaultCredentials->Username), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, m_pCfg->Width, CW_USEDEFAULT, NULL, CreateMenuBar(), m_hInstance, this);
-    if (!hwnd)
+    WindowClass wc(m_preferences.ClassName);
+    if (!wc.SetWindowProcedure(MessageCallback)
+            .SetInstance(hInstance)
+            .SetIcon(LoadIconW(hInstance, MAKEINTRESOURCEW(IDI_ICON1)))
+            .SetBackground(WHITE_BRUSH)
+            .Register())
     {
-        throw Win32Exception(GetLastError(), L"MainWindow::Initialize failed to create a window.");
+        throw Win32Exception(GetLastError(), L"Failed to register a window class.");
     }
-    ShowWindow(hwnd, nCmdShow);
-    UpdateWindow(hwnd);
+    m_preferences
+        .SetWindowName(String::Format(ResourceString(IDS_CAPTION_ARG), m_pCfg->CredentialsList.DefaultCredentials->Username))
+        .SetWidth(m_pCfg->Width)
+        .SetMenu(CreateMenuBar());
+    WindowApp::Open(hInstance, lpCmdLine, nCmdShow);
     if (!wcslen(m_pCfg->CredentialsList.DefaultCredentials->Username))
     {
-        Configure(hwnd);
+        Configure(m_hwnd);
     }
-    return hwnd;
 }
 
 
-int MainWindow::Run()
+void MainWindow::Close(HINSTANCE hInstance)
 {
-    MSG msg;
-    while (GetMessageW(&msg, NULL, 0, 0))
-    {
-        TranslateMessage(&msg);
-        DispatchMessageW(&msg);
-    }
-    return msg.message == WM_QUIT ? static_cast<int>(msg.wParam) : EXIT_FAILURE;
-}
-
-
-LRESULT CALLBACK MainWindow::MessageCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    MainWindow* pThis = reinterpret_cast<MainWindow*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
-    if (pThis)
-    {
-        switch (uMsg)
-        {
-        case WM_CREATE:
-            pThis->OnCreate(hwnd);
-            return 0;
-        case WM_DESTROY:
-            pThis->OnDestroy(hwnd);
-            return 0;
-        case WM_SIZE:
-            pThis->OnSize(hwnd, static_cast<UINT>(wParam));
-            return 0;
-        case WM_TIMER:
-            return pThis->OnTimer(hwnd, wParam, lParam);
-        case WM_COMMAND:
-            return pThis->OnCommand(hwnd, wParam, lParam);
-        default:
-            break;
-        }
-    }
-    else if (uMsg == WM_NCCREATE)
-    {
-        pThis = reinterpret_cast<MainWindow*>(reinterpret_cast<CREATESTRUCTW*>(lParam)->lpCreateParams);
-        SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
-    }
-    return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+    WindowApp::Close(hInstance);
 }
 
 
@@ -167,19 +108,19 @@ void MainWindow::OnDestroy(HWND hwnd)
 {
     DBGFNC(L"MainWindow::OnDestroy");
     m_Ghost.Uninitialize();
-    PostQuitMessage(EXIT_SUCCESS);
 }
 
 
-void MainWindow::OnSize(HWND hwnd, UINT uHint)
+void MainWindow::OnSize(HWND hwnd, WPARAM wParam, LPARAM lParam)
 {
     DBGFNC(L"MainWindow::OnSize");
-    if (uHint == SIZE_MINIMIZED || m_bSizing)
+    WindowApp::OnSize(hwnd, wParam, lParam);
+    if (wParam == SIZE_MINIMIZED || m_bSizing)
     {
         return;
     }
     m_bSizing = true;
-    DoLayout(hwnd, uHint);
+    DoLayout(hwnd, static_cast<UINT>(wParam));
     m_bSizing = false;
 }
 
@@ -208,13 +149,13 @@ LRESULT MainWindow::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
     {
     case IDM_FILE_EXIT:
         DestroyWindow(hwnd);
-        return 0;
+        break;
     case IDM_EDIT_CONFIGURE:
         Configure(hwnd);
-        return 0;
+        break;
     case IDM_HELP_ABOUT:
         OnAbout(hwnd);
-        return 0;
+        break;
     default:
         if (BUTTONID_BASE <= wControlId && wControlId < BUTTONID_BASE + m_cButtons)
         {
@@ -225,9 +166,9 @@ LRESULT MainWindow::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
                 {
                     OnButtonClicked(hwnd, wControlId - BUTTONID_BASE);
                 }
-                return 0;
-            default:
                 break;
+            default:
+                return DefWindowProcW(hwnd, WM_COMMAND, wParam, lParam);
             }
         }
         else if (IDM_EDIT_USERNAME_BASE <= wControlId && wControlId < IDM_EDIT_USERNAME_BASE + m_pCfg->CredentialsList.Count)
@@ -245,9 +186,13 @@ LRESULT MainWindow::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
         {
             ToggleButtonVisibility(hwnd, wControlId - IDM_VIEW_TARGET_BASE);
         }
+        else
+        {
+            return DefWindowProcW(hwnd, WM_COMMAND, wParam, lParam);
+        }
         break;
     }
-    return DefWindowProcW(hwnd, WM_COMMAND, wParam, lParam);
+    return 0;
 }
 
 

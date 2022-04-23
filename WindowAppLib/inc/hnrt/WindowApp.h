@@ -31,7 +31,7 @@ namespace hnrt
 		virtual void OnCreate(HWND hwnd);
 		virtual void OnDestroy(HWND hwnd);
 		virtual void OnClose(HWND hwnd);
-		virtual void OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam);
+		virtual void OnSize(HWND hwnd, WPARAM wParam, LPARAM lParam);
 		virtual LRESULT OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam);
 		virtual LRESULT OnTimer(HWND hDlg, WPARAM wParam, LPARAM lParam);
 

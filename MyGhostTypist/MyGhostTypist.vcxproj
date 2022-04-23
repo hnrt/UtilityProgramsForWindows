@@ -60,7 +60,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>res;$(SolutionDir)CoreLib\inc\;$(SolutionDir)KeyboardMouse\inc\;$(SolutionDir)KeyboardMouseBridge\inc\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>res;$(SolutionDir)CoreLib\inc\;$(SolutionDir)KeyboardMouse\inc\;$(SolutionDir)KeyboardMouseBridge\inc\;$(SolutionDir)WindowAppLib\inc\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -82,7 +82,7 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>res;$(SolutionDir)CoreLib\inc\;$(SolutionDir)KeyboardMouse\inc\;$(SolutionDir)KeyboardMouseBridge\inc\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>res;$(SolutionDir)CoreLib\inc\;$(SolutionDir)KeyboardMouse\inc\;$(SolutionDir)KeyboardMouseBridge\inc\;$(SolutionDir)WindowAppLib\inc\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
