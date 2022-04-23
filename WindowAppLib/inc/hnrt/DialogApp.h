@@ -1,14 +1,16 @@
 #pragma once
 
 
-#include "hnrt/DialogSize.h"
+#include "hnrt/AnyApp.h"
+#include "hnrt/WindowSize.h"
 
 
 namespace hnrt
 {
 	class DialogApp
-		: protected DialogSize
-		, protected DialogLayout
+		: protected AnyApp
+		, protected WindowSize
+		, protected WindowLayout
 	{
 	public:
 
@@ -17,37 +19,21 @@ namespace hnrt
 		virtual ~DialogApp() = default;
 		void operator =(const DialogApp&) = delete;
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
-		virtual void Run();
-		virtual void Close();
-		void SetAccelerators(HINSTANCE hInstance, UINT id);
-
-		inline int get_ExitCode();
-
-		__declspec(property(get = get_ExitCode)) int ExitCode;
-
+		virtual void Close(HINSTANCE hInstance);
 
 	protected:
 
-		int TryProcessMessage();
-
-		static INT_PTR CALLBACK ProcessMessage(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+		static INT_PTR CALLBACK MessageCallback(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 		static DialogApp* GetInstance(HWND hDlg);
 
+		virtual void ProcessMessage(MSG* pMsg);
 		virtual void OnCreate(HWND hDlg);
-		virtual void OnDestory(HWND hDlg);
+		virtual void OnDestroy(HWND hDlg);
 		virtual void OnClose(HWND hDlg);
 		virtual void OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam);
-		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
-		virtual void OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam);
+		virtual INT_PTR OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam);
+		virtual INT_PTR OnTimer(HWND hDlg, WPARAM wParam, LPARAM lParam);
 
-		int m_iExitCode;
 		UINT m_idTemplate;
-		HACCEL m_hAccelTable;
-		HWND m_hwnd;
 	};
-
-	inline int DialogApp::get_ExitCode()
-	{
-		return m_iExitCode;
-	}
 }

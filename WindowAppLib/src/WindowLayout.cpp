@@ -1,26 +1,25 @@
 #include "pch.h"
-#include "hnrt/DialogLayout.h"
+#include "hnrt/WindowLayout.h"
 
 
 using namespace hnrt;
 
 
-void DialogLayout::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
+void WindowLayout::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
 }
 
 
-void DialogLayout::UpdateLayout(HWND hDlg, UINT id, LONG dx, LONG dy, LONG dcx, LONG dcy, BOOL bInvalidate)
+void WindowLayout::UpdateLayout(HWND hwndParent, HWND hwnd, LONG dx, LONG dy, LONG dcx, LONG dcy, BOOL bInvalidate)
 {
-    HWND hwndChild = GetDlgItem(hDlg, id);
     UINT uFlags = SWP_NOZORDER;
     LONG x, y, cx, cy;
     RECT rect = { 0, 0, 0, 0 };
-    GetWindowRect(hwndChild, &rect);
+    GetWindowRect(hwnd, &rect);
     if (dx || dy)
     {
         POINT pt = { rect.left, rect.top };
-        ScreenToClient(hDlg, &pt);
+        ScreenToClient(hwndParent, &pt);
         x = pt.x + dx;
         y = pt.y + dy;
     }
@@ -41,9 +40,15 @@ void DialogLayout::UpdateLayout(HWND hDlg, UINT id, LONG dx, LONG dy, LONG dcx, 
         cy = 0;
         uFlags |= SWP_NOSIZE;
     }
-    SetWindowPos(hwndChild, NULL, x, y, cx, cy, uFlags);
+    SetWindowPos(hwnd, NULL, x, y, cx, cy, uFlags);
     if (bInvalidate)
     {
-        InvalidateRect(hwndChild, NULL, TRUE);
+        InvalidateRect(hwnd, NULL, TRUE);
     }
+}
+
+
+void WindowLayout::UpdateLayout(HWND hwndDialog, UINT id, LONG dx, LONG dy, LONG dcx, LONG dcy, BOOL bInvalidate)
+{
+    UpdateLayout(hwndDialog, GetDlgItem(hwndDialog, id), dx, dy, dcx, dcy, bInvalidate);
 }

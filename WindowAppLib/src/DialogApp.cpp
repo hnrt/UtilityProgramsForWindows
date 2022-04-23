@@ -2,6 +2,7 @@
 #include "hnrt/DialogApp.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/Exception.h"
+#include "hnrt/Interlocked.h"
 
 
 #pragma comment(lib,"Core")
@@ -11,12 +12,10 @@ using namespace hnrt;
 
 
 DialogApp::DialogApp(UINT idTemplate)
-    : DialogSize()
-    , DialogLayout()
-    , m_iExitCode(EXIT_FAILURE)
+    : AnyApp()
+    , WindowSize()
+    , WindowLayout()
     , m_idTemplate(idTemplate)
-    , m_hAccelTable(nullptr)
-    , m_hwnd(nullptr)
 {
 }
 
@@ -25,7 +24,7 @@ void DialogApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
     UNREFERENCED_PARAMETER(lpCmdLine);
     ResourceString::m_hInstance = hInstance;
-    m_hwnd = CreateDialogParamW(hInstance, MAKEINTRESOURCE(m_idTemplate), NULL, ProcessMessage, reinterpret_cast<LPARAM>(this));
+    m_hwnd = CreateDialogParamW(hInstance, MAKEINTRESOURCE(m_idTemplate), NULL, MessageCallback, reinterpret_cast<LPARAM>(this));
     if (!m_hwnd)
     {
         throw Exception(L"CreateDialog failed.");
@@ -35,99 +34,50 @@ void DialogApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 }
 
 
-void DialogApp::Run()
+void DialogApp::Close(HINSTANCE hInstance)
 {
-    if (!m_hwnd)
+    UNREFERENCED_PARAMETER(hInstance);
+    HWND hwnd = Interlocked<HWND>::ExchangePointer(&m_hwnd, nullptr);
+    if (hwnd)
     {
-        return;
-    }
-    while (1)
-    {
-        MSG msg;
-        BOOL bRet = GetMessageW(&msg, NULL, 0, 0);
-        if (bRet == -1)
-        {
-            throw Exception(L"GetMessage failed.");
-        }
-        else if (!bRet)
-        {
-            m_iExitCode = static_cast<int>(msg.wParam);
-            break;
-        }
-        if (m_hAccelTable && TranslateAcceleratorW(m_hwnd, m_hAccelTable, &msg))
-        {
-            continue;
-        }
-        else if (IsDialogMessageW(m_hwnd, &msg))
-        {
-            continue;
-        }
-        else
-        {
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
-        }
+        DestroyWindow(hwnd);
     }
 }
 
 
-void DialogApp::Close()
+void DialogApp::ProcessMessage(MSG* pMsg)
 {
-    if (!m_hwnd)
+    if (m_hAccelTable && TranslateAcceleratorW(m_hwnd, m_hAccelTable, pMsg))
     {
-        return;
+        // OK
     }
-    DestroyWindow(m_hwnd);
-}
-
-
-void DialogApp::SetAccelerators(HINSTANCE hInstance, UINT id)
-{
-    m_hAccelTable = LoadAcceleratorsW(hInstance, MAKEINTRESOURCEW(id));
-}
-
-
-int DialogApp::TryProcessMessage()
-{
-    MSG msg;
-    if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+    else if (IsDialogMessageW(m_hwnd, pMsg))
     {
-        if (msg.message == WM_QUIT)
-        {
-            PostQuitMessage(static_cast<int>(msg.wParam));
-            return -1;
-        }
-        if (m_hAccelTable && TranslateAcceleratorW(m_hwnd, m_hAccelTable, &msg))
-        {
-            // OK
-        }
-        else if (IsDialogMessageW(m_hwnd, &msg))
-        {
-            // OK
-        }
-        else
-        {
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
-        }
-        return 1;
+        // OK
     }
     else
     {
-        return 0;
+        TranslateMessage(pMsg);
+        DispatchMessageW(pMsg);
     }
 }
 
 
-INT_PTR CALLBACK DialogApp::ProcessMessage(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK DialogApp::MessageCallback(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
     case WM_INITDIALOG:
-        reinterpret_cast<DialogApp*>(lParam)->OnCreate(hDlg);
+    {
+        DialogApp* pThis = reinterpret_cast<DialogApp*>(lParam);
+        SetWindowLongPtrW(hDlg, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
+        pThis->InitializeSize(hDlg);
+        pThis->OnCreate(hDlg);
         break;
+    }
     case WM_DESTROY:
-        GetInstance(hDlg)->OnDestory(hDlg);
+        GetInstance(hDlg)->OnDestroy(hDlg);
+        SetWindowLongPtrW(hDlg, GWLP_USERDATA, 0);
         break;
     case WM_CLOSE:
         GetInstance(hDlg)->OnClose(hDlg);
@@ -136,12 +86,13 @@ INT_PTR CALLBACK DialogApp::ProcessMessage(HWND hDlg, UINT message, WPARAM wPara
         GetInstance(hDlg)->OnSize(hDlg, wParam, lParam);
         break;
     case WM_COMMAND:
-        GetInstance(hDlg)->OnCommand(hDlg, wParam, lParam);
-        break;
+        return GetInstance(hDlg)->OnCommand(hDlg, wParam, lParam);
+    case WM_TIMER:
+        return GetInstance(hDlg)->OnTimer(hDlg, wParam, lParam);
     default:
-        return static_cast<INT_PTR>(FALSE);
+        return FALSE;
     }
-    return static_cast<INT_PTR>(TRUE);
+    return TRUE;
 }
 
 
@@ -153,14 +104,11 @@ DialogApp* DialogApp::GetInstance(HWND hDlg)
 
 void DialogApp::OnCreate(HWND hDlg)
 {
-    SetWindowLongPtrW(hDlg, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-    InitializeSize(hDlg);
 }
 
 
-void DialogApp::OnDestory(HWND hDlg)
+void DialogApp::OnDestroy(HWND hDlg)
 {
-    SetWindowLongPtrW(hDlg, GWLP_USERDATA, 0);
 }
 
 
@@ -173,15 +121,17 @@ void DialogApp::OnClose(HWND hDlg)
 
 void DialogApp::OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {
-    DialogSize::OnSize(hDlg, wParam, lParam, *this);
+    WindowSize::OnSize(hDlg, wParam, lParam, *this);
 }
 
 
-void DialogApp::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
+INT_PTR DialogApp::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {
+    return FALSE;
 }
 
 
-void DialogApp::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
+INT_PTR DialogApp::OnTimer(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {
+    return FALSE;
 }

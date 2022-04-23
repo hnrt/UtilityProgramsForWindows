@@ -1,11 +1,11 @@
 #include "pch.h"
-#include "hnrt/DialogSize.h"
+#include "hnrt/WindowSize.h"
 
 
 using namespace hnrt;
 
 
-DialogSize::DialogSize()
+WindowSize::WindowSize()
 	: m_cxInitial(0)
 	, m_cyInitial(0)
 	, m_cxMinimum(0)
@@ -20,33 +20,33 @@ DialogSize::DialogSize()
 }
 
 
-void DialogSize::InitializeSize(HWND hDlg)
+void WindowSize::InitializeSize(HWND hwnd)
 {
 	RECT rect = { 0, 0, 0, 0 };
-	GetWindowRect(hDlg, &rect);
+	GetWindowRect(hwnd, &rect);
 	m_cxMinimum = m_cxInitial = rect.right - rect.left;
 	m_cyMinimum = m_cyInitial = rect.bottom - rect.top;
 
 	RECT rectClient = { 0, 0, 0, 0 };
-	GetClientRect(hDlg, &rectClient);
+	GetClientRect(hwnd, &rectClient);
 	m_cxClient = m_cxClientInitial = rectClient.right;
 	m_cyClient = m_cyClientInitial = rectClient.bottom;
 
     POINT pt = { 0, 0 };
-    ClientToScreen(hDlg, &pt);
+    ClientToScreen(hwnd, &pt);
     m_cxBorder = pt.x - rect.left;
     m_cyTitle = pt.y - rect.top;
 }
 
 
-void DialogSize::SetMinimumSize(LONG cx, LONG cy)
+void WindowSize::SetMinimumSize(LONG cx, LONG cy)
 {
     m_cxMinimum = cx;
     m_cyMinimum = cy;
 }
 
 
-void DialogSize::OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam, DialogLayout& rLayout)
+void WindowSize::OnSize(HWND hwnd, WPARAM wParam, LPARAM lParam, WindowLayout& rLayout)
 {
     if (wParam == SIZE_MINIMIZED)
     {
@@ -54,12 +54,12 @@ void DialogSize::OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam, DialogLayout& r
     }
 
     RECT rect = { 0, 0, 0, 0 };
-    GetWindowRect(hDlg, &rect);
+    GetWindowRect(hwnd, &rect);
     LONG cx = rect.right - rect.left;
     LONG cy = rect.bottom - rect.top;
     if (cx < m_cxMinimum || cy < m_cyMinimum)
     {
-        SetWindowPos(hDlg, NULL, 0, 0, cx > m_cxMinimum ? cx : m_cxMinimum, cy > m_cyMinimum ? cy : m_cyMinimum, SWP_NOMOVE | SWP_NOZORDER);
+        SetWindowPos(hwnd, NULL, 0, 0, cx > m_cxMinimum ? cx : m_cxMinimum, cy > m_cyMinimum ? cy : m_cyMinimum, SWP_NOMOVE | SWP_NOZORDER);
         return;
     }
 
@@ -71,6 +71,6 @@ void DialogSize::OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam, DialogLayout& r
     m_cyClient = cyClient;
     if (cxDelta || cyDelta)
     {
-        rLayout.UpdateLayout(hDlg, cxDelta, cyDelta);
+        rLayout.UpdateLayout(hwnd, cxDelta, cyDelta);
     }
 }

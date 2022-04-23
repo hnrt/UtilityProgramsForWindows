@@ -603,23 +603,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="inc\hnrt\AnyApp.h" />
     <ClInclude Include="inc\hnrt\DialogApp.h" />
-    <ClInclude Include="inc\hnrt\DialogLayout.h" />
-    <ClInclude Include="inc\hnrt\DialogSize.h" />
+    <ClInclude Include="inc\hnrt\WindowLayout.h" />
+    <ClInclude Include="inc\hnrt\WindowSize.h" />
     <ClInclude Include="inc\hnrt\WindowApp.h" />
+    <ClInclude Include="inc\hnrt\WindowClass.h" />
+    <ClInclude Include="inc\hnrt\WindowPreferences.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\AnyApp.cpp" />
     <ClCompile Include="src\DialogApp.cpp" />
-    <ClCompile Include="src\DialogLayout.cpp" />
-    <ClCompile Include="src\DialogSize.cpp" />
+    <ClCompile Include="src\WindowLayout.cpp" />
+    <ClCompile Include="src\WindowSize.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\WindowApp.cpp" />
+    <ClCompile Include="src\WindowClass.cpp" />
+    <ClCompile Include="src\WindowPreferences.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

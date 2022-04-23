@@ -1,22 +1,22 @@
 #pragma once
 
 
-#include "hnrt/DialogLayout.h"
+#include "hnrt/WindowLayout.h"
 
 
 namespace hnrt
 {
-	class DialogSize
+	class WindowSize
 	{
 	public:
 
-		DialogSize();
-		DialogSize(const DialogSize&) = delete;
-		~DialogSize() = default;
-		void operator =(const DialogSize&) = delete;
-		void InitializeSize(HWND hDlg);
+		WindowSize();
+		WindowSize(const WindowSize&) = delete;
+		~WindowSize() = default;
+		void operator =(const WindowSize&) = delete;
+		void InitializeSize(HWND hwnd);
 		void SetMinimumSize(LONG cx, LONG cy);
-		void OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam, DialogLayout& rLayout);
+		void OnSize(HWND hwnd, WPARAM wParam, LPARAM lParam, WindowLayout& rLayout);
 		LONG get_InitialWidth() const;
 		LONG get_InitialHeight() const;
 		LONG get_MinimumWidth() const;
@@ -45,32 +45,32 @@ namespace hnrt
 		LONG m_cyTitle;
 	};
 
-	inline LONG DialogSize::get_InitialWidth() const
+	inline LONG WindowSize::get_InitialWidth() const
 	{
 		return m_cxInitial;
 	}
 
-	inline LONG DialogSize::get_InitialHeight() const
+	inline LONG WindowSize::get_InitialHeight() const
 	{
 		return m_cyInitial;
 	}
 
-	inline LONG DialogSize::get_MinimumWidth() const
+	inline LONG WindowSize::get_MinimumWidth() const
 	{
 		return m_cxMinimum;
 	}
 
-	inline LONG DialogSize::get_MinimumHeight() const
+	inline LONG WindowSize::get_MinimumHeight() const
 	{
 		return m_cyMinimum;
 	}
 
-	inline LONG DialogSize::get_BorderThickness() const
+	inline LONG WindowSize::get_BorderThickness() const
 	{
 		return m_cxBorder;
 	}
 
-	inline LONG DialogSize::get_TitleHeight() const
+	inline LONG WindowSize::get_TitleHeight() const
 	{
 		return m_cyTitle;
 	}
