@@ -11,18 +11,12 @@ using namespace hnrt;
 
 
 DialogApp::DialogApp(UINT idTemplate)
-    : m_iExitCode(EXIT_FAILURE)
+    : DialogLayout()
+    , m_iExitCode(EXIT_FAILURE)
     , m_idTemplate(idTemplate)
     , m_hAccelTable(nullptr)
     , m_hwnd(nullptr)
-	, m_cxInitial(0)
-    , m_cyInitial(0)
-    , m_cxMinimum(0)
-    , m_cyMinimum(0)
-    , m_cxClientInitial(0)
-    , m_cyClientInitial(0)
-    , m_cxClient(0)
-    , m_cyClient(0)
+	, m_size()
 {
 }
 
@@ -152,55 +146,10 @@ DialogApp* DialogApp::GetInstance(HWND hDlg)
 }
 
 
-void DialogApp::UpdateLayout(HWND hDlg, UINT id, LONG dx, LONG dy, LONG dcx, LONG dcy, BOOL bInvalidate)
-{
-    HWND hwndChild = GetDlgItem(hDlg, id);
-    UINT uFlags = SWP_NOZORDER;
-    LONG x, y, cx, cy;
-    RECT rect;
-    GetWindowRect(hwndChild, &rect);
-    if (dx || dy)
-    {
-        POINT pt = { rect.left, rect.top };
-        ScreenToClient(hDlg, &pt);
-        x = pt.x + dx;
-        y = pt.y + dy;
-    }
-    else
-    {
-        x = 0;
-        y = 0;
-        uFlags |= SWP_NOMOVE;
-    }
-    if (dcx || dcy)
-    {
-        cx = rect.right - rect.left + dcx;
-        cy = rect.bottom - rect.top + dcy;
-    }
-    else
-    {
-        cx = 0;
-        cy = 0;
-        uFlags |= SWP_NOSIZE;
-    }
-    SetWindowPos(hwndChild, NULL, x, y, cx, cy, uFlags);
-    if (bInvalidate)
-    {
-        InvalidateRect(hwndChild, NULL, TRUE);
-    }
-}
-
-
 void DialogApp::OnCreate(HWND hDlg)
 {
     SetWindowLongPtrW(hDlg, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-    RECT rect = { 0, 0, 0, 0 };
-    GetWindowRect(hDlg, &rect);
-    m_cxMinimum = m_cxInitial = rect.right - rect.left;
-    m_cyMinimum = m_cyInitial = rect.bottom - rect.top;
-    GetClientRect(hDlg, &rect);
-    m_cxClient = m_cxClientInitial = rect.right;
-    m_cyClient = m_cyClientInitial = rect.bottom;
+    m_size.Initialize(hDlg);
 }
 
 
@@ -219,25 +168,7 @@ void DialogApp::OnClose(HWND hDlg)
 
 void DialogApp::OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {
-    RECT rect = { 0, 0, 0, 0 };
-    GetWindowRect(hDlg, &rect);
-    LONG cx = rect.right - rect.left;
-    LONG cy = rect.bottom - rect.top;
-    if (cx < m_cxMinimum || cy < m_cyMinimum)
-    {
-        SetWindowPos(hDlg, NULL, 0, 0, cx > m_cxMinimum ? cx : m_cxMinimum, cy > m_cyMinimum ? cy : m_cyMinimum, SWP_NOMOVE | SWP_NOZORDER);
-        return;
-    }
-    LONG cxClient = LOWORD(lParam);
-    LONG cyClient = HIWORD(lParam);
-    LONG cxDelta = cxClient - m_cxClient;
-    LONG cyDelta = cyClient - m_cyClient;
-    m_cxClient = cxClient;
-    m_cyClient = cyClient;
-    if (cxDelta || cyDelta)
-    {
-        UpdateLayout(hDlg, cxDelta, cyDelta);
-    }
+    m_size.OnSize(hDlg, wParam, lParam, *this);
 }
 
 

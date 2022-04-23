@@ -604,11 +604,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="inc\hnrt\DialogApp.h" />
+    <ClInclude Include="inc\hnrt\DialogLayout.h" />
+    <ClInclude Include="inc\hnrt\DialogSize.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DialogApp.cpp" />
+    <ClCompile Include="src\DialogLayout.cpp" />
+    <ClCompile Include="src\DialogSize.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

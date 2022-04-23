@@ -1,12 +1,13 @@
 #pragma once
 
 
-#include <Windows.h>
+#include "hnrt/DialogSize.h"
 
 
 namespace hnrt
 {
 	class DialogApp
+		: protected DialogLayout
 	{
 	public:
 
@@ -29,7 +30,6 @@ namespace hnrt
 
 		static INT_PTR CALLBACK ProcessMessage(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 		static DialogApp* GetInstance(HWND hDlg);
-		static void UpdateLayout(HWND hDlg, UINT id, LONG dx, LONG dy, LONG dcx, LONG dcy, BOOL bInvalidate = FALSE);
 
 		virtual void OnCreate(HWND hDlg);
 		virtual void OnDestory(HWND hDlg);
@@ -42,14 +42,7 @@ namespace hnrt
 		UINT m_idTemplate;
 		HACCEL m_hAccelTable;
 		HWND m_hwnd;
-		LONG m_cxInitial;
-		LONG m_cyInitial;
-		LONG m_cxMinimum;
-		LONG m_cyMinimum;
-		LONG m_cxClientInitial;
-		LONG m_cyClientInitial;
-		LONG m_cxClient;
-		LONG m_cyClient;
+		DialogSize m_size;
 	};
 
 	inline int DialogApp::get_ExitCode()

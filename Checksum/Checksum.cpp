@@ -97,23 +97,23 @@ void Checksum::OnDestory(HWND hDlg)
 
 void Checksum::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
-    DialogApp::UpdateLayout(hDlg, IDC_EXIT, cxDelta, cyDelta, 0, 0);
-    DialogApp::UpdateLayout(hDlg, IDC_CALCULATE, cxDelta, 0, 0, 0);
-    DialogApp::UpdateLayout(hDlg, IDC_COPY, cxDelta, 0, 0, 0);
-    DialogApp::UpdateLayout(hDlg, IDC_RESULT_BOX, 0, cyDelta, cxDelta, 0);
-    DialogApp::UpdateLayout(hDlg, IDC_RESULT, 0, cyDelta, cxDelta, 0, TRUE);
-    DialogApp::UpdateLayout(hDlg, IDC_METHOD, cxDelta, 0, 0, cyDelta);
-    DialogApp::UpdateLayout(hDlg, IDC_MD5, cxDelta, 0, 0, 0, TRUE);
-    DialogApp::UpdateLayout(hDlg, IDC_SHA1, cxDelta, 0, 0, 0, TRUE);
-    DialogApp::UpdateLayout(hDlg, IDC_SHA256, cxDelta, 0, 0, 0, TRUE);
-    DialogApp::UpdateLayout(hDlg, IDC_SHA384, cxDelta, 0, 0, 0, TRUE);
-    DialogApp::UpdateLayout(hDlg, IDC_SHA512, cxDelta, 0, 0, 0, TRUE);
-    DialogApp::UpdateLayout(hDlg, IDC_SOURCE, 0, 0, cxDelta, cyDelta);
-    DialogApp::UpdateLayout(hDlg, IDC_BROWSE, cxDelta, 0, 0, 0);
-    DialogApp::UpdateLayout(hDlg, IDC_CHARSET, cxDelta, 0, 0, 0);
-    DialogApp::UpdateLayout(hDlg, IDC_LINEBREAK, cxDelta, 0, 0, 0);
-    DialogApp::UpdateLayout(hDlg, IDC_PATH, 0, 0, cxDelta, 0);
-    DialogApp::UpdateLayout(hDlg, IDC_CONTENT, 0, 0, cxDelta, cyDelta);
+    DialogLayout::UpdateLayout(hDlg, IDC_EXIT, cxDelta, cyDelta, 0, 0);
+    DialogLayout::UpdateLayout(hDlg, IDC_CALCULATE, cxDelta, 0, 0, 0);
+    DialogLayout::UpdateLayout(hDlg, IDC_COPY, cxDelta, 0, 0, 0);
+    DialogLayout::UpdateLayout(hDlg, IDC_RESULT_BOX, 0, cyDelta, cxDelta, 0);
+    DialogLayout::UpdateLayout(hDlg, IDC_RESULT, 0, cyDelta, cxDelta, 0, TRUE);
+    DialogLayout::UpdateLayout(hDlg, IDC_METHOD, cxDelta, 0, 0, cyDelta);
+    DialogLayout::UpdateLayout(hDlg, IDC_MD5, cxDelta, 0, 0, 0, TRUE);
+    DialogLayout::UpdateLayout(hDlg, IDC_SHA1, cxDelta, 0, 0, 0, TRUE);
+    DialogLayout::UpdateLayout(hDlg, IDC_SHA256, cxDelta, 0, 0, 0, TRUE);
+    DialogLayout::UpdateLayout(hDlg, IDC_SHA384, cxDelta, 0, 0, 0, TRUE);
+    DialogLayout::UpdateLayout(hDlg, IDC_SHA512, cxDelta, 0, 0, 0, TRUE);
+    DialogLayout::UpdateLayout(hDlg, IDC_SOURCE, 0, 0, cxDelta, cyDelta);
+    DialogLayout::UpdateLayout(hDlg, IDC_BROWSE, cxDelta, 0, 0, 0);
+    DialogLayout::UpdateLayout(hDlg, IDC_CHARSET, cxDelta, 0, 0, 0);
+    DialogLayout::UpdateLayout(hDlg, IDC_LINEBREAK, cxDelta, 0, 0, 0);
+    DialogLayout::UpdateLayout(hDlg, IDC_PATH, 0, 0, cxDelta, 0);
+    DialogLayout::UpdateLayout(hDlg, IDC_CONTENT, 0, 0, cxDelta, cyDelta);
 }
 
 
