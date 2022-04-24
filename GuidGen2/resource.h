@@ -6,6 +6,7 @@
 #define IDR_ACCELERATOR1                131
 #define IDS_CAPTION                     132
 #define IDS_UNKNOWN_FAILURE             133
+#define IDS_OUT_OF_MEMORY               134
 #define IDC_RADIO_UPPERCASE             1000
 #define IDC_RADIO_LOWERCASE             1001
 #define IDC_RADIO_IMPLEMENT             1002

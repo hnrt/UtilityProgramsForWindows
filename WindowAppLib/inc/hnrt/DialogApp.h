@@ -19,7 +19,7 @@ namespace hnrt
 		virtual ~DialogApp() = default;
 		void operator =(const DialogApp&) = delete;
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
-		virtual void Close(HINSTANCE hInstance);
+		virtual void Close();
 
 	protected:
 

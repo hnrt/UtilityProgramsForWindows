@@ -17,7 +17,7 @@ namespace hnrt
 		void SetAccelerators(HINSTANCE hInstance, UINT id);
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow) = 0;
 		virtual void Run();
-		virtual void Close(HINSTANCE hInstance) = 0;
+		virtual void Close() = 0;
 
 		inline int get_ExitCode();
 

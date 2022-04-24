@@ -11,16 +11,21 @@ WindowApp::WindowApp(PCWSTR pszClassName)
 	: AnyApp()
     , WindowSize()
     , WindowLayout()
+    , m_class(pszClassName)
     , m_preferences(pszClassName)
 {
+    C.SetWindowProcedure(MessageCallback);
 }
 
 
 void WindowApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
     UNREFERENCED_PARAMETER(lpCmdLine);
-    WindowPreferences& p = m_preferences;
-    m_hwnd = CreateWindowExW(p.ExStyle, p.ClassName, p.WindowName, p.Style, p.X, p.Y, p.Width, p.Height, p.Parent, p.Menu, hInstance, this);
+    if (!C.SetInstance(hInstance).Register())
+    {
+        throw Win32Exception(GetLastError(), L"RegisterClass failed.");
+    }
+    m_hwnd = CreateWindowExW(P.ExStyle, P.ClassName, P.WindowName, P.Style, P.X, P.Y, P.Width, P.Height, P.Parent, P.Menu, hInstance, this);
     if (!m_hwnd)
     {
         throw Win32Exception(GetLastError(), L"CreateWindow failed.");
@@ -30,13 +35,13 @@ void WindowApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 }
 
 
-void WindowApp::Close(HINSTANCE hInstance)
+void WindowApp::Close()
 {
     HWND hwnd = Interlocked<HWND>::ExchangePointer(&m_hwnd, nullptr);
     if (hwnd)
     {
         DestroyWindow(hwnd);
-        UnregisterClassW(m_preferences.ClassName, hInstance);
+        UnregisterClassW(C.Name, C.Instance);
     }
 }
 

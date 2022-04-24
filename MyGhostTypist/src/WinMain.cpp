@@ -13,8 +13,8 @@
 
 
 #pragma comment(lib, "Core")
-#pragma comment(lib, "KeyboardMouseBridge")
 #pragma comment(lib, "WindowApp")
+#pragma comment(lib, "KeyboardMouseBridge")
 
 
 using namespace hnrt;
@@ -30,16 +30,16 @@ int WINAPI wWinMain(
     _In_ int nShowCmd
 )
 {
+    UNREFERENCED_PARAMETER(hPrevInstance);
     DBGFNC(L"WinMain");
+    MainWindow app;
     try
     {
         _wsetlocale(LC_ALL, L"");
         ResourceString::m_hInstance = hInstance;
-        MainWindow app(hInstance);
         app.Open(hInstance, lpCmdLine, nShowCmd);
         app.Run();
-        app.Close(hInstance);
-        return app.ExitCode;
+        app.Close();
     }
     catch (Exception e)
     {
@@ -53,5 +53,5 @@ int WINAPI wWinMain(
     {
         MessageBoxW(NULL, ResourceString(IDS_UNHANDLED_EXCEPTION), ResourceString(IDS_CAPTION), MB_OK | MB_ICONERROR);
     }
-    return EXIT_FAILURE;
+    return app.ExitCode;
 }

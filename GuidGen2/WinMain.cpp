@@ -1,14 +1,25 @@
 #include "framework.h"
 #include <locale.h>
-#include "GuidGen2.h"
+#include <stdexcept>
+#include "hnrt/CoreLibrary.h"
 #include "hnrt/Exception.h"
 #include "hnrt/ResourceString.h"
+#include "GuidGen2.h"
+
+
+#pragma comment(lib, "Ole32")
+#pragma comment(lib, "Core")
+#pragma comment(lib, "WindowApp")
 
 
 using namespace hnrt;
 
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+static CoreLibrary theCore;
+
+
+int APIENTRY wWinMain(
+    _In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
     _In_ LPWSTR lpCmdLine,
     _In_ int nCmdShow)
@@ -18,13 +29,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     try
     {
         _wsetlocale(LC_ALL, L"");
+        ResourceString::m_hInstance = hInstance;
         app.Open(hInstance, lpCmdLine, nCmdShow);
         app.Run();
-        app.Close(hInstance);
+        app.Close();
     }
     catch (Exception e)
     {
         MessageBoxW(NULL, e.Message, ResourceString(IDS_CAPTION), MB_OK | MB_ICONERROR);
+    }
+    catch (std::bad_alloc)
+    {
+        MessageBoxW(NULL, ResourceString(IDS_OUT_OF_MEMORY), ResourceString(IDS_CAPTION), MB_OK | MB_ICONERROR);
     }
     catch (...)
     {

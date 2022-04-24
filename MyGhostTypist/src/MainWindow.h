@@ -21,12 +21,11 @@ namespace hnrt
     {
     public:
 
-        MainWindow(HINSTANCE hInstance);
+        MainWindow();
         MainWindow(const MainWindow&) = delete;
         virtual ~MainWindow() = default;
         void operator =(const MainWindow&) = delete;
         virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
-        virtual void Close(HINSTANCE hInstance);
 
     private:
 
@@ -51,7 +50,6 @@ namespace hnrt
         void CheckButtonStatus();
         void Configure(HWND hwnd);
 
-        HINSTANCE m_hInstance;
         RefPtr<Configuration> m_pCfg;
         ULONG m_cButtons;
         HWND* m_hButtons;

@@ -20,7 +20,6 @@ DialogApp::DialogApp(UINT idTemplate)
 void DialogApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
     UNREFERENCED_PARAMETER(lpCmdLine);
-    ResourceString::m_hInstance = hInstance;
     m_hwnd = CreateDialogParamW(hInstance, MAKEINTRESOURCE(m_idTemplate), NULL, MessageCallback, reinterpret_cast<LPARAM>(this));
     if (!m_hwnd)
     {
@@ -31,9 +30,8 @@ void DialogApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 }
 
 
-void DialogApp::Close(HINSTANCE hInstance)
+void DialogApp::Close()
 {
-    UNREFERENCED_PARAMETER(hInstance);
     HWND hwnd = Interlocked<HWND>::ExchangePointer(&m_hwnd, nullptr);
     if (hwnd)
     {

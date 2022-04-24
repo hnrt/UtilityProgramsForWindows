@@ -1,15 +1,10 @@
 ﻿#include "framework.h"
-#include "GuidGen2.h"
-#include "hnrt/RegistryKey.h"
-#include "hnrt/RegistryValue.h"
 #include "hnrt/Debug.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/ResourceString.h"
-
-
-#pragma comment(lib, "Ole32")
-#pragma comment(lib, "Core")
-#pragma comment(lib, "WindowApp")
+#include "hnrt/RegistryKey.h"
+#include "hnrt/RegistryValue.h"
+#include "GuidGen2.h"
 
 
 #define REG_KEY L"SOFTWARE\\hnrt\\GuidGen2"

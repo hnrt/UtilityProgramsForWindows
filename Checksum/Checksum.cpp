@@ -15,10 +15,6 @@
 #include "hnrt/Debug.h"
 
 
-#pragma comment(lib, "Core")
-#pragma comment(lib, "WindowApp")
-
-
 #define REG_SUBKEY L"SOFTWARE\\hnrt\\Checksum"
 #define REG_NAME_SOURCE L"Source"
 #define REG_NAME_METHOD L"Method"

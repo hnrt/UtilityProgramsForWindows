@@ -12,6 +12,7 @@
 #define IDS_RESULT_IN_OUT               136
 #define IDS_OPENFILE_FAILURE            137
 #define IDS_READFILE_FAILURE            138
+#define IDS_OUT_OF_MEMORY               139
 #define IDC_FILE                        1001
 #define IDC_PATH                        1002
 #define IDC_BROWSE                      1003

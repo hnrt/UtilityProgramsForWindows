@@ -35,10 +35,9 @@ static const WCHAR s_szClassName[] = { L"HNRT_GhostTypist" };
 #define IDM_VIEW_TARGET_BASE 4000
 
 
-MainWindow::MainWindow(HINSTANCE hInstance)
+MainWindow::MainWindow()
     : WindowApp(s_szClassName)
     , ComLibrary(COINIT_APARTMENTTHREADED)
-    , m_hInstance(hInstance)
     , m_pCfg(Configuration::Create())
     , m_cButtons(0)
     , m_hButtons(NULL)
@@ -53,17 +52,9 @@ MainWindow::MainWindow(HINSTANCE hInstance)
 void MainWindow::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
     m_pCfg->Load();
-    WindowClass wc(m_preferences.ClassName);
-    if (!wc.SetWindowProcedure(MessageCallback)
-            .SetInstance(hInstance)
-            .SetIcon(LoadIconW(hInstance, MAKEINTRESOURCEW(IDI_ICON1)))
-            .SetBackground(WHITE_BRUSH)
-            .Register())
-    {
-        throw Win32Exception(GetLastError(), L"Failed to register a window class.");
-    }
-    m_preferences
-        .SetWindowName(String::Format(ResourceString(IDS_CAPTION_ARG), m_pCfg->CredentialsList.DefaultCredentials->Username))
+    C.SetIcon(LoadIconW(hInstance, MAKEINTRESOURCEW(IDI_ICON1)))
+        .SetBackground(WHITE_BRUSH);
+    P.SetWindowName(String::Format(ResourceString(IDS_CAPTION_ARG), m_pCfg->CredentialsList.DefaultCredentials->Username))
         .SetWidth(m_pCfg->Width)
         .SetMenu(CreateMenuBar());
     WindowApp::Open(hInstance, lpCmdLine, nCmdShow);
@@ -71,12 +62,6 @@ void MainWindow::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     {
         Configure(m_hwnd);
     }
-}
-
-
-void MainWindow::Close(HINSTANCE hInstance)
-{
-    WindowApp::Close(hInstance);
 }
 
 
@@ -319,7 +304,7 @@ void MainWindow::RecreateButtons(HWND hwnd)
         for (UINT_PTR index = 0; index < m_pCfg->TargetList.Count; index++)
         {
             RefPtr<Target> pTarget = m_pCfg->TargetList[index];
-            HWND hwndButton = CreateWindowExW(0, L"Button", pTarget->Name, WS_CHILD | (pTarget->IsVisible ? WS_VISIBLE : 0) | WS_DISABLED | BS_CENTER | BS_VCENTER, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwnd, NULL, m_hInstance, NULL);
+            HWND hwndButton = CreateWindowExW(0, L"Button", pTarget->Name, WS_CHILD | (pTarget->IsVisible ? WS_VISIBLE : 0) | WS_DISABLED | BS_CENTER | BS_VCENTER, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwnd, NULL, C.Instance, NULL);
             SetWindowLongW(hwndButton, GWL_ID, BUTTONID_BASE + m_cButtons);
             SendMessageW(hwndButton, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), TRUE);
             m_hButtons[m_cButtons++] = hwndButton;
@@ -507,7 +492,7 @@ void MainWindow::CheckButtonStatus()
 
 void MainWindow::Configure(HWND hwnd)
 {
-    ConfigurationDialogBox cd(m_hInstance);
+    ConfigurationDialogBox cd(C.Instance);
     for (size_t index = 0; index < m_pCfg->CredentialsList.Count; index++)
     {
         cd.CredentialsList.Append(m_pCfg->CredentialsList[index]->Clone());
