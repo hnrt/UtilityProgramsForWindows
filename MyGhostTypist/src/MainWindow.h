@@ -30,7 +30,6 @@ namespace hnrt
     private:
 
         static HFONT CreateFontByNameAndSize(HWND hwnd, PCWSTR pszName, long size);
-        static void DeleteMenuItems(HMENU hMenu);
         HMENU CreateMenuBar();
         virtual void OnCreate(HWND hwnd);
         virtual void OnDestroy(HWND hwnd);

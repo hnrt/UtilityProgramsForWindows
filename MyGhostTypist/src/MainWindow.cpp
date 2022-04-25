@@ -1,9 +1,5 @@
 #include "MainWindow.h"
 #include <CommCtrl.h>
-#include "Configuration.h"
-#include "Action.h"
-#include "InputManager.h"
-#include "ConfigurationDialogBox.h"
 #include "hnrt/Debug.h"
 #include "hnrt/WindowClass.h"
 #include "hnrt/ResourceString.h"
@@ -15,6 +11,12 @@
 #include "hnrt/VersionInfo.h"
 #include "hnrt/WindowsPlatform.h"
 #include "hnrt/UiAutomationFactory.h"
+#include "hnrt/Menu.h"
+#include "hnrt/WindowStyle.h"
+#include "Configuration.h"
+#include "Action.h"
+#include "InputManager.h"
+#include "ConfigurationDialogBox.h"
 #include "resource.h"
 
 
@@ -133,7 +135,7 @@ LRESULT MainWindow::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
     switch (wControlId)
     {
     case IDM_FILE_EXIT:
-        DestroyWindow(hwnd);
+        OnClose(hwnd);
         break;
     case IDM_EDIT_CONFIGURE:
         Configure(hwnd);
@@ -207,29 +209,29 @@ void MainWindow::OnAbout(HWND hwnd)
 
 HMENU MainWindow::CreateMenuBar()
 {
-    HMENU hFileMenu = CreateMenu();
-    AppendMenuW(hFileMenu, MF_STRING, IDM_FILE_EXIT, ResourceString(IDS_EXIT));
-    HMENU hEditMenu = CreateMenu();
-    AppendMenuW(hEditMenu, MF_STRING, IDM_EDIT_CONFIGURE, ResourceString(IDS_CONFIGURE));
-    HMENU hViewMenu = CreateMenu();
-    HMENU hHelpMenu = CreateMenu();
-    AppendMenuW(hHelpMenu, MF_STRING, IDM_HELP_ABOUT, ResourceString(IDS_ABOUT));
-    HMENU hMenuBar = CreateMenu();
-    AppendMenuW(hMenuBar, MF_STRING | MF_POPUP, reinterpret_cast<UINT_PTR>(hFileMenu), ResourceString(IDS_FILE));
-    AppendMenuW(hMenuBar, MF_STRING | MF_POPUP, reinterpret_cast<UINT_PTR>(hEditMenu), ResourceString(IDS_EDIT));
-    AppendMenuW(hMenuBar, MF_STRING | MF_POPUP, reinterpret_cast<UINT_PTR>(hViewMenu), ResourceString(IDS_VIEW));
-    AppendMenuW(hMenuBar, MF_STRING | MF_POPUP, reinterpret_cast<UINT_PTR>(hHelpMenu), ResourceString(IDS_HELP));
-    return hMenuBar;
+    return Menu()
+        .Add(ResourceString(IDS_FILE),
+            Menu()
+            .Add(ResourceString(IDS_EXIT), IDM_FILE_EXIT))
+        .Add(ResourceString(IDS_EDIT),
+            Menu()
+            .Add(ResourceString(IDS_COPY_MENU), Menu())
+            .AddSeparator()
+            .Add(ResourceString(IDS_CONFIGURE), IDM_EDIT_CONFIGURE))
+        .Add(ResourceString(IDS_VIEW), Menu())
+        .Add(ResourceString(IDS_HELP),
+            Menu()
+            .Add(ResourceString(IDS_ABOUT), IDM_HELP_ABOUT));
 }
 
 
 void MainWindow::RecreateEditMenus(HWND hwnd)
 {
-    HMENU hMenuBar = GetMenu(hwnd);
-    HMENU hEditMenu = GetSubMenu(hMenuBar, 1);
-    DeleteMenuItems(hEditMenu);
-    HMENU hCopyMenu = CreateMenu();
-    for (UINT_PTR index = 0; index < m_pCfg->CredentialsList.Count; index++)
+    Menu menuBar(hwnd);
+    Menu menuEdit(menuBar[ResourceString(IDS_EDIT)]);
+    Menu menuEditCopy(menuEdit[ResourceString(IDS_COPY_MENU)]);
+    menuEditCopy.RemoveAll();
+    for (UINT index = 0; index < m_pCfg->CredentialsList.Count; index++)
     {
         PCWSTR pszFormatU, pszFormatP;
         if (index < 10)
@@ -243,45 +245,22 @@ void MainWindow::RecreateEditMenus(HWND hwnd)
             pszFormatP = ResourceString(IDS_COPY_PW);
         }
         RefPtr<Credentials> pCredentials = m_pCfg->CredentialsList[index];
-        AppendMenuW(hCopyMenu, MF_STRING, IDM_EDIT_USERNAME_BASE + index, String::Format(pszFormatU, pCredentials->Username, (index * 2 + 1) % 10));
-        AppendMenuW(hCopyMenu, MF_STRING, IDM_EDIT_PASSWORD_BASE + index, String::Format(pszFormatP, pCredentials->Username, (index * 2 + 2) % 10));
+        menuEditCopy
+            .Add(String::Format(pszFormatU, pCredentials->Username, (index * 2 + 1) % 10), IDM_EDIT_USERNAME_BASE + index)
+            .Add(String::Format(pszFormatP, pCredentials->Username, (index * 2 + 2) % 10), IDM_EDIT_PASSWORD_BASE + index);
     }
-    AppendMenuW(hEditMenu, MF_STRING | MF_POPUP, reinterpret_cast<UINT_PTR>(hCopyMenu), ResourceString(IDS_COPY_MENU));
-    AppendMenuW(hEditMenu, MF_SEPARATOR, 0, NULL);
-    AppendMenuW(hEditMenu, MF_STRING, IDM_EDIT_CONFIGURE, ResourceString(IDS_CONFIGURE));
 }
 
 
 void MainWindow::RecreateViewMenus(HWND hwnd)
 {
-    HMENU hMenuBar = GetMenu(hwnd);
-    HMENU hViewMenu = GetSubMenu(hMenuBar, 2);
-    DeleteMenuItems(hViewMenu);
-    for (UINT_PTR index = 0; index < m_pCfg->TargetList.Count; index++)
+    Menu menuBar(hwnd);
+    Menu menuView(menuBar[ResourceString(IDS_VIEW)]);
+    menuView.RemoveAll();
+    for (UINT index = 0; index < m_pCfg->TargetList.Count; index++)
     {
         RefPtr<Target> pTarget = m_pCfg->TargetList[index];
-        AppendMenuW(hViewMenu, MF_STRING | (pTarget->IsVisible ? MF_CHECKED : MF_UNCHECKED), IDM_VIEW_TARGET_BASE + index, pTarget->Name);
-    }
-}
-
-
-void MainWindow::DeleteMenuItems(HMENU hMenu)
-{
-    int n = GetMenuItemCount(hMenu);
-    while (n > 0)
-    {
-        n--;
-        MENUITEMINFOW info = { 0 };
-        info.cbSize = sizeof(info);
-        info.fMask = MIIM_SUBMENU;
-        if (GetMenuItemInfoW(hMenu, n, MF_BYPOSITION, &info))
-        {
-            if (info.hSubMenu)
-            {
-                DeleteMenuItems(info.hSubMenu);
-            }
-        }
-        DeleteMenu(hMenu, n, MF_BYPOSITION);
+        menuView.Add(pTarget->Name, IDM_VIEW_TARGET_BASE + index, pTarget->IsVisible ? MF_CHECKED : MF_UNCHECKED);
     }
 }
 
@@ -338,27 +317,15 @@ void MainWindow::CopyToClipboard(HWND hwnd, PCWSTR psz)
 
 void MainWindow::ToggleButtonVisibility(HWND hwnd, UINT uIndex)
 {
-    HMENU hMenuBar = GetMenu(hwnd);
-    HMENU hViewMenu = GetSubMenu(hMenuBar, 2);
     HWND hwndButton = m_hButtons[uIndex];
     RefPtr<Target> pTarget = m_pCfg->TargetList[uIndex];
     pTarget->IsVisible = !pTarget->IsVisible;
-    DWORD dwStyle = GetWindowLongW(hwndButton, GWL_STYLE);
-    if (pTarget->IsVisible)
-    {
-        dwStyle |= WS_VISIBLE;
-    }
-    else
-    {
-        dwStyle &= ~WS_VISIBLE;
-    }
-    SetWindowLongW(hwndButton, GWL_STYLE, dwStyle);
+    WindowStyle(hwndButton).SetVisibility(pTarget->IsVisible).Apply();
     ForceLayout(hwnd);
     InvalidateRect(hwnd, NULL, TRUE);
-    if (!ModifyMenuW(hViewMenu, IDM_VIEW_TARGET_BASE + uIndex, MF_STRING | (pTarget->IsVisible ? MF_CHECKED : MF_UNCHECKED), IDM_VIEW_TARGET_BASE + (UINT_PTR)uIndex, pTarget->Name))
-    {
-        DBGPUT(L"ModifyMenu=%lu", GetLastError());
-    }
+    Menu menuBar(hwnd);
+    Menu menuView(menuBar[ResourceString(IDS_VIEW)]);
+    menuView.Modify(IDM_VIEW_TARGET_BASE + uIndex, pTarget->Name, IDM_VIEW_TARGET_BASE + uIndex, pTarget->IsVisible ? MF_CHECKED : MF_UNCHECKED);
 }
 
 
