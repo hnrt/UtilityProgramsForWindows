@@ -1,0 +1,117 @@
+#include "pch.h"
+#include "hnrt/Buffer.h"
+#include "hnrt/Menu.h"
+
+
+using namespace hnrt;
+
+
+Menu::Menu()
+	: m_h(CreateMenu())
+{
+}
+
+
+Menu::Menu(HMENU h)
+    : m_h(h)
+{
+}
+
+
+Menu::Menu(HWND hwnd)
+    : m_h(GetMenu(hwnd))
+{
+}
+
+
+Menu::Menu(const Menu& src)
+    : m_h(src.m_h)
+{
+}
+
+
+HMENU Menu::operator [](size_t index)
+{
+    return GetSubMenu(m_h, static_cast<int>(index));
+}
+
+
+HMENU Menu::operator [](PCWSTR psz) const
+{
+    return FindMenu(m_h, psz);
+}
+
+
+Menu& Menu::Add(PCWSTR psz, HMENU h)
+{
+	AppendMenuW(m_h, MF_STRING | MF_POPUP, reinterpret_cast<UINT_PTR>(h), psz);
+	return *this;
+}
+
+
+Menu& Menu::Add(PCWSTR psz, UINT id, UINT flags)
+{
+    AppendMenuW(m_h, MF_STRING | flags, id, psz);
+    return *this;
+}
+
+
+Menu& Menu::AddSeparator()
+{
+    AppendMenuW(m_h, MF_SEPARATOR, 0, NULL);
+    return *this;
+}
+
+
+Menu& Menu::Modify(UINT uPosition, PCWSTR psz, UINT id, UINT flags)
+{
+    ModifyMenuW(m_h, uPosition, MF_STRING | flags, id, psz);
+    return *this;
+}
+
+
+Menu& Menu::RemoveAll()
+{
+    int n = GetMenuItemCount(m_h);
+    while (n > 0)
+    {
+        n--;
+        DeleteMenu(m_h, n, MF_BYPOSITION);
+    }
+    return *this;
+}
+
+
+HMENU Menu::FindMenu(HMENU h, PCWSTR psz)
+{
+    int n = GetMenuItemCount(h);
+    while (n > 0)
+    {
+        n--;
+        MENUITEMINFOW info = { 0 };
+        info.cbSize = sizeof(info);
+        info.fMask = MIIM_STRING;
+        if (GetMenuItemInfoW(h, n, TRUE, &info))
+        {
+            if (info.cch)
+            {
+                info.cch++;
+                Buffer<WCHAR> buf(info.cch);
+                info.dwTypeData = &buf;
+                info.fMask = MIIM_STRING | MIIM_SUBMENU;
+                if (GetMenuItemInfoW(h, n, TRUE, &info))
+                {
+                    if (!info.dwTypeData)
+                    {
+                        continue;
+                    }
+                    else if (!wcscmp(info.dwTypeData, psz))
+                    {
+                        return info.hSubMenu;
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}

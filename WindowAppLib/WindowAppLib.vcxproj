@@ -605,17 +605,20 @@
   <ItemGroup>
     <ClInclude Include="inc\hnrt\AnyApp.h" />
     <ClInclude Include="inc\hnrt\DialogApp.h" />
+    <ClInclude Include="inc\hnrt\Menu.h" />
     <ClInclude Include="inc\hnrt\WindowLayout.h" />
     <ClInclude Include="inc\hnrt\WindowSize.h" />
     <ClInclude Include="inc\hnrt\WindowApp.h" />
     <ClInclude Include="inc\hnrt\WindowClass.h" />
     <ClInclude Include="inc\hnrt\WindowPreferences.h" />
+    <ClInclude Include="inc\hnrt\WindowStyle.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AnyApp.cpp" />
     <ClCompile Include="src\DialogApp.cpp" />
+    <ClCompile Include="src\Menu.cpp" />
     <ClCompile Include="src\WindowLayout.cpp" />
     <ClCompile Include="src\WindowSize.cpp" />
     <ClCompile Include="src\pch.cpp">
@@ -627,6 +630,7 @@
     <ClCompile Include="src\WindowApp.cpp" />
     <ClCompile Include="src\WindowClass.cpp" />
     <ClCompile Include="src\WindowPreferences.cpp" />
+    <ClCompile Include="src\WindowStyle.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
