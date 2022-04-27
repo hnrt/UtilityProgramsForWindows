@@ -6,6 +6,7 @@
 #include "hnrt/ComLibrary.h"
 #include "hnrt/KeyboardMouseBridge.h"
 #include "hnrt/UiAutomation.h"
+#include "ButtonCollection.h"
 #include "Configuration.h"
 #include "Ghost.h"
 #include "Target.h"
@@ -50,8 +51,7 @@ namespace hnrt
         void Configure(HWND hwnd);
 
         RefPtr<Configuration> m_pCfg;
-        ULONG m_cButtons;
-        HWND* m_hButtons;
+        ButtonCollection m_Buttons;
         bool m_bMaximized;
         LONG m_PreferredHeight;
         bool m_bSizing;

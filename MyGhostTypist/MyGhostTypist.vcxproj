@@ -100,6 +100,7 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
   <ItemGroup>
     <ClCompile Include="src\Action.cpp" />
     <ClCompile Include="src\ActionCollection.cpp" />
+    <ClCompile Include="src\ButtonCollection.cpp" />
     <ClCompile Include="src\ComboBox.cpp" />
     <ClCompile Include="src\Configuration.cpp" />
     <ClCompile Include="src\ConfigurationDialogBox.cpp" />
@@ -120,6 +121,7 @@ xcopy /cy $(SolutionDir)KeyboardMouse\bin\Win32\$(Configuration)\KeyboardMouse32
     <ClInclude Include="res\resource.h" />
     <ClInclude Include="src\Action.h" />
     <ClInclude Include="src\ActionCollection.h" />
+    <ClInclude Include="src\ButtonCollection.h" />
     <ClInclude Include="src\ComboBox.h" />
     <ClInclude Include="src\Configuration.h" />
     <ClInclude Include="src\ConfigurationDialogBox.h" />

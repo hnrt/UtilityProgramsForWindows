@@ -41,8 +41,7 @@ MainWindow::MainWindow()
     : WindowApp(s_szClassName)
     , ComLibrary(COINIT_APARTMENTTHREADED)
     , m_pCfg(Configuration::Create())
-    , m_cButtons(0)
-    , m_hButtons(NULL)
+    , m_Buttons()
     , m_bMaximized(false)
     , m_PreferredHeight(-1)
     , m_bSizing(false)
@@ -144,7 +143,7 @@ LRESULT MainWindow::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
         OnAbout(hwnd);
         break;
     default:
-        if (BUTTONID_BASE <= wControlId && wControlId < BUTTONID_BASE + m_cButtons)
+        if (BUTTONID_BASE <= wControlId && wControlId < BUTTONID_BASE + m_Buttons.Count)
         {
             switch (HIWORD(wParam))
             {
@@ -169,7 +168,7 @@ LRESULT MainWindow::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
             CopyToClipboard(hwnd, m_pCfg->CredentialsList[dwIndex]->Password);
             m_pCfg->CredentialsList[dwIndex]->ClearPlainText();
         }
-        else if (IDM_VIEW_TARGET_BASE <= wControlId && wControlId < IDM_VIEW_TARGET_BASE + m_cButtons)
+        else if (IDM_VIEW_TARGET_BASE <= wControlId && wControlId < IDM_VIEW_TARGET_BASE + m_Buttons.Count)
         {
             ToggleButtonVisibility(hwnd, wControlId - IDM_VIEW_TARGET_BASE);
         }
@@ -267,31 +266,16 @@ void MainWindow::RecreateViewMenus(HWND hwnd)
 
 void MainWindow::RecreateButtons(HWND hwnd)
 {
-    while (m_cButtons > 0)
-    {
-        m_cButtons--;
-        HWND hwndButton = m_hButtons[m_cButtons];
-        if (hwndButton)
-        {
-            DestroyWindow(hwndButton);
-        }
-    }
-    HFONT hFont = CreateFontByNameAndSize(hwnd, m_pCfg->FontName, m_pCfg->FontSize);
+    m_Buttons.RemoveAll();
+    m_Buttons.Resize(m_pCfg->TargetList.Count);
     if (m_pCfg->TargetList.Count > 0)
     {
-        m_hButtons = Allocate(m_hButtons, m_pCfg->TargetList.Count);
-        for (UINT_PTR index = 0; index < m_pCfg->TargetList.Count; index++)
+        HFONT hFont = CreateFontByNameAndSize(hwnd, m_pCfg->FontName, m_pCfg->FontSize);
+        for (ULONG index = 0; index < m_pCfg->TargetList.Count; index++)
         {
             RefPtr<Target> pTarget = m_pCfg->TargetList[index];
-            HWND hwndButton = CreateWindowExW(0, L"Button", pTarget->Name, WS_CHILD | (pTarget->IsVisible ? WS_VISIBLE : 0) | WS_DISABLED | BS_CENTER | BS_VCENTER, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwnd, NULL, C.Instance, NULL);
-            SetWindowLongW(hwndButton, GWL_ID, BUTTONID_BASE + m_cButtons);
-            SendMessageW(hwndButton, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), TRUE);
-            m_hButtons[m_cButtons++] = hwndButton;
+            m_Buttons.Add(C.Instance, hwnd, BUTTONID_BASE + index, pTarget->Name, hFont, pTarget->IsVisible);
         }
-    }
-    else if (m_hButtons)
-    {
-        Deallocate(m_hButtons);
     }
     m_PreferredHeight = -1;
 }
@@ -317,10 +301,9 @@ void MainWindow::CopyToClipboard(HWND hwnd, PCWSTR psz)
 
 void MainWindow::ToggleButtonVisibility(HWND hwnd, UINT uIndex)
 {
-    HWND hwndButton = m_hButtons[uIndex];
     RefPtr<Target> pTarget = m_pCfg->TargetList[uIndex];
     pTarget->IsVisible = !pTarget->IsVisible;
-    WindowStyle(hwndButton).SetVisibility(pTarget->IsVisible).Apply();
+    WindowStyle(m_Buttons[uIndex]).SetVisibility(pTarget->IsVisible).Apply();
     ForceLayout(hwnd);
     InvalidateRect(hwnd, NULL, TRUE);
     Menu menuBar(hwnd);
@@ -340,58 +323,26 @@ void MainWindow::DoLayout(HWND hwnd, UINT uHint)
     {
         m_bMaximized = false;
     }
-    RECT rectWnd = { 0 };
-    GetWindowRect(hwnd, &rectWnd);
-    LONG cxWnd = rectWnd.right - rectWnd.left;
-    LONG cyWnd = rectWnd.bottom - rectWnd.top;
-    DBGPUT(L"wnd={%ld,%ld,%ld,%ld} (%ldx%ld)", rectWnd.left, rectWnd.top, rectWnd.right, rectWnd.bottom, cxWnd, cyWnd);
-    RECT rectClt = { 0 };
-    GetClientRect(hwnd, &rectClt);
-    LONG cxClt = rectClt.right - rectClt.left;
-    LONG cyClt = rectClt.bottom - rectClt.top;
-    DBGPUT(L"clt={%ld,%ld,%ld,%ld} (%ldx%ld)", rectClt.left, rectClt.top, rectClt.right, rectClt.bottom, cxClt, cyClt);
-    POINT pt0 = { 0, 0 };
-    ClientToScreen(hwnd, &pt0);
-    LONG cxFrame = pt0.x - rectWnd.left;
-    LONG cyTopFrame = pt0.y - rectWnd.top;
-    POINT pt9 = { rectClt.right, rectClt.bottom };
-    ClientToScreen(hwnd, &pt9);
-    LONG cyBottomFrame = rectWnd.bottom - pt9.y;
-    if (cyBottomFrame < cxFrame)
-    {
-        cyBottomFrame = cxFrame;
-    }
-    DBGPUT(L"cxFrame=%ld cyTopFrame=%ld cyBottomFrame=%ld", cxFrame, cyTopFrame, cyBottomFrame);
-    LONG cxButton = cxClt - (m_pCfg->PaddingLeft + m_pCfg->PaddingRight + m_pCfg->ButtonMarginLeft + m_pCfg->ButtonMarginRight);
+    LONG cxButton = ClientWidth - (m_pCfg->PaddingLeft + m_pCfg->PaddingRight + m_pCfg->ButtonMarginLeft + m_pCfg->ButtonMarginRight);
     DBGPUT(L"cxButton=%ld", cxButton);
     // in client coordinates
     LONG x = m_pCfg->PaddingLeft + m_pCfg->ButtonMarginLeft;
     LONG y = m_pCfg->PaddingTop;
-    for (ULONG i = 0; i < m_cButtons; i++)
-    {
-        RefPtr<Target> pTarget = m_pCfg->TargetList[i];
-        if (!pTarget->IsVisible)
-        {
-            continue;
-        }
-        y += m_pCfg->ButtonMarginTop;
-        SetWindowPos(m_hButtons[i], NULL, x, y, cxButton, m_pCfg->ButtonHeight, SWP_NOZORDER);
-        y += m_pCfg->ButtonHeight + m_pCfg->ButtonMarginBottom;
-    }
+    m_Buttons.ArrangePositions(x, y, cxButton, m_pCfg->ButtonHeight, m_pCfg->ButtonMarginTop, m_pCfg->ButtonMarginBottom);
     y += m_pCfg->PaddingBottom;
     if (!m_bMaximized)
     {
-        LONG cx = cxWnd;
-        LONG cy = cyTopFrame + y + cyBottomFrame;
+        LONG cx = WindowWidth;
+        LONG cy = TopFrameThickness + y + BottomFrameThickness;
         if (m_PreferredHeight < 0)
         {
             m_PreferredHeight = cy;
         }
-        else if (cyWnd < m_PreferredHeight)
+        else if (WindowHeight < m_PreferredHeight)
         {
             cy = m_PreferredHeight;
         }
-        if (cx != cxWnd || cy != cyWnd)
+        if (cy != WindowHeight)
         {
             DBGPUT(L"cx=%ld cy=%ld", cx, cy);
             SetWindowPos(hwnd, NULL, 0, 0, cx, cy, SWP_NOMOVE | SWP_NOZORDER);
@@ -442,7 +393,7 @@ void MainWindow::LetGhostPlay(HWND hwnd)
 
 void MainWindow::CheckButtonStatus()
 {
-    for (size_t index = 0; index < m_pCfg->TargetList.Count; index++)
+    for (ULONG index = 0; index < m_pCfg->TargetList.Count; index++)
     {
         RefPtr<Target> pTarget = m_pCfg->TargetList[index];
         if (pTarget->Count)
@@ -450,7 +401,7 @@ void MainWindow::CheckButtonStatus()
             auto pAction = dynamic_cast<const SetForegroundWindowAction*>(pTarget->Begin->Ptr);
             if (pAction)
             {
-                EnableWindow(m_hButtons[index], pAction->Find() ? TRUE : FALSE);
+                EnableWindow(m_Buttons[index], pAction->Find() ? TRUE : FALSE);
             }
         }
     }

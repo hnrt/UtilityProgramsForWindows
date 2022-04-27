@@ -10,12 +10,16 @@ WindowSize::WindowSize()
 	, m_cyInitial(0)
 	, m_cxMinimum(0)
 	, m_cyMinimum(0)
+    , m_cxWindow(0)
+    , m_cyWindow(0)
 	, m_cxClientInitial(0)
 	, m_cyClientInitial(0)
 	, m_cxClient(0)
 	, m_cyClient(0)
-    , m_cxBorder(0)
-    , m_cyTitle(0)
+    , m_cxLeftFrame(0)
+    , m_cxRightFrame(0)
+    , m_cyTopFrame(0)
+    , m_cyBottomFrame(0)
 {
 }
 
@@ -24,18 +28,41 @@ void WindowSize::InitializeSize(HWND hwnd)
 {
 	RECT rect = { 0, 0, 0, 0 };
 	GetWindowRect(hwnd, &rect);
-	m_cxMinimum = m_cxInitial = rect.right - rect.left;
-	m_cyMinimum = m_cyInitial = rect.bottom - rect.top;
+	m_cxMinimum = m_cxInitial = m_cxWindow = rect.right - rect.left;
+	m_cyMinimum = m_cyInitial = m_cyWindow = rect.bottom - rect.top;
 
 	RECT rectClient = { 0, 0, 0, 0 };
 	GetClientRect(hwnd, &rectClient);
-	m_cxClient = m_cxClientInitial = rectClient.right;
-	m_cyClient = m_cyClientInitial = rectClient.bottom;
+	m_cxClientInitial = m_cxClient = rectClient.right - rectClient.left;
+	m_cyClientInitial = m_cyClient = rectClient.bottom - rectClient.top;
 
-    POINT pt = { 0, 0 };
-    ClientToScreen(hwnd, &pt);
-    m_cxBorder = pt.x - rect.left;
-    m_cyTitle = pt.y - rect.top;
+    MeasureFrame(hwnd);
+}
+
+
+void WindowSize::MeasureFrame(HWND hwnd)
+{
+    RECT rect = { 0, 0, 0, 0 };
+    GetWindowRect(hwnd, &rect);
+
+    RECT rectClient = { 0, 0, 0, 0 };
+    GetClientRect(hwnd, &rectClient);
+
+    POINT ptLeftTop = { rectClient.left, rectClient.top };
+    ClientToScreen(hwnd, &ptLeftTop);
+
+    POINT ptRightBottom = { rectClient.right, rectClient.bottom };
+    ClientToScreen(hwnd, &ptRightBottom);
+
+    m_cxLeftFrame = ptLeftTop.x - rect.left;
+    m_cxRightFrame = rect.right - ptRightBottom.x;
+    m_cyTopFrame = ptLeftTop.y - rect.top;
+    m_cyBottomFrame = rect.bottom - ptRightBottom.y;
+
+    if (m_cxLeftFrame < 0) m_cxLeftFrame = 0;
+    if (m_cxRightFrame < m_cxLeftFrame) m_cxRightFrame = m_cxLeftFrame;
+    if (m_cyTopFrame < 0) m_cyTopFrame = 0;
+    if (m_cyBottomFrame < m_cxLeftFrame) m_cyBottomFrame = m_cxLeftFrame;
 }
 
 
@@ -55,11 +82,11 @@ void WindowSize::OnSize(HWND hwnd, WPARAM wParam, LPARAM lParam, WindowLayout& r
 
     RECT rect = { 0, 0, 0, 0 };
     GetWindowRect(hwnd, &rect);
-    LONG cx = rect.right - rect.left;
-    LONG cy = rect.bottom - rect.top;
-    if (cx < m_cxMinimum || cy < m_cyMinimum)
+    m_cxWindow = rect.right - rect.left;
+    m_cyWindow = rect.bottom - rect.top;
+    if (m_cxWindow < m_cxMinimum || m_cyWindow < m_cyMinimum)
     {
-        SetWindowPos(hwnd, NULL, 0, 0, cx > m_cxMinimum ? cx : m_cxMinimum, cy > m_cyMinimum ? cy : m_cyMinimum, SWP_NOMOVE | SWP_NOZORDER);
+        SetWindowPos(hwnd, NULL, 0, 0, m_cxWindow > m_cxMinimum ? m_cxWindow : m_cxMinimum, m_cyWindow > m_cyMinimum ? m_cyWindow : m_cyMinimum, SWP_NOMOVE | SWP_NOZORDER);
         return;
     }
 
