@@ -13,6 +13,7 @@
 #include "hnrt/UiAutomationFactory.h"
 #include "hnrt/Menu.h"
 #include "hnrt/WindowStyle.h"
+#include "hnrt/LogicalFont.h"
 #include "Configuration.h"
 #include "Action.h"
 #include "InputManager.h"
@@ -42,6 +43,7 @@ MainWindow::MainWindow()
     , ComLibrary(COINIT_APARTMENTTHREADED)
     , m_pCfg(Configuration::Create())
     , m_Buttons()
+    , m_hFont()
     , m_bMaximized(false)
     , m_PreferredHeight(-1)
     , m_bSizing(false)
@@ -66,21 +68,17 @@ void MainWindow::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 }
 
 
-HFONT MainWindow::CreateFontByNameAndSize(HWND hwnd, PCWSTR pszName, long size)
-{
-    HDC hDC = GetDC(hwnd);
-    LOGFONTW lf = { 0 };
-    lf.lfHeight = -MulDiv(size, GetDeviceCaps(hDC, LOGPIXELSY), 72);
-    wcscpy_s(lf.lfFaceName, pszName);
-    lf.lfCharSet = SHIFTJIS_CHARSET;
-    return CreateFontIndirectW(&lf);
-}
-
-
 void MainWindow::OnCreate(HWND hwnd)
 {
     DBGFNC(L"MainWindow::OnCreate");
     m_Ghost.Initialize(m_pCfg);
+    m_Buttons.Padding = m_pCfg->Padding;
+    m_Buttons.Margin = m_pCfg->ButtonMargin;
+    m_hFont = LogicalFont()
+        .SetFaceName(m_pCfg->FontName)
+        .SetHeight(m_pCfg->FontSize, hwnd)
+        .SetJapaneseCharSet()
+        .Create();
     RecreateEditMenus(hwnd);
     RecreateViewMenus(hwnd);
     RecreateButtons(hwnd);
@@ -93,6 +91,7 @@ void MainWindow::OnCreate(HWND hwnd)
 void MainWindow::OnDestroy(HWND hwnd)
 {
     DBGFNC(L"MainWindow::OnDestroy");
+    m_hFont = nullptr;
     m_Ghost.Uninitialize();
 }
 
@@ -270,11 +269,10 @@ void MainWindow::RecreateButtons(HWND hwnd)
     m_Buttons.Resize(m_pCfg->TargetList.Count);
     if (m_pCfg->TargetList.Count > 0)
     {
-        HFONT hFont = CreateFontByNameAndSize(hwnd, m_pCfg->FontName, m_pCfg->FontSize);
         for (ULONG index = 0; index < m_pCfg->TargetList.Count; index++)
         {
             RefPtr<Target> pTarget = m_pCfg->TargetList[index];
-            m_Buttons.Add(C.Instance, hwnd, BUTTONID_BASE + index, pTarget->Name, hFont, pTarget->IsVisible);
+            m_Buttons.Add(C.Instance, hwnd, BUTTONID_BASE + index, pTarget->Name, m_hFont, pTarget->IsVisible);
         }
     }
     m_PreferredHeight = -1;
@@ -323,13 +321,9 @@ void MainWindow::DoLayout(HWND hwnd, UINT uHint)
     {
         m_bMaximized = false;
     }
-    LONG cxButton = ClientWidth - (m_pCfg->PaddingLeft + m_pCfg->PaddingRight + m_pCfg->ButtonMarginLeft + m_pCfg->ButtonMarginRight);
-    DBGPUT(L"cxButton=%ld", cxButton);
-    // in client coordinates
-    LONG x = m_pCfg->PaddingLeft + m_pCfg->ButtonMarginLeft;
-    LONG y = m_pCfg->PaddingTop;
-    m_Buttons.ArrangePositions(x, y, cxButton, m_pCfg->ButtonHeight, m_pCfg->ButtonMarginTop, m_pCfg->ButtonMarginBottom);
-    y += m_pCfg->PaddingBottom;
+    LONG x = 0;
+    LONG y = 0;
+    m_Buttons.ArrangePositions(x, y, ClientWidth, m_pCfg->ButtonHeight);
     if (!m_bMaximized)
     {
         LONG cx = WindowWidth;

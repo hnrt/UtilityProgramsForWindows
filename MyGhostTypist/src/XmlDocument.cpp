@@ -323,7 +323,7 @@ bool XmlDocument::GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, long&
 }
 
 
-bool XmlDocument::GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, LTRB& value)
+bool XmlDocument::GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, RectangleMetrics& value)
 {
     PCWSTR psz;
     if (GetAttribute(pNode, pszName, psz))
@@ -382,7 +382,7 @@ void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName,
 }
 
 
-void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName, const LTRB& value)
+void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName, const RectangleMetrics& value)
 {
     WCHAR szValue[MAX_PATH];
     _snwprintf_s(szValue, _TRUNCATE, L"%ld,%ld,%ld,%ld", value.Left, value.Top, value.Right, value.Bottom);

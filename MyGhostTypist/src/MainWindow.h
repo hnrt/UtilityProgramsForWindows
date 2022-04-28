@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include "hnrt/WindowApp.h"
+#include "hnrt/FontHandle.h"
 #include "hnrt/ComLibrary.h"
 #include "hnrt/KeyboardMouseBridge.h"
 #include "hnrt/UiAutomation.h"
@@ -30,7 +31,6 @@ namespace hnrt
 
     private:
 
-        static HFONT CreateFontByNameAndSize(HWND hwnd, PCWSTR pszName, long size);
         HMENU CreateMenuBar();
         virtual void OnCreate(HWND hwnd);
         virtual void OnDestroy(HWND hwnd);
@@ -52,6 +52,7 @@ namespace hnrt
 
         RefPtr<Configuration> m_pCfg;
         ButtonCollection m_Buttons;
+        FontHandle m_hFont;
         bool m_bMaximized;
         LONG m_PreferredHeight;
         bool m_bSizing;

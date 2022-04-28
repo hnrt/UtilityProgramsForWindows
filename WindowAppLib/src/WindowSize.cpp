@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "hnrt/WindowDesign.h"
 #include "hnrt/WindowSize.h"
 
 
@@ -26,15 +27,15 @@ WindowSize::WindowSize()
 
 void WindowSize::InitializeSize(HWND hwnd)
 {
-	RECT rect = { 0, 0, 0, 0 };
-	GetWindowRect(hwnd, &rect);
-	m_cxMinimum = m_cxInitial = m_cxWindow = rect.right - rect.left;
-	m_cyMinimum = m_cyInitial = m_cyWindow = rect.bottom - rect.top;
+    RectangleMetrics rect;
+    rect.FromWindow(hwnd);
+	m_cxMinimum = m_cxInitial = m_cxWindow = rect.Width;
+	m_cyMinimum = m_cyInitial = m_cyWindow = rect.Height;
 
-	RECT rectClient = { 0, 0, 0, 0 };
-	GetClientRect(hwnd, &rectClient);
-	m_cxClientInitial = m_cxClient = rectClient.right - rectClient.left;
-	m_cyClientInitial = m_cyClient = rectClient.bottom - rectClient.top;
+    RectangleMetrics rectClient;
+    rectClient.FromClient(hwnd);
+	m_cxClientInitial = m_cxClient = rectClient.Width;
+	m_cyClientInitial = m_cyClient = rectClient.Height;
 
     MeasureFrame(hwnd);
 }
@@ -42,22 +43,17 @@ void WindowSize::InitializeSize(HWND hwnd)
 
 void WindowSize::MeasureFrame(HWND hwnd)
 {
-    RECT rect = { 0, 0, 0, 0 };
-    GetWindowRect(hwnd, &rect);
+    RectangleMetrics rect;
+    rect.FromWindow(hwnd);
 
-    RECT rectClient = { 0, 0, 0, 0 };
-    GetClientRect(hwnd, &rectClient);
+    RectangleMetrics rectClient;
+    rectClient.FromClient(hwnd);
+    rectClient.ToScreen(hwnd);
 
-    POINT ptLeftTop = { rectClient.left, rectClient.top };
-    ClientToScreen(hwnd, &ptLeftTop);
-
-    POINT ptRightBottom = { rectClient.right, rectClient.bottom };
-    ClientToScreen(hwnd, &ptRightBottom);
-
-    m_cxLeftFrame = ptLeftTop.x - rect.left;
-    m_cxRightFrame = rect.right - ptRightBottom.x;
-    m_cyTopFrame = ptLeftTop.y - rect.top;
-    m_cyBottomFrame = rect.bottom - ptRightBottom.y;
+    m_cxLeftFrame = rectClient.Left - rect.Left;
+    m_cxRightFrame = rect.Right - rectClient.Right;
+    m_cyTopFrame = rectClient.Top - rect.Top;
+    m_cyBottomFrame = rect.Bottom - rectClient.Bottom;
 
     if (m_cxLeftFrame < 0) m_cxLeftFrame = 0;
     if (m_cxRightFrame < m_cxLeftFrame) m_cxRightFrame = m_cxLeftFrame;
@@ -80,10 +76,10 @@ void WindowSize::OnSize(HWND hwnd, WPARAM wParam, LPARAM lParam, WindowLayout& r
         return;
     }
 
-    RECT rect = { 0, 0, 0, 0 };
-    GetWindowRect(hwnd, &rect);
-    m_cxWindow = rect.right - rect.left;
-    m_cyWindow = rect.bottom - rect.top;
+    RectangleMetrics rect;
+    rect.FromWindow(hwnd);
+    m_cxWindow = rect.Width;
+    m_cyWindow = rect.Height;
     if (m_cxWindow < m_cxMinimum || m_cyWindow < m_cyMinimum)
     {
         SetWindowPos(hwnd, NULL, 0, 0, m_cxWindow > m_cxMinimum ? m_cxWindow : m_cxMinimum, m_cyWindow > m_cyMinimum ? m_cyWindow : m_cyMinimum, SWP_NOMOVE | SWP_NOZORDER);

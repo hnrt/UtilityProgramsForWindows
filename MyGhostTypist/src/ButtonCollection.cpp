@@ -10,6 +10,8 @@ using namespace hnrt;
 ButtonCollection::ButtonCollection()
 	: m_cButtons(0)
 	, m_hButtons(nullptr)
+	, m_Padding()
+	, m_Margin()
 {
 }
 
@@ -72,16 +74,21 @@ void ButtonCollection::RemoveAll()
 }
 
 
-void ButtonCollection::ArrangePositions(LONG& x, LONG& y, LONG cx, LONG cy, LONG marginTop, LONG marginBottom)
+void ButtonCollection::ArrangePositions(LONG& x, LONG& y, LONG cx, LONG cy)
 {
+	LONG dxLeft = m_Padding.Left + m_Margin.Left;
+	LONG dxRight = m_Margin.Right + m_Padding.Right;
+	cx -= dxLeft + dxRight;
+	y += m_Padding.Top;
 	for (ULONG i = 0; i < m_cButtons; i++)
 	{
 		if (!WindowStyle(m_hButtons[i]).IsVisible)
 		{
 			continue;
 		}
-		y += marginTop;
-		SetWindowPos(m_hButtons[i], NULL, x, y, cx, cy, SWP_NOZORDER);
-		y += cy + marginBottom;
+		y += m_Margin.Top;
+		SetWindowPos(m_hButtons[i], NULL, x + dxLeft, y, cx, cy, SWP_NOZORDER);
+		y += cy + m_Margin.Bottom;
 	}
+	y += m_Padding.Bottom;
 }
