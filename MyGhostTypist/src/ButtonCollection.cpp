@@ -74,7 +74,7 @@ void ButtonCollection::RemoveAll()
 }
 
 
-void ButtonCollection::ArrangePositions(LONG& x, LONG& y, LONG cx, LONG cy)
+LONG ButtonCollection::ArrangePositions(LONG x, LONG y, LONG cx, LONG cy)
 {
 	LONG dxLeft = m_Padding.Left + m_Margin.Left;
 	LONG dxRight = m_Margin.Right + m_Padding.Right;
@@ -91,4 +91,5 @@ void ButtonCollection::ArrangePositions(LONG& x, LONG& y, LONG cx, LONG cy)
 		y += cy + m_Margin.Bottom;
 	}
 	y += m_Padding.Bottom;
+	return y;
 }

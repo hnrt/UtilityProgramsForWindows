@@ -21,8 +21,6 @@ GuidGenerator2::GuidGenerator2()
     , m_szFormatted()
     , m_uCurrentlySelected(IDC_RADIO_UPPERCASE)
 {
-    memset(&m_guid, 0, sizeof(m_guid));
-    memset(&m_szFormatted, 0, sizeof(m_szFormatted));
 }
 
 

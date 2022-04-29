@@ -18,7 +18,7 @@ namespace hnrt
 		void Resize(ULONG count);
 		void Add(HINSTANCE hInstance, HWND hwndParent, UINT id, PCWSTR pszLabel, HFONT hFont, bool bVisible);
 		void RemoveAll();
-		void ArrangePositions(LONG& x, LONG& y, LONG cx, LONG cy);
+		LONG ArrangePositions(LONG x, LONG y, LONG cx, LONG cy);
 
 		ULONG get_Count() const;
 		void put_Padding(const RectangleMetrics&);

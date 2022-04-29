@@ -321,9 +321,7 @@ void MainWindow::DoLayout(HWND hwnd, UINT uHint)
     {
         m_bMaximized = false;
     }
-    LONG x = 0;
-    LONG y = 0;
-    m_Buttons.ArrangePositions(x, y, ClientWidth, m_pCfg->ButtonHeight);
+    LONG y = m_Buttons.ArrangePositions(0, 0, ClientWidth, m_pCfg->ButtonHeight);
     if (!m_bMaximized)
     {
         LONG cx = WindowWidth;
