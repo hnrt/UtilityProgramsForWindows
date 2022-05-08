@@ -15,7 +15,7 @@ namespace hnrt
 		virtual ~AnyApp() = default;
 		void operator =(const AnyApp&) = delete;
 		void SetAccelerators(HINSTANCE hInstance, UINT id);
-		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow) = 0;
+		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
 		virtual void Run();
 		virtual void Close() = 0;
 

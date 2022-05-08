@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "hnrt/WindowApp.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/Interlocked.h"
+#include "hnrt/WindowApp.h"
 
 
 using namespace hnrt;
@@ -20,7 +20,7 @@ WindowApp::WindowApp(PCWSTR pszClassName)
 
 void WindowApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
-    UNREFERENCED_PARAMETER(lpCmdLine);
+    AnyApp::Open(hInstance, lpCmdLine, nCmdShow);
     if (!C.SetInstance(hInstance).Register())
     {
         throw Win32Exception(GetLastError(), L"RegisterClass failed.");

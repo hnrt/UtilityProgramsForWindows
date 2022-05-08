@@ -1,6 +1,7 @@
 #include "pch.h"
-#include "hnrt/AnyApp.h"
 #include "hnrt/Exception.h"
+#include "hnrt/CommandLine.h"
+#include "hnrt/AnyApp.h"
 
 
 #pragma comment(lib,"Core")
@@ -20,6 +21,52 @@ AnyApp::AnyApp()
 void AnyApp::SetAccelerators(HINSTANCE hInstance, UINT id)
 {
 	m_hAccelTable = LoadAcceleratorsW(hInstance, MAKEINTRESOURCEW(id));
+}
+
+
+static const WCHAR szDPIAWARENESS[] = { L"-dpiawareness=" };
+
+
+void AnyApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
+{
+    UNREFERENCED_PARAMETER(hInstance);
+    UNREFERENCED_PARAMETER(nCmdShow);
+    CommandLine cmdLine(lpCmdLine);
+    CommandLineIterator iter(cmdLine);
+    while (iter.HasNext)
+    {
+        // accepts the manifest dpiAwareness value
+        if (!wcsncmp(iter.Next, szDPIAWARENESS, wcslen(szDPIAWARENESS)))
+        {
+            static bool specified = false;
+            if (specified)
+            {
+                throw Exception(L"Bad command line: %.*s: Specified more than once.", (int)(wcslen(szDPIAWARENESS) - 1), szDPIAWARENESS);
+            }
+            specified = true;
+            PCWSTR pszValue = iter.Next + wcslen(szDPIAWARENESS);
+            if (!_wcsicmp(pszValue, L"unaware"))
+            {
+                SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED);
+            }
+            else if (!_wcsicmp(pszValue, L"system"))
+            {
+                SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
+            }
+            else if (!_wcsicmp(pszValue, L"permonitor"))
+            {
+                SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+            }
+            else if (!_wcsicmp(pszValue, L"permonitorv2"))
+            {
+                SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+            }
+            else
+            {
+                throw Exception(L"Bad command line: %.*s: Bad value.", (int)(wcslen(szDPIAWARENESS) - 1), szDPIAWARENESS);
+            }
+        }
+    }
 }
 
 

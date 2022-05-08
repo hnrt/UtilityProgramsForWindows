@@ -198,6 +198,7 @@
     <ClInclude Include="inc\hnrt\ByteString.h" />
     <ClInclude Include="inc\hnrt\ComException.h" />
     <ClInclude Include="inc\hnrt\ComLibrary.h" />
+    <ClInclude Include="inc\hnrt\CommandLine.h" />
     <ClInclude Include="inc\hnrt\CommandTemplate.h" />
     <ClInclude Include="inc\hnrt\CoreLibrary.h" />
     <ClInclude Include="inc\hnrt\DataFeeder.h" />
@@ -267,6 +268,7 @@
     <ClCompile Include="src\ByteString.cpp" />
     <ClCompile Include="src\ComException.cpp" />
     <ClCompile Include="src\ComLibrary.cpp" />
+    <ClCompile Include="src\CommandLine.cpp" />
     <ClCompile Include="src\CommandTemplate.cpp" />
     <ClCompile Include="src\CoreLibrary.cpp" />
     <ClCompile Include="src\Debug.cpp" />

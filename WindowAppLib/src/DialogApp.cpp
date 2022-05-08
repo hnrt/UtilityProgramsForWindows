@@ -1,8 +1,8 @@
 #include "pch.h"
-#include "hnrt/DialogApp.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Interlocked.h"
+#include "hnrt/DialogApp.h"
 
 
 using namespace hnrt;
@@ -19,7 +19,7 @@ DialogApp::DialogApp(UINT idTemplate)
 
 void DialogApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
-    UNREFERENCED_PARAMETER(lpCmdLine);
+    AnyApp::Open(hInstance, lpCmdLine, nCmdShow);
     m_hwnd = CreateDialogParamW(hInstance, MAKEINTRESOURCE(m_idTemplate), NULL, MessageCallback, reinterpret_cast<LPARAM>(this));
     if (!m_hwnd)
     {
