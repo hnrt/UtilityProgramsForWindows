@@ -46,10 +46,37 @@ PCWSTR CommandLine::operator [](int index) const
 }
 
 
-CommandLineIterator::CommandLineIterator(const CommandLine& cmdLine)
+void CommandLine::Remove(int index)
+{
+	if (index < 0)
+	{
+		index += m_count;
+	}
+	if (0 <= index && index < m_count)
+	{
+		int n = m_count - (index + 1);
+		if (n > 0)
+		{
+			memmove(&m_ppsz[index], &m_ppsz[index + 1], n * sizeof(m_ppsz[0]));
+		}
+		m_ppsz[--m_count] = nullptr;
+	}
+}
+
+
+CommandLineIterator::CommandLineIterator(CommandLine& cmdLine)
 	: m_CommandLine(cmdLine)
 	, m_index(-1)
 {
+}
+
+
+void CommandLineIterator::RemoveNext()
+{
+	if (m_index < m_CommandLine.Count)
+	{
+		m_CommandLine.Remove(m_index--);
+	}
 }
 
 

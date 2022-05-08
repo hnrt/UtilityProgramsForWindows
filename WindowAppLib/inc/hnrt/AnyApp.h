@@ -6,13 +6,15 @@
 
 namespace hnrt
 {
+	class CommandLine;
+
 	class AnyApp
 	{
 	public:
 
 		AnyApp();
 		AnyApp(const AnyApp&) = delete;
-		virtual ~AnyApp() = default;
+		virtual ~AnyApp();
 		void operator =(const AnyApp&) = delete;
 		void SetAccelerators(HINSTANCE hInstance, UINT id);
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
@@ -29,6 +31,7 @@ namespace hnrt
 		virtual void ProcessMessage(MSG* pMsg) = 0;
 
 		int m_iExitCode;
+		CommandLine* m_pCommandLine;
 		HACCEL m_hAccelTable;
 		HWND m_hwnd;
 	};

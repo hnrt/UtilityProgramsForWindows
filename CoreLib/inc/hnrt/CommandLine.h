@@ -15,6 +15,7 @@ namespace hnrt
 		virtual ~CommandLine();
 		void operator =(const CommandLine&) = delete;
 		PCWSTR operator [](int index) const;
+		void Remove(int index);
 
 		int get_Count() const;
 
@@ -30,10 +31,11 @@ namespace hnrt
 	{
 	public:
 
-		CommandLineIterator(const CommandLine& cmdLine);
+		CommandLineIterator(CommandLine& cmdLine);
 		CommandLineIterator(const CommandLineIterator&) = delete;
 		~CommandLineIterator() = default;
 		void operator =(const CommandLineIterator&) = delete;
+		void RemoveNext();
 
 		bool get_HasNext();
 		PCWSTR get_Next() const;
@@ -43,7 +45,7 @@ namespace hnrt
 
 	private:
 
-		const CommandLine& m_CommandLine;
+		CommandLine& m_CommandLine;
 		int m_index;
 	};
 

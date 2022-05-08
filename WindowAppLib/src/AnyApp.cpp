@@ -12,9 +12,16 @@ using namespace hnrt;
 
 AnyApp::AnyApp()
 	: m_iExitCode(EXIT_FAILURE)
+    , m_pCommandLine(nullptr)
 	, m_hAccelTable(nullptr)
 	, m_hwnd(nullptr)
 {
+}
+
+
+AnyApp::~AnyApp()
+{
+    delete m_pCommandLine;
 }
 
 
@@ -31,8 +38,8 @@ void AnyApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hInstance);
     UNREFERENCED_PARAMETER(nCmdShow);
-    CommandLine cmdLine(lpCmdLine);
-    CommandLineIterator iter(cmdLine);
+    m_pCommandLine = new CommandLine(lpCmdLine);
+    CommandLineIterator iter(*m_pCommandLine);
     while (iter.HasNext)
     {
         // accepts the manifest dpiAwareness value
@@ -65,6 +72,7 @@ void AnyApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
             {
                 throw Exception(L"Bad command line: %.*s: Bad value.", (int)(wcslen(szDPIAWARENESS) - 1), szDPIAWARENESS);
             }
+            iter.RemoveNext();
         }
     }
 }

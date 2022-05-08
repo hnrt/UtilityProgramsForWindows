@@ -3,6 +3,7 @@
 
 #include "hnrt/AnyApp.h"
 #include "hnrt/WindowSize.h"
+#include "hnrt/FontHandle.h"
 
 
 namespace hnrt
@@ -35,5 +36,6 @@ namespace hnrt
 		virtual INT_PTR OnTimer(HWND hDlg, WPARAM wParam, LPARAM lParam);
 
 		UINT m_idTemplate;
+		FontHandle m_hFont;
 	};
 }

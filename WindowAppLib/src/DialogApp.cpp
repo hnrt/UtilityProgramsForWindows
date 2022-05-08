@@ -2,6 +2,9 @@
 #include "hnrt/ResourceString.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Interlocked.h"
+#include "hnrt/CommandLine.h"
+#include "hnrt/LogicalFont.h"
+#include "hnrt/String.h"
 #include "hnrt/DialogApp.h"
 
 
@@ -13,7 +16,18 @@ DialogApp::DialogApp(UINT idTemplate)
     , WindowSize()
     , WindowLayout()
     , m_idTemplate(idTemplate)
+    , m_hFont()
 {
+}
+
+
+static const WCHAR szFONT[] = { L"-font=" };
+
+
+static BOOL CALLBACK ApplyFontToChild(HWND hwnd, LPARAM lParam)
+{
+    SendMessageW(hwnd, WM_SETFONT, static_cast<WPARAM>(lParam), TRUE);
+    return TRUE;
 }
 
 
@@ -24,6 +38,38 @@ void DialogApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     if (!m_hwnd)
     {
         throw Exception(L"CreateDialog failed.");
+    }
+    CommandLineIterator iter(*m_pCommandLine);
+    while (iter.HasNext)
+    {
+        if (!wcsncmp(iter.Next, szFONT, wcslen(szFONT)))
+        {
+            PCWSTR pszValue = iter.Next + wcslen(szFONT);
+            const WCHAR* pSep = wcschr(pszValue, L':');
+            if (!pSep)
+            {
+                throw Exception(L"Bad command line: %.*s: No point size.", (int)(wcslen(szFONT) - 1), szFONT);
+            }
+            if (pSep <= pszValue)
+            {
+                throw Exception(L"Bad command line: %.*s: No face name.", (int)(wcslen(szFONT) - 1), szFONT);
+            }
+            int pointSize = (int)wcstol(pSep + 1, nullptr, 10);
+            if (pointSize < 6 || 100 < pointSize)
+            {
+                throw Exception(L"Bad command line: %.*s: Bad point size.", (int)(wcslen(szFONT) - 1), szFONT);
+            }
+            m_hFont = LogicalFont()
+                .SetFaceName(String::Copy(pszValue, pSep - pszValue))
+                .SetHeight(pointSize, m_hwnd)
+                .SetJapaneseCharSet()
+                .Create();
+            if (m_hFont)
+            {
+                EnumChildWindows(m_hwnd, ApplyFontToChild, reinterpret_cast<LPARAM>((HFONT)m_hFont));
+            }
+            iter.RemoveNext();
+        }
     }
     ShowWindow(m_hwnd, nCmdShow);
     UpdateWindow(m_hwnd);
