@@ -11,6 +11,7 @@
 #define IDS_RESULT_IN                   135
 #define IDS_RESULT_IN_OUT               136
 #define IDS_OPENFILE_FAILURE            137
+#define IDI_ICON1                       137
 #define IDS_READFILE_FAILURE            138
 #define IDS_OUT_OF_MEMORY               139
 #define IDC_FILE                        1001
@@ -39,7 +40,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        137
+#define _APS_NEXT_RESOURCE_VALUE        138
 #define _APS_NEXT_COMMAND_VALUE         32771
 #define _APS_NEXT_CONTROL_VALUE         1019
 #define _APS_NEXT_SYMED_VALUE           110
