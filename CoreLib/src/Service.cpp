@@ -2,6 +2,7 @@
 #include "hnrt/Service.h"
 #include "hnrt/String.h"
 #include "hnrt/Win32Exception.h"
+#include "hnrt/ResourceString.h"
 
 
 using namespace hnrt;
@@ -9,7 +10,7 @@ using namespace hnrt;
 
 ////////////////////////////////////////////////////////////////////////////
 ////
-////  S E R V I C E
+////  S E R V I C E   C O N F I G U R A T I O N
 ////
 ////////////////////////////////////////////////////////////////////////////
 
@@ -88,6 +89,21 @@ ServiceConfiguration& ServiceConfiguration::SetDescription(PCWSTR psz)
 }
 
 
+ServiceConfiguration& ServiceConfiguration::SetDescription(UINT uId)
+{
+    WCHAR szPath[MAX_PATH];
+    if (GetModuleFileNameW(NULL, szPath, MAX_PATH))
+    {
+        m_pszDescription = String::Format(L"@%s,-%u", szPath, uId);
+    }
+    else
+    {
+        m_pszDescription = String::Copy(ResourceString(uId));
+    }
+    return *this;
+}
+
+
 ServiceConfiguration& ServiceConfiguration::SetDesiredAccess(DWORD dw)
 {
     m_dwDesiredAccess = dw;
@@ -116,9 +132,70 @@ ServiceConfiguration& ServiceConfiguration::SetErrorControl(DWORD dw)
 }
 
 
-ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR psz)
+ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath)
 {
-    m_pszBinaryPathName = String::Copy(psz);
+    WCHAR szFileName[MAX_PATH] = { 0 };
+    if (!pszPath)
+    {
+        if (!GetModuleFileNameW(NULL, szFileName, MAX_PATH))
+        {
+            throw Win32Exception(GetLastError(), L"Failed to get the module file name.");
+        }
+        pszPath = szFileName;
+    }
+    if (wcschr(pszPath, L' '))
+    {
+        m_pszBinaryPathName = String::Format(L"\"%s\"", pszPath);
+    }
+    else
+    {
+        m_pszBinaryPathName = String::Copy(pszPath);
+    }
+    return *this;
+}
+
+
+ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PCWSTR pszArg1)
+{
+    SetBinaryPathName(pszPath);
+    if (wcschr(pszArg1, L' '))
+    {
+        m_pszBinaryPathName = String::Format(L"%s \"%s\"", m_pszBinaryPathName, pszArg1);
+    }
+    else
+    {
+        m_pszBinaryPathName = String::Format(L"%s %s", m_pszBinaryPathName, pszArg1);
+    }
+    return *this;
+}
+
+
+ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PCWSTR pszArg1, PCWSTR pszArg2)
+{
+    SetBinaryPathName(pszPath, pszArg1);
+    if (wcschr(pszArg2, L' '))
+    {
+        m_pszBinaryPathName = String::Format(L"%s \"%s\"", m_pszBinaryPathName, pszArg2);
+    }
+    else
+    {
+        m_pszBinaryPathName = String::Format(L"%s %s", m_pszBinaryPathName, pszArg2);
+    }
+    return *this;
+}
+
+
+ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PCWSTR pszArg1, PCWSTR pszArg2, PCWSTR pszArg3)
+{
+    SetBinaryPathName(pszPath, pszArg1, pszArg2);
+    if (wcschr(pszArg3, L' '))
+    {
+        m_pszBinaryPathName = String::Format(L"%s \"%s\"", m_pszBinaryPathName, pszArg3);
+    }
+    else
+    {
+        m_pszBinaryPathName = String::Format(L"%s %s", m_pszBinaryPathName, pszArg3);
+    }
     return *this;
 }
 
@@ -178,18 +255,29 @@ void Service::Create(SC_HANDLE hSCM, ServiceConfiguration& config)
     Close();
 
     PCWSTR pszBinaryPathName;
-    WCHAR szFileName[MAX_PATH] = { 0 };
+    WCHAR szFileName[MAX_PATH + 2] = { 0 };
     if (config.m_pszBinaryPathName)
     {
         pszBinaryPathName = config.m_pszBinaryPathName;
     }
     else
     {
-        if (!GetModuleFileNameW(NULL, szFileName, MAX_PATH))
+        if (!GetModuleFileNameW(NULL, &szFileName[1], MAX_PATH))
         {
             throw Win32Exception(GetLastError(), L"Failed to get the module file name.");
         }
-        pszBinaryPathName = szFileName;
+        if (wcschr(&szFileName[1], L' '))
+        {
+            size_t cch = wcslen(szFileName);
+            szFileName[0] = L'\"';
+            szFileName[cch + 0] = L'\"';
+            szFileName[cch + 1] = L'\0';
+            pszBinaryPathName = &szFileName[0];
+        }
+        else
+        {
+            pszBinaryPathName = &szFileName[1];
+        }
     }
 
     m_h = CreateServiceW(hSCM,
@@ -214,7 +302,7 @@ void Service::Create(SC_HANDLE hSCM, ServiceConfiguration& config)
 
     if (config.m_pszDescription)
     {
-        SERVICE_DESCRIPTIONW sd;
+        SERVICE_DESCRIPTIONW sd = { 0 };
         sd.lpDescription = const_cast<PWSTR>(config.m_pszDescription);
         if (!ChangeServiceConfig2W(m_h, SERVICE_CONFIG_DESCRIPTION, &sd))
         {
@@ -247,6 +335,16 @@ void Service::Close()
         m_pszName = NULL;
         memset(&m_status, 0, sizeof(m_status));
     }
+}
+
+
+DWORD Service::QueryStatus()
+{
+    if (!QueryServiceStatus(m_h, &m_status))
+    {
+        throw Win32Exception(GetLastError(), L"Failed to query status of service \"%s\".", m_pszName);
+    }
+    return m_status.dwCurrentState;
 }
 
 

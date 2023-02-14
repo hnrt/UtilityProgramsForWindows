@@ -17,11 +17,15 @@ namespace hnrt
         ServiceConfiguration& SetName(PCWSTR);
         ServiceConfiguration& SetDisplayName(PCWSTR);
         ServiceConfiguration& SetDescription(PCWSTR);
+        ServiceConfiguration& SetDescription(UINT);
         ServiceConfiguration& SetDesiredAccess(DWORD);
         ServiceConfiguration& SetServiceType(DWORD);
         ServiceConfiguration& SetStartType(DWORD);
         ServiceConfiguration& SetErrorControl(DWORD);
         ServiceConfiguration& SetBinaryPathName(PCWSTR);
+        ServiceConfiguration& SetBinaryPathName(PCWSTR, PCWSTR);
+        ServiceConfiguration& SetBinaryPathName(PCWSTR, PCWSTR, PCWSTR);
+        ServiceConfiguration& SetBinaryPathName(PCWSTR, PCWSTR, PCWSTR, PCWSTR);
         ServiceConfiguration& SetLoadOrderGroup(PCWSTR);
         ServiceConfiguration& AddDependency(PCWSTR);
         ServiceConfiguration& SetServiceStartName(PCWSTR);
@@ -57,6 +61,7 @@ namespace hnrt
         void Create(SC_HANDLE hSCM, ServiceConfiguration& config);
         void Open(SC_HANDLE hSCM, PCWSTR pszName, DWORD dwDesiredAccess = SERVICE_ALL_ACCESS);
         void Close();
+        DWORD QueryStatus();
         void Start(DWORD dwNumServiceArgs = 0UL, PCWSTR* pServiceArgVectors = NULL);
         void Stop();
         void Pause();

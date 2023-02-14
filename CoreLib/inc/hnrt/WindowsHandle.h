@@ -20,8 +20,10 @@ namespace hnrt
         BOOL Close();
         HANDLE get_Value() const;
         void set_Value(HANDLE h);
+        bool get_Validity() const;
 
         __declspec(property(get = get_Value, put = set_Value)) HANDLE Value;
+        __declspec(property(get = get_Validity)) bool isValid;
 
     protected:
 
@@ -36,5 +38,10 @@ namespace hnrt
     inline HANDLE WindowsHandle::get_Value() const
     {
         return m_h;
+    }
+
+    inline bool WindowsHandle::get_Validity() const
+    {
+        return m_h != nullptr && m_h != INVALID_HANDLE_VALUE;
     }
 }

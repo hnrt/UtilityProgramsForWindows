@@ -352,3 +352,34 @@ PCWSTR RegistryValue::GetEXPANDSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultVa
 {
 	return Query(hKey, pszName) == ERROR_SUCCESS && m_dwType == REG_EXPAND_SZ ? m_value.psz : pszDefaultValue;
 }
+
+
+PCWSTR RegistryValue::GetString(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultValue)
+{
+	return Query(hKey, pszName) != ERROR_SUCCESS ? pszDefaultValue : m_dwType == REG_EXPAND_SZ ? Expand() : m_dwType == REG_SZ ? m_value.psz : pszDefaultValue;
+}
+
+
+PCWSTR RegistryValue::Expand()
+{
+	if (m_dwType == REG_SZ || m_dwType == REG_EXPAND_SZ)
+	{
+		Buffer<WCHAR> buf(MAX_PATH);
+		DWORD dwRet = ExpandEnvironmentStringsW(m_value.psz, buf, static_cast<DWORD>(buf.Len));
+		if (dwRet > buf.Len)
+		{
+			buf.Resize(dwRet);
+			dwRet = ExpandEnvironmentStringsW(m_value.psz, buf, static_cast<DWORD>(buf.Len));
+		}
+		if (0 < dwRet && dwRet <= buf.Len)
+		{
+			free(m_value.psz);
+			m_value.psz = _wcsdup(buf);
+		}
+		return m_value.psz;
+	}
+	else
+	{
+		return nullptr;
+	}
+}

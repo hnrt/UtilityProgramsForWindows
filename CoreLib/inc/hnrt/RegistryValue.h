@@ -36,10 +36,12 @@ namespace hnrt
         operator const void*() const;
         void Clear();
         LSTATUS Query(HKEY hKey, PCWSTR pszName);
-        DWORD GetDWORD(HKEY hKey, PCWSTR pszName, DWORD dwDefaultValue);
-        ULONGLONG GetQWORD(HKEY hKey, PCWSTR pszName, ULONGLONG qwDefaultValue);
-        PCWSTR GetSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultValue);
-        PCWSTR GetEXPANDSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultValue);
+        DWORD GetDWORD(HKEY hKey, PCWSTR pszName, DWORD dwDefaultValue = 0);
+        ULONGLONG GetQWORD(HKEY hKey, PCWSTR pszName, ULONGLONG qwDefaultValue = 0);
+        PCWSTR GetSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultValue = nullptr);
+        PCWSTR GetEXPANDSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultValue = nullptr);
+        PCWSTR GetString(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultValue = nullptr);
+        PCWSTR Expand();
         DWORD get_Type() const;
         DWORD get_Size() const;
         long get_Int32() const;

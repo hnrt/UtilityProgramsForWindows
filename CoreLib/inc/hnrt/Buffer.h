@@ -16,7 +16,7 @@ namespace hnrt
         operator T* ();
         T* operator &();
         void Resize(size_t len);
-        T* get_Ptr() const;
+        const T* get_Ptr() const;
         T* get_Ptr();
         size_t get_Len() const;
 
@@ -77,7 +77,7 @@ namespace hnrt
     }
 
     template<typename T>
-    inline T* Buffer<T>::get_Ptr() const
+    inline const T* Buffer<T>::get_Ptr() const
     {
         return m_ptr;
     }
