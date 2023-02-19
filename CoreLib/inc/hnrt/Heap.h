@@ -12,7 +12,16 @@ namespace hnrt
     void* Calloc(size_t count, size_t nbytes);
 
     PSTR Clone(PCSTR psz);
+    PSTR* Clone(PSTR* ppsz, size_t count, size_t size = 0);
+    PSTR* Resize(PSTR* ppsz, size_t size);
+    void Free(PSTR* ppsz);
+    DWORD ArraySize(PSTR* ppsz);
+
     PWSTR Clone(PCWSTR psz);
+    PWSTR* Clone(PWSTR* ppsz, size_t count, size_t size = 0);
+    PWSTR* Resize(PWSTR* ppsz, size_t size);
+    void Free(PWSTR* ppsz);
+    DWORD ArraySize(PWSTR* ppsz);
 
     template<typename T>
     T* Allocate(size_t count)

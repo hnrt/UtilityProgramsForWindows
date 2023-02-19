@@ -189,6 +189,7 @@
   <ItemGroup>
     <ClInclude Include="inc\hnrt\AdapterAddressCollection.h" />
     <ClInclude Include="inc\hnrt\Args.h" />
+    <ClInclude Include="inc\hnrt\Array.h" />
     <ClInclude Include="inc\hnrt\Base64.h" />
     <ClInclude Include="inc\hnrt\BCryptAlgHandle.h" />
     <ClInclude Include="inc\hnrt\BCryptHashHandle.h" />

@@ -22,9 +22,13 @@ namespace hnrt
         static PCWSTR TrimTail(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
         static int Compare(PCWSTR psz1, PCWSTR psz2, size_t cch2 = static_cast<size_t>(-1));
         static int CaseCompare(PCWSTR psz1, PCWSTR psz2, size_t cch2 = static_cast<size_t>(-1));
+        static int Compare(PCWSTR psz1, size_t cch1, PCWSTR psz2, size_t cch2 = static_cast<size_t>(-1));
+        static int CaseCompare(PCWSTR psz1, size_t cch1, PCWSTR psz2, size_t cch2 = static_cast<size_t>(-1));
 
         static int Compare(PCSTR psz1, PCSTR psz2, size_t cch2 = static_cast<size_t>(-1));
         static int CaseCompare(PCSTR psz1, PCSTR psz2, size_t cch2 = static_cast<size_t>(-1));
+        static int Compare(PCSTR psz1, size_t cch1, PCSTR psz2, size_t cch2 = static_cast<size_t>(-1));
+        static int CaseCompare(PCSTR psz1, size_t cch1, PCSTR psz2, size_t cch2 = static_cast<size_t>(-1));
 
         static PCWSTR ToUcs(PCSTR psz, size_t cch = static_cast<size_t>(-1));
         static PCSTR ToAcp(PCWSTR psz, size_t cch = static_cast<size_t>(-1));

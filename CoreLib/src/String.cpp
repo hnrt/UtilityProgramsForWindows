@@ -261,6 +261,38 @@ int String::CaseCompare(PCWSTR psz1, PCWSTR psz2, size_t cch2)
 }
 
 
+int String::Compare(PCWSTR psz1, size_t cch1, PCWSTR psz2, size_t cch2)
+{
+    switch (CompareStringW(LOCALE_INVARIANT, 0, psz1, static_cast<int>(cch1), psz2, static_cast<int>(cch2)))
+    {
+    case CSTR_EQUAL:
+        return 0;
+    case CSTR_LESS_THAN:
+        return -1;
+    case CSTR_GREATER_THAN:
+        return 1;
+    default:
+        throw Exception(L"String::Compare failed.");
+    }
+}
+
+
+int String::CaseCompare(PCWSTR psz1, size_t cch1, PCWSTR psz2, size_t cch2)
+{
+    switch (CompareStringW(LOCALE_INVARIANT, LINGUISTIC_IGNORECASE, psz1, static_cast<int>(cch1), psz2, static_cast<int>(cch2)))
+    {
+    case CSTR_EQUAL:
+        return 0;
+    case CSTR_LESS_THAN:
+        return -1;
+    case CSTR_GREATER_THAN:
+        return 1;
+    default:
+        throw Exception(L"String::CaseCompare failed.");
+    }
+}
+
+
 int String::Compare(PCSTR psz1, PCSTR psz2, size_t cch2)
 {
     switch (CompareStringA(LOCALE_INVARIANT, 0, psz1, -1, psz2, static_cast<int>(cch2)))
@@ -280,6 +312,38 @@ int String::Compare(PCSTR psz1, PCSTR psz2, size_t cch2)
 int String::CaseCompare(PCSTR psz1, PCSTR psz2, size_t cch2)
 {
     switch (CompareStringA(LOCALE_INVARIANT, LINGUISTIC_IGNORECASE, psz1, -1, psz2, static_cast<int>(cch2)))
+    {
+    case CSTR_EQUAL:
+        return 0;
+    case CSTR_LESS_THAN:
+        return -1;
+    case CSTR_GREATER_THAN:
+        return 1;
+    default:
+        throw Exception(L"String::CaseCompare failed.");
+    }
+}
+
+
+int String::Compare(PCSTR psz1, size_t cch1, PCSTR psz2, size_t cch2)
+{
+    switch (CompareStringA(LOCALE_INVARIANT, 0, psz1, static_cast<int>(cch1), psz2, static_cast<int>(cch2)))
+    {
+    case CSTR_EQUAL:
+        return 0;
+    case CSTR_LESS_THAN:
+        return -1;
+    case CSTR_GREATER_THAN:
+        return 1;
+    default:
+        throw Exception(L"String::Compare failed.");
+    }
+}
+
+
+int String::CaseCompare(PCSTR psz1, size_t cch1, PCSTR psz2, size_t cch2)
+{
+    switch (CompareStringA(LOCALE_INVARIANT, LINGUISTIC_IGNORECASE, psz1, static_cast<int>(cch1), psz2, static_cast<int>(cch2)))
     {
     case CSTR_EQUAL:
         return 0;
