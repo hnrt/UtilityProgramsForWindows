@@ -29,10 +29,12 @@ namespace hnrt
 		void operator =(const HostsUpdateService&) = delete;
 		void Install(PCWSTR pszCommand);
 		void Uninstall();
-		bool Run();
+		void Run();
 		void CreateRegistry();
 		void ReadRegistry();
 		void ProcessHostsFile();
+
+		void SetReadOnly();
 
 	private:
 
@@ -58,7 +60,7 @@ namespace hnrt
 		static SpinLock::Type m_lockPointer;
 
 		SpinLock::Type m_lockSelf;
-		PCWSTR m_pszServiceName;
+		PWSTR m_pszServiceName;
 		DWORD m_dwError;
 		SERVICE_STATUS_HANDLE m_hServiceStatus;
 		DWORD m_dwCurrentState;
@@ -66,9 +68,15 @@ namespace hnrt
 		LONG m_ExclusiveOperation;
 		WindowsHandle m_hEventMain;
 		PCWSTR m_pszAppDir;
-		PCWSTR m_pszLogFile;
+		PWSTR m_pszLogFile;
 		WindowsHandle m_hLogFile;
-		PCWSTR m_pszHostsFile;
+		PWSTR m_pszHostsFile;
 		KeyValueMap m_Mappings;
+		bool m_bReadOnly;
 	};
+
+	inline void HostsUpdateService::SetReadOnly()
+	{
+		m_bReadOnly = true;
+	}
 }

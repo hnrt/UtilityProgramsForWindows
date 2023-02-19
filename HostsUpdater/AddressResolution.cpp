@@ -4,8 +4,8 @@
 #include "AddressResolution.h"
 #include "hnrt/Heap.h"
 #include "hnrt/Exception.h"
-#include "hnrt/String.h"
-#include <stdio.h>
+#include "hnrt/ErrorMessage.h"
+#include "hnrt/Debug.h"
 #include <stdlib.h>
 
 
@@ -13,10 +13,9 @@ using namespace hnrt;
 
 
 AddressResolution::AddressResolution(PCWSTR pszAlias, PCWSTR pszHostName)
-	: m_pszAlias(pszAlias)
-	, m_pszHostName(pszHostName)
+	: m_pszAlias(Clone(pszAlias))
+	, m_pszHostName(Clone(pszHostName))
 	, m_pAddresses(nullptr)
-	, m_Size(0)
 	, m_Count(0)
 	, m_Error(0)
 {
@@ -24,10 +23,9 @@ AddressResolution::AddressResolution(PCWSTR pszAlias, PCWSTR pszHostName)
 
 
 AddressResolution::AddressResolution(const AddressResolution& src)
-	: m_pszAlias(src.m_pszAlias)
-	, m_pszHostName(src.m_pszHostName)
+	: m_pszAlias(nullptr)
+	, m_pszHostName(nullptr)
 	, m_pAddresses(nullptr)
-	, m_Size(0)
 	, m_Count(0)
 	, m_Error(0)
 {
@@ -51,9 +49,12 @@ AddressResolution& AddressResolution::operator =(const AddressResolution& src)
 
 void AddressResolution::Clear()
 {
-	free(m_pAddresses);
+	free(m_pszAlias);
+	free(m_pszHostName);
+	Free(m_pAddresses);
+	m_pszAlias = nullptr;
+	m_pszHostName = nullptr;
 	m_pAddresses = nullptr;
-	m_Size = 0;
 	m_Count = 0;
 	m_Error = 0;
 }
@@ -61,31 +62,26 @@ void AddressResolution::Clear()
 
 void AddressResolution::Copy(const AddressResolution& src)
 {
-	m_pszAlias = src.m_pszAlias;
-	m_pszHostName = src.m_pszHostName;
-	if (src.m_Count)
-	{
-		m_pAddresses = Allocate<PCWSTR>(src.m_Size);
-		m_Size = src.m_Size;
-		memcpy_s(m_pAddresses, m_Size * sizeof(PCWSTR), src.m_pAddresses, src.m_Size * sizeof(PCWSTR));
-		m_Count = src.m_Count;
-	}
+	m_pszAlias = Clone(src.m_pszAlias);
+	m_pszHostName = Clone(src.m_pszHostName);
+	m_pAddresses = Clone(src.m_pAddresses, src.m_Count, ArraySize(src.m_pAddresses));
+	m_Count = src.m_Count;
+	m_Error = 0;
 }
 
 
 void AddressResolution::Add(PCWSTR pszAddress)
 {
-	if (m_Count + 1 > m_Size)
+	DWORD dwSize = ArraySize(m_pAddresses);
+	if (m_Count + 1 > dwSize)
 	{
-		m_Size += 8;
-		m_pAddresses = Allocate<PCWSTR>(m_pAddresses, m_Size);
-		memset(&m_pAddresses[m_Count], 0, (m_Size - m_Count) * sizeof(PCWSTR));
+		m_pAddresses = Resize(m_pAddresses, dwSize + 8);
 	}
-	m_pAddresses[m_Count++] = pszAddress;
+	m_pAddresses[m_Count++] = Clone(pszAddress);
 }
 
 
-PCWSTR AddressResolution::operator[](int index) const
+PCWSTR AddressResolution::operator [](int index) const
 {
 	if (0 <= index && index < static_cast<int>(m_Count))
 	{
@@ -104,14 +100,14 @@ PCWSTR AddressResolution::operator[](int index) const
 
 bool AddressResolution::Resolve()
 {
-	Clear();
+	DBGFNC(L"AddressResolution::Resolve");
+	m_pAddresses = Resize(m_pAddresses, 0);
+	m_Count = 0;
 	PADDRINFOW pAddrInfo = nullptr;
 	m_Error = GetAddrInfoW(m_pszHostName, NULL, NULL, &pAddrInfo);
 	if (m_Error)
 	{
-#ifdef _DEBUG
-		wprintf(L"# GetAddrInfoW(%s) failed. %d\n", m_pszHostName, m_Error);
-#endif
+		DBGPUT(L"GetAddrInfoW(%s) failed. (%d: %s)", m_pszHostName, m_Error, ErrorMessage::Get(m_Error));
 		return false;
 	}
 	for (PADDRINFOW pCur = pAddrInfo; pCur; pCur = pCur->ai_next)
@@ -124,16 +120,12 @@ bool AddressResolution::Resolve()
 			INT ret = WSAAddressToStringW(pSockAddr, static_cast<DWORD>(pCur->ai_addrlen), NULL, szIpAddress, &dwIpAddress);
 			if (ret)
 			{
-#ifdef _DEBUG
-				wprintf(L"# WSAAddressToString(%s) failed. %d\n", m_pszHostName, ret);
-#endif
+				DBGPUT(L"WSAAddressToString(%s) failed. (%d: %s)", m_pszHostName, ret, ErrorMessage::Get(ret));
 				m_Error = ret;
 				continue;
 			}
-#ifdef _DEBUG
-			wprintf(L"# %s=%s\n", m_pszHostName, szIpAddress);
-#endif
-			Add(String::Copy(szIpAddress));
+			DBGPUT(L"%s=%s", m_pszHostName, szIpAddress);
+			Add(szIpAddress);
 		}
 	}
 	FreeAddrInfoW(pAddrInfo);

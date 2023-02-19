@@ -1,11 +1,15 @@
 ﻿#include "HostsUpdateService.h"
+#include "hnrt/String.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/ErrorMessage.h"
+#include "hnrt/ResourceString.h"
+#include "resource.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
 #include <wchar.h>
+#include <map>
 
 #pragma comment(lib, "Core")
 #pragma comment(lib, "ws2_32")
@@ -17,54 +21,67 @@ using namespace hnrt;
 #define COMMAND_UNINSTALL 2
 #define COMMAND_RUN 3
 #define COMMAND_CREATE_REGISTRY 4
-#define COMMAND_PROCESS 5
+#define COMMAND_READ_REGISTRY 5
+#define COMMAND_PROCESS 6
 
 #define COMMAND_STRING_INSTALL L"install"
 #define COMMAND_STRING_UNINSTALL L"uninstall"
 #define COMMAND_STRING_RUN L"run"
 #define COMMAND_STRING_CREATE_REGISTRY L"create_registry"
+#define COMMAND_STRING_READ_REGISTRY L"read_registry"
 #define COMMAND_STRING_PROCESS L"process"
 
-static bool ParseCommandLine(wchar_t** ppCur, wchar_t** ppEnd, int& command)
+typedef std::map<const wchar_t*, int, StringCaseLessThan> CommandMap;
+#define INSERT(x) insert(std::pair<const wchar_t*, int>(COMMAND_STRING_##x,COMMAND_##x))
+
+static void ParseCommandLine(wchar_t** ppCur, wchar_t** ppEnd, int& command)
 {
+	CommandMap cmdmap;
+	cmdmap.INSERT(INSTALL);
+	cmdmap.INSERT(UNINSTALL);
+	cmdmap.INSERT(RUN);
+	cmdmap.INSERT(CREATE_REGISTRY);
+	cmdmap.INSERT(READ_REGISTRY);
+	cmdmap.INSERT(PROCESS);
 	if (ppCur < ppEnd)
 	{
 		wchar_t* psz = *ppCur++;
-		if (!wcscmp(psz, COMMAND_STRING_INSTALL))
+		CommandMap::const_iterator found = cmdmap.find(psz);
+		if (found != cmdmap.end())
 		{
-			command = COMMAND_INSTALL;
-		}
-		else if (!wcscmp(psz, COMMAND_STRING_UNINSTALL))
-		{
-			command = COMMAND_UNINSTALL;
-		}
-		else if (!wcscmp(psz, COMMAND_STRING_RUN))
-		{
-			command = COMMAND_RUN;
-		}
-		else if (!wcscmp(psz, COMMAND_STRING_CREATE_REGISTRY))
-		{
-			command = COMMAND_CREATE_REGISTRY;
-		}
-		else if (!wcscmp(psz, COMMAND_STRING_PROCESS))
-		{
-			command = COMMAND_PROCESS;
+			command = found->second;
+			switch (command)
+			{
+			case COMMAND_PROCESS:
+				while (ppCur < ppEnd)
+				{
+					wchar_t* psz = *ppCur++;
+					if (!String::CaseCompare(psz, L"-readonly"))
+					{
+						HostsUpdateService::GetInstance()->SetReadOnly();
+					}
+					else
+					{
+						throw Exception(ResourceString(IDS_INVALID_PARAMETER), psz);
+					}
+				}
+				break;
+			default:
+				break;
+			}
 		}
 		else
 		{
-			fwprintf(stderr, L"ERROR: Invalid command: %s\n", psz);
-			return false;
+			throw Exception(ResourceString(IDS_INVALID_COMMAND), psz);
 		}
 	}
 	if (ppCur < ppEnd)
 	{
-		fwprintf(stderr, L"ERROR: Too many arguments.\n");
-		return false;
+		throw Exception(ResourceString(IDS_TOO_MANY_ARGS));
 	}
-	return true;
 }
 
-static void help()
+static void Help()
 {
 	WCHAR szFileName[MAX_PATH] = { 0 };
 	if (GetModuleFileNameW(NULL, szFileName, MAX_PATH))
@@ -78,69 +95,83 @@ static void help()
 	}
 	else
 	{
-		wcscpy_s(szFileName, L"hostsupd.exe");
+		wcscpy_s(szFileName, L"hostsupdater.exe");
 	}
-	fwprintf(stderr, L"Usage: %s %s|%s|%s|%s\n", szFileName,
-		COMMAND_STRING_INSTALL, COMMAND_STRING_UNINSTALL, COMMAND_STRING_CREATE_REGISTRY, COMMAND_STRING_PROCESS);
+	fwprintf(stderr, ResourceString(IDS_USAGE), szFileName,
+		COMMAND_STRING_INSTALL, COMMAND_STRING_UNINSTALL,
+		COMMAND_STRING_CREATE_REGISTRY, COMMAND_STRING_READ_REGISTRY, COMMAND_STRING_PROCESS);
+}
+
+static void RunCommand(int command)
+{
+	if (command == COMMAND_NONE)
+	{
+		Help();
+		return;
+	}
+
+	auto pInstance = HostsUpdateService::GetInstance();
+	switch (command)
+	{
+	case COMMAND_INSTALL:
+		pInstance->Install(COMMAND_STRING_RUN);
+		break;
+	case COMMAND_UNINSTALL:
+		pInstance->Uninstall();
+		break;
+	case COMMAND_RUN:
+		pInstance->Run();
+		break;
+	case COMMAND_CREATE_REGISTRY:
+		pInstance->CreateRegistry();
+		break;
+	case COMMAND_READ_REGISTRY:
+		pInstance->ReadRegistry();
+		break;
+	case COMMAND_PROCESS:
+		pInstance->ReadRegistry();
+		pInstance->ProcessHostsFile();
+		break;
+	default:
+		throw Exception(ResourceString(IDS_UNEXPECTED_COMMAND), command);
+	}
 }
 
 int wmain(int argc, wchar_t* argv[])
 {
+	int exitCode = EXIT_FAILURE;
+
+	_wsetlocale(LC_ALL, L"");
+
+	WSADATA ws = { 0 };
+	int rc = WSAStartup(MAKEWORD(2, 2), &ws);
+	if (rc)
+	{
+		fwprintf(stderr, ResourceString(IDS_WARNING_WSINIT_FAILURE), rc, ErrorMessage::Get(rc));
+	}
+
 	try
 	{
-		_wsetlocale(LC_ALL, L"");
+		auto pInstance = HostsUpdateService::GetInstance(); // increments reference counter
 		int command = COMMAND_NONE;
-		if (!ParseCommandLine(&argv[1], &argv[argc], command))
-		{
-			return EXIT_FAILURE;
-		}
-		if (command == COMMAND_NONE)
-		{
-			help();
-			return EXIT_SUCCESS;
-		}
-		WSADATA ws = { 0 };
-		int rc = WSAStartup(MAKEWORD(2, 2), &ws);
-		if (rc)
-		{
-			fwprintf(stderr, L"WARNING: Winsock initialization failed. %d %s\n", rc,
-				rc == WSAVERNOTSUPPORTED ? L"(Version is not supported.)" :
-				rc == WSASYSNOTREADY ? L"(Network subsystem is not yet ready.)" :
-				L"");
-		}
-		auto pInstance = HostsUpdateService::GetInstance();
-		switch (command)
-		{
-		case COMMAND_INSTALL:
-			pInstance->Install(COMMAND_STRING_RUN);
-			break;
-		case COMMAND_UNINSTALL:
-			pInstance->Uninstall();
-			break;
-		case COMMAND_RUN:
-			pInstance->Run();
-			break;
-		case COMMAND_CREATE_REGISTRY:
-			pInstance->CreateRegistry();
-			break;
-		case COMMAND_PROCESS:
-			pInstance->ReadRegistry();
-			pInstance->ProcessHostsFile();
-			break;
-		default:
-			break;
-		}
-		WSACleanup();
-		return EXIT_SUCCESS;
+		ParseCommandLine(&argv[1], &argv[argc], command);
+		RunCommand(command);
+		exitCode = EXIT_SUCCESS;
 	}
 	catch (Win32Exception ex)
 	{
-		fwprintf(stderr, L"ERROR: %s (%lu: %s)\n", ex.Message, ex.Error, ErrorMessage::Get(ex.Error));
+		fwprintf(stderr, ResourceString(IDS_ERROR_MESSAGE_CODE_REASON), ex.Message, ex.Error, ErrorMessage::Get(ex.Error));
+	}
+	catch (Exception ex)
+	{
+		fwprintf(stderr, ResourceString(IDS_ERROR_MESSAGE), ex.Message);
 	}
 	catch (...)
 	{
-		fwprintf(stderr, L"ERROR: Unexpected exception caught.\n");
+		fwprintf(stderr, ResourceString(IDS_ERROR_UNEXPECTED_EXCEPTION));
 	}
+
 	WSACleanup();
-	return EXIT_FAILURE;
+
+	return exitCode;
 }

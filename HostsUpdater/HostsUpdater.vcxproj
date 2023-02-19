@@ -155,23 +155,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="HostEntryCollection.cpp" />
     <ClCompile Include="HostsFile.cpp" />
     <ClCompile Include="HostsReader.cpp" />
     <ClCompile Include="HostsUpdater.cpp" />
     <ClCompile Include="HostsUpdateService.cpp" />
-    <ClCompile Include="TextLocatorCollection.cpp" />
     <ClCompile Include="AddressResolution.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddressResolution.h" />
     <ClInclude Include="HostEntry.h" />
-    <ClInclude Include="HostEntryCollection.h" />
     <ClInclude Include="HostsFile.h" />
     <ClInclude Include="HostsReader.h" />
     <ClInclude Include="HostsUpdateService.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="TextLocatorCollection.h" />
     <ClInclude Include="TextLocator.h" />
   </ItemGroup>
   <ItemGroup>

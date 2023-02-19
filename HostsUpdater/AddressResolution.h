@@ -12,7 +12,7 @@ namespace hnrt
 		AddressResolution(const AddressResolution&);
 		~AddressResolution();
 		AddressResolution& operator =(const AddressResolution&);
-		PCWSTR operator[](int index) const;
+		PCWSTR operator [](int index) const;
 		void Clear();
 		bool Resolve();
 
@@ -31,10 +31,9 @@ namespace hnrt
 		void Copy(const AddressResolution&);
 		void Add(PCWSTR);
 
-		PCWSTR m_pszAlias;
-		PCWSTR m_pszHostName;
-		PCWSTR* m_pAddresses;
-		DWORD m_Size;
+		PWSTR m_pszAlias;
+		PWSTR m_pszHostName;
+		PWSTR* m_pAddresses;
 		DWORD m_Count;
 		INT m_Error;
 	};

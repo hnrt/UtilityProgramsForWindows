@@ -7,6 +7,7 @@
 #include "hnrt/RegistryValue.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/ErrorMessage.h"
+#include "hnrt/Win32Exception.h"
 #include "hnrt/Debug.h"
 #include "resource.h"
 #include <stdio.h>
@@ -47,7 +48,7 @@ RefPtr<HostsUpdateService> HostsUpdateService::GetInstance()
 
 HostsUpdateService::HostsUpdateService()
 	: m_lockSelf(SPIN_LOCK_INITIALIZER)
-	, m_pszServiceName(String::Copy(ResourceString(IDS_SERVICE_NAME)))
+	, m_pszServiceName(Clone(ResourceString(IDS_SERVICE_NAME)))
 	, m_dwError(ERROR_SUCCESS)
 	, m_hServiceStatus(NULL)
 	, m_dwCurrentState(0)
@@ -59,6 +60,7 @@ HostsUpdateService::HostsUpdateService()
 	, m_hLogFile()
 	, m_pszHostsFile(nullptr)
 	, m_Mappings()
+	, m_bReadOnly(false)
 {
 }
 
@@ -67,6 +69,9 @@ HostsUpdateService::~HostsUpdateService()
 {
 	SpinLock lock(m_lockPointer);
 	m_pSingleton = nullptr;
+	free(m_pszServiceName);
+	free(m_pszLogFile);
+	free(m_pszHostsFile);
 }
 
 
@@ -81,7 +86,7 @@ void HostsUpdateService::Install(PCWSTR pszCommand)
 		.SetBinaryPathName(NULL, pszCommand);
 	Service svc;
 	svc.Create(scm, cfg);
-	fwprintf(stdout, L"INFO: Created service \"%s\".\n", m_pszServiceName);
+	fwprintf(stdout, ResourceString(IDS_INFO_CREATED_SERVICE), m_pszServiceName);
 	CreateRegistry();
 	CreateAppDirIfNotExist();
 }
@@ -96,43 +101,39 @@ void HostsUpdateService::Uninstall()
 	svc.QueryStatus();
 	if (svc.CurrentState != SERVICE_STOPPED)
 	{
-		fwprintf(stdout, L"INFO: Service \"%s\" is %s.\n", m_pszServiceName,
-			svc.CurrentState == SERVICE_RUNNING ? L"running" :
-			svc.CurrentState == SERVICE_PAUSED ? L"suspended" :
-			L"not stopped");
+		fwprintf(stdout,
+			svc.CurrentState == SERVICE_RUNNING ? ResourceString(IDS_INFO_SERVICE_IS_RUNNING).Ptr :
+			svc.CurrentState == SERVICE_PAUSED ? ResourceString(IDS_INFO_SERVICE_IS_SUSPENDED).Ptr :
+			ResourceString(IDS_INFO_SERVICE_IS_NOT_STOPPED).Ptr, m_pszServiceName);
 		svc.Stop();
-		fwprintf(stdout, L"INFO: Stopping service \"%s\"...\n", m_pszServiceName);
+		fwprintf(stdout, ResourceString(IDS_INFO_STOPPING_SERVICE), m_pszServiceName);
 		for (int count = 0; count < 30; count++)
 		{
 			Sleep(100);
 			svc.QueryStatus();
 			if (svc.CurrentState == SERVICE_STOPPED)
 			{
-				fwprintf(stdout, L"INFO: Service \"%s\" stopped.\n", m_pszServiceName);
+				fwprintf(stdout, ResourceString(IDS_INFO_STOPPED_SERVICE), m_pszServiceName);
 				break;
 			}
 		}
 	}
 	svc.Delete();
-	fwprintf(stdout, L"INFO: Deleted service \"%s\".\n", m_pszServiceName);
+	fwprintf(stdout, ResourceString(IDS_INFO_DELETED_SERVICE), m_pszServiceName);
 }
 
 
-bool HostsUpdateService::Run()
+void HostsUpdateService::Run()
 {
 	SERVICE_TABLE_ENTRYW ServiceTable[] =
 	{
-		{ const_cast<LPWSTR>(m_pszServiceName), ServiceMain },
+		{ m_pszServiceName, ServiceMain },
 		{ NULL, NULL }
 	};
-	if (StartServiceCtrlDispatcherW(ServiceTable))
-	{
-		return true;
-	}
-	else
+	if (!StartServiceCtrlDispatcherW(ServiceTable))
 	{
 		m_dwError = GetLastError();
-		return false;
+		throw Win32Exception(m_dwError, ResourceString(IDS_FAILED_START_SVC_CTRL_DISPATCHER));
 	}
 }
 
@@ -382,7 +383,7 @@ void HostsUpdateService::OpenLogFile(PCWSTR pszFileName)
 {
 	if (pszFileName)
 	{
-		m_pszLogFile = String::Copy(pszFileName);
+		m_pszLogFile = Clone(pszFileName);
 	}
 	else if (m_hLogFile.isValid || !m_pszLogFile)
 	{
@@ -453,19 +454,19 @@ void HostsUpdateService::CreateRegistry()
 				dwError = value.Query(key, REGVAL_VERSION);
 				if (dwError == ERROR_FILE_NOT_FOUND)
 				{
-					fwprintf(stdout, L"WARNING: Registry \"%s\" is missing. Creating...\n", REGVAL_VERSION);
+					fwprintf(stdout, ResourceString(IDS_WARNING_REGISTRY_MISSING_CREATING), REGVAL_VERSION);
 					CreateRegistryV1(key);
 				}
 				else
 				{
-					fwprintf(stdout, L"WARNING: Registry \"%s\" is not accessible. (%lu: %s)\n", REGVAL_VERSION, dwError, ErrorMessage::Get(dwError));
+					fwprintf(stdout, ResourceString(IDS_WARNING_REGISTRY_UNAVAILABLE), REGVAL_VERSION, dwError, ErrorMessage::Get(dwError));
 				}
 				break;
 			case 1:
-				fwprintf(stdout, L"INFO: Found registry version 1 under HKLM\\%s.\n", REGKEY);
+				fwprintf(stdout, ResourceString(IDS_INFO_FOUND_REGISTRY_VERSION_1_UNDER_HKLM), REGKEY);
 				break;
 			default:
-				fwprintf(stdout, L"WARNING: Registry \"%s\" is set to an unexpected value: %lu\n", REGVAL_VERSION, value.UInt32);
+				fwprintf(stdout, ResourceString(IDS_WARNING_REGISTRY_UNEXPECTED_VALUE_LU), REGVAL_VERSION, value.UInt32);
 				break;
 			}
 		}
@@ -480,7 +481,7 @@ void HostsUpdateService::CreateRegistryV1(RegistryKey& key)
 	RegistryValue::SetEXPANDSZ(key, REGVAL_HOSTSFILE, HOSTSFILE_DEFAULT);
 	RegistryKey keyMappings;
 	keyMappings.Create(HKEY_LOCAL_MACHINE, REGKEY_MAPPINGS);
-	fwprintf(stdout, L"INFO: Created registry version 1 under \"HKLM\\%s\".\n", REGKEY);
+	fwprintf(stdout, ResourceString(IDS_INFO_CREATED_REGISTRY_VERSION_1_UNDER_HKLM), REGKEY);
 }
 
 
@@ -489,17 +490,17 @@ void HostsUpdateService::CreateAppDirIfNotExist()
 	DWORD dwAttr = GetFileAttributesW(m_pszAppDir);
 	if ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
 	{
-		fwprintf(stdout, L"INFO: AppDir = \"%s\"\n", m_pszAppDir);
+		fwprintf(stdout, ResourceString(IDS_INFO_APPDIR_IS), m_pszAppDir);
 		return;
 	}
 	if (CreateDirectoryW(m_pszAppDir, NULL))
 	{
-		fwprintf(stdout, L"INFO: Created directory \"%s\".\n", m_pszAppDir);
+		fwprintf(stdout, ResourceString(IDS_INFO_CREATED_DIRECTORY), m_pszAppDir);
 	}
 	else
 	{
 		DWORD dwError = GetLastError();
-		fwprintf(stdout, L"WARNING: Failed to create directory \"%s\". (%lu: %s)\n", m_pszAppDir, dwError, ErrorMessage::Get(dwError));
+		fwprintf(stdout, ResourceString(IDS_WARNING_FAILED_CREATE_DIRECTORY), m_pszAppDir, dwError, ErrorMessage::Get(dwError));
 	}
 }
 
@@ -522,7 +523,7 @@ void HostsUpdateService::ReadRegistry()
 		if (pszHostsFileName)
 		{
 			DBGPUT(L"%s=%s", REGVAL_HOSTSFILE, pszHostsFileName);
-			m_pszHostsFile = String::Copy(pszHostsFileName);
+			m_pszHostsFile = Clone(pszHostsFileName);
 		}
 	}
 	if (key.Open(HKEY_LOCAL_MACHINE, REGKEY_MAPPINGS, 0, KEY_READ) == ERROR_SUCCESS)
@@ -567,10 +568,13 @@ void HostsUpdateService::ReadRegistry()
 
 void HostsUpdateService::ProcessHostsFile()
 {
+	DBGFNC(L"HostsUpdateService::ProcessHostsFile");
 	if (!m_pszHostsFile)
 	{
+		DBGPUT(L"m_pszHostsFile=null");
 		return;
 	}
+	DBGPUT(L"m_pszHostsFile=%s", m_pszHostsFile);
 	HostsFile hosts(m_pszHostsFile);
 	try
 	{
@@ -584,36 +588,58 @@ void HostsUpdateService::ProcessHostsFile()
 			AddressResolution ar(iter->first, iter->second);
 			if (!ar.Resolve())
 			{
+				DBGPUT(L"alias=%s hostname=%s: Resolution failed.", iter->first, iter->second);
 				continue;
 			}
-			HostEntry* pEntry = hosts.Entries.FindByName(hosts.UTF16, ar.Alias);
+			DBGPUT(L"alias=%s hostname=%s: Resolution succeeded.", iter->first, iter->second);
+			HostEntry* pEntry = hosts.FindByName(hosts.UTF16, ar.Alias);
 			if (pEntry)
 			{
+				DBGPUT(L"%s is found in hosts. Checking if address(%.*s) has been updated...", ar.Alias, pEntry->Address.Len, hosts.UTF16 + pEntry->Address.Start);
 				bool bMatch = false;
 				for (DWORD dwIndex = 0; dwIndex < ar.Count; dwIndex++)
 				{
+					DBGPUT(L"[%lu]=%s", dwIndex, ar[dwIndex]);
 					if (!pEntry->Address.Compare(hosts.UTF16, ar[dwIndex]))
 					{
+						DBGPUT(L"Address matches with the resolved one.");
 						bMatch = true;
 						break;
 					}
 				}
 				if (!bMatch)
 				{
-					updateEntries.insert(HostsFile::HostEntryAddressPair(pEntry, ar[0]));
+					if (updateEntries.find(pEntry) == updateEntries.end())
+					{
+						DBGPUT(L"Address doesn't match with the resolved one; it is going to be updated.");
+						updateEntries.insert(HostsFile::HostEntryAddressPair(pEntry, std::wstring(ar[0])));
+					}
+					else
+					{
+						DBGPUT(L"Address doesn't match with the resolved one; it is going to be updated. (Already handled.)");
+					}
 				}
 			}
 			else
 			{
-				appendEntries.push_back(HostsFile::AddressAliasPair(ar[0], ar.Alias));
+				DBGPUT(L"%s is not found in hosts; Address/hostname pair is going to be appended.", ar.Alias);
+				appendEntries.push_back(HostsFile::AddressAliasPair(std::wstring(ar[0]), std::wstring(ar.Alias)));
 			}
 		}
 		if (updateEntries.size() + appendEntries.size())
 		{
-			hosts.CreateBackup();
-			hosts.Rebuild(updateEntries, appendEntries);
-			hosts.Write();
-			Log(L"INFO: Wrote \"%s\" %lu bytes.", hosts.Name, hosts.Length);
+			if (m_bReadOnly)
+			{
+				hosts.Rebuild(updateEntries, appendEntries);
+				wprintf(L"%.*s", static_cast<int>(hosts.UTF16.Len), hosts.UTF16.Ptr);
+			}
+			else
+			{
+				hosts.CreateBackup();
+				hosts.Rebuild(updateEntries, appendEntries);
+				hosts.Write();
+				Log(L"INFO: Wrote \"%s\" %lu bytes.", hosts.Name, hosts.Length);
+			}
 		}
 	}
 	catch (Exception ex)

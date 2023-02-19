@@ -1,19 +1,36 @@
 #pragma once
 
-#include "TextLocatorCollection.h"
+#include "TextLocator.h"
+#include "hnrt/Array.h"
 
 namespace hnrt
 {
 	struct HostEntry
 	{
 		TextLocator Address;
-		TextLocatorCollection Names;
+		Array<TextLocator> Names;
 
+		HostEntry() = default;
+		HostEntry(const HostEntry&) = default;
+		~HostEntry() = default;
 		void* operator new(size_t, void*);
+		bool Contains(const WCHAR* pContent, PCWSTR pszValue);
 	};
 
 	inline void* HostEntry::operator new(size_t unused, void* ptr)
 	{
 		return ptr;
+	}
+
+	inline bool HostEntry::Contains(const WCHAR* pContent, PCWSTR pszValue)
+	{
+		for (DWORD dwIndex = 0; dwIndex < Names.Count; dwIndex++)
+		{
+			if (!Names[dwIndex].Compare(pContent, pszValue))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 }

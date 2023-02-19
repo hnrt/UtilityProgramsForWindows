@@ -45,7 +45,7 @@ void HostsFile::Close()
 	m_hFile.Close();
 	m_buf.Resize(0);
 	m_dwError = ERROR_SUCCESS;
-	m_Entries.Clear();
+	m_Entries.Resize(0);
 }
 
 
@@ -199,7 +199,7 @@ void HostsFile::Parse()
 {
 	DBGFNC(L"HostsFile::Parse");
 	m_dwError = ERROR_SUCCESS;
-	m_Entries.Clear();
+	m_Entries.Resize(0);
 	HostsReader reader(m_buf, m_buf.Len);
 	int t = reader.NextToken();
 	while (true)
@@ -230,7 +230,7 @@ void HostsFile::Parse()
 			if (t == HOSTSREADER_HOSTNAME)
 			{
 				DBGPUT(L"NAME %.*s", reader.TokenLen, reader.TokenPtr);
-				entry.Names.Add(reader.Token);
+				entry.Names += reader.Token;
 				t = reader.NextToken();
 			}
 			else
@@ -247,7 +247,7 @@ void HostsFile::Parse()
 				if (t == HOSTSREADER_HOSTNAME)
 				{
 					DBGPUT(L"NAME %.*s", reader.TokenLen, reader.TokenPtr);
-					entry.Names.Add(reader.Token);
+					entry.Names += reader.Token;
 					t = reader.NextToken();
 				}
 				else
@@ -255,7 +255,7 @@ void HostsFile::Parse()
 					break;
 				}
 			}
-			m_Entries.Add(entry);
+			m_Entries += entry;
 		}
 		if (t == HOSTSREADER_COMMENT)
 		{
@@ -312,8 +312,8 @@ size_t HostsFile::Rebuild(const UpdateMap& updateEntries, const AppendList& appe
 			len = iter->first->Address.Start - offset;
 			if (bufsz) wmemcpy_s(&buf[size], bufsz - size, &m_buf[offset], len);
 			size += len;
-			len = wcslen(iter->second);
-			if (bufsz) wmemcpy_s(&buf[size], bufsz - size, iter->second, len);
+			len = wcslen(iter->second.c_str());
+			if (bufsz) wmemcpy_s(&buf[size], bufsz - size, iter->second.c_str(), len);
 			size += len;
 			offset = iter->first->Address.End;
 		}
@@ -328,16 +328,30 @@ size_t HostsFile::Rebuild(const UpdateMap& updateEntries, const AppendList& appe
 	}
 	for (AppendList::const_iterator iter = appendEntries.begin(); iter != appendEntries.end(); iter++)
 	{
-		len = wcslen(iter->first);
-		if (bufsz) wmemcpy_s(&buf[size], bufsz - size, iter->first, len);
+		len = wcslen(iter->first.c_str());
+		if (bufsz) wmemcpy_s(&buf[size], bufsz - size, iter->first.c_str(), len);
 		size += len;
 		if (bufsz) wmemcpy_s(&buf[size], bufsz - size, L"\t", 1);
 		size += 1;
-		len = wcslen(iter->second);
-		if (bufsz) wmemcpy_s(&buf[size], bufsz - size, iter->second, len);
+		len = wcslen(iter->second.c_str());
+		if (bufsz) wmemcpy_s(&buf[size], bufsz - size, iter->second.c_str(), len);
 		size += len;
 		if (bufsz) wmemcpy_s(&buf[size], bufsz - size, L"\r\n", 2);
 		size += 2;
 	}
 	return size;
+}
+
+HostEntry* HostsFile::FindByName(const WCHAR* pContent, PCWSTR pszName)
+{
+	for (DWORD dwIndex = 0; dwIndex < m_Entries.Count; dwIndex++)
+	{
+		HostEntry* pEntry = &m_Entries[dwIndex];
+		if (pEntry->Contains(pContent, pszName))
+		{
+			return pEntry;
+		}
+	}
+	return nullptr;
+
 }
