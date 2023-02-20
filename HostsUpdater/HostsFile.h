@@ -20,7 +20,7 @@ namespace hnrt
 		typedef std::pair<std::wstring, std::wstring> AddressAliasPair;
 		typedef std::list<AddressAliasPair> AppendList;
 
-		HostsFile(PCWSTR pszFileName);
+		HostsFile(PCWSTR pszFileName, bool bReadOnly);
 		HostsFile(const HostsFile&) = delete;
 		~HostsFile();
 		void operator =(const HostsFile&) = delete;
@@ -49,7 +49,8 @@ namespace hnrt
 
 		size_t Rebuild(const UpdateMap& updateEntries, const AppendList& appendEntries, WCHAR buf[], size_t bufsz);
 
-		PCWSTR m_pszFileName;
+		PWSTR m_pszFileName;
+		bool m_bReadOnly;
 		WindowsHandle m_hFile;
 		DWORD m_dwError;
 		Buffer<WCHAR> m_buf;

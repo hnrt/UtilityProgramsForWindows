@@ -233,6 +233,7 @@ DWORD HostsUpdateService::OnContinue()
 
 DWORD HostsUpdateService::OnInterrogate()
 {
+	SetStatus(m_dwCurrentState);
 	return NO_ERROR;
 }
 
@@ -575,7 +576,7 @@ void HostsUpdateService::ProcessHostsFile()
 		return;
 	}
 	DBGPUT(L"m_pszHostsFile=%s", m_pszHostsFile);
-	HostsFile hosts(m_pszHostsFile);
+	HostsFile hosts(m_pszHostsFile, m_bReadOnly);
 	try
 	{
 		hosts.Open();
@@ -628,16 +629,15 @@ void HostsUpdateService::ProcessHostsFile()
 		}
 		if (updateEntries.size() + appendEntries.size())
 		{
+			hosts.CreateBackup();
+			hosts.Rebuild(updateEntries, appendEntries);
+			hosts.Write();
 			if (m_bReadOnly)
 			{
-				hosts.Rebuild(updateEntries, appendEntries);
 				wprintf(L"%.*s", static_cast<int>(hosts.UTF16.Len), hosts.UTF16.Ptr);
 			}
 			else
 			{
-				hosts.CreateBackup();
-				hosts.Rebuild(updateEntries, appendEntries);
-				hosts.Write();
 				Log(L"INFO: Wrote \"%s\" %lu bytes.", hosts.Name, hosts.Length);
 			}
 		}

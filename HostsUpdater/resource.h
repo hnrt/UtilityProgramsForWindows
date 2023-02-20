@@ -29,8 +29,16 @@
 #define IDS_INFO_CREATED_DIRECTORY      125
 #define IDS_WARNING_FAILED_CREATE_DIRECTORY 126
 #define IDS_INFO_APPDIR_IS              127
-#define IDS_STRING128                   128
 #define IDS_INVALID_PARAMETER           128
+#define IDS_FAILED_PARSE                129
+#define IDS_FAILED_OPEN                 130
+#define IDS_FAILED_GETSIZE              131
+#define IDS_FAILED_READ                 132
+#define IDS_FAILED_READ_SIZE_MISMATCH   133
+#define IDS_FAILED_REWIND               134
+#define IDS_FAILED_WRITE                135
+#define IDS_FAILED_WRITE_SIZE_MISMATCH  136
+#define IDS_FAILED_SETSIZE              137
 
 // Next default values for new objects
 // 
