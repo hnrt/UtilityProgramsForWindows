@@ -80,6 +80,7 @@
     <Compile Include="Controller\NonSecureListener.cs" />
     <Compile Include="Controller\NonSecureOuterClient.cs" />
     <Compile Include="Controller\OuterClientBase.cs" />
+    <Compile Include="Controller\OuterClientFactory.cs" />
     <Compile Include="Controller\SecureInnerClient.cs" />
     <Compile Include="Controller\SecureListener.cs" />
     <Compile Include="Controller\SecureOuterClient.cs" />

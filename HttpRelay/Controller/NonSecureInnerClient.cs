@@ -81,7 +81,7 @@ namespace hnrt.HttpRelay.Controller
 
         protected override IOuterClient CreateOuterClient(int serialNumber)
         {
-            return new NonSecureOuterClient(serialNumber, Destination);
+            return OuterClientFactory.CreateOuterClient(serialNumber, Destination);
         }
 
         public override bool CanRead => stream.CanRead;
