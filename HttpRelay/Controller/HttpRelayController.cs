@@ -203,7 +203,7 @@ namespace hnrt.HttpRelay.Controller
 
             if (target != null)
             {
-                if (nonSecurePort == 0 && target.Type == ConnectionType.Raw)
+                if (nonSecurePort == 0)
                 {
                     nonSecurePort = HttpConstants.HTTP_PORT;
                 }
@@ -217,28 +217,31 @@ namespace hnrt.HttpRelay.Controller
                     ListenerList.Add(nonSecureListener);
                 }
 
-                if ((certificatePath != null && certificatePassword == null) || (certificatePath == null && certificatePassword != null))
+                if (certificatePath != null && certificatePassword != null)
+                {
+                    if (securePort == 0)
+                    {
+                        securePort = HttpConstants.HTTPS_PORT;
+                    }
+                    if (securePort > 0)
+                    {
+                        if (certificatePath == null || certificatePassword == null)
+                        {
+                            throw new Exception(CERTIFICATE_PATH_AND_PASSWORD);
+                        }
+                        var secureListener = new SecureListener()
+                        {
+                            Destination = target,
+                            Port = securePort,
+                            ServerCertificatePath = certificatePath,
+                            ServerCertificatePassword = certificatePassword
+                        };
+                        ListenerList.Add(secureListener);
+                    }
+                }
+                else if (securePort > 0 || certificatePath != null || certificatePassword != null)
                 {
                     throw new Exception(CERTIFICATE_PATH_AND_PASSWORD);
-                }
-                if (securePort == 0 && (target.Type == ConnectionType.Encrypted || certificatePath != null))
-                {
-                    securePort = HttpConstants.HTTPS_PORT;
-                }
-                if (securePort > 0)
-                {
-                    if (certificatePath == null || certificatePassword == null)
-                    {
-                        throw new Exception(CERTIFICATE_PATH_AND_PASSWORD);
-                    }
-                    var secureListener = new SecureListener()
-                    {
-                        Destination = target,
-                        Port = securePort,
-                        ServerCertificatePath = certificatePath,
-                        ServerCertificatePassword = certificatePassword
-                    };
-                    ListenerList.Add(secureListener);
                 }
             }
 
