@@ -18,6 +18,7 @@
 #define REG_SUBKEY L"SOFTWARE\\hnrt\\Checksum"
 #define REG_NAME_SOURCE L"Source"
 #define REG_NAME_METHOD L"Method"
+#define REG_NAME_UPPERCASE L"Uppercase"
 
 
 #define LABEL_UTF8 L"UTF-8"
@@ -36,6 +37,7 @@ Checksum::Checksum()
     , m_hash()
     , m_uSource(IDC_FILE)
     , m_uMethod(IDC_MD5)
+    , m_bUppercase(FALSE)
 {
 }
 
@@ -49,9 +51,11 @@ void Checksum::OnCreate(HWND hDlg)
         RegistryValue value;
         m_uSource = value.GetDWORD(hKey, REG_NAME_SOURCE, 1) == 2 ? IDC_TEXT : IDC_FILE;
         m_uMethod = ((value.GetDWORD(hKey, REG_NAME_METHOD, 1) - 1) % 5) + IDC_MD5;
+        m_bUppercase = value.GetDWORD(hKey, REG_NAME_UPPERCASE) ? TRUE : FALSE;
     }
     SendDlgItemMessageW(hDlg, m_uSource, BM_SETCHECK, BST_CHECKED, 0);
     SendDlgItemMessageW(hDlg, m_uMethod, BM_SETCHECK, BST_CHECKED, 0);
+    SendDlgItemMessageW(hDlg, IDC_UPPERCASE, BM_SETCHECK, m_bUppercase ? BST_CHECKED : BST_UNCHECKED, 0);
     SendDlgItemMessageW(hDlg, IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(L""));
     SendDlgItemMessageW(hDlg, IDC_CHARSET, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_UTF8));
     SendDlgItemMessageW(hDlg, IDC_CHARSET, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_UTF16LE));
@@ -81,6 +85,11 @@ void Checksum::OnDestroy(HWND hDlg)
         {
             Debug::Put(L"Failed to set DWORD to HKCU\\%s\\%s: %s", REG_SUBKEY, REG_NAME_METHOD, ErrorMessage::Get(rc));
         }
+        rc = RegistryValue::SetDWORD(hKey, REG_NAME_UPPERCASE, m_bUppercase ? 1UL : 0UL);
+        if (rc != ERROR_SUCCESS)
+        {
+            Debug::Put(L"Failed to set DWORD to HKCU\\%s\\%s: %s", REG_SUBKEY, REG_NAME_UPPERCASE, ErrorMessage::Get(rc));
+        }
     }
     else
     {
@@ -96,12 +105,14 @@ void Checksum::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
     WindowLayout::UpdateLayout(hDlg, IDC_COPY, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_RESULT_BOX, 0, cyDelta, cxDelta, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_RESULT, 0, cyDelta, cxDelta, 0, TRUE);
-    WindowLayout::UpdateLayout(hDlg, IDC_METHOD, cxDelta, 0, 0, cyDelta);
+    WindowLayout::UpdateLayout(hDlg, IDC_METHOD, cxDelta, 0, 0, cyDelta, TRUE);
     WindowLayout::UpdateLayout(hDlg, IDC_MD5, cxDelta, 0, 0, 0, TRUE);
     WindowLayout::UpdateLayout(hDlg, IDC_SHA1, cxDelta, 0, 0, 0, TRUE);
     WindowLayout::UpdateLayout(hDlg, IDC_SHA256, cxDelta, 0, 0, 0, TRUE);
     WindowLayout::UpdateLayout(hDlg, IDC_SHA384, cxDelta, 0, 0, 0, TRUE);
     WindowLayout::UpdateLayout(hDlg, IDC_SHA512, cxDelta, 0, 0, 0, TRUE);
+    WindowLayout::UpdateLayout(hDlg, IDC_FORMAT, cxDelta, cyDelta, 0, 0, TRUE);
+    WindowLayout::UpdateLayout(hDlg, IDC_UPPERCASE, cxDelta, cyDelta, 0, 0, TRUE);
     WindowLayout::UpdateLayout(hDlg, IDC_SOURCE, 0, 0, cxDelta, cyDelta);
     WindowLayout::UpdateLayout(hDlg, IDC_BROWSE, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_CHARSET, cxDelta, 0, 0, 0);
@@ -144,6 +155,10 @@ INT_PTR Checksum::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
     case IDC_SHA384:
     case IDC_SHA512:
         OnSelectMethod(hDlg, idChild);
+        break;
+
+    case IDC_UPPERCASE:
+        OnUppercase(hDlg);
         break;
 
     default:
@@ -253,7 +268,17 @@ void Checksum::OnCopy(HWND hDlg)
         MessageBoxW(hDlg, L"Failed to copy text to Clipboard.", ResourceString(IDS_CAPTION), MB_OK | MB_ICONERROR);
         return;
     }
-    memcpy_s(GlobalLock(hMem), cbLen, m_hash.Text, cbLen);
+    Buffer<WCHAR> buf(cbLen / sizeof(WCHAR));
+    wcscpy_s(buf, buf.Len, m_hash.Text);
+    if (m_bUppercase)
+    {
+        _wcsupr_s(buf, buf.Len);
+    }
+    else
+    {
+        _wcslwr_s(buf, buf.Len);
+    }
+    memcpy_s(GlobalLock(hMem), cbLen, buf.Ptr, cbLen);
     GlobalUnlock(hMem);
     OpenClipboard(hDlg);
     EmptyClipboard();
@@ -295,6 +320,26 @@ void Checksum::OnSelectMethod(HWND hDlg, UINT uMethod)
         m_hash.Close();
         SetResultHeader(hDlg);
         SetResult(hDlg);
+    }
+}
+
+
+void Checksum::OnUppercase(HWND hDlg)
+{
+    LRESULT value = SendDlgItemMessageW(hDlg, IDC_UPPERCASE, BM_GETCHECK, 0, 0);
+    if (value == BST_CHECKED)
+    {
+        m_bUppercase = TRUE;
+        ResetResultCase(hDlg);
+    }
+    else if (value == BST_UNCHECKED)
+    {
+        m_bUppercase = FALSE;
+        ResetResultCase(hDlg);
+    }
+    else
+    {
+        Debug::Put(L"SendDlgItemMessage(UPPERCASE,BM_GETCHECK) unexpectedly returned %ld.", value);
     }
 }
 
@@ -441,14 +486,45 @@ void Checksum::SetResultHeader(HWND hDlg, ULONGLONG nBytesIn, ULONG nBytesOut)
 }
 
 
-void Checksum::SetResult(HWND hDlg)
+void Checksum::SetResult(HWND hDlg, PCWSTR psz)
 {
-    SendDlgItemMessageW(hDlg, IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(L""));
+    SendDlgItemMessageW(hDlg, IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(psz));
 }
 
 
 void Checksum::SetResult(HWND hDlg, Hash& rHash)
 {
     m_hash = rHash;
-    SendDlgItemMessageW(hDlg, IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(m_hash.Text));
+    Buffer<WCHAR> buf(wcslen(m_hash.Text) + 1);
+    wcscpy_s(buf, buf.Len, m_hash.Text);
+    if (m_bUppercase)
+    {
+        _wcsupr_s(buf, buf.Len);
+    }
+    else
+    {
+        _wcslwr_s(buf, buf.Len);
+    }
+    SetResult(hDlg, buf);
+}
+
+
+void Checksum::ResetResultCase(HWND hDlg)
+{
+    LRESULT length = SendDlgItemMessageW(hDlg, IDC_RESULT, WM_GETTEXTLENGTH, 0, 0);
+    if (length <= 0)
+    {
+        return;
+    }
+    Buffer<WCHAR> buf(length + 1);
+    SendDlgItemMessageW(hDlg, IDC_RESULT, WM_GETTEXT, buf.Len, reinterpret_cast<LPARAM>(buf.Ptr));
+    if (m_bUppercase)
+    {
+        _wcsupr_s(buf, buf.Len);
+    }
+    else
+    {
+        _wcslwr_s(buf, buf.Len);
+    }
+    SetResult(hDlg, buf);
 }

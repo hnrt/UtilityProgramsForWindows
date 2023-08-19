@@ -30,6 +30,7 @@ namespace hnrt
 		void OnCopy(HWND hDlg);
 		void OnSelectSource(HWND hDlg, UINT uSource);
 		void OnSelectMethod(HWND hDlg, UINT uMethod);
+		void OnUppercase(HWND hDlg);
 		void Calculate(HWND hDlg, DataFeeder& rDataFeeder);
 		UINT GetCodePage(HWND hDlg);
 		UINT GetLineBreak(HWND hDlg);
@@ -37,11 +38,13 @@ namespace hnrt
 		void SetResultHeader(HWND hDlg);
 		void SetResultHeader(HWND hDlg, ULONGLONG nBytesIn);
 		void SetResultHeader(HWND hDlg, ULONGLONG nBytesIn, ULONG nBytesOut);
-		void SetResult(HWND hDlg);
+		void SetResult(HWND hDlg, PCWSTR psz = L"");
 		void SetResult(HWND hDlg, Hash& rHash);
+		void ResetResultCase(HWND hDlg);
 
 		Hash m_hash;
 		UINT m_uSource;
 		UINT m_uMethod;
+		BOOL m_bUppercase;
 	};
 }
