@@ -31,7 +31,7 @@ void GuidGenerator2::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 }
 
 
-void GuidGenerator2::OnCreate(HWND hDlg)
+void GuidGenerator2::OnCreate()
 {
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_KEY, 0, KEY_READ);
@@ -40,13 +40,13 @@ void GuidGenerator2::OnCreate(HWND hDlg)
         RegistryValue value;
         m_uCurrentlySelected = value.GetDWORD(hKey, REG_NAME, 1) + IDC_RADIO_UPPERCASE - 1;
     }
-    SetWindowTextW(hDlg, ResourceString(IDS_CAPTION));
-    ChangeGuid(hDlg);
-    SendDlgItemMessageW(hDlg, m_uCurrentlySelected, BM_SETCHECK, BST_CHECKED, 0);
+    SetText(ResourceString(IDS_CAPTION));
+    ChangeGuid();
+    SendMessage(m_uCurrentlySelected, BM_SETCHECK, BST_CHECKED, 0);
 }
 
 
-void GuidGenerator2::OnDestroy(HWND hDlg)
+void GuidGenerator2::OnDestroy()
 {
     RegistryKey hKey;
     DWORD dwRet = hKey.Create(HKEY_CURRENT_USER, REG_KEY, 0, KEY_WRITE);
@@ -66,19 +66,19 @@ void GuidGenerator2::OnDestroy(HWND hDlg)
 }
 
 
-INT_PTR GuidGenerator2::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
+INT_PTR GuidGenerator2::OnCommand(WPARAM wParam, LPARAM lParam)
 {
     switch (LOWORD(wParam))
     {
     case IDC_BUTTON_EXIT:
-        OnClose(hDlg);
+        OnClose();
         break;
     case IDC_BUTTON_COPY:
     case IDM_COPY:
-        CopyToClipboard(hDlg);
+        CopyToClipboard();
         break;
     case IDC_BUTTON_NEW:
-        ChangeGuid(hDlg);
+        ChangeGuid();
         break;
     case IDC_RADIO_UPPERCASE:
     case IDC_RADIO_LOWERCASE:
@@ -88,7 +88,7 @@ INT_PTR GuidGenerator2::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
     case IDC_RADIO_REGISTRY:
     case IDC_RADIO_SQUARE:
     case IDC_RADIO_ANGLE:
-        ChangeFormat(hDlg, LOWORD(wParam));
+        ChangeFormat(LOWORD(wParam));
         break;
     default:
         return FALSE;
@@ -97,23 +97,23 @@ INT_PTR GuidGenerator2::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
 }
 
 
-void GuidGenerator2::ChangeGuid(HWND hDlg)
+void GuidGenerator2::ChangeGuid()
 {
     HRESULT hRes = CoCreateGuid(&m_guid);
     if (hRes == S_OK)
     {
-        ChangeFormat(hDlg);
+        ChangeFormat();
     }
     else
     {
         _snwprintf_s(m_szFormatted, _TRUNCATE, L"CoCreateGuid failed. (%08X)", (int)hRes);
-        SendDlgItemMessageW(hDlg, IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(m_szFormatted));
-        EnableWindow(GetDlgItem(hDlg, IDC_BUTTON_COPY), FALSE);
+        SendMessage(IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(m_szFormatted));
+        DisableWindow(IDC_BUTTON_COPY);
     }
 }
 
 
-void GuidGenerator2::ChangeFormat(HWND hDlg, UINT uSelected)
+void GuidGenerator2::ChangeFormat(UINT uSelected)
 {
     if (uSelected)
     {
@@ -123,8 +123,8 @@ void GuidGenerator2::ChangeFormat(HWND hDlg, UINT uSelected)
     if (!StringFromGUID2(m_guid, buf, _countof(buf)))
     {
         _snwprintf_s(m_szFormatted, _TRUNCATE, L"StringFromGUID2 failed.");
-        SendDlgItemMessageW(hDlg, IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(m_szFormatted));
-        EnableWindow(GetDlgItem(hDlg, IDC_BUTTON_COPY), FALSE);
+        SendMessage(IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(m_szFormatted));
+        DisableWindow(IDC_BUTTON_COPY);
         return;
     }
     GUID& guid = m_guid;
@@ -190,23 +190,23 @@ void GuidGenerator2::ChangeFormat(HWND hDlg, UINT uSelected)
         _snwprintf_s(m_szFormatted, _TRUNCATE, L"%.36s", &buf[1]);
         break;
     }
-    SendDlgItemMessageW(hDlg, IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(m_szFormatted));
-    EnableWindow(GetDlgItem(hDlg, IDC_BUTTON_COPY), TRUE);
+    SendMessage(IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(m_szFormatted));
+    EnableWindow(IDC_BUTTON_COPY);
 }
 
 
-void GuidGenerator2::CopyToClipboard(HWND hDlg)
+void GuidGenerator2::CopyToClipboard()
 {
     SIZE_T cbLen = (wcslen(m_szFormatted) + 1) * sizeof(WCHAR);
     HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, cbLen);
     if (hMem == NULL)
     {
-        MessageBoxW(hDlg, L"Failed to copy text to Clipboard.", L"ERROR", MB_OK | MB_ICONERROR);
+        MessageBoxW(hwnd, L"Failed to copy text to Clipboard.", L"ERROR", MB_OK | MB_ICONERROR);
         return;
     }
     memcpy_s(GlobalLock(hMem), cbLen, m_szFormatted, cbLen);
     GlobalUnlock(hMem);
-    OpenClipboard(hDlg);
+    OpenClipboard(hwnd);
     EmptyClipboard();
     SetClipboardData(CF_UNICODETEXT, hMem);
     CloseClipboard();

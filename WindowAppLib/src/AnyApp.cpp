@@ -1,7 +1,7 @@
 #include "pch.h"
+#include "hnrt/AnyApp.h"
 #include "hnrt/Exception.h"
 #include "hnrt/CommandLine.h"
-#include "hnrt/AnyApp.h"
 
 
 #pragma comment(lib,"Core")
@@ -14,7 +14,6 @@ AnyApp::AnyApp()
 	: m_iExitCode(EXIT_FAILURE)
     , m_pCommandLine(nullptr)
 	, m_hAccelTable(nullptr)
-	, m_hwnd(nullptr)
 {
 }
 
@@ -80,10 +79,6 @@ void AnyApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 
 void AnyApp::Run()
 {
-    if (!m_hwnd)
-    {
-        return;
-    }
     while (1)
     {
         MSG msg;

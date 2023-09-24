@@ -1,39 +1,42 @@
 #pragma once
 
-#include "resource.h"
-#include "hnrt/DialogApp.h"
+
+#include "hnrt/DialogBox.h"
+#include "hnrt/AnyApp.h"
 #include "hnrt/Hash.h"
+#include "hnrt/FileDataFeeder.h"
+
 
 namespace hnrt
 {
-	class Checksum
-		: public DialogApp
+	class HashCalculator
+		: public DialogBox
+		, public FileDataFeeder
 	{
 	public:
 
-		Checksum();
-		Checksum(const Checksum&) = delete;
-		virtual ~Checksum() = default;
-		void operator =(const Checksum&) = delete;
+		HashCalculator();
+		HashCalculator(const HashCalculator&) = delete;
+		virtual ~HashCalculator() = default;
+		void operator =(const HashCalculator&) = delete;
+		virtual bool HasNext();
 
 	private:
-
-		friend class FileDataFeederEx;
 
 		virtual void OnCreate();
 		virtual void OnDestroy();
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 
-		void OnBrowse(HWND hDlg);
-		void OnCalculate(HWND hDlg);
-		void OnCopy(HWND hDlg);
-		void OnSelectSource(HWND hDlg, UINT uSource);
-		void OnSelectMethod(HWND hDlg, UINT uMethod);
-		void OnUppercase(HWND hDlg);
-		void Calculate(HWND hDlg, DataFeeder& rDataFeeder);
-		UINT GetCodePage(HWND hDlg);
-		UINT GetLineBreak(HWND hDlg);
+		void OnBrowse();
+		void OnCalculate();
+		void OnCopy();
+		void OnSelectSource(UINT uSource);
+		void OnSelectMethod(UINT uMethod);
+		void OnUppercase();
+		void Calculate(DataFeeder& rDataFeeder);
+		UINT GetCodePage();
+		UINT GetLineBreak();
 		UINT ConvertToLF(PWCHAR pStart, UINT uLength);
 		void SetResultHeader();
 		void SetResultHeader(ULONGLONG nBytesIn);
@@ -46,5 +49,6 @@ namespace hnrt
 		UINT m_uSource;
 		UINT m_uMethod;
 		BOOL m_bUppercase;
+		ULONGLONG m_LastTick;
 	};
 }

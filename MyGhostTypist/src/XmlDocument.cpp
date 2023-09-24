@@ -385,7 +385,7 @@ void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName,
 void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName, const RectangleMetrics& value)
 {
     WCHAR szValue[MAX_PATH];
-    _snwprintf_s(szValue, _TRUNCATE, L"%ld,%ld,%ld,%ld", value.Left, value.Top, value.Right, value.Bottom);
+    _snwprintf_s(szValue, _TRUNCATE, L"%ld,%ld,%ld,%ld", value.left, value.top, value.right, value.bottom);
     SetAttribute(pElement, pszName, szValue);
 }
 

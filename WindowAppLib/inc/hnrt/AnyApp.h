@@ -19,7 +19,7 @@ namespace hnrt
 		void SetAccelerators(HINSTANCE hInstance, UINT id);
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
 		virtual void Run();
-		virtual void Close() = 0;
+		int TryProcessMessage();
 
 		inline int get_ExitCode();
 
@@ -27,13 +27,11 @@ namespace hnrt
 
 	protected:
 
-		int TryProcessMessage();
-		virtual void ProcessMessage(MSG* pMsg) = 0;
+		virtual void ProcessMessage(MSG*) = 0;
 
 		int m_iExitCode;
 		CommandLine* m_pCommandLine;
 		HACCEL m_hAccelTable;
-		HWND m_hwnd;
 	};
 
 	inline int AnyApp::get_ExitCode()

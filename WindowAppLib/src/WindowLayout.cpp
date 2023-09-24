@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "hnrt/WindowLayout.h"
+#include "hnrt/WindowDesign.h"
 
 
 using namespace hnrt;
@@ -14,14 +15,13 @@ void WindowLayout::UpdateLayout(HWND hwndParent, HWND hwnd, LONG dx, LONG dy, LO
 {
     UINT uFlags = SWP_NOZORDER;
     LONG x, y, cx, cy;
-    RECT rect = { 0, 0, 0, 0 };
-    GetWindowRect(hwnd, &rect);
+    RectangleMetrics rect;
+    rect.FromWindow(hwnd);
+    rect.ToClient(hwndParent);
     if (dx || dy)
     {
-        POINT pt = { rect.left, rect.top };
-        ScreenToClient(hwndParent, &pt);
-        x = pt.x + dx;
-        y = pt.y + dy;
+        x = rect.x + dx;
+        y = rect.y + dy;
     }
     else
     {
@@ -31,8 +31,8 @@ void WindowLayout::UpdateLayout(HWND hwndParent, HWND hwnd, LONG dx, LONG dy, LO
     }
     if (dcx || dcy)
     {
-        cx = rect.right - rect.left + dcx;
-        cy = rect.bottom - rect.top + dcy;
+        cx = rect.cx + dcx;
+        cy = rect.cy + dcy;
     }
     else
     {

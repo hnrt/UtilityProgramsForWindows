@@ -1,7 +1,6 @@
 #include "pch.h"
-#include "hnrt/Win32Exception.h"
-#include "hnrt/Interlocked.h"
 #include "hnrt/WindowApp.h"
+#include "hnrt/Win32Exception.h"
 
 
 using namespace hnrt;
@@ -11,6 +10,7 @@ WindowApp::WindowApp(PCWSTR pszClassName)
 	: AnyApp()
     , WindowSize()
     , WindowLayout()
+    , m_hwnd(nullptr)
     , m_class(pszClassName)
     , m_preferences(pszClassName)
 {
@@ -25,19 +25,17 @@ void WindowApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     {
         throw Win32Exception(GetLastError(), L"RegisterClass failed.");
     }
-    m_hwnd = CreateWindowExW(P.ExStyle, P.ClassName, P.WindowName, P.Style, P.X, P.Y, P.Width, P.Height, P.Parent, P.Menu, hInstance, this);
-    if (!m_hwnd)
+    if (!CreateWindowExW(P.ExStyle, P.ClassName, P.WindowName, P.Style, P.X, P.Y, P.Width, P.Height, P.Parent, P.Menu, hInstance, this))
     {
         throw Win32Exception(GetLastError(), L"CreateWindow failed.");
     }
-    ShowWindow(m_hwnd, nCmdShow);
-    UpdateWindow(m_hwnd);
+    ShowWindow(hwnd, nCmdShow);
+    UpdateWindow(hwnd);
 }
 
 
 void WindowApp::Close()
 {
-    HWND hwnd = Interlocked<HWND>::ExchangePointer(&m_hwnd, nullptr);
     if (hwnd)
     {
         DestroyWindow(hwnd);
@@ -69,9 +67,7 @@ LRESULT CALLBACK WindowApp::MessageCallback(HWND hwnd, UINT uMsg, WPARAM wParam,
         return DefWindowProcW(hwnd, uMsg, wParam, lParam);
     case WM_CREATE:
     {
-        WindowApp* pThis = GetInstance(hwnd);
-        pThis->InitializeSize(hwnd);
-        pThis->OnCreate(hwnd);
+        GetInstance(hwnd)->OnCreate(hwnd);
         break;
     }
     case WM_DESTROY:
@@ -79,15 +75,17 @@ LRESULT CALLBACK WindowApp::MessageCallback(HWND hwnd, UINT uMsg, WPARAM wParam,
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
         break;
     case WM_CLOSE:
-        GetInstance(hwnd)->OnClose(hwnd);
+        GetInstance(hwnd)->OnClose();
         break;
     case WM_SIZE:
-        GetInstance(hwnd)->OnSize(hwnd, wParam, lParam);
+        GetInstance(hwnd)->OnSize(wParam, lParam);
         break;
     case WM_COMMAND:
-        return GetInstance(hwnd)->OnCommand(hwnd, wParam, lParam);
+        return GetInstance(hwnd)->OnCommand(wParam, lParam);
     case WM_TIMER:
-        return GetInstance(hwnd)->OnTimer(hwnd, wParam, lParam);
+        return GetInstance(hwnd)->OnTimer(wParam, lParam);
+    case WM_NOTIFY:
+        return GetInstance(hwnd)->OnNotify(wParam, lParam);
     default:
         return DefWindowProcW(hwnd, uMsg, wParam, lParam);
     }
@@ -103,34 +101,55 @@ WindowApp* WindowApp::GetInstance(HWND hwnd)
 
 void WindowApp::OnCreate(HWND hwnd)
 {
+    m_hwnd = hwnd;
+    InitializeSize(hwnd);
+    OnCreate();
 }
 
 
 void WindowApp::OnDestroy(HWND hwnd)
 {
+    UNREFERENCED_PARAMETER(hwnd);
+    OnDestroy();
+    m_hwnd = nullptr;
 }
 
 
-void WindowApp::OnClose(HWND hwnd)
+void WindowApp::OnCreate()
 {
-    UNREFERENCED_PARAMETER(hwnd);
+}
+
+
+void WindowApp::OnDestroy()
+{
+}
+
+
+void WindowApp::OnClose()
+{
     PostQuitMessage(EXIT_SUCCESS);
 }
 
 
-void WindowApp::OnSize(HWND hwnd, WPARAM wParam, LPARAM lParam)
+void WindowApp::OnSize(WPARAM wParam, LPARAM lParam)
 {
     WindowSize::OnSize(hwnd, wParam, lParam, *this);
 }
 
 
-LRESULT WindowApp::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT WindowApp::OnCommand(WPARAM wParam, LPARAM lParam)
 {
     return DefWindowProcW(hwnd, WM_COMMAND, wParam, lParam);
 }
 
 
-LRESULT WindowApp::OnTimer(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT WindowApp::OnTimer(WPARAM wParam, LPARAM lParam)
 {
     return DefWindowProcW(hwnd, WM_TIMER, wParam, lParam);
+}
+
+
+LRESULT WindowApp::OnNotify(WPARAM wParam, LPARAM lParam)
+{
+    return DefWindowProcW(hwnd, WM_NOTIFY, wParam, lParam);
 }

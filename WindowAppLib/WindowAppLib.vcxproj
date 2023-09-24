@@ -605,9 +605,12 @@
   <ItemGroup>
     <ClInclude Include="inc\hnrt\AnyApp.h" />
     <ClInclude Include="inc\hnrt\DialogApp.h" />
+    <ClInclude Include="inc\hnrt\DialogBox.h" />
     <ClInclude Include="inc\hnrt\FontHandle.h" />
     <ClInclude Include="inc\hnrt\LogicalFont.h" />
     <ClInclude Include="inc\hnrt\Menu.h" />
+    <ClInclude Include="inc\hnrt\TabControl.h" />
+    <ClInclude Include="inc\hnrt\TabControlItem.h" />
     <ClInclude Include="inc\hnrt\WindowDesign.h" />
     <ClInclude Include="inc\hnrt\WindowLayout.h" />
     <ClInclude Include="inc\hnrt\WindowSize.h" />
@@ -621,9 +624,12 @@
   <ItemGroup>
     <ClCompile Include="src\AnyApp.cpp" />
     <ClCompile Include="src\DialogApp.cpp" />
+    <ClCompile Include="src\DialogBox.cpp" />
     <ClCompile Include="src\FontHandle.cpp" />
     <ClCompile Include="src\LogicalFont.cpp" />
     <ClCompile Include="src\Menu.cpp" />
+    <ClCompile Include="src\TabControl.cpp" />
+    <ClCompile Include="src\TabControlItem.cpp" />
     <ClCompile Include="src\WindowLayout.cpp" />
     <ClCompile Include="src\WindowSize.cpp" />
     <ClCompile Include="src\pch.cpp">

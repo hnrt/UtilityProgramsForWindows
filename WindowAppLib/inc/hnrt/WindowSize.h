@@ -52,8 +52,6 @@ namespace hnrt
 		LONG m_cyMinimum;
 		LONG m_cxWindow;
 		LONG m_cyWindow;
-		LONG m_cxClientInitial;
-		LONG m_cyClientInitial;
 		LONG m_cxClient;
 		LONG m_cyClient;
 		LONG m_cxLeftFrame;

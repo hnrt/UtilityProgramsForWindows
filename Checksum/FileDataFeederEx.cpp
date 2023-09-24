@@ -21,8 +21,8 @@ bool FileDataFeederEx::HasNext()
     if (m_LastTick + 100 <= tick || !bRet)
     {
         m_LastTick = tick;
-        Checksum& app = *static_cast<Checksum*>(DialogApp::GetInstance(m_hDlg));
-        app.SetResultHeader(m_hDlg, TotalLength);
+        Checksum& app = *static_cast<Checksum*>(DialogBox::GetInstance(m_hDlg));
+        app.SetResultHeader(TotalLength);
         while (1)
         {
             int rc = app.TryProcessMessage();

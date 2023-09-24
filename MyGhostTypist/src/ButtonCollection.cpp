@@ -76,20 +76,20 @@ void ButtonCollection::RemoveAll()
 
 LONG ButtonCollection::ArrangePositions(LONG x, LONG y, LONG cx, LONG cy)
 {
-	LONG dxLeft = m_Padding.Left + m_Margin.Left;
-	LONG dxRight = m_Margin.Right + m_Padding.Right;
+	LONG dxLeft = m_Padding.left + m_Margin.left;
+	LONG dxRight = m_Margin.right + m_Padding.right;
 	cx -= dxLeft + dxRight;
-	y += m_Padding.Top;
+	y += m_Padding.top;
 	for (ULONG i = 0; i < m_cButtons; i++)
 	{
 		if (!WindowStyle(m_hButtons[i]).IsVisible)
 		{
 			continue;
 		}
-		y += m_Margin.Top;
+		y += m_Margin.top;
 		SetWindowPos(m_hButtons[i], NULL, x + dxLeft, y, cx, cy, SWP_NOZORDER);
-		y += cy + m_Margin.Bottom;
+		y += cy + m_Margin.bottom;
 	}
-	y += m_Padding.Bottom;
+	y += m_Padding.bottom;
 	return y;
 }

@@ -1,17 +1,15 @@
 #pragma once
 
 
+#include "hnrt/DialogBox.h"
 #include "hnrt/AnyApp.h"
-#include "hnrt/WindowSize.h"
-#include "hnrt/FontHandle.h"
 
 
 namespace hnrt
 {
 	class DialogApp
 		: public AnyApp
-		, protected WindowSize
-		, protected WindowLayout
+		, public DialogBox
 	{
 	public:
 
@@ -20,22 +18,11 @@ namespace hnrt
 		virtual ~DialogApp() = default;
 		void operator =(const DialogApp&) = delete;
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
-		virtual void Close();
+		void SetText(PCWSTR);
 
 	protected:
 
-		static INT_PTR CALLBACK MessageCallback(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-		static DialogApp* GetInstance(HWND hDlg);
-
 		virtual void ProcessMessage(MSG* pMsg);
-		virtual void OnCreate(HWND hDlg);
-		virtual void OnDestroy(HWND hDlg);
-		virtual void OnClose(HWND hDlg);
-		virtual void OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam);
-		virtual INT_PTR OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam);
-		virtual INT_PTR OnTimer(HWND hDlg, WPARAM wParam, LPARAM lParam);
-
-		UINT m_idTemplate;
-		FontHandle m_hFont;
+		virtual void OnClose();
 	};
 }

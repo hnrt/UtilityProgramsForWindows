@@ -42,7 +42,7 @@ Checksum::Checksum()
 }
 
 
-void Checksum::OnCreate(HWND hDlg)
+void Checksum::OnCreate()
 {
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
@@ -53,23 +53,23 @@ void Checksum::OnCreate(HWND hDlg)
         m_uMethod = ((value.GetDWORD(hKey, REG_NAME_METHOD, 1) - 1) % 5) + IDC_MD5;
         m_bUppercase = value.GetDWORD(hKey, REG_NAME_UPPERCASE) ? TRUE : FALSE;
     }
-    SendDlgItemMessageW(hDlg, m_uSource, BM_SETCHECK, BST_CHECKED, 0);
-    SendDlgItemMessageW(hDlg, m_uMethod, BM_SETCHECK, BST_CHECKED, 0);
-    SendDlgItemMessageW(hDlg, IDC_UPPERCASE, BM_SETCHECK, m_bUppercase ? BST_CHECKED : BST_UNCHECKED, 0);
-    SendDlgItemMessageW(hDlg, IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(L""));
-    SendDlgItemMessageW(hDlg, IDC_CHARSET, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_UTF8));
-    SendDlgItemMessageW(hDlg, IDC_CHARSET, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_UTF16LE));
-    SendDlgItemMessageW(hDlg, IDC_CHARSET, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_CP932));
-    SendDlgItemMessageW(hDlg, IDC_CHARSET, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(LABEL_UTF8));
-    SendDlgItemMessageW(hDlg, IDC_LINEBREAK, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_CRLF));
-    SendDlgItemMessageW(hDlg, IDC_LINEBREAK, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_LF));
-    SendDlgItemMessageW(hDlg, IDC_LINEBREAK, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(LABEL_CRLF));
-    EnableWindow(GetDlgItem(hDlg, IDC_COPY), FALSE);
-    OnSelectSource(hDlg, m_uSource);
+    SendMessage(m_uSource, BM_SETCHECK, BST_CHECKED, 0);
+    SendMessage(m_uMethod, BM_SETCHECK, BST_CHECKED, 0);
+    SendMessage(IDC_UPPERCASE, BM_SETCHECK, m_bUppercase ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(L""));
+    SendMessage(IDC_CHARSET, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_UTF8));
+    SendMessage(IDC_CHARSET, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_UTF16LE));
+    SendMessage(IDC_CHARSET, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_CP932));
+    SendMessage(IDC_CHARSET, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(LABEL_UTF8));
+    SendMessage(IDC_LINEBREAK, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_CRLF));
+    SendMessage(IDC_LINEBREAK, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_LF));
+    SendMessage(IDC_LINEBREAK, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(LABEL_CRLF));
+    DisableWindow(IDC_COPY);
+    OnSelectSource(hwnd, m_uSource);
 }
 
 
-void Checksum::OnDestroy(HWND hDlg)
+void Checksum::OnDestroy()
 {
     RegistryKey hKey;
     LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY);
@@ -122,31 +122,31 @@ void Checksum::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 }
 
 
-INT_PTR Checksum::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
+INT_PTR Checksum::OnCommand(WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
     UINT idChild = LOWORD(wParam);
     switch (idChild)
     {
     case IDC_EXIT:
-        OnClose(hDlg);
+        OnClose();
         break;
 
     case IDC_CALCULATE:
-        OnCalculate(hDlg);
+        OnCalculate(hwnd);
         break;
 
     case IDC_COPY:
-        OnCopy(hDlg);
+        OnCopy(hwnd);
         break;
 
     case IDC_BROWSE:
-        OnBrowse(hDlg);
+        OnBrowse(hwnd);
         break;
 
     case IDC_FILE:
     case IDC_TEXT:
-        OnSelectSource(hDlg, idChild);
+        OnSelectSource(hwnd, idChild);
         break;
 
     case IDC_MD5:
@@ -154,11 +154,11 @@ INT_PTR Checksum::OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
     case IDC_SHA256:
     case IDC_SHA384:
     case IDC_SHA512:
-        OnSelectMethod(hDlg, idChild);
+        OnSelectMethod(hwnd, idChild);
         break;
 
     case IDC_UPPERCASE:
-        OnUppercase(hDlg);
+        OnUppercase(hwnd);
         break;
 
     default:
@@ -179,7 +179,7 @@ void Checksum::OnBrowse(HWND hDlg)
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
     if (GetOpenFileNameW(&ofn))
     {
-        SendDlgItemMessageW(hDlg, IDC_PATH, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(szPath));
+        SendMessage(IDC_PATH, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(szPath));
     }
 }
 
@@ -188,24 +188,24 @@ void Checksum::OnCalculate(HWND hDlg)
 {
     OnSelectSource(hDlg, 0);
     OnSelectMethod(hDlg, 0);
-    EnableWindow(GetDlgItem(hDlg, IDC_CALCULATE), FALSE);
-    EnableWindow(GetDlgItem(hDlg, IDC_COPY), FALSE);
+    DisableWindow(IDC_CALCULATE);
+    DisableWindow(IDC_COPY);
     try
     {
         ULONGLONG nBytesIn;
         if (m_uSource == IDC_FILE)
         {
             WCHAR szPath[MAX_PATH] = { 0 };
-            SendDlgItemMessageW(hDlg, IDC_PATH, WM_GETTEXT, MAX_PATH, reinterpret_cast<LPARAM>(szPath));
+            SendMessage(IDC_PATH, WM_GETTEXT, MAX_PATH, reinterpret_cast<LPARAM>(szPath));
             FileDataFeederEx feeder(szPath, hDlg);
             Calculate(hDlg, feeder);
             nBytesIn = feeder.TotalLength;
         }
         else
         {
-            int length2 = static_cast<int>(SendDlgItemMessageW(hDlg, IDC_CONTENT, WM_GETTEXTLENGTH, 0, 0));
+            int length2 = static_cast<int>(SendMessage(IDC_CONTENT, WM_GETTEXTLENGTH, 0, 0));
             Buffer<WCHAR> buf2(length2 + 1);
-            SendDlgItemMessageW(hDlg, IDC_CONTENT, WM_GETTEXT, static_cast<WPARAM>(buf2.Len), reinterpret_cast<LPARAM>(&buf2));
+            SendMessage(IDC_CONTENT, WM_GETTEXT, static_cast<WPARAM>(buf2.Len), reinterpret_cast<LPARAM>(&buf2));
             UINT uLineBreak = GetLineBreak(hDlg);
             if (uLineBreak == 0x0a && length2 > 0)
             {
@@ -229,8 +229,8 @@ void Checksum::OnCalculate(HWND hDlg)
                 nBytesIn = length1;
             }
         }
-        SetResultHeader(hDlg, nBytesIn, m_hash.ValueLength);
-        EnableWindow(GetDlgItem(hDlg, IDC_COPY), TRUE);
+        SetResultHeader(nBytesIn, m_hash.ValueLength);
+        EnableWindow(IDC_COPY);
     }
     catch (Win32Exception e)
     {
@@ -253,7 +253,7 @@ void Checksum::OnCalculate(HWND hDlg)
     {
         MessageBox(hDlg, e.Message, ResourceString(IDS_CAPTION), MB_OK | MB_ICONERROR);
     }
-    EnableWindow(GetDlgItem(hDlg, IDC_CALCULATE), TRUE);
+    EnableWindow(IDC_CALCULATE);
     OnSelectSource(hDlg, m_uSource);
     OnSelectMethod(hDlg, m_uMethod);
 }
@@ -292,13 +292,13 @@ void Checksum::OnSelectSource(HWND hDlg, UINT uSource)
     BOOL bRadio = uSource ? TRUE : FALSE;
     BOOL bFile = uSource == IDC_FILE ? TRUE : FALSE;
     BOOL bText = uSource == IDC_TEXT ? TRUE : FALSE;
-    EnableWindow(GetDlgItem(hDlg, IDC_FILE), bRadio);
-    EnableWindow(GetDlgItem(hDlg, IDC_PATH), bFile);
-    EnableWindow(GetDlgItem(hDlg, IDC_BROWSE), bFile);
-    EnableWindow(GetDlgItem(hDlg, IDC_TEXT), bRadio);
-    EnableWindow(GetDlgItem(hDlg, IDC_CONTENT), bText);
-    EnableWindow(GetDlgItem(hDlg, IDC_CHARSET), bText);
-    EnableWindow(GetDlgItem(hDlg, IDC_LINEBREAK), bText);
+    EnableWindow(IDC_FILE, bRadio);
+    EnableWindow(IDC_PATH, bFile);
+    EnableWindow(IDC_BROWSE, bFile);
+    EnableWindow(IDC_TEXT, bRadio);
+    EnableWindow(IDC_CONTENT, bText);
+    EnableWindow(IDC_CHARSET, bText);
+    EnableWindow(IDC_LINEBREAK, bText);
     if (uSource)
     {
         m_uSource = uSource;
@@ -309,33 +309,33 @@ void Checksum::OnSelectSource(HWND hDlg, UINT uSource)
 void Checksum::OnSelectMethod(HWND hDlg, UINT uMethod)
 {
     BOOL bRadio = uMethod ? TRUE : FALSE;
-    EnableWindow(GetDlgItem(hDlg, IDC_MD5), bRadio);
-    EnableWindow(GetDlgItem(hDlg, IDC_SHA1), bRadio);
-    EnableWindow(GetDlgItem(hDlg, IDC_SHA256), bRadio);
-    EnableWindow(GetDlgItem(hDlg, IDC_SHA384), bRadio);
-    EnableWindow(GetDlgItem(hDlg, IDC_SHA512), bRadio);
+    EnableWindow(IDC_MD5, bRadio);
+    EnableWindow(IDC_SHA1, bRadio);
+    EnableWindow(IDC_SHA256, bRadio);
+    EnableWindow(IDC_SHA384, bRadio);
+    EnableWindow(IDC_SHA512, bRadio);
     if (uMethod && uMethod != m_uMethod)
     {
         m_uMethod = uMethod;
         m_hash.Close();
-        SetResultHeader(hDlg);
-        SetResult(hDlg);
+        SetResultHeader();
+        SetResult();
     }
 }
 
 
 void Checksum::OnUppercase(HWND hDlg)
 {
-    LRESULT value = SendDlgItemMessageW(hDlg, IDC_UPPERCASE, BM_GETCHECK, 0, 0);
+    LRESULT value = SendMessage(IDC_UPPERCASE, BM_GETCHECK, 0, 0);
     if (value == BST_CHECKED)
     {
         m_bUppercase = TRUE;
-        ResetResultCase(hDlg);
+        ResetResultCase();
     }
     else if (value == BST_UNCHECKED)
     {
         m_bUppercase = FALSE;
-        ResetResultCase(hDlg);
+        ResetResultCase();
     }
     else
     {
@@ -351,31 +351,31 @@ void Checksum::Calculate(HWND hDlg, DataFeeder& rDataFeeder)
     case IDC_MD5:
     {
         MD5Hash hash(rDataFeeder);
-        SetResult(hDlg, hash);
+        SetResult(hash);
         break;
     }
     case IDC_SHA1:
     {
         SHA1Hash hash(rDataFeeder);
-        SetResult(hDlg, hash);
+        SetResult(hash);
         break;
     }
     case IDC_SHA256:
     {
         SHA256Hash hash(rDataFeeder);
-        SetResult(hDlg, hash);
+        SetResult(hash);
         break;
     }
     case IDC_SHA384:
     {
         SHA384Hash hash(rDataFeeder);
-        SetResult(hDlg, hash);
+        SetResult(hash);
         break;
     }
     case IDC_SHA512:
     {
         SHA512Hash hash(rDataFeeder);
-        SetResult(hDlg, hash);
+        SetResult(hash);
         break;
     }
     default:
@@ -386,13 +386,13 @@ void Checksum::Calculate(HWND hDlg, DataFeeder& rDataFeeder)
 
 UINT Checksum::GetCodePage(HWND hDlg)
 {
-    LRESULT SelectedIndex = SendDlgItemMessageW(hDlg, IDC_CHARSET, CB_GETCURSEL, 0, 0);
+    LRESULT SelectedIndex = SendMessage(IDC_CHARSET, CB_GETCURSEL, 0, 0);
     if (SelectedIndex == CB_ERR)
     {
         SelectedIndex = 0;
     }
     WCHAR szCharset[64] = { 0 };
-    if (SendDlgItemMessageW(hDlg, IDC_CHARSET, CB_GETLBTEXT, SelectedIndex, reinterpret_cast<LPARAM>(szCharset)) == CB_ERR)
+    if (SendMessage(IDC_CHARSET, CB_GETLBTEXT, SelectedIndex, reinterpret_cast<LPARAM>(szCharset)) == CB_ERR)
     {
         wcscpy_s(szCharset, LABEL_UTF8);
     }
@@ -417,13 +417,13 @@ UINT Checksum::GetCodePage(HWND hDlg)
 
 UINT Checksum::GetLineBreak(HWND hDlg)
 {
-    LRESULT SelectedIndex = SendDlgItemMessageW(hDlg, IDC_LINEBREAK, CB_GETCURSEL, 0, 0);
+    LRESULT SelectedIndex = SendMessage(IDC_LINEBREAK, CB_GETCURSEL, 0, 0);
     if (SelectedIndex == CB_ERR)
     {
         SelectedIndex = 0;
     }
     WCHAR szLineBreak[64] = { 0 };
-    if (SendDlgItemMessageW(hDlg, IDC_LINEBREAK, CB_GETLBTEXT, SelectedIndex, reinterpret_cast<LPARAM>(szLineBreak)) == CB_ERR)
+    if (SendMessage(IDC_LINEBREAK, CB_GETLBTEXT, SelectedIndex, reinterpret_cast<LPARAM>(szLineBreak)) == CB_ERR)
     {
         wcscpy_s(szLineBreak, LABEL_UTF8);
     }
@@ -463,36 +463,36 @@ UINT Checksum::ConvertToLF(PWCHAR pStart, UINT uLength)
 }
 
 
-void Checksum::SetResultHeader(HWND hDlg)
+void Checksum::SetResultHeader()
 {
-    SendDlgItemMessageW(m_hwnd, IDC_RESULT_BOX, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(ResourceString(IDS_RESULT).Ptr));
+    SendDlgItemMessageW(hwnd, IDC_RESULT_BOX, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(ResourceString(IDS_RESULT).Ptr));
 }
 
 
-void Checksum::SetResultHeader(HWND hDlg, ULONGLONG nBytesIn)
+void Checksum::SetResultHeader(ULONGLONG nBytesIn)
 {
     WCHAR szBuf[260];
     _snwprintf_s(szBuf, _TRUNCATE, ResourceString(IDS_RESULT_IN), NumberText(nBytesIn).Ptr);
-    SendDlgItemMessageW(m_hwnd, IDC_RESULT_BOX, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(szBuf));
+    SendDlgItemMessageW(hwnd, IDC_RESULT_BOX, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(szBuf));
 }
 
 
-void Checksum::SetResultHeader(HWND hDlg, ULONGLONG nBytesIn, ULONG nBytesOut)
+void Checksum::SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut)
 {
     ULONG nBitsOut = nBytesOut * 8;
     WCHAR szBuf[260];
     _snwprintf_s(szBuf, _TRUNCATE, ResourceString(IDS_RESULT_IN_OUT), NumberText(nBytesIn).Ptr, NumberText(nBytesOut).Ptr, NumberText(nBitsOut).Ptr);
-    SendDlgItemMessageW(m_hwnd, IDC_RESULT_BOX, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(szBuf));
+    SendDlgItemMessageW(hwnd, IDC_RESULT_BOX, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(szBuf));
 }
 
 
-void Checksum::SetResult(HWND hDlg, PCWSTR psz)
+void Checksum::SetResult(PCWSTR psz)
 {
-    SendDlgItemMessageW(hDlg, IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(psz));
+    SendMessage(IDC_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(psz));
 }
 
 
-void Checksum::SetResult(HWND hDlg, Hash& rHash)
+void Checksum::SetResult(Hash& rHash)
 {
     m_hash = rHash;
     Buffer<WCHAR> buf(wcslen(m_hash.Text) + 1);
@@ -505,19 +505,19 @@ void Checksum::SetResult(HWND hDlg, Hash& rHash)
     {
         _wcslwr_s(buf, buf.Len);
     }
-    SetResult(hDlg, buf);
+    SetResult(buf);
 }
 
 
-void Checksum::ResetResultCase(HWND hDlg)
+void Checksum::ResetResultCase()
 {
-    LRESULT length = SendDlgItemMessageW(hDlg, IDC_RESULT, WM_GETTEXTLENGTH, 0, 0);
+    LRESULT length = SendMessage(IDC_RESULT, WM_GETTEXTLENGTH, 0, 0);
     if (length <= 0)
     {
         return;
     }
     Buffer<WCHAR> buf(length + 1);
-    SendDlgItemMessageW(hDlg, IDC_RESULT, WM_GETTEXT, buf.Len, reinterpret_cast<LPARAM>(buf.Ptr));
+    SendMessage(IDC_RESULT, WM_GETTEXT, buf.Len, reinterpret_cast<LPARAM>(buf.Ptr));
     if (m_bUppercase)
     {
         _wcsupr_s(buf, buf.Len);
@@ -526,5 +526,5 @@ void Checksum::ResetResultCase(HWND hDlg)
     {
         _wcslwr_s(buf, buf.Len);
     }
-    SetResult(hDlg, buf);
+    SetResult(buf);
 }

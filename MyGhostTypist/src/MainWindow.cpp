@@ -63,12 +63,12 @@ void MainWindow::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     WindowApp::Open(hInstance, lpCmdLine, nCmdShow);
     if (!wcslen(m_pCfg->CredentialsList.DefaultCredentials->Username))
     {
-        Configure(m_hwnd);
+        Configure(hwnd);
     }
 }
 
 
-void MainWindow::OnCreate(HWND hwnd)
+void MainWindow::OnCreate()
 {
     DBGFNC(L"MainWindow::OnCreate");
     m_Ghost.Initialize(m_pCfg);
@@ -88,7 +88,7 @@ void MainWindow::OnCreate(HWND hwnd)
 }
 
 
-void MainWindow::OnDestroy(HWND hwnd)
+void MainWindow::OnDestroy()
 {
     DBGFNC(L"MainWindow::OnDestroy");
     m_hFont = nullptr;
@@ -96,10 +96,9 @@ void MainWindow::OnDestroy(HWND hwnd)
 }
 
 
-void MainWindow::OnSize(HWND hwnd, WPARAM wParam, LPARAM lParam)
+void MainWindow::OnSize(WPARAM wParam, LPARAM lParam)
 {
     DBGFNC(L"MainWindow::OnSize");
-    WindowApp::OnSize(hwnd, wParam, lParam);
     if (wParam == SIZE_MINIMIZED || m_bSizing)
     {
         return;
@@ -110,7 +109,7 @@ void MainWindow::OnSize(HWND hwnd, WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT MainWindow::OnTimer(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT MainWindow::OnTimer(WPARAM wParam, LPARAM lParam)
 {
     switch (wParam)
     {
@@ -127,13 +126,13 @@ LRESULT MainWindow::OnTimer(HWND hwnd, WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT MainWindow::OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam)
+LRESULT MainWindow::OnCommand(WPARAM wParam, LPARAM lParam)
 {
     DWORD wControlId = LOWORD(wParam);
     switch (wControlId)
     {
     case IDM_FILE_EXIT:
-        OnClose(hwnd);
+        OnClose();
         break;
     case IDM_EDIT_CONFIGURE:
         Configure(hwnd);

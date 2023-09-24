@@ -108,22 +108,22 @@ namespace hnrt
 
     inline long Configuration::get_PaddingLeft() const
     {
-        return m_Window.Padding.Left;
+        return m_Window.Padding.left;
     }
 
     inline long Configuration::get_PaddingTop() const
     {
-        return m_Window.Padding.Top;
+        return m_Window.Padding.top;
     }
 
     inline long Configuration::get_PaddingRight() const
     {
-        return m_Window.Padding.Right;
+        return m_Window.Padding.right;
     }
 
     inline long Configuration::get_PaddingBottom() const
     {
-        return m_Window.Padding.Bottom;
+        return m_Window.Padding.bottom;
     }
 
     inline PCWSTR Configuration::get_FontName() const
@@ -148,22 +148,22 @@ namespace hnrt
 
     inline long Configuration::get_ButtonMarginLeft() const
     {
-        return m_Button.Margin.Left;
+        return m_Button.Margin.left;
     }
 
     inline long Configuration::get_ButtonMarginTop() const
     {
-        return m_Button.Margin.Top;
+        return m_Button.Margin.top;
     }
 
     inline long Configuration::get_ButtonMarginRight() const
     {
-        return m_Button.Margin.Right;
+        return m_Button.Margin.right;
     }
 
     inline long Configuration::get_ButtonMarginBottom() const
     {
-        return m_Button.Margin.Bottom;
+        return m_Button.Margin.bottom;
     }
 
     inline long Configuration::get_TypingInterval() const

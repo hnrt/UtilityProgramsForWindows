@@ -13,10 +13,13 @@ namespace hnrt
 	{
 	public:
 
+		FileDataFeeder(DWORD dwCapacity = FILEDATAFEEDER_DEFAULT_CAPACITY);
 		FileDataFeeder(PCWSTR pszFileName, DWORD dwCapacity = FILEDATAFEEDER_DEFAULT_CAPACITY);
 		FileDataFeeder(const FileDataFeeder&) = delete;
 		virtual ~FileDataFeeder() = default;
 		void operator =(const FileDataFeeder&) = delete;
+		void Open(PCWSTR pszFileName);
+		void Close();
 		virtual bool HasNext();
 		ULONGLONG get_TotalLength() const;
 
@@ -27,6 +30,13 @@ namespace hnrt
 		WindowsHandle m_h;
 		ULONGLONG m_cbTotalLength;
 	};
+
+	inline FileDataFeeder::FileDataFeeder(DWORD dwCapacity)
+		: DataFeeder(dwCapacity)
+		, m_h(INVALID_HANDLE_VALUE)
+		, m_cbTotalLength(0ULL)
+	{
+	}
 
 	inline FileDataFeeder::FileDataFeeder(PCWSTR pszFileName, DWORD dwCapacity)
 		: DataFeeder(dwCapacity)
@@ -40,6 +50,24 @@ namespace hnrt
 			m_pBuffer = nullptr;
 			throw Win32Exception(dwError, L"CreateFile(OPEN_EXISTING) failed.");
 		}
+	}
+
+	inline void FileDataFeeder::Open(PCWSTR pszFileName)
+	{
+		m_h = CreateFileW(pszFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		if (m_h == INVALID_HANDLE_VALUE)
+		{
+			DWORD dwError = GetLastError();
+			delete[] m_pBuffer;
+			m_pBuffer = nullptr;
+			throw Win32Exception(dwError, L"CreateFile(OPEN_EXISTING) failed.");
+		}
+		m_cbTotalLength = 0ULL;
+	}
+
+	inline void FileDataFeeder::Close()
+	{
+		m_h = nullptr;
 	}
 
 	inline bool FileDataFeeder::HasNext()

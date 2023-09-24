@@ -11,8 +11,8 @@ namespace hnrt
 {
 	class WindowApp
 		: public AnyApp
-		, protected WindowSize
-		, protected WindowLayout
+		, public WindowSize
+		, public WindowLayout
 	{
 	public:
 
@@ -29,31 +29,43 @@ namespace hnrt
 		static WindowApp* GetInstance(HWND hwnd);
 
 		virtual void ProcessMessage(MSG* pMsg);
-		virtual void OnCreate(HWND hwnd);
-		virtual void OnDestroy(HWND hwnd);
-		virtual void OnClose(HWND hwnd);
-		virtual void OnSize(HWND hwnd, WPARAM wParam, LPARAM lParam);
-		virtual LRESULT OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam);
-		virtual LRESULT OnTimer(HWND hDlg, WPARAM wParam, LPARAM lParam);
+		virtual void OnCreate();
+		virtual void OnDestroy();
+		virtual void OnClose();
+		virtual void OnSize(WPARAM wParam, LPARAM lParam);
+		virtual LRESULT OnCommand(WPARAM wParam, LPARAM lParam);
+		virtual LRESULT OnTimer(WPARAM wParam, LPARAM lParam);
+		virtual LRESULT OnNotify(WPARAM wParam, LPARAM lParam);
 
-		WindowClass& get_Class();
-		WindowPreferences& get_Preferences();
+		HWND get_hwnd() const;
+		WindowClass& get_class();
+		WindowPreferences& get_preferences();
 
-		__declspec(property(get = get_Class)) WindowClass& C;
-		__declspec(property(get = get_Preferences)) WindowPreferences& P;
+		__declspec(property(get = get_hwnd)) HWND hwnd;
+		__declspec(property(get = get_class)) WindowClass& C;
+		__declspec(property(get = get_preferences)) WindowPreferences& P;
 
 	private:
 
+		void OnCreate(HWND hwnd);
+		void OnDestroy(HWND hwnd);
+
+		HWND m_hwnd;
 		WindowClass m_class;
 		WindowPreferences m_preferences;
 	};
 
-	inline WindowClass& WindowApp::get_Class()
+	inline HWND WindowApp::get_hwnd() const
+	{
+		return m_hwnd;
+	}
+
+	inline WindowClass& WindowApp::get_class()
 	{
 		return m_class;
 	}
 
-	inline WindowPreferences& WindowApp::get_Preferences()
+	inline WindowPreferences& WindowApp::get_preferences()
 	{
 		return m_preferences;
 	}

@@ -17,13 +17,13 @@ namespace hnrt
 
 	private:
 
-		virtual void OnCreate(HWND hDlg);
-		virtual void OnDestroy(HWND hDlg);
-		virtual INT_PTR OnCommand(HWND hDlg, WPARAM wParam, LPARAM lParam);
+		virtual void OnCreate();
+		virtual void OnDestroy();
+		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 
-		void ChangeFormat(HWND hDlg, UINT uSelected = 0);
-		void ChangeGuid(HWND hDlg);
-		void CopyToClipboard(HWND hDlg);
+		void ChangeFormat(UINT uSelected = 0);
+		void ChangeGuid();
+		void CopyToClipboard();
 
 		GUID m_guid;
 		WCHAR m_szFormatted[260];

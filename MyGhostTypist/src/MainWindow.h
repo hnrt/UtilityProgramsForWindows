@@ -32,11 +32,11 @@ namespace hnrt
     private:
 
         HMENU CreateMenuBar();
-        virtual void OnCreate(HWND hwnd);
-        virtual void OnDestroy(HWND hwnd);
-        virtual void OnSize(HWND hDlg, WPARAM wParam, LPARAM lParam);
-        virtual LRESULT OnTimer(HWND hwnd, WPARAM wParam, LPARAM lParam);
-        virtual LRESULT OnCommand(HWND hwnd, WPARAM wParam, LPARAM lParam);
+        virtual void OnCreate();
+        virtual void OnDestroy();
+        virtual void OnSize(WPARAM wParam, LPARAM lParam);
+        virtual LRESULT OnTimer(WPARAM wParam, LPARAM lParam);
+        virtual LRESULT OnCommand(WPARAM wParam, LPARAM lParam);
         void OnButtonClicked(HWND hwnd, DWORD index);
         void OnAbout(HWND hwnd);
         void RecreateEditMenus(HWND hwnd);
