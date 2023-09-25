@@ -22,6 +22,15 @@ namespace hnrt
 		void operator =(const WindowApp&) = delete;
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
 		virtual void Close();
+		void SetText(PCWSTR);
+
+		HWND get_hwnd() const;
+		WindowClass& get_class();
+		WindowPreferences& get_preferences();
+
+		__declspec(property(get = get_hwnd)) HWND hwnd;
+		__declspec(property(get = get_class)) WindowClass& C;
+		__declspec(property(get = get_preferences)) WindowPreferences& P;
 
 	protected:
 
@@ -36,14 +45,6 @@ namespace hnrt
 		virtual LRESULT OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual LRESULT OnTimer(WPARAM wParam, LPARAM lParam);
 		virtual LRESULT OnNotify(WPARAM wParam, LPARAM lParam);
-
-		HWND get_hwnd() const;
-		WindowClass& get_class();
-		WindowPreferences& get_preferences();
-
-		__declspec(property(get = get_hwnd)) HWND hwnd;
-		__declspec(property(get = get_class)) WindowClass& C;
-		__declspec(property(get = get_preferences)) WindowPreferences& P;
 
 	private:
 

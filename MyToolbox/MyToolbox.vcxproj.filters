@@ -36,6 +36,12 @@
     <ClInclude Include="AboutBox.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="MyTabControl.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="GuidGenerator.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MyToolbox.cpp">
@@ -51,6 +57,12 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="AboutBox.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="MyTabControl.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="GuidGenerator.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

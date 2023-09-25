@@ -44,6 +44,12 @@ void WindowApp::Close()
 }
 
 
+void WindowApp::SetText(PCWSTR psz)
+{
+    SetWindowTextW(hwnd, psz);
+}
+
+
 void WindowApp::ProcessMessage(MSG* pMsg)
 {
     if (m_hAccelTable && TranslateAcceleratorW(m_hwnd, m_hAccelTable, pMsg))

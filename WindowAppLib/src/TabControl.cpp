@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "hnrt/TabControl.h"
+#include "hnrt/TabControlItem.h"
 #include "hnrt/WindowDesign.h"
 #include "hnrt/Exception.h"
 #include <CommCtrl.h>
@@ -100,4 +101,38 @@ TabControl& TabControl::RemoveItem(INT iIndex)
 		}
 	}
 	return *this;
+}
+
+
+bool TabControl::OnNotify(WPARAM wParam, LPARAM lParam)
+{
+	LPNMHDR p = reinterpret_cast<LPNMHDR>(lParam);
+	if (p->hwndFrom == m_hwnd)
+	{
+#pragma warning(disable: 26454)
+		if (p->code == TCN_SELCHANGING)
+#pragma warning(default: 26454)
+		{
+			OnTabSelectionChanging();
+			return true;
+		}
+#pragma warning(disable: 26454)
+		else if (p->code == TCN_SELCHANGE)
+#pragma warning(default: 26454)
+		{
+			OnTabSelectionChanged();
+			return true;
+		}
+	}
+	return false;
+}
+
+
+void TabControl::OnTabSelectionChanging()
+{
+}
+
+
+void TabControl::OnTabSelectionChanged()
+{
 }

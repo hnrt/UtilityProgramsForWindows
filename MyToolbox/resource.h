@@ -22,8 +22,14 @@
 #define IDS_HASH_TABLABEL               112
 #define IDS_HELP                        113
 #define IDS_ABOUT                       114
+#define IDS_OPENFILE_FAILURE            115
+#define IDS_READFILE_FAILURE            116
+#define IDS_GUID_TABLABEL               117
+#define IDS_EDIT                        118
+#define IDS_COPY                        119
 #define IDR_MAINFRAME                   128
 #define IDD_HASH                        129
+#define IDD_GUID                        130
 #define IDC_HASH_FILE                   1000
 #define IDC_HASH_PATH                   1001
 #define IDC_HASH_BROWSE                 1002
@@ -44,8 +50,22 @@
 #define IDC_HASH_ALGORITHM              1017
 #define IDC_HASH_FORMAT                 1018
 #define IDC_HASH_SOURCE                 1019
+#define IDC_GUID_FORMAT                 1020
+#define IDC_GUID_FORMAT_GROUPBOX        1020
+#define IDC_GUID_RESULT_GROUPBOX        1021
+#define IDC_GUID_RADIO_UPPERCASE        2000
+#define IDC_GUID_RADIO_LOWERCASE        2001
+#define IDC_GUID_RADIO_IMPLEMENT        2002
+#define IDC_GUID_RADIO_DEFINE           2003
+#define IDC_GUID_RADIO_STRUCT           2004
+#define IDC_GUID_RADIO_REGISTRY         2005
+#define IDC_GUID_RADIO_SQUARE           2006
+#define IDC_GUID_RADIO_ANGLE            2007
+#define IDC_GUID_RESULT                 2008
+#define IDC_GUID_BUTTON_COPY            2009
+#define IDC_GUID_BUTTON_NEW             2010
 #define IDM_FILE_EXIT                   11001
-#define IDM_EDIT_DUMMY                  12001
+#define IDM_EDIT_COPY                   12001
 #define IDM_VIEW_DUMMY                  13001
 #define IDM_HELP_ABOUT                  19001
 #define IDC_STATIC                      -1
@@ -57,7 +77,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1020
+#define _APS_NEXT_CONTROL_VALUE         1022
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

@@ -7,6 +7,7 @@
 #include "MyToolbox.h"
 
 
+#pragma comment(lib, "Ole32")
 #pragma comment(lib, "Comctl32")
 #pragma comment(lib, "Core")
 #pragma comment(lib, "WindowApp")

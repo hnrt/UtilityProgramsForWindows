@@ -2,7 +2,6 @@
 
 
 #include "hnrt/DialogBox.h"
-#include "hnrt/AnyApp.h"
 #include "hnrt/Hash.h"
 #include "hnrt/FileDataFeeder.h"
 
@@ -19,6 +18,7 @@ namespace hnrt
 		HashCalculator(const HashCalculator&) = delete;
 		virtual ~HashCalculator() = default;
 		void operator =(const HashCalculator&) = delete;
+		void OnCopy();
 		virtual bool HasNext();
 
 	private:
@@ -30,7 +30,6 @@ namespace hnrt
 
 		void OnBrowse();
 		void OnCalculate();
-		void OnCopy();
 		void OnSelectSource(UINT uSource);
 		void OnSelectMethod(UINT uMethod);
 		void OnUppercase();

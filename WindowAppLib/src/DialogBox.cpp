@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "hnrt/DialogBox.h"
-#include "hnrt/Exception.h"
+#include "hnrt/Win32Exception.h"
 #include "hnrt/WindowDesign.h"
 
 
@@ -30,7 +30,7 @@ void DialogBox::Open(HINSTANCE hInstance)
 {
     if (!CreateDialogParamW(hInstance, MAKEINTRESOURCE(m_idTemplate), NULL, MessageCallback, reinterpret_cast<LPARAM>(this)))
     {
-        throw Exception(L"CreateDialog failed.");
+        throw Win32Exception(GetLastError(), L"CreateDialog failed.");
     }
 }
 
@@ -54,7 +54,7 @@ void DialogBox::Open(HWND hwndParent, int x, int y, int cx, int cy)
     HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(hwndParent, GWLP_HINSTANCE));
     if (!CreateDialogParamW(hInstance, MAKEINTRESOURCE(m_idTemplate), hwndParent, MessageCallback, reinterpret_cast<LPARAM>(this)))
     {
-        throw Exception(L"CreateDialog failed.");
+        throw Win32Exception(GetLastError(), L"CreateDialog failed.");
     }
     SetWindowPos(m_hwnd, NULL, x, y, cx, cy, SWP_NOZORDER);
 }

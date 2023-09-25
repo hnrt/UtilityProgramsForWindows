@@ -10,8 +10,8 @@ using namespace hnrt;
 
 
 DialogApp::DialogApp(UINT idTemplate)
-    : DialogBox(idTemplate)
-    , AnyApp()
+    : AnyApp()
+    , DialogBox(idTemplate)
 {
 }
 

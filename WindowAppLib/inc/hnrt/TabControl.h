@@ -12,7 +12,7 @@ namespace hnrt
 
 		TabControl(HWND hwnd = NULL);
 		TabControl(const TabControl&) = delete;
-		~TabControl() = default;
+		virtual ~TabControl() = default;
 		void operator = (const TabControl&) = delete;
 		operator HWND() const;
 		TabControl& Open(HWND hwndParent);
@@ -23,6 +23,9 @@ namespace hnrt
 		INT GetCurrentItem() const;
 		TabControl& SetCurrentItem(INT iCurrentItem);
 		TabControl& RemoveItem(INT iIndex);
+		bool OnNotify(WPARAM wParam, LPARAM lParam);
+		virtual void OnTabSelectionChanging();
+		virtual void OnTabSelectionChanged();
 
 		__declspec(property(get = GetItemCount)) INT ItemCount;
 		__declspec(property(get = GetCurrentItem, put = SetCurrentItem)) INT CurrentItem;

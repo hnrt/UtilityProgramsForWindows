@@ -128,7 +128,6 @@ void HashCalculator::OnDestroy()
 
 void HashCalculator::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
-    DBGPUT(L"HashCalculator::UpdateLayout: dw=%ld dh=%ld", cxDelta, cyDelta);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_CALCULATE, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_COPY, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_RESULT, 0, cyDelta, cxDelta, 0);
@@ -262,11 +261,11 @@ void HashCalculator::OnCalculate()
         static const WCHAR szReadFile[] = L"ReadFile";
         if (!wcsncmp(e.Message, szCreateFile, wcslen(szCreateFile)))
         {
-            //MessageBox(hDlg, String::Format(ResourceString(IDS_OPENFILE_FAILURE), ErrorMessage::Get(e.Error)), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+            MessageBox(hwnd, String::Format(ResourceString(IDS_OPENFILE_FAILURE), ErrorMessage::Get(e.Error)), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
         }
         else if (!wcsncmp(e.Message, szReadFile, wcslen(szReadFile)))
         {
-           // MessageBox(hDlg, String::Format(ResourceString(IDS_READFILE_FAILURE), ErrorMessage::Get(e.Error)), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+            MessageBox(hwnd, String::Format(ResourceString(IDS_READFILE_FAILURE), ErrorMessage::Get(e.Error)), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
         }
         else
         {
@@ -285,6 +284,10 @@ void HashCalculator::OnCalculate()
 
 void HashCalculator::OnCopy()
 {
+    if (!m_hash.Value)
+    {
+        return;
+    }
     SIZE_T cbLen = (wcslen(m_hash.Text) + 1) * sizeof(WCHAR);
     HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, cbLen);
     if (hMem == NULL)
