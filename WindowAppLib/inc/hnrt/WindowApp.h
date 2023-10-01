@@ -35,7 +35,6 @@ namespace hnrt
 	protected:
 
 		static LRESULT CALLBACK MessageCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-		static WindowApp* GetInstance(HWND hwnd);
 
 		virtual void ProcessMessage(MSG* pMsg);
 		virtual void OnCreate();

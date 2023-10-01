@@ -6,9 +6,7 @@
 #define IDD_MYTOOLBOX_DIALOG            102
 #define IDS_APP_TITLE                   103
 #define IDD_ABOUTBOX                    103
-#define IDM_ABOUT                       104
 #define IDS_OUT_OF_MEMORY               104
-#define IDM_EXIT                        105
 #define IDS_UNKNOWN_FAILURE             105
 #define IDS_FILE                        106
 #define IDI_MYTOOLBOX                   107
@@ -27,6 +25,7 @@
 #define IDS_GUID_TABLABEL               117
 #define IDS_EDIT                        118
 #define IDS_COPY                        119
+#define IDS_VIEW                        120
 #define IDR_MAINFRAME                   128
 #define IDD_HASH                        129
 #define IDD_GUID                        130
@@ -66,7 +65,8 @@
 #define IDC_GUID_BUTTON_NEW             2010
 #define IDM_FILE_EXIT                   11001
 #define IDM_EDIT_COPY                   12001
-#define IDM_VIEW_DUMMY                  13001
+#define IDM_VIEW_HASH                   13001
+#define IDM_VIEW_GUID                   13002
 #define IDM_HELP_ABOUT                  19001
 #define IDC_STATIC                      -1
 
@@ -76,7 +76,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        130
-#define _APS_NEXT_COMMAND_VALUE         32771
+#define _APS_NEXT_COMMAND_VALUE         32774
 #define _APS_NEXT_CONTROL_VALUE         1022
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

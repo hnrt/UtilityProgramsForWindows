@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hnrt/WindowApp.h"
 #include "hnrt/Win32Exception.h"
+#include "hnrt/WindowHandle.h"
 
 
 using namespace hnrt;
@@ -69,39 +70,32 @@ LRESULT CALLBACK WindowApp::MessageCallback(HWND hwnd, UINT uMsg, WPARAM wParam,
     switch (uMsg)
     {
     case WM_NCCREATE:
-        SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(reinterpret_cast<CREATESTRUCTW*>(lParam)->lpCreateParams));
+        SetWindowUserData<WindowApp>(hwnd, reinterpret_cast<CREATESTRUCTW*>(lParam)->lpCreateParams);
         return DefWindowProcW(hwnd, uMsg, wParam, lParam);
     case WM_CREATE:
     {
-        GetInstance(hwnd)->OnCreate(hwnd);
+        GetWindowUserData<WindowApp>(hwnd)->OnCreate(hwnd);
         break;
     }
     case WM_DESTROY:
-        GetInstance(hwnd)->OnDestroy(hwnd);
-        SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
+        ExchangeWindowUserData<WindowApp>(hwnd, nullptr)->OnDestroy(hwnd);
         break;
     case WM_CLOSE:
-        GetInstance(hwnd)->OnClose();
+        GetWindowUserData<WindowApp>(hwnd)->OnClose();
         break;
     case WM_SIZE:
-        GetInstance(hwnd)->OnSize(wParam, lParam);
+        GetWindowUserData<WindowApp>(hwnd)->OnSize(wParam, lParam);
         break;
     case WM_COMMAND:
-        return GetInstance(hwnd)->OnCommand(wParam, lParam);
+        return GetWindowUserData<WindowApp>(hwnd)->OnCommand(wParam, lParam);
     case WM_TIMER:
-        return GetInstance(hwnd)->OnTimer(wParam, lParam);
+        return GetWindowUserData<WindowApp>(hwnd)->OnTimer(wParam, lParam);
     case WM_NOTIFY:
-        return GetInstance(hwnd)->OnNotify(wParam, lParam);
+        return GetWindowUserData<WindowApp>(hwnd)->OnNotify(wParam, lParam);
     default:
         return DefWindowProcW(hwnd, uMsg, wParam, lParam);
     }
     return 0;
-}
-
-
-WindowApp* WindowApp::GetInstance(HWND hwnd)
-{
-    return reinterpret_cast<WindowApp*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
 }
 
 

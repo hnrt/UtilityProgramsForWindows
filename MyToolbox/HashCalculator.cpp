@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "HashCalculator.h"
 #include "MyToolbox.h"
+#include "MyFileDataFeeder.h"
 #include "resource.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Win32Exception.h"
@@ -13,6 +14,7 @@
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
+#include "hnrt/WindowHandle.h"
 #include "hnrt/Debug.h"
 
 
@@ -35,38 +37,11 @@ using namespace hnrt;
 
 HashCalculator::HashCalculator()
     : DialogBox(IDD_HASH)
-    , FileDataFeeder()
     , m_hash()
     , m_uSource(IDC_HASH_FILE)
     , m_uMethod(IDC_HASH_MD5)
     , m_bUppercase(FALSE)
-    , m_LastTick(0ULL)
 {
-}
-
-
-bool HashCalculator::HasNext()
-{
-    bool bRet = FileDataFeeder::HasNext();
-    ULONGLONG tick = GetTickCount64();
-    if (m_LastTick + 100 <= tick || !bRet)
-    {
-        m_LastTick = tick;
-        SetResultHeader(TotalLength);
-        while (1)
-        {
-            int rc = MyToolbox::GetInstance().TryProcessMessage();
-            if (rc < 0)
-            {
-                return false;
-            }
-            else if (!rc)
-            {
-                break;
-            }
-        }
-    }
-    return bRet;
 }
 
 
@@ -81,18 +56,18 @@ void HashCalculator::OnCreate()
         m_uMethod = ((value.GetDWORD(hKey, REG_NAME_METHOD, 1) - 1) % 5) + IDC_HASH_MD5;
         m_bUppercase = value.GetDWORD(hKey, REG_NAME_UPPERCASE) ? TRUE : FALSE;
     }
-    SendMessage(m_uSource, BM_SETCHECK, BST_CHECKED, 0);
-    SendMessage(m_uMethod, BM_SETCHECK, BST_CHECKED, 0);
-    SendMessage(IDC_HASH_UPPERCASE, BM_SETCHECK, m_bUppercase ? BST_CHECKED : BST_UNCHECKED, 0);
-    SendMessage(IDC_HASH_VALUE, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(L""));
-    SendMessage(IDC_HASH_ENCODING, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_UTF8));
-    SendMessage(IDC_HASH_ENCODING, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_UTF16LE));
-    SendMessage(IDC_HASH_ENCODING, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_CP932));
-    SendMessage(IDC_HASH_ENCODING, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(LABEL_UTF8));
-    SendMessage(IDC_HASH_LINEBREAK, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_CRLF));
-    SendMessage(IDC_HASH_LINEBREAK, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(LABEL_LF));
-    SendMessage(IDC_HASH_LINEBREAK, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(LABEL_CRLF));
-    EnableWindow(IDC_HASH_COPY, FALSE);
+    CheckButton(m_uSource);
+    CheckButton(m_uMethod);
+    CheckButton(IDC_HASH_UPPERCASE, m_bUppercase);
+    SetText(IDC_HASH_VALUE, L"");
+    AddStringToComboBox(IDC_HASH_ENCODING, LABEL_UTF8);
+    AddStringToComboBox(IDC_HASH_ENCODING, LABEL_UTF16LE);
+    AddStringToComboBox(IDC_HASH_ENCODING, LABEL_CP932);
+    SetComboBoxSelection(IDC_HASH_ENCODING, LABEL_UTF8);
+    AddStringToComboBox(IDC_HASH_LINEBREAK, LABEL_CRLF);
+    AddStringToComboBox(IDC_HASH_LINEBREAK, LABEL_LF);
+    SetComboBoxSelection(IDC_HASH_LINEBREAK, LABEL_CRLF);
+    DisableWindow(IDC_HASH_COPY);
     OnSelectSource(m_uSource);
 }
 
@@ -202,7 +177,7 @@ void HashCalculator::OnBrowse()
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
     if (GetOpenFileNameW(&ofn))
     {
-        SendMessage(IDC_HASH_PATH, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(szPath));
+        SetText(IDC_HASH_PATH, szPath);
     }
 }
 
@@ -211,24 +186,25 @@ void HashCalculator::OnCalculate()
 {
     OnSelectSource(0);
     OnSelectMethod(0);
-    EnableWindow(IDC_HASH_CALCULATE, FALSE);
-    EnableWindow(IDC_HASH_COPY, FALSE);
+    DisableWindow(IDC_HASH_CALCULATE);
+    DisableWindow(IDC_HASH_COPY);
     try
     {
         ULONGLONG nBytesIn;
         if (m_uSource == IDC_HASH_FILE)
         {
             WCHAR szPath[MAX_PATH] = { 0 };
-            SendMessage(IDC_HASH_PATH, WM_GETTEXT, MAX_PATH, reinterpret_cast<LPARAM>(szPath));
-            FileDataFeeder::Open(szPath);
-            Calculate(*this);
-            nBytesIn = this->TotalLength;
+            GetText(IDC_HASH_PATH, szPath, MAX_PATH);
+            MyFileDataFeeder feeder(*GetWindowUserData<MyToolbox>(GetRootWindow(hwnd)));
+            feeder.Open(szPath);
+            Calculate(feeder);
+            nBytesIn = feeder.TotalLength;
         }
         else
         {
-            int length2 = static_cast<int>(SendMessage(IDC_HASH_CONTENT, WM_GETTEXTLENGTH, 0, 0));
+            int length2 = static_cast<int>(GetTextLength(IDC_HASH_CONTENT));
             Buffer<WCHAR> buf2(length2 + 1);
-            SendMessage(IDC_HASH_CONTENT, WM_GETTEXT, static_cast<WPARAM>(buf2.Len), reinterpret_cast<LPARAM>(&buf2));
+            GetText(IDC_HASH_CONTENT, buf2, buf2.Len);
             UINT uLineBreak = GetLineBreak();
             if (uLineBreak == 0x0a && length2 > 0)
             {
@@ -253,7 +229,7 @@ void HashCalculator::OnCalculate()
             }
         }
         SetResultHeader(nBytesIn, m_hash.ValueLength);
-        EnableWindow(IDC_HASH_COPY, TRUE);
+        EnableWindow(IDC_HASH_COPY);
     }
     catch (Win32Exception e)
     {
@@ -276,7 +252,7 @@ void HashCalculator::OnCalculate()
     {
         MessageBox(hwnd, e.Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
     }
-    EnableWindow(IDC_HASH_CALCULATE, TRUE);
+    EnableWindow(IDC_HASH_CALCULATE);
     OnSelectSource(m_uSource);
     OnSelectMethod(m_uMethod);
 }
@@ -356,7 +332,7 @@ void HashCalculator::OnSelectMethod(UINT uMethod)
 
 void HashCalculator::OnUppercase()
 {
-    LRESULT value = SendMessage(IDC_HASH_UPPERCASE, BM_GETCHECK, 0, 0);
+    UINT value = GetButtonState(IDC_HASH_UPPERCASE);
     if (value == BST_CHECKED)
     {
         m_bUppercase = TRUE;
@@ -417,25 +393,19 @@ void HashCalculator::Calculate(DataFeeder& rDataFeeder)
 
 UINT HashCalculator::GetCodePage()
 {
-    LRESULT SelectedIndex = SendMessage(IDC_HASH_ENCODING, CB_GETCURSEL, 0, 0);
-    if (SelectedIndex == CB_ERR)
-    {
-        SelectedIndex = 0;
-    }
-    WCHAR szCharset[64] = { 0 };
-    if (SendMessage(IDC_HASH_ENCODING, CB_GETLBTEXT, SelectedIndex, reinterpret_cast<LPARAM>(szCharset)) == CB_ERR)
-    {
-        wcscpy_s(szCharset, LABEL_UTF8);
-    }
-    if (!wcscmp(szCharset, LABEL_UTF8))
+    int selected = GetComboBoxSelection(IDC_HASH_ENCODING);
+    UINT length = GetListBoxTextLength(IDC_HASH_ENCODING, selected);
+    Buffer<WCHAR> charset(length + 1);
+    GetListBoxText(IDC_HASH_ENCODING, selected, charset);
+    if (!wcscmp(charset, LABEL_UTF8))
     {
         return CP_UTF8;
     }
-    else if (!wcscmp(szCharset, LABEL_UTF16LE))
+    else if (!wcscmp(charset, LABEL_UTF16LE))
     {
         return 1200;
     }
-    else if (!wcscmp(szCharset, LABEL_CP932))
+    else if (!wcscmp(charset, LABEL_CP932))
     {
         return 932;
     }
@@ -448,21 +418,15 @@ UINT HashCalculator::GetCodePage()
 
 UINT HashCalculator::GetLineBreak()
 {
-    LRESULT SelectedIndex = SendMessage(IDC_HASH_LINEBREAK, CB_GETCURSEL, 0, 0);
-    if (SelectedIndex == CB_ERR)
-    {
-        SelectedIndex = 0;
-    }
-    WCHAR szLineBreak[64] = { 0 };
-    if (SendMessage(IDC_HASH_LINEBREAK, CB_GETLBTEXT, SelectedIndex, reinterpret_cast<LPARAM>(szLineBreak)) == CB_ERR)
-    {
-        wcscpy_s(szLineBreak, LABEL_UTF8);
-    }
-    if (!wcscmp(szLineBreak, LABEL_CRLF))
+    int selected = GetComboBoxSelection(IDC_HASH_LINEBREAK);
+    UINT length = GetListBoxTextLength(IDC_HASH_LINEBREAK, selected);
+    Buffer<WCHAR> lineBreak(length + 1);
+    GetListBoxText(IDC_HASH_LINEBREAK, selected, lineBreak);
+    if (!wcscmp(lineBreak, LABEL_CRLF))
     {
         return 0x0d0a;
     }
-    else if (!wcscmp(szLineBreak, LABEL_LF))
+    else if (!wcscmp(lineBreak, LABEL_LF))
     {
         return 0x0a;
     }
@@ -496,7 +460,7 @@ UINT HashCalculator::ConvertToLF(PWCHAR pStart, UINT uLength)
 
 void HashCalculator::SetResultHeader()
 {
-    SendMessage(IDC_HASH_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(ResourceString(IDS_RESULT).Ptr));
+    SetText(IDC_HASH_RESULT, ResourceString(IDS_RESULT));
 }
 
 
@@ -504,7 +468,7 @@ void HashCalculator::SetResultHeader(ULONGLONG nBytesIn)
 {
     WCHAR szBuf[260];
     _snwprintf_s(szBuf, _TRUNCATE, ResourceString(IDS_RESULT_IN), NumberText(nBytesIn).Ptr);
-    SendMessage(IDC_HASH_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(szBuf));
+    SetText(IDC_HASH_RESULT, szBuf);
 }
 
 
@@ -513,13 +477,13 @@ void HashCalculator::SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut)
     ULONG nBitsOut = nBytesOut * 8;
     WCHAR szBuf[260];
     _snwprintf_s(szBuf, _TRUNCATE, ResourceString(IDS_RESULT_IN_OUT), NumberText(nBytesIn).Ptr, NumberText(nBytesOut).Ptr, NumberText(nBitsOut).Ptr);
-    SendMessage(IDC_HASH_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(szBuf));
+    SetText(IDC_HASH_RESULT, szBuf);
 }
 
 
 void HashCalculator::SetResult(PCWSTR psz)
 {
-    SendMessage(IDC_HASH_VALUE, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(psz));
+    SetText(IDC_HASH_VALUE, psz);
 }
 
 
@@ -542,13 +506,9 @@ void HashCalculator::SetResult(Hash& rHash)
 
 void HashCalculator::ResetResultCase()
 {
-    LRESULT length = SendMessage(IDC_HASH_VALUE, WM_GETTEXTLENGTH, 0, 0);
-    if (length <= 0)
-    {
-        return;
-    }
+    UINT length = GetTextLength(IDC_HASH_VALUE);
     Buffer<WCHAR> buf(length + 1);
-    SendMessage(IDC_HASH_VALUE, WM_GETTEXT, buf.Len, reinterpret_cast<LPARAM>(buf.Ptr));
+    GetText(IDC_HASH_VALUE, buf, buf.Len);
     if (m_bUppercase)
     {
         _wcsupr_s(buf, buf.Len);

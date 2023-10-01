@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hnrt/DialogBox.h"
 #include "hnrt/Win32Exception.h"
+#include "hnrt/WindowHandle.h"
 #include "hnrt/WindowDesign.h"
 
 
@@ -51,12 +52,11 @@ void DialogBox::Open(HWND hwndParent, int cx, int cy)
 
 void DialogBox::Open(HWND hwndParent, int x, int y, int cx, int cy)
 {
-    HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(hwndParent, GWLP_HINSTANCE));
-    if (!CreateDialogParamW(hInstance, MAKEINTRESOURCE(m_idTemplate), hwndParent, MessageCallback, reinterpret_cast<LPARAM>(this)))
+    if (!CreateDialogParamW(GetInstanceHandle(hwndParent), MAKEINTRESOURCE(m_idTemplate), hwndParent, MessageCallback, reinterpret_cast<LPARAM>(this)))
     {
         throw Win32Exception(GetLastError(), L"CreateDialog failed.");
     }
-    SetWindowPos(m_hwnd, NULL, x, y, cx, cy, SWP_NOZORDER);
+    SetWindowGeometry(m_hwnd, x, y, cx, cy);
 }
 
 
@@ -98,43 +98,138 @@ LRESULT DialogBox::SendMessage(int id, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
+UINT DialogBox::GetTextLength(int id)
+{
+    return static_cast<UINT>(SendMessage(id, WM_GETTEXTLENGTH));
+}
+
+
+PWCHAR DialogBox::GetText(int id, PWCHAR pBuf, size_t cch)
+{
+    SendMessage(id, WM_GETTEXT, cch, reinterpret_cast<LPARAM>(pBuf));
+    return pBuf;
+}
+
+
+void DialogBox::SetText(int id, PCWSTR psz)
+{
+    SendMessage(id, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(psz ? psz : L""));
+}
+
+
+void DialogBox::CheckButton(int id, BOOL bCheck)
+{
+    SendMessage(id, BM_SETCHECK, bCheck ? BST_CHECKED : BST_UNCHECKED);
+}
+
+
+void DialogBox::UncheckButton(int id)
+{
+    SendMessage(id, BM_SETCHECK, BST_UNCHECKED);
+}
+
+
+int DialogBox::GetButtonState(int id)
+{
+    return static_cast<int>(SendMessage(id, BM_GETCHECK));
+}
+
+
+void DialogBox::AddStringToComboBox(int id, PCWSTR psz)
+{
+    SendMessage(id, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(psz));
+}
+
+
+int DialogBox::GetComboBoxSelection(int id, int defaultValue)
+{
+    LRESULT selected = SendMessage(id, CB_GETCURSEL);
+    return selected != CB_ERR ? static_cast<int>(selected) : defaultValue;
+}
+
+
+void DialogBox::SetComboBoxSelection(int id, int index)
+{
+    LRESULT count = SendMessage(id, LB_GETCOUNT);
+    if (count > 0)
+    {
+        if (index >= 0)
+        {
+            if (index < count)
+            {
+                SendMessage(id, CB_SETCURSEL, index);
+            }
+        }
+        else
+        {
+            if (count + index >= 0)
+            {
+                SendMessage(id, CB_SETCURSEL, count + index);
+            }
+        }
+    }
+}
+
+
+void DialogBox::SetComboBoxSelection(int id, PCWSTR psz)
+{
+    SendMessage(id, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(psz));
+}
+
+
+void DialogBox::ClearComboBoxSelection(int id)
+{
+    SendMessage(id, CB_SETCURSEL, -1);
+}
+
+
+UINT DialogBox::GetListBoxTextLength(int id, int index, size_t defaultValue)
+{
+    LRESULT length = SendMessage(id, CB_GETLBTEXTLEN, index);
+    return length != CB_ERR ? static_cast<UINT>(length) : static_cast<UINT>(defaultValue);
+
+}
+
+
+PWCHAR DialogBox::GetListBoxText(int id, int index, PWCHAR pBuf, PCWSTR pszDefault)
+{
+    LRESULT length = SendMessage(id, CB_GETLBTEXT, index, reinterpret_cast<LPARAM>(pBuf));
+    if (length == CB_ERR)
+    {
+        wcscpy_s(pBuf, wcslen(pszDefault) + 1, pszDefault);
+    }
+    return pBuf;
+}
+
+
 INT_PTR CALLBACK DialogBox::MessageCallback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
     case WM_INITDIALOG:
     {
-        DialogBox* pThis = reinterpret_cast<DialogBox*>(lParam);
-        SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
-        pThis->OnCreate(hwnd);
+        SetWindowUserData<DialogBox>(hwnd, lParam)->OnCreate(hwnd);
         break;
     }
     case WM_DESTROY:
-        GetInstance(hwnd)->OnDestroy(hwnd);
-        SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
+        ExchangeWindowUserData<DialogBox>(hwnd, nullptr)->OnDestroy(hwnd);
         break;
     case WM_CLOSE:
-        GetInstance(hwnd)->OnClose();
+        GetWindowUserData<DialogBox>(hwnd)->OnClose();
         break;
     case WM_SIZE:
-        GetInstance(hwnd)->OnSize(wParam, lParam);
+        GetWindowUserData<DialogBox>(hwnd)->OnSize(wParam, lParam);
         break;
     case WM_COMMAND:
-        return GetInstance(hwnd)->OnCommand(wParam, lParam);
+        return GetWindowUserData<DialogBox>(hwnd)->OnCommand(wParam, lParam);
     case WM_TIMER:
-        return GetInstance(hwnd)->OnTimer(wParam, lParam);
+        return GetWindowUserData<DialogBox>(hwnd)->OnTimer(wParam, lParam);
     case WM_NOTIFY:
-        return GetInstance(hwnd)->OnNotify(wParam, lParam);
+        return GetWindowUserData<DialogBox>(hwnd)->OnNotify(wParam, lParam);
     default:
         return FALSE;
     }
     return TRUE;
-}
-
-
-DialogBox* DialogBox::GetInstance(HWND hwnd)
-{
-    return reinterpret_cast<DialogBox*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
 }
 
 

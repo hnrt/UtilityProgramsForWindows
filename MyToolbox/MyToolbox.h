@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "Resource.h"
+#include "resource.h"
 #include "AboutBox.h"
 #include "MyTabControl.h"
 #include "HashCalculator.h"
@@ -16,22 +16,20 @@ namespace hnrt
 	{
 	public:
 
-		static MyToolbox& GetInstance();
-
 		MyToolbox();
 		MyToolbox(const MyToolbox&) = delete;
 		virtual ~MyToolbox() = default;
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
 		HWND GetChild(INT);
+		bool OnFeederNotify(ULONGLONG);
 
 	private:
-
-		static MyToolbox* m_pInstance;
 
 		HMENU CreateMenuBar();
 		virtual void OnCreate();
 		void CreateChildren();
 		void SetMinimumSize();
+		virtual void ProcessMessage(MSG* pMsg);
 		virtual LRESULT OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual LRESULT OnNotify(WPARAM wParam, LPARAM lParam);
 		virtual void UpdateLayout(HWND hwnd, LONG cxDelta, LONG cyDelta);

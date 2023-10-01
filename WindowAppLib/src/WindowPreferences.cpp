@@ -16,6 +16,7 @@ WindowPreferences::WindowPreferences(PCWSTR pszClassName)
 	, m_cx(CW_USEDEFAULT)
 	, m_cy(CW_USEDEFAULT)
 	, m_hwndParent(nullptr)
+	, m_hmenu(nullptr)
 {
 }
 

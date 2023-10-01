@@ -612,6 +612,7 @@
     <ClInclude Include="inc\hnrt\TabControl.h" />
     <ClInclude Include="inc\hnrt\TabControlItem.h" />
     <ClInclude Include="inc\hnrt\WindowDesign.h" />
+    <ClInclude Include="inc\hnrt\WindowHandle.h" />
     <ClInclude Include="inc\hnrt\WindowLayout.h" />
     <ClInclude Include="inc\hnrt\WindowSize.h" />
     <ClInclude Include="inc\hnrt\WindowApp.h" />

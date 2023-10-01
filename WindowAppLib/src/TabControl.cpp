@@ -78,7 +78,13 @@ INT TabControl::GetCurrentItem() const
 
 TabControl& TabControl::SetCurrentItem(INT iCurrentItem)
 {
-	SendMessageW(m_hwnd, TCM_SETCURSEL, iCurrentItem, 0);
+	LRESULT index = SendMessageW(m_hwnd, TCM_GETCURSEL, 0, 0);
+	if (iCurrentItem != index)
+	{
+		OnTabSelectionChanging();
+		SendMessageW(m_hwnd, TCM_SETCURSEL, iCurrentItem, 0);
+		OnTabSelectionChanged();
+	}
 	return *this;
 }
 

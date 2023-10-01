@@ -3,14 +3,12 @@
 
 #include "hnrt/DialogBox.h"
 #include "hnrt/Hash.h"
-#include "hnrt/FileDataFeeder.h"
 
 
 namespace hnrt
 {
 	class HashCalculator
 		: public DialogBox
-		, public FileDataFeeder
 	{
 	public:
 
@@ -19,7 +17,7 @@ namespace hnrt
 		virtual ~HashCalculator() = default;
 		void operator =(const HashCalculator&) = delete;
 		void OnCopy();
-		virtual bool HasNext();
+		void SetResultHeader(ULONGLONG nBytesIn);
 
 	private:
 
@@ -38,7 +36,6 @@ namespace hnrt
 		UINT GetLineBreak();
 		UINT ConvertToLF(PWCHAR pStart, UINT uLength);
 		void SetResultHeader();
-		void SetResultHeader(ULONGLONG nBytesIn);
 		void SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut);
 		void SetResult(PCWSTR psz = L"");
 		void SetResult(Hash& rHash);
@@ -48,6 +45,5 @@ namespace hnrt
 		UINT m_uSource;
 		UINT m_uMethod;
 		BOOL m_bUppercase;
-		ULONGLONG m_LastTick;
 	};
 }

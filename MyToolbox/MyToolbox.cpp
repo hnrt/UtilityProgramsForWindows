@@ -5,6 +5,7 @@
 #include "hnrt/ResourceString.h"
 #include "hnrt/Menu.h"
 #include "hnrt/TabControlItem.h"
+#include "hnrt/WindowHandle.h"
 #include "hnrt/WindowDesign.h"
 
 
@@ -12,15 +13,6 @@ using namespace hnrt;
 
 
 static const WCHAR s_szClassName[] = { L"HNRT_MyToolbox" };
-
-
-MyToolbox* MyToolbox::m_pInstance = nullptr;
-
-
-MyToolbox& MyToolbox::GetInstance()
-{
-    return *m_pInstance;
-}
 
 
 MyToolbox::MyToolbox()
@@ -32,7 +24,6 @@ MyToolbox::MyToolbox()
 {
     INITCOMMONCONTROLSEX iccx = { sizeof(iccx), ICC_TAB_CLASSES };
     InitCommonControlsEx(&iccx);
-    m_pInstance = this;
 }
 
 
@@ -43,6 +34,7 @@ void MyToolbox::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     P.SetMenu(CreateMenuBar())
         .SetWindowName(szWindowName);
     WindowApp::Open(hInstance, lpCmdLine, nCmdShow);
+    SetAccelerators(hInstance, IDC_MYTOOLBOX);
 }
 
 
@@ -55,6 +47,10 @@ HMENU MyToolbox::CreateMenuBar()
         .Add(ResourceString(IDS_EDIT),
             Menu()
             .Add(ResourceString(IDS_COPY), IDM_EDIT_COPY))
+        .Add(ResourceString(IDS_VIEW),
+            Menu()
+            .Add(ResourceString(IDS_HASH_TABLABEL), IDM_VIEW_HASH)
+            .Add(ResourceString(IDS_GUID_TABLABEL), IDM_VIEW_GUID))
         .Add(ResourceString(IDS_HELP),
             Menu()
             .Add(ResourceString(IDS_ABOUT), IDM_HELP_ABOUT));
@@ -63,16 +59,14 @@ HMENU MyToolbox::CreateMenuBar()
 
 void MyToolbox::OnCreate()
 {
-    HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(hwnd, GWLP_HINSTANCE));
-    m_about.Open(hInstance);
-    HFONT hFont = reinterpret_cast<HFONT>(::SendMessageW(m_about, WM_GETFONT, 0, 0));
+    m_about.Open(GetInstanceHandle(hwnd));
     m_tabs.Open(this);
-    ::SendMessageW(m_tabs, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), FALSE);
+    SetFont(m_tabs, GetFont(m_about));
     CreateChildren();
     m_tabs.LoadFromRegistry();
     m_tabs.OnTabSelectionChanged();
     SetMinimumSize();
-    SetWindowPos(hwnd, NULL, 0, 0, MinimumWidth, MinimumHeight, SWP_NOMOVE | SWP_NOZORDER);
+    SetWindowSize(hwnd, MinimumWidth, MinimumHeight);
 }
 
 
@@ -103,6 +97,24 @@ void MyToolbox::SetMinimumSize()
 }
 
 
+void MyToolbox::ProcessMessage(MSG* pMsg)
+{
+    if (m_hAccelTable && TranslateAcceleratorW(hwnd, m_hAccelTable, pMsg))
+    {
+        // OK
+    }
+    else if (IsDialogMessageW(GetChild(m_tabs.CurrentItem), pMsg))
+    {
+        // OK
+    }
+    else
+    {
+        TranslateMessage(pMsg);
+        DispatchMessageW(pMsg);
+    }
+}
+
+
 LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
     DWORD wControlId = LOWORD(wParam);
@@ -123,6 +135,12 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         default:
             break;
         }
+        break;
+    case IDM_VIEW_HASH:
+        m_tabs.CurrentItem = 0;
+        break;
+    case IDM_VIEW_GUID:
+        m_tabs.CurrentItem = 1;
         break;
     case IDM_HELP_ABOUT:
         m_about.Show();
@@ -146,6 +164,32 @@ void MyToolbox::UpdateLayout(HWND hwnd, LONG cxDelta, LONG cyDelta)
     WindowLayout::UpdateLayout(hwnd, m_tabs, 0, 0, cxDelta, cyDelta);
     RectangleMetrics rect;
     m_tabs.GetViewRect(&rect);
-    SetWindowPos(m_hashTab, NULL, rect.x, rect.y, rect.cx, rect.cy, SWP_NOZORDER);
-    SetWindowPos(m_guidTab, NULL, rect.x, rect.y, rect.cx, rect.cy, SWP_NOZORDER);
+    SetWindowGeometry(m_hashTab, rect);
+    SetWindowGeometry(m_guidTab, rect);
+}
+
+
+bool MyToolbox::OnFeederNotify(ULONGLONG cbTotalLength)
+{
+    switch (m_tabs.CurrentItem)
+    {
+    case 0:
+        m_hashTab.SetResultHeader(cbTotalLength);
+        break;
+    default:
+        break;
+    }
+    while (1)
+    {
+        int rc = TryProcessMessage();
+        if (rc < 0)
+        {
+            return false;
+        }
+        else if (!rc)
+        {
+            break;
+        }
+    }
+    return true;
 }

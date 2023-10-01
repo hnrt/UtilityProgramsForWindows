@@ -34,7 +34,7 @@ void GuidGenerator::OnCreate()
         m_uCurrentlySelected = value.GetDWORD(hKey, REG_NAME, 1) + IDC_GUID_RADIO_UPPERCASE - 1;
     }
     ChangeGuid();
-    SendMessage(m_uCurrentlySelected, BM_SETCHECK, BST_CHECKED, 0);
+    CheckButton(m_uCurrentlySelected);
 }
 
 
@@ -105,7 +105,7 @@ void GuidGenerator::ChangeGuid()
     else
     {
         _snwprintf_s(m_szFormatted, _TRUNCATE, L"CoCreateGuid failed. (%08X)", (int)hRes);
-        SendMessage(IDC_GUID_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(m_szFormatted));
+        SetText(IDC_GUID_RESULT, m_szFormatted);
         DisableWindow(IDC_GUID_BUTTON_COPY);
     }
 }
@@ -121,7 +121,7 @@ void GuidGenerator::ChangeFormat(UINT uSelected)
     if (!StringFromGUID2(m_guid, buf, _countof(buf)))
     {
         _snwprintf_s(m_szFormatted, _TRUNCATE, L"StringFromGUID2 failed.");
-        SendMessage(IDC_GUID_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(m_szFormatted));
+        SetText(IDC_GUID_RESULT, m_szFormatted);
         DisableWindow(IDC_GUID_BUTTON_COPY);
         return;
     }
@@ -188,7 +188,7 @@ void GuidGenerator::ChangeFormat(UINT uSelected)
         _snwprintf_s(m_szFormatted, _TRUNCATE, L"%.36s", &buf[1]);
         break;
     }
-    SendMessage(IDC_GUID_RESULT, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(m_szFormatted));
+    SetText(IDC_GUID_RESULT, m_szFormatted);
     EnableWindow(IDC_GUID_BUTTON_COPY);
 }
 

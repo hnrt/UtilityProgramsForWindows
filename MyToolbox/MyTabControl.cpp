@@ -35,7 +35,9 @@ void MyTabControl::OnTabSelectionChanging()
 void MyTabControl::OnTabSelectionChanged()
 {
     SaveToRegistry();
-    ShowWindow(m_pApp->GetChild(CurrentItem), SW_SHOW);
+    HWND hwndChild = m_pApp->GetChild(CurrentItem);
+    ShowWindow(hwndChild, SW_SHOW);
+    SetFocus(hwndChild);
 }
 
 
