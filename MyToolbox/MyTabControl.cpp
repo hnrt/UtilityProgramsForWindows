@@ -1,8 +1,14 @@
 #include "pch.h"
 #include "MyTabControl.h"
 #include "MyToolbox.h"
+#include "hnrt/LogicalFont.h"
+#include "hnrt/WindowHandle.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
+
+
+#define FACENAME L"Segoe UI"
+#define POINTSIZE 8
 
 
 #define REG_SUBKEY L"SOFTWARE\\hnrt\\MyToolbox"
@@ -23,6 +29,12 @@ void MyTabControl::Open(MyToolbox* pApp)
 {
 	m_pApp = pApp;
 	TabControl::Open(pApp->hwnd);
+    SetFont(*this,
+        LogicalFont()
+        .SetFaceName(FACENAME)
+        .SetHeight(POINTSIZE, *this)
+        .SetJapaneseCharSet()
+        .Create());
 }
 
 

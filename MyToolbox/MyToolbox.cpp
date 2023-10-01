@@ -61,7 +61,6 @@ void MyToolbox::OnCreate()
 {
     m_about.Open(GetInstanceHandle(hwnd));
     m_tabs.Open(this);
-    SetFont(m_tabs, GetFont(m_about));
     CreateChildren();
     m_tabs.LoadFromRegistry();
     m_tabs.OnTabSelectionChanged();
