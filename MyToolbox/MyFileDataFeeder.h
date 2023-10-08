@@ -6,14 +6,12 @@
 
 namespace hnrt
 {
-	class MyToolbox;
-
 	class MyFileDataFeeder
 		: public FileDataFeeder
 	{
 	public:
 
-		MyFileDataFeeder(MyToolbox&);
+		MyFileDataFeeder();
 		MyFileDataFeeder(const MyFileDataFeeder&) = delete;
 		virtual ~MyFileDataFeeder() = default;
 		void operator =(const MyFileDataFeeder&) = delete;
@@ -21,7 +19,6 @@ namespace hnrt
 
 	private:
 
-		MyToolbox& m_app;
 		ULONGLONG m_LastTick;
 	};
 }

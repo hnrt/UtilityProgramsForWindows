@@ -48,5 +48,5 @@ void DialogApp::ProcessMessage(MSG* pMsg)
 
 void DialogApp::OnClose()
 {
-    PostQuitMessage(EXIT_SUCCESS);
+    PostQuitMessage(m_iExitCode);
 }

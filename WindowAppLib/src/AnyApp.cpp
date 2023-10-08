@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hnrt/AnyApp.h"
 #include "hnrt/Exception.h"
+#include "hnrt/Interlocked.h"
 #include "hnrt/CommandLine.h"
 
 
@@ -10,16 +11,31 @@
 using namespace hnrt;
 
 
+AnyApp* AnyApp::m_pThis = nullptr;
+
+
+AnyApp* AnyApp::GetAppPtr()
+{
+    return m_pThis;
+}
+
+
 AnyApp::AnyApp()
-	: m_iExitCode(EXIT_FAILURE)
+	: m_bExit(false)
+    , m_iExitCode(EXIT_FAILURE)
     , m_pCommandLine(nullptr)
 	, m_hAccelTable(nullptr)
 {
+    if (Interlocked<AnyApp*>::CompareExchangePointer(&m_pThis, this, nullptr) != nullptr)
+    {
+        throw Exception(L"Unable to create another AnyApp instance.");
+    }
 }
 
 
 AnyApp::~AnyApp()
 {
+    Interlocked<AnyApp*>::CompareExchangePointer(&m_pThis, nullptr, this);
     delete m_pCommandLine;
 }
 
@@ -79,20 +95,22 @@ void AnyApp::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 
 void AnyApp::Run()
 {
-    while (1)
+    while (!m_bExit)
     {
         MSG msg;
         BOOL bRet = GetMessageW(&msg, NULL, 0, 0);
-        if (bRet == -1)
+        switch (bRet)
         {
-            throw Exception(L"GetMessage failed.");
-        }
-        else if (!bRet)
-        {
+        case 0: // WM_QUIT
+            m_bExit = true;
             m_iExitCode = static_cast<int>(msg.wParam);
             break;
+        case -1: // ERROR
+            throw Exception(L"GetMessage failed.");
+        default:
+            ProcessMessage(&msg);
+            break;
         }
-        ProcessMessage(&msg);
     }
 }
 
@@ -100,18 +118,19 @@ void AnyApp::Run()
 int AnyApp::TryProcessMessage()
 {
     MSG msg;
-    if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+    if (!PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
     {
-        if (msg.message == WM_QUIT)
-        {
-            PostQuitMessage(static_cast<int>(msg.wParam));
-            return -1;
-        }
-        ProcessMessage(&msg);
-        return 1;
+        return 0;
+    }
+    else if (msg.message == WM_QUIT)
+    {
+        m_bExit = true;
+        m_iExitCode = static_cast<int>(msg.wParam);
+        return -1;
     }
     else
     {
-        return 0;
+        ProcessMessage(&msg);
+        return 1;
     }
 }

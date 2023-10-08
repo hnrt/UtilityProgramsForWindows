@@ -195,7 +195,7 @@ void HashCalculator::OnCalculate()
         {
             WCHAR szPath[MAX_PATH] = { 0 };
             GetText(IDC_HASH_PATH, szPath, MAX_PATH);
-            MyFileDataFeeder feeder(*GetWindowUserData<MyToolbox>(GetRootWindow(hwnd)));
+            MyFileDataFeeder feeder;
             feeder.Open(szPath);
             Calculate(feeder);
             nBytesIn = feeder.TotalLength;

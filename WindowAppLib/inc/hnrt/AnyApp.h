@@ -12,6 +12,8 @@ namespace hnrt
 	{
 	public:
 
+		static AnyApp* GetAppPtr();
+
 		AnyApp();
 		AnyApp(const AnyApp&) = delete;
 		virtual ~AnyApp();
@@ -25,6 +27,12 @@ namespace hnrt
 
 		__declspec(property(get = get_ExitCode)) int ExitCode;
 
+	private:
+
+		static AnyApp* m_pThis;
+
+		bool m_bExit;
+
 	protected:
 
 		virtual void ProcessMessage(MSG*) = 0;
@@ -37,5 +45,11 @@ namespace hnrt
 	inline int AnyApp::get_ExitCode()
 	{
 		return m_iExitCode;
+	}
+
+	template<class T>
+	T& GetApp()
+	{
+		return *reinterpret_cast<T*>(AnyApp::GetAppPtr());
 	}
 }

@@ -1,15 +1,13 @@
 #include "pch.h"
 #include "MyFileDataFeeder.h"
 #include "MyToolbox.h"
-#include "hnrt/WindowHandle.h"
 
 
 using namespace hnrt;
 
 
-MyFileDataFeeder::MyFileDataFeeder(MyToolbox& app)
+MyFileDataFeeder::MyFileDataFeeder()
 	: FileDataFeeder()
-    , m_app(app)
     , m_LastTick(0ULL)
 {
 }
@@ -22,7 +20,7 @@ bool MyFileDataFeeder::HasNext()
     if (m_LastTick + 100 <= tick || !bRet)
     {
         m_LastTick = tick;
-        if (!m_app.OnFeederNotify(TotalLength))
+        if (!GetApp<MyToolbox>().OnFeederNotify(TotalLength))
         {
             return false;
         }

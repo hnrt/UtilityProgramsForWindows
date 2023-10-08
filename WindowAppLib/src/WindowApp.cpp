@@ -127,7 +127,7 @@ void WindowApp::OnDestroy()
 
 void WindowApp::OnClose()
 {
-    PostQuitMessage(EXIT_SUCCESS);
+    PostQuitMessage(m_iExitCode);
 }
 
 
