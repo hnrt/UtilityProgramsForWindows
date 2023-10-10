@@ -6,6 +6,7 @@
 #include "MyTabControl.h"
 #include "HashCalculator.h"
 #include "GuidGenerator.h"
+#include "PercentCodec.h"
 #include "hnrt/WindowApp.h"
 
 
@@ -38,6 +39,7 @@ namespace hnrt
 		MyTabControl m_tabs;
 		HashCalculator m_hashTab;
 		GuidGenerator m_guidTab;
+		PercentCodec m_pctcTab;
 	};
 
 	inline HWND MyToolbox::GetChild(INT iIndex)
@@ -48,6 +50,8 @@ namespace hnrt
 			return m_hashTab;
 		case 1:
 			return m_guidTab;
+		case 2:
+			return m_pctcTab;
 		default:
 			return nullptr;
 		}

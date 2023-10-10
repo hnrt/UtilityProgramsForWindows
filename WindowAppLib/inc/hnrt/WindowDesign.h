@@ -19,6 +19,10 @@ namespace hnrt
 		RectangleMetrics& FromClient(HWND hwnd);
 		RectangleMetrics& ToScreen(HWND hwnd);
 		RectangleMetrics& ToClient(HWND hwnd);
+		LONG HorizontalGap(const RECT&);
+		LONG VerticalGap(const RECT&);
+		LONG FromLeftToRight(const RECT&);
+		LONG FromTopToBottom(const RECT&);
 		bool Parse(PCWSTR psz);
 		LONG GetX() const;
 		LONG GetY() const;
@@ -95,6 +99,26 @@ namespace hnrt
 		ScreenToClient(hwnd, reinterpret_cast<POINT*>(&left));
 		ScreenToClient(hwnd, reinterpret_cast<POINT*>(&right));
 		return *this;
+	}
+
+	inline LONG RectangleMetrics::HorizontalGap(const RECT& other)
+	{
+		return other.left - right;
+	}
+
+	inline LONG RectangleMetrics::VerticalGap(const RECT& other)
+	{
+		return other.top - bottom;
+	}
+
+	inline LONG RectangleMetrics::FromLeftToRight(const RECT& other)
+	{
+		return other.right - left;
+	}
+
+	inline LONG RectangleMetrics::FromTopToBottom(const RECT& other)
+	{
+		return other.bottom - top;
 	}
 
 	inline bool RectangleMetrics::Parse(PCWSTR psz)

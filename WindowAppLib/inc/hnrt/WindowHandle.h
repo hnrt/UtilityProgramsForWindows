@@ -52,7 +52,7 @@ namespace hnrt
 		SetWindowPos(hwnd, NULL, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE | extraFlags);
 	}
 
-	inline void SetWindowPosition(HWND hwnd, POINT& pt, UINT extraFlags = 0)
+	inline void SetWindowPosition(HWND hwnd, const POINT& pt, UINT extraFlags = 0)
 	{
 		SetWindowPos(hwnd, NULL, pt.x, pt.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE | extraFlags);
 	}
@@ -62,7 +62,7 @@ namespace hnrt
 		SetWindowPos(hwnd, NULL, 0, 0, cx, cy, SWP_NOZORDER | SWP_NOMOVE | extraFlags);
 	}
 
-	inline void SetWindowSize(HWND hwnd, RECT& rect, UINT extraFlags = 0)
+	inline void SetWindowSize(HWND hwnd, const RECT& rect, UINT extraFlags = 0)
 	{
 		SetWindowPos(hwnd, NULL, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER | SWP_NOMOVE | extraFlags);
 	}
@@ -72,7 +72,7 @@ namespace hnrt
 		SetWindowPos(hwnd, NULL, x, y, cx, cy, SWP_NOZORDER | extraFlags);
 	}
 
-	inline void SetWindowGeometry(HWND hwnd, RECT& rect, UINT extraFlags = 0)
+	inline void SetWindowGeometry(HWND hwnd, const RECT& rect, UINT extraFlags = 0)
 	{
 		SetWindowPos(hwnd, NULL, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER | extraFlags);
 	}

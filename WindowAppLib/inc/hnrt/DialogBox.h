@@ -64,6 +64,7 @@ namespace hnrt
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnNotify(WPARAM wParam, LPARAM lParam);
+		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
 
 	private:
 

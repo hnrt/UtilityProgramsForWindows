@@ -614,6 +614,7 @@
     <ClInclude Include="inc\hnrt\WindowDesign.h" />
     <ClInclude Include="inc\hnrt\WindowHandle.h" />
     <ClInclude Include="inc\hnrt\WindowLayout.h" />
+    <ClInclude Include="inc\hnrt\WindowLayoutSnapshot.h" />
     <ClInclude Include="inc\hnrt\WindowSize.h" />
     <ClInclude Include="inc\hnrt\WindowApp.h" />
     <ClInclude Include="inc\hnrt\WindowClass.h" />
@@ -632,6 +633,7 @@
     <ClCompile Include="src\TabControl.cpp" />
     <ClCompile Include="src\TabControlItem.cpp" />
     <ClCompile Include="src\WindowLayout.cpp" />
+    <ClCompile Include="src\WindowLayoutSnapshot.cpp" />
     <ClCompile Include="src\WindowSize.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

@@ -21,6 +21,7 @@ MyToolbox::MyToolbox()
     , m_tabs()
     , m_hashTab()
     , m_guidTab()
+    , m_pctcTab()
 {
     INITCOMMONCONTROLSEX iccx = { sizeof(iccx), ICC_TAB_CLASSES };
     InitCommonControlsEx(&iccx);
@@ -50,7 +51,8 @@ HMENU MyToolbox::CreateMenuBar()
         .Add(ResourceString(IDS_VIEW),
             Menu()
             .Add(ResourceString(IDS_HASH_TABLABEL), IDM_VIEW_HASH)
-            .Add(ResourceString(IDS_GUID_TABLABEL), IDM_VIEW_GUID))
+            .Add(ResourceString(IDS_GUID_TABLABEL), IDM_VIEW_GUID)
+            .Add(ResourceString(IDS_PCTC_TABLABEL), IDM_VIEW_PCTC))
         .Add(ResourceString(IDS_HELP),
             Menu()
             .Add(ResourceString(IDS_ABOUT), IDM_HELP_ABOUT));
@@ -75,6 +77,8 @@ void MyToolbox::CreateChildren()
     m_hashTab.DialogBox::Open(m_tabs);
     TabControlItem().SetText(ResourceString(IDS_GUID_TABLABEL)).InsertInto(m_tabs);
     m_guidTab.DialogBox::Open(m_tabs);
+    TabControlItem().SetText(ResourceString(IDS_PCTC_TABLABEL)).InsertInto(m_tabs);
+    m_pctcTab.DialogBox::Open(m_tabs);
 }
 
 
@@ -89,9 +93,11 @@ void MyToolbox::SetMinimumSize()
     LONG cxMin = 0;
     cxMin = cxMin > m_hashTab.MinimumWidth ? cxMin : m_hashTab.MinimumWidth;
     cxMin = cxMin > m_guidTab.MinimumWidth ? cxMin : m_guidTab.MinimumWidth;
+    cxMin = cxMin > m_pctcTab.MinimumWidth ? cxMin : m_pctcTab.MinimumWidth;
     LONG cyMin = 0;
     cyMin = cyMin > m_hashTab.MinimumHeight ? cyMin : m_hashTab.MinimumHeight;
     cyMin = cyMin > m_guidTab.MinimumHeight ? cyMin : m_guidTab.MinimumHeight;
+    cyMin = cyMin > m_pctcTab.MinimumHeight ? cyMin : m_pctcTab.MinimumHeight;
     WindowSize::SetMinimumSize(cxMin + bcx, cyMin + bcy);
 }
 
@@ -131,6 +137,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         case 1:
             m_guidTab.OnCopy();
             break;
+        case 2:
+            m_pctcTab.OnCopy();
+            break;
         default:
             break;
         }
@@ -140,6 +149,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         break;
     case IDM_VIEW_GUID:
         m_tabs.CurrentItem = 1;
+        break;
+    case IDM_VIEW_PCTC:
+        m_tabs.CurrentItem = 2;
         break;
     case IDM_HELP_ABOUT:
         m_about.Show();
@@ -165,6 +177,7 @@ void MyToolbox::UpdateLayout(HWND hwnd, LONG cxDelta, LONG cyDelta)
     m_tabs.GetViewRect(&rect);
     SetWindowGeometry(m_hashTab, rect);
     SetWindowGeometry(m_guidTab, rect);
+    SetWindowGeometry(m_pctcTab, rect);
 }
 
 
