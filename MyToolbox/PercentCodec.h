@@ -30,7 +30,7 @@ namespace hnrt
 		bool OnEncode();
 		bool OnDecode();
 		UINT GetCodePage();
-		void Encode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut);
+		void Encode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut, bool bUsePlus);
 		void Encode(WCHAR c, UINT uCodePage, PWCHAR& pOut, PWCHAR pOutBound, UINT offset);
 		void Decode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut);
 		UINT GetDecodedOffset(PCWSTR pszIn, UINT cbOut);

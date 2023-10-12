@@ -29,6 +29,7 @@ void PercentCodec::OnCreate()
 	AddStringToComboBox(IDC_PCTC_ENCODING, LABEL_UTF8);
 	AddStringToComboBox(IDC_PCTC_ENCODING, LABEL_CP932);
 	SetComboBoxSelection(IDC_PCTC_ENCODING, LABEL_UTF8);
+	CheckButton(IDC_PCTC_USE_PLUS);
 	OnSelectSource(IDC_PCTC_LABEL1);
 	SetText(IDC_PCTC_STATUS1, L"");
 	SetText(IDC_PCTC_STATUS2, L"");
@@ -48,12 +49,13 @@ void PercentCodec::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 		.Add(hDlg, IDC_PCTC_COPY1)
 		.Add(hDlg, IDC_PCTC_STATUS1)
 		.Add(hDlg, IDC_PCTC_ENCODE)
+		.Add(hDlg, IDC_PCTC_ENCODING)
 		.Add(hDlg, IDC_PCTC_DECODE)
 		.Add(hDlg, IDC_PCTC_STATUS2)
 		.Add(hDlg, IDC_PCTC_LABEL2)
 		.Add(hDlg, IDC_PCTC_EDIT2)
 		.Add(hDlg, IDC_PCTC_COPY2)
-		.Add(hDlg, IDC_PCTC_ENCODING)
+		.Add(hDlg, IDC_PCTC_USE_PLUS)
 		.Add(hDlg, IDC_PCTC_LABEL3)
 		.Clone(after);
 
@@ -61,11 +63,15 @@ void PercentCodec::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	after[IDC_PCTC_EDIT1].right += cxDelta;
 	after[IDC_PCTC_COPY1].left += cxDelta;
 	after[IDC_PCTC_COPY1].right += cxDelta;
+	after[IDC_PCTC_USE_PLUS].left += cxDelta;
+	after[IDC_PCTC_USE_PLUS].right += cxDelta;
 
 	LONG cxLeftMargin = (after[IDC_PCTC_EDIT1].cx - before[IDC_PCTC_ENCODE].FromLeftToRight(before[IDC_PCTC_DECODE])) / 2;
 	after[IDC_PCTC_ENCODE].left = after[IDC_PCTC_EDIT1].left + cxLeftMargin;
 	after[IDC_PCTC_ENCODE].cx = before[IDC_PCTC_ENCODE].cx;
-	after[IDC_PCTC_DECODE].left = after[IDC_PCTC_ENCODE].right + before[IDC_PCTC_ENCODE].HorizontalGap(before[IDC_PCTC_DECODE]);
+	after[IDC_PCTC_ENCODING].left = after[IDC_PCTC_ENCODE].right + before[IDC_PCTC_ENCODE].HorizontalGap(before[IDC_PCTC_ENCODING]);
+	after[IDC_PCTC_ENCODING].cx = before[IDC_PCTC_ENCODING].cx;
+	after[IDC_PCTC_DECODE].left = after[IDC_PCTC_ENCODING].right + before[IDC_PCTC_ENCODING].HorizontalGap(before[IDC_PCTC_DECODE]);
 	after[IDC_PCTC_DECODE].cx = before[IDC_PCTC_DECODE].cx;
 	after[IDC_PCTC_STATUS1].left += 0;
 	after[IDC_PCTC_STATUS1].right = after[IDC_PCTC_ENCODE].left - before[IDC_PCTC_STATUS1].HorizontalGap(before[IDC_PCTC_ENCODE]);
@@ -76,8 +82,6 @@ void PercentCodec::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	after[IDC_PCTC_EDIT2].right += cxDelta;
 	after[IDC_PCTC_COPY2].left += cxDelta;
 	after[IDC_PCTC_COPY2].right += cxDelta;
-	after[IDC_PCTC_ENCODING].left += cxDelta;
-	after[IDC_PCTC_ENCODING].right += cxDelta;
 	after[IDC_PCTC_LABEL3].left += 0;
 	after[IDC_PCTC_LABEL3].right += cxDelta;
 
@@ -87,10 +91,15 @@ void PercentCodec::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	after[IDC_PCTC_EDIT1].bottom = after[IDC_PCTC_EDIT1].top + cyEdit;
 	after[IDC_PCTC_EDIT2].top = after[IDC_PCTC_EDIT1].bottom + before[IDC_PCTC_EDIT1].VerticalGap(before[IDC_PCTC_EDIT2]);
 
+	after[IDC_PCTC_USE_PLUS].top = after[IDC_PCTC_EDIT1].bottom - before[IDC_PCTC_USE_PLUS].cy;
+	after[IDC_PCTC_USE_PLUS].bottom = after[IDC_PCTC_EDIT1].bottom;
+
 	after[IDC_PCTC_ENCODE].top = after[IDC_PCTC_EDIT1].bottom + before[IDC_PCTC_EDIT1].VerticalGap(before[IDC_PCTC_ENCODE]);
 	after[IDC_PCTC_ENCODE].cy = before[IDC_PCTC_ENCODE].cy;
+	after[IDC_PCTC_ENCODING].top = after[IDC_PCTC_EDIT1].bottom + before[IDC_PCTC_EDIT1].VerticalGap(before[IDC_PCTC_ENCODING]);
+	after[IDC_PCTC_ENCODING].cy = before[IDC_PCTC_ENCODING].cy;
 	after[IDC_PCTC_DECODE].top = after[IDC_PCTC_ENCODE].top;
-	after[IDC_PCTC_DECODE].cy = before[IDC_PCTC_ENCODE].cy;
+	after[IDC_PCTC_DECODE].cy = before[IDC_PCTC_DECODE].cy;
 	after[IDC_PCTC_STATUS1].top = after[IDC_PCTC_EDIT1].bottom + before[IDC_PCTC_EDIT1].VerticalGap(before[IDC_PCTC_STATUS1]);
 	after[IDC_PCTC_STATUS1].cy = before[IDC_PCTC_STATUS1].cy;
 	after[IDC_PCTC_STATUS2].top = after[IDC_PCTC_EDIT1].bottom + before[IDC_PCTC_EDIT1].VerticalGap(before[IDC_PCTC_STATUS2]);
@@ -100,8 +109,6 @@ void PercentCodec::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	after[IDC_PCTC_LABEL2].cy = before[IDC_PCTC_LABEL2].cy;
 	after[IDC_PCTC_COPY2].top = after[IDC_PCTC_EDIT2].top;
 	after[IDC_PCTC_COPY2].cy = before[IDC_PCTC_COPY2].cy;
-	after[IDC_PCTC_ENCODING].top = after[IDC_PCTC_COPY2].bottom + before[IDC_PCTC_COPY2].VerticalGap(before[IDC_PCTC_ENCODING]);
-	after[IDC_PCTC_ENCODING].cy = before[IDC_PCTC_ENCODING].cy;
 
 	after[IDC_PCTC_LABEL3].top += cyDelta;
 	after[IDC_PCTC_LABEL3].bottom += cyDelta;
@@ -199,6 +206,7 @@ void PercentCodec::OnSelectSource(int id)
 	CheckButton(IDC_PCTC_LABEL1, id == IDC_PCTC_LABEL1 ? BST_CHECKED : BST_UNCHECKED);
 	EnableWindow(IDC_PCTC_EDIT1, id == IDC_PCTC_LABEL1);
 	EnableWindow(IDC_PCTC_COPY1, id == IDC_PCTC_LABEL1);
+	EnableWindow(IDC_PCTC_USE_PLUS, id == IDC_PCTC_LABEL1);
 	EnableWindow(IDC_PCTC_ENCODE, id == IDC_PCTC_LABEL1);
 	CheckButton(IDC_PCTC_LABEL2, id == IDC_PCTC_LABEL2 ? BST_CHECKED : BST_UNCHECKED);
 	EnableWindow(IDC_PCTC_EDIT2, id == IDC_PCTC_LABEL2);
@@ -278,7 +286,7 @@ bool PercentCodec::OnEncode()
 		GetText(IDC_PCTC_EDIT1, buf1, cch);
 		UINT uCodePage = GetCodePage();
 		Buffer<WCHAR> buf2(cch * 4 * 3);
-		Encode(buf1, cch, uCodePage, buf2, static_cast<UINT>(buf2.Len));
+		Encode(buf1, cch, uCodePage, buf2, static_cast<UINT>(buf2.Len), GetButtonState(IDC_PCTC_USE_PLUS) == BST_CHECKED);
 		SetText(IDC_PCTC_EDIT2, buf2);
 		m_bDecodingError = false;
 		return true;
@@ -349,7 +357,7 @@ UINT PercentCodec::GetCodePage()
 #define ENCODE_BUFFER_TOO_SHORT L"PercentCodec::Encode: Buffer is too short."
 
 
-void PercentCodec::Encode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut)
+void PercentCodec::Encode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut, bool bUsePlus)
 {
 	PWCHAR pOutBound = pOut + cchOut;
 	const WCHAR* pCur = pszIn;
@@ -360,15 +368,20 @@ void PercentCodec::Encode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut,
 		switch (c)
 		{
 		case L' ':
-			if (pOut < pOutBound)
+			if (bUsePlus)
 			{
-				*pOut++ = L'+';
+				if (pOut < pOutBound)
+				{
+
+					*pOut++ = L'+';
+				}
+				else
+				{
+					throw Exception(ENCODE_BUFFER_TOO_SHORT);
+				}
+				break;
 			}
-			else
-			{
-				throw Exception(ENCODE_BUFFER_TOO_SHORT);
-			}
-			break;
+			//FALLTHROUGH
 		case L':':
 		case L'/':
 		case L'?':
