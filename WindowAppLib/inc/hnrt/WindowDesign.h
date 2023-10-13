@@ -19,10 +19,10 @@ namespace hnrt
 		RectangleMetrics& FromClient(HWND hwnd);
 		RectangleMetrics& ToScreen(HWND hwnd);
 		RectangleMetrics& ToClient(HWND hwnd);
-		LONG HorizontalGap(const RECT&);
-		LONG VerticalGap(const RECT&);
-		LONG FromLeftToRight(const RECT&);
-		LONG FromTopToBottom(const RECT&);
+		LONG HorizontalGap(const RECT&) const;
+		LONG VerticalGap(const RECT&) const;
+		LONG FromLeftToRight(const RECT&) const;
+		LONG FromTopToBottom(const RECT&) const;
 		bool Parse(PCWSTR psz);
 		LONG GetX() const;
 		LONG GetY() const;
@@ -101,22 +101,22 @@ namespace hnrt
 		return *this;
 	}
 
-	inline LONG RectangleMetrics::HorizontalGap(const RECT& other)
+	inline LONG RectangleMetrics::HorizontalGap(const RECT& other) const
 	{
 		return other.left - right;
 	}
 
-	inline LONG RectangleMetrics::VerticalGap(const RECT& other)
+	inline LONG RectangleMetrics::VerticalGap(const RECT& other) const
 	{
 		return other.top - bottom;
 	}
 
-	inline LONG RectangleMetrics::FromLeftToRight(const RECT& other)
+	inline LONG RectangleMetrics::FromLeftToRight(const RECT& other) const
 	{
 		return other.right - left;
 	}
 
-	inline LONG RectangleMetrics::FromTopToBottom(const RECT& other)
+	inline LONG RectangleMetrics::FromTopToBottom(const RECT& other) const
 	{
 		return other.bottom - top;
 	}
@@ -202,5 +202,77 @@ namespace hnrt
 	inline void RectangleMetrics::SetHeight(LONG value)
 	{
 		bottom = top + value;
+	}
+
+	inline void MoveHorizontally(RectangleMetrics& rect, LONG cxDelta)
+	{
+		rect.left += cxDelta;
+		rect.right += cxDelta;
+	}
+
+	inline void MoveVertically(RectangleMetrics& rect, LONG cyDelta)
+	{
+		rect.top += cyDelta;
+		rect.bottom += cyDelta;
+	}
+
+	inline void RepositionLeft(RectangleMetrics& rect, LONG newLeft)
+	{
+		LONG cxDelta = newLeft - rect.left;
+		rect.left += cxDelta;
+		rect.right += cxDelta;
+	}
+
+	inline void RepositionRight(RectangleMetrics& rect, LONG newRight)
+	{
+		LONG cxDelta = newRight - rect.right;
+		rect.left += cxDelta;
+		rect.right += cxDelta;
+	}
+
+	inline void RepositionTop(RectangleMetrics& rect, LONG newTop)
+	{
+		LONG cyDelta = newTop - rect.top;
+		rect.top += cyDelta;
+		rect.bottom += cyDelta;
+	}
+
+	inline void RepositionBottom(RectangleMetrics& rect, LONG newBottom)
+	{
+		LONG cyDelta = newBottom - rect.bottom;
+		rect.top += cyDelta;
+		rect.bottom += cyDelta;
+	}
+
+	inline void RepositionTopByBottom(RectangleMetrics& rect, const RectangleMetrics& before, const RectangleMetrics& after)
+	{
+		RepositionTop(rect, after.bottom + before.VerticalGap(rect));
+	}
+
+	inline void CenterHorizontally(const RectangleMetrics& rect0, RectangleMetrics& rect1, RectangleMetrics& rect2, RectangleMetrics& rect3)
+	{
+		LONG cxGap12 = rect1.HorizontalGap(rect2);
+		LONG cxGap23 = rect2.HorizontalGap(rect3);
+		RepositionLeft(rect1, rect0.left + (rect0.cx - rect1.FromLeftToRight(rect3)) / 2);
+		RepositionLeft(rect2, rect1.right + cxGap12);
+		RepositionLeft(rect3, rect2.right + cxGap23);
+	}
+
+	inline void ExtendVertically(RectangleMetrics& rect1, RectangleMetrics& rect2, LONG cyDelta)
+	{
+		LONG cyGap = rect1.VerticalGap(rect2);
+		rect1.cy = (rect1.FromTopToBottom(rect2) - cyGap + cyDelta) / 2;
+		rect2.top = rect1.bottom + cyGap;
+		rect2.bottom += cyDelta;
+	}
+
+	inline void BindRightToLeft(RectangleMetrics& rect, const RectangleMetrics& before, const RectangleMetrics& after)
+	{
+		rect.right = after.left - rect.HorizontalGap(before);
+	}
+
+	inline void BindLeftToRight(RectangleMetrics& rect, const RectangleMetrics& before, const RectangleMetrics& after)
+	{
+		rect.left = after.right + before.HorizontalGap(rect);
 	}
 }

@@ -128,6 +128,7 @@ INT_PTR HashCalculator::OnCommand(WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
     UINT idChild = LOWORD(wParam);
+    UINT idNotif = HIWORD(wParam);
     switch (idChild)
     {
     case IDC_HASH_CALCULATE:
@@ -144,7 +145,10 @@ INT_PTR HashCalculator::OnCommand(WPARAM wParam, LPARAM lParam)
 
     case IDC_HASH_FILE:
     case IDC_HASH_TEXT:
-        OnSelectSource(idChild);
+        if (idNotif == BN_CLICKED && GetButtonState(idChild) == BST_CHECKED)
+        {
+            OnSelectSource(idChild);
+        }
         break;
 
     case IDC_HASH_MD5:

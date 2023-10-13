@@ -7,6 +7,7 @@
 #include "hnrt/ResourceString.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/Exception.h"
+#include "hnrt/Debug.h"
 
 
 #define LABEL_UTF8 L"UTF-8"
@@ -44,76 +45,38 @@ void PercentCodec::OnDestroy()
 void PercentCodec::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
 	WindowLayoutSnapshot before, after;
-	before
-		.Add(hDlg, IDC_PCTC_EDIT1)
-		.Add(hDlg, IDC_PCTC_COPY1)
-		.Add(hDlg, IDC_PCTC_STATUS1)
-		.Add(hDlg, IDC_PCTC_ENCODE)
-		.Add(hDlg, IDC_PCTC_ENCODING)
-		.Add(hDlg, IDC_PCTC_DECODE)
-		.Add(hDlg, IDC_PCTC_STATUS2)
-		.Add(hDlg, IDC_PCTC_LABEL2)
-		.Add(hDlg, IDC_PCTC_EDIT2)
-		.Add(hDlg, IDC_PCTC_COPY2)
-		.Add(hDlg, IDC_PCTC_USE_PLUS)
-		.Add(hDlg, IDC_PCTC_LABEL3)
-		.Clone(after);
 
-	after[IDC_PCTC_EDIT1].left += 0;
+	before.AddAllChildren(hDlg).Clone(after);
+
 	after[IDC_PCTC_EDIT1].right += cxDelta;
-	after[IDC_PCTC_COPY1].left += cxDelta;
-	after[IDC_PCTC_COPY1].right += cxDelta;
-	after[IDC_PCTC_USE_PLUS].left += cxDelta;
-	after[IDC_PCTC_USE_PLUS].right += cxDelta;
+	MoveHorizontally(after[IDC_PCTC_COPY1], cxDelta);
+	MoveHorizontally(after[IDC_PCTC_USE_PLUS], cxDelta);
 
-	LONG cxLeftMargin = (after[IDC_PCTC_EDIT1].cx - before[IDC_PCTC_ENCODE].FromLeftToRight(before[IDC_PCTC_DECODE])) / 2;
-	after[IDC_PCTC_ENCODE].left = after[IDC_PCTC_EDIT1].left + cxLeftMargin;
-	after[IDC_PCTC_ENCODE].cx = before[IDC_PCTC_ENCODE].cx;
-	after[IDC_PCTC_ENCODING].left = after[IDC_PCTC_ENCODE].right + before[IDC_PCTC_ENCODE].HorizontalGap(before[IDC_PCTC_ENCODING]);
-	after[IDC_PCTC_ENCODING].cx = before[IDC_PCTC_ENCODING].cx;
-	after[IDC_PCTC_DECODE].left = after[IDC_PCTC_ENCODING].right + before[IDC_PCTC_ENCODING].HorizontalGap(before[IDC_PCTC_DECODE]);
-	after[IDC_PCTC_DECODE].cx = before[IDC_PCTC_DECODE].cx;
-	after[IDC_PCTC_STATUS1].left += 0;
-	after[IDC_PCTC_STATUS1].right = after[IDC_PCTC_ENCODE].left - before[IDC_PCTC_STATUS1].HorizontalGap(before[IDC_PCTC_ENCODE]);
-	after[IDC_PCTC_STATUS2].left = after[IDC_PCTC_DECODE].right + before[IDC_PCTC_DECODE].HorizontalGap(before[IDC_PCTC_STATUS2]);
+	CenterHorizontally(after[IDC_PCTC_EDIT1], after[IDC_PCTC_ENCODE], after[IDC_PCTC_ENCODING], after[IDC_PCTC_DECODE]);
+	BindRightToLeft(after[IDC_PCTC_STATUS1], before[IDC_PCTC_ENCODE], after[IDC_PCTC_ENCODE]);
+	BindLeftToRight(after[IDC_PCTC_STATUS2], before[IDC_PCTC_DECODE], after[IDC_PCTC_DECODE]);
 	after[IDC_PCTC_STATUS2].right = after[IDC_PCTC_EDIT1].right;
 
-	after[IDC_PCTC_EDIT2].left += 0;
 	after[IDC_PCTC_EDIT2].right += cxDelta;
-	after[IDC_PCTC_COPY2].left += cxDelta;
-	after[IDC_PCTC_COPY2].right += cxDelta;
-	after[IDC_PCTC_LABEL3].left += 0;
+	MoveHorizontally(after[IDC_PCTC_COPY2], cxDelta);
 	after[IDC_PCTC_LABEL3].right += cxDelta;
 
-	after[IDC_PCTC_EDIT1].top += 0;
-	after[IDC_PCTC_EDIT2].bottom += cyDelta;
-	LONG cyEdit = (after[IDC_PCTC_EDIT1].FromTopToBottom(after[IDC_PCTC_EDIT2]) - before[IDC_PCTC_EDIT1].VerticalGap(before[IDC_PCTC_EDIT2])) / 2;
-	after[IDC_PCTC_EDIT1].bottom = after[IDC_PCTC_EDIT1].top + cyEdit;
-	after[IDC_PCTC_EDIT2].top = after[IDC_PCTC_EDIT1].bottom + before[IDC_PCTC_EDIT1].VerticalGap(before[IDC_PCTC_EDIT2]);
+	ExtendVertically(after[IDC_PCTC_EDIT1], after[IDC_PCTC_EDIT2], cyDelta);
 
-	after[IDC_PCTC_USE_PLUS].top = after[IDC_PCTC_EDIT1].bottom - before[IDC_PCTC_USE_PLUS].cy;
-	after[IDC_PCTC_USE_PLUS].bottom = after[IDC_PCTC_EDIT1].bottom;
+	RepositionBottom(after[IDC_PCTC_USE_PLUS], after[IDC_PCTC_EDIT1].bottom);
 
-	after[IDC_PCTC_ENCODE].top = after[IDC_PCTC_EDIT1].bottom + before[IDC_PCTC_EDIT1].VerticalGap(before[IDC_PCTC_ENCODE]);
-	after[IDC_PCTC_ENCODE].cy = before[IDC_PCTC_ENCODE].cy;
-	after[IDC_PCTC_ENCODING].top = after[IDC_PCTC_EDIT1].bottom + before[IDC_PCTC_EDIT1].VerticalGap(before[IDC_PCTC_ENCODING]);
-	after[IDC_PCTC_ENCODING].cy = before[IDC_PCTC_ENCODING].cy;
-	after[IDC_PCTC_DECODE].top = after[IDC_PCTC_ENCODE].top;
-	after[IDC_PCTC_DECODE].cy = before[IDC_PCTC_DECODE].cy;
-	after[IDC_PCTC_STATUS1].top = after[IDC_PCTC_EDIT1].bottom + before[IDC_PCTC_EDIT1].VerticalGap(before[IDC_PCTC_STATUS1]);
-	after[IDC_PCTC_STATUS1].cy = before[IDC_PCTC_STATUS1].cy;
-	after[IDC_PCTC_STATUS2].top = after[IDC_PCTC_EDIT1].bottom + before[IDC_PCTC_EDIT1].VerticalGap(before[IDC_PCTC_STATUS2]);
-	after[IDC_PCTC_STATUS2].cy = before[IDC_PCTC_STATUS2].cy;
+	RepositionTopByBottom(after[IDC_PCTC_ENCODE], before[IDC_PCTC_EDIT1], after[IDC_PCTC_EDIT1]);
+	RepositionTopByBottom(after[IDC_PCTC_ENCODING], before[IDC_PCTC_EDIT1], after[IDC_PCTC_EDIT1]);
+	RepositionTopByBottom(after[IDC_PCTC_DECODE], before[IDC_PCTC_EDIT1], after[IDC_PCTC_EDIT1]);
+	RepositionTopByBottom(after[IDC_PCTC_STATUS1], before[IDC_PCTC_EDIT1], after[IDC_PCTC_EDIT1]);
+	RepositionTopByBottom(after[IDC_PCTC_STATUS2], before[IDC_PCTC_EDIT1], after[IDC_PCTC_EDIT1]);
 
-	after[IDC_PCTC_LABEL2].top = after[IDC_PCTC_EDIT2].top;
-	after[IDC_PCTC_LABEL2].cy = before[IDC_PCTC_LABEL2].cy;
-	after[IDC_PCTC_COPY2].top = after[IDC_PCTC_EDIT2].top;
-	after[IDC_PCTC_COPY2].cy = before[IDC_PCTC_COPY2].cy;
+	RepositionTop(after[IDC_PCTC_LABEL2], after[IDC_PCTC_EDIT2].top);
+	RepositionTop(after[IDC_PCTC_COPY2], after[IDC_PCTC_EDIT2].top);
 
-	after[IDC_PCTC_LABEL3].top += cyDelta;
-	after[IDC_PCTC_LABEL3].bottom += cyDelta;
+	MoveVertically(after[IDC_PCTC_LABEL3], cyDelta);
 
-	after.ApplyTo(hDlg);
+	after.Apply();
 }
 
 
