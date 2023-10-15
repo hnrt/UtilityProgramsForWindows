@@ -143,13 +143,13 @@ LRESULT WindowApp::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT WindowApp::OnTimer(WPARAM wParam, LPARAM lParam)
-{
-    return DefWindowProcW(hwnd, WM_TIMER, wParam, lParam);
-}
-
-
 LRESULT WindowApp::OnNotify(WPARAM wParam, LPARAM lParam)
 {
     return DefWindowProcW(hwnd, WM_NOTIFY, wParam, lParam);
+}
+
+
+LRESULT WindowApp::OnTimer(WPARAM wParam, LPARAM lParam)
+{
+    return DefWindowProcW(hwnd, WM_TIMER, wParam, lParam);
 }

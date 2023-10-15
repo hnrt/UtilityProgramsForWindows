@@ -7,6 +7,7 @@
 #include "HashCalculator.h"
 #include "GuidGenerator.h"
 #include "PercentCodec.h"
+#include "CronDialogBox.h"
 #include "hnrt/WindowApp.h"
 
 
@@ -40,6 +41,7 @@ namespace hnrt
 		HashCalculator m_hashTab;
 		GuidGenerator m_guidTab;
 		PercentCodec m_pctcTab;
+		CronDialogBox m_cronTab;
 	};
 
 	inline HWND MyToolbox::GetChild(INT iIndex)
@@ -52,6 +54,8 @@ namespace hnrt
 			return m_guidTab;
 		case 2:
 			return m_pctcTab;
+		case 3:
+			return m_cronTab;
 		default:
 			return nullptr;
 		}

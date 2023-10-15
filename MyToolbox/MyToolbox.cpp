@@ -22,6 +22,7 @@ MyToolbox::MyToolbox()
     , m_hashTab()
     , m_guidTab()
     , m_pctcTab()
+    , m_cronTab()
 {
     INITCOMMONCONTROLSEX iccx = { sizeof(iccx), ICC_TAB_CLASSES };
     InitCommonControlsEx(&iccx);
@@ -79,6 +80,8 @@ void MyToolbox::CreateChildren()
     m_guidTab.DialogBox::Open(m_tabs);
     TabControlItem().SetText(ResourceString(IDS_PCTC_TABLABEL)).InsertInto(m_tabs);
     m_pctcTab.DialogBox::Open(m_tabs);
+    TabControlItem().SetText(ResourceString(IDS_CRON_TABLABEL)).InsertInto(m_tabs);
+    m_cronTab.DialogBox::Open(m_tabs);
 }
 
 
@@ -94,10 +97,12 @@ void MyToolbox::SetMinimumSize()
     cxMin = cxMin > m_hashTab.MinimumWidth ? cxMin : m_hashTab.MinimumWidth;
     cxMin = cxMin > m_guidTab.MinimumWidth ? cxMin : m_guidTab.MinimumWidth;
     cxMin = cxMin > m_pctcTab.MinimumWidth ? cxMin : m_pctcTab.MinimumWidth;
+    cxMin = cxMin > m_cronTab.MinimumWidth ? cxMin : m_cronTab.MinimumWidth;
     LONG cyMin = 0;
     cyMin = cyMin > m_hashTab.MinimumHeight ? cyMin : m_hashTab.MinimumHeight;
     cyMin = cyMin > m_guidTab.MinimumHeight ? cyMin : m_guidTab.MinimumHeight;
     cyMin = cyMin > m_pctcTab.MinimumHeight ? cyMin : m_pctcTab.MinimumHeight;
+    cyMin = cyMin > m_cronTab.MinimumHeight ? cyMin : m_cronTab.MinimumHeight;
     WindowSize::SetMinimumSize(cxMin + bcx, cyMin + bcy);
 }
 
@@ -178,6 +183,7 @@ void MyToolbox::UpdateLayout(HWND hwnd, LONG cxDelta, LONG cyDelta)
     SetWindowGeometry(m_hashTab, rect);
     SetWindowGeometry(m_guidTab, rect);
     SetWindowGeometry(m_pctcTab, rect);
+    SetWindowGeometry(m_cronTab, rect);
 }
 
 

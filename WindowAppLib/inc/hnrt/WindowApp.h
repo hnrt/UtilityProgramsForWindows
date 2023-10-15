@@ -42,8 +42,8 @@ namespace hnrt
 		virtual void OnClose();
 		virtual void OnSize(WPARAM wParam, LPARAM lParam);
 		virtual LRESULT OnCommand(WPARAM wParam, LPARAM lParam);
-		virtual LRESULT OnTimer(WPARAM wParam, LPARAM lParam);
 		virtual LRESULT OnNotify(WPARAM wParam, LPARAM lParam);
+		virtual LRESULT OnTimer(WPARAM wParam, LPARAM lParam); // NEEDS TO RETURN ZERO
 
 	private:
 

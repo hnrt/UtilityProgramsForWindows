@@ -164,6 +164,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AboutBox.h" />
+    <ClInclude Include="Cron.h" />
+    <ClInclude Include="CronDialogBox.h" />
+    <ClInclude Include="CronP.h" />
+    <ClInclude Include="CronValue.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GuidGenerator.h" />
     <ClInclude Include="HashCalculator.h" />
@@ -177,6 +181,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AboutBox.cpp" />
+    <ClCompile Include="Cron.cpp" />
+    <ClCompile Include="CronDialogBox.cpp" />
+    <ClCompile Include="CronP.cpp" />
+    <ClCompile Include="CronValue.cpp" />
     <ClCompile Include="GuidGenerator.cpp" />
     <ClCompile Include="HashCalculator.cpp" />
     <ClCompile Include="MyFileDataFeeder.cpp" />

@@ -280,7 +280,7 @@ INT_PTR DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
-INT_PTR DialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
+INT_PTR DialogBox::OnNotify(WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(wParam);
     UNREFERENCED_PARAMETER(lParam);
@@ -288,11 +288,11 @@ INT_PTR DialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 }
 
 
-INT_PTR DialogBox::OnNotify(WPARAM wParam, LPARAM lParam)
+INT_PTR DialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(wParam);
     UNREFERENCED_PARAMETER(lParam);
-    return FALSE;
+    return 0;
 }
 
 

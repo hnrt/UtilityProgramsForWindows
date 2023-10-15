@@ -230,6 +230,11 @@ namespace hnrt
 		rect.right += cxDelta;
 	}
 
+	inline void RepositionLeftByRight(RectangleMetrics& rect, const RectangleMetrics& before, const RectangleMetrics& after)
+	{
+		RepositionLeft(rect, after.right + before.HorizontalGap(rect));
+	}
+
 	inline void RepositionTop(RectangleMetrics& rect, LONG newTop)
 	{
 		LONG cyDelta = newTop - rect.top;
