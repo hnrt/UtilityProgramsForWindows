@@ -3,6 +3,8 @@
 #include "resource.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
+#include "hnrt/Clipboard.h"
+#include "hnrt/ResourceString.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/Debug.h"
 
@@ -195,17 +197,8 @@ void GuidGenerator::ChangeFormat(UINT uSelected)
 
 void GuidGenerator::OnCopy()
 {
-    SIZE_T cbLen = (wcslen(m_szFormatted) + 1) * sizeof(WCHAR);
-    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, cbLen);
-    if (hMem == NULL)
+    if (!Clipboard::Copy(hwnd, m_szFormatted))
     {
-        MessageBoxW(hwnd, L"Failed to copy text to Clipboard.", L"ERROR", MB_OK | MB_ICONERROR);
-        return;
+        MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
     }
-    memcpy_s(GlobalLock(hMem), cbLen, m_szFormatted, cbLen);
-    GlobalUnlock(hMem);
-    OpenClipboard(hwnd);
-    EmptyClipboard();
-    SetClipboardData(CF_UNICODETEXT, hMem);
-    CloseClipboard();
 }

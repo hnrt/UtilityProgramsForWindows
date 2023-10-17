@@ -53,7 +53,8 @@ HMENU MyToolbox::CreateMenuBar()
             Menu()
             .Add(ResourceString(IDS_HASH_TABLABEL), IDM_VIEW_HASH)
             .Add(ResourceString(IDS_GUID_TABLABEL), IDM_VIEW_GUID)
-            .Add(ResourceString(IDS_PCTC_TABLABEL), IDM_VIEW_PCTC))
+            .Add(ResourceString(IDS_PCTC_TABLABEL), IDM_VIEW_PCTC)
+            .Add(ResourceString(IDS_CRON_TABLABEL), IDM_VIEW_CRON))
         .Add(ResourceString(IDS_HELP),
             Menu()
             .Add(ResourceString(IDS_ABOUT), IDM_HELP_ABOUT));
@@ -145,6 +146,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         case 2:
             m_pctcTab.OnCopy();
             break;
+        case 3:
+            m_cronTab.OnCopy();
+            break;
         default:
             break;
         }
@@ -157,6 +161,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         break;
     case IDM_VIEW_PCTC:
         m_tabs.CurrentItem = 2;
+        break;
+    case IDM_VIEW_CRON:
+        m_tabs.CurrentItem = 3;
         break;
     case IDM_HELP_ABOUT:
         m_about.Show();

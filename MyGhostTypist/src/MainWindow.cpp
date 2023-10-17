@@ -14,6 +14,7 @@
 #include "hnrt/Menu.h"
 #include "hnrt/WindowStyle.h"
 #include "hnrt/LogicalFont.h"
+#include "hnrt/Clipboard.h"
 #include "Configuration.h"
 #include "Action.h"
 #include "InputManager.h"
@@ -280,19 +281,11 @@ void MainWindow::RecreateButtons(HWND hwnd)
 
 void MainWindow::CopyToClipboard(HWND hwnd, PCWSTR psz)
 {
-    SIZE_T cbLen = (wcslen(psz) + 1) * sizeof(WCHAR);
-    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, cbLen);
-    if (hMem == NULL)
+    if (!Clipboard::Copy(hwnd, psz))
     {
         MessageBoxW(hwnd, ResourceString(IDS_COPY_FAILURE), ResourceString(IDS_CAPTION), MB_OK | MB_ICONERROR);
         return;
     }
-    memcpy_s(GlobalLock(hMem), cbLen, psz, cbLen);
-    GlobalUnlock(hMem);
-    OpenClipboard(hwnd);
-    EmptyClipboard();
-    SetClipboardData(CF_UNICODETEXT, hMem);
-    CloseClipboard();
 }
 
 

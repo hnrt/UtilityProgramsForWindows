@@ -3,6 +3,7 @@
 #include "MyToolbox.h"
 #include "MyFileDataFeeder.h"
 #include "resource.h"
+#include "hnrt/Clipboard.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/ResourceString.h"
@@ -268,14 +269,8 @@ void HashCalculator::OnCopy()
     {
         return;
     }
-    SIZE_T cbLen = (wcslen(m_hash.Text) + 1) * sizeof(WCHAR);
-    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, cbLen);
-    if (hMem == NULL)
-    {
-        MessageBoxW(hwnd, L"Failed to copy text to Clipboard.", ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-        return;
-    }
-    Buffer<WCHAR> buf(cbLen / sizeof(WCHAR));
+    SIZE_T cch = wcslen(m_hash.Text);
+    Buffer<WCHAR> buf(cch + 1);
     wcscpy_s(buf, buf.Len, m_hash.Text);
     if (m_bUppercase)
     {
@@ -285,12 +280,10 @@ void HashCalculator::OnCopy()
     {
         _wcslwr_s(buf, buf.Len);
     }
-    memcpy_s(GlobalLock(hMem), cbLen, buf.Ptr, cbLen);
-    GlobalUnlock(hMem);
-    OpenClipboard(hwnd);
-    EmptyClipboard();
-    SetClipboardData(CF_UNICODETEXT, hMem);
-    CloseClipboard();
+    if (!Clipboard::Copy(hwnd, buf, cch))
+    {
+        MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+    }
 }
 
 

@@ -604,6 +604,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="inc\hnrt\AnyApp.h" />
+    <ClInclude Include="inc\hnrt\Clipboard.h" />
     <ClInclude Include="inc\hnrt\DialogApp.h" />
     <ClInclude Include="inc\hnrt\DialogBox.h" />
     <ClInclude Include="inc\hnrt\FontHandle.h" />
@@ -625,6 +626,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AnyApp.cpp" />
+    <ClCompile Include="src\Clipboard.cpp" />
     <ClCompile Include="src\DialogApp.cpp" />
     <ClCompile Include="src\DialogBox.cpp" />
     <ClCompile Include="src\FontHandle.cpp" />

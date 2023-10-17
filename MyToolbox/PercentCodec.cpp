@@ -4,6 +4,7 @@
 #include "hnrt/WindowDesign.h"
 #include "hnrt/WindowHandle.h"
 #include "hnrt/WindowLayoutSnapshot.h"
+#include "hnrt/Clipboard.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/Exception.h"
@@ -190,43 +191,21 @@ void PercentCodec::OnSelectSource(int id)
 
 void PercentCodec::OnCopy1()
 {
-	UINT cch = GetTextLength(IDC_PCTC_EDIT1) + 1;
-	Buffer<WCHAR> buf(cch);
-	GetText(IDC_PCTC_EDIT1, buf, cch);
-	UINT cb = cch * sizeof(WCHAR);
-	HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, cb);
-	if (hMem == NULL)
+	if (!Clipboard::Copy(hwnd, hwnd, IDC_PCTC_EDIT1))
 	{
-		MessageBoxW(hwnd, L"Failed to copy text to Clipboard.", ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 		return;
 	}
-	memcpy_s(GlobalLock(hMem), cb, buf.Ptr, cb);
-	GlobalUnlock(hMem);
-	OpenClipboard(hwnd);
-	EmptyClipboard();
-	SetClipboardData(CF_UNICODETEXT, hMem);
-	CloseClipboard();
 }
 
 
 void PercentCodec::OnCopy2()
 {
-	UINT cch = GetTextLength(IDC_PCTC_EDIT2) + 1;
-	Buffer<WCHAR> buf(cch);
-	GetText(IDC_PCTC_EDIT2, buf, cch);
-	UINT cb = cch * sizeof(WCHAR);
-	HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, cb);
-	if (hMem == NULL)
+	if (!Clipboard::Copy(hwnd, hwnd, IDC_PCTC_EDIT2))
 	{
-		MessageBoxW(hwnd, L"Failed to copy text to Clipboard.", ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 		return;
 	}
-	memcpy_s(GlobalLock(hMem), cb, buf.Ptr, cb);
-	GlobalUnlock(hMem);
-	OpenClipboard(hwnd);
-	EmptyClipboard();
-	SetClipboardData(CF_UNICODETEXT, hMem);
-	CloseClipboard();
 }
 
 
@@ -248,7 +227,7 @@ bool PercentCodec::OnEncode()
 		Buffer<WCHAR> buf1(cch);
 		GetText(IDC_PCTC_EDIT1, buf1, cch);
 		UINT uCodePage = GetCodePage();
-		Buffer<WCHAR> buf2(cch * 4 * 3);
+		Buffer<WCHAR> buf2(static_cast<size_t>(cch * 4 * 3));
 		Encode(buf1, cch, uCodePage, buf2, static_cast<UINT>(buf2.Len), GetButtonState(IDC_PCTC_USE_PLUS) == BST_CHECKED);
 		SetText(IDC_PCTC_EDIT2, buf2);
 		m_bDecodingError = false;

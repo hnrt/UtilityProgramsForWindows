@@ -29,6 +29,7 @@
 #define IDS_PCTC_TABLABEL               121
 #define IDS_PCTC_ERROR                  122
 #define IDS_CRON_TABLABEL               123
+#define IDS_MSG_CLIPBOARD_COPY_ERROR    124
 #define IDR_MAINFRAME                   128
 #define IDD_HASH                        129
 #define IDD_GUID                        130
@@ -133,6 +134,7 @@
 #define IDM_VIEW_HASH                   13001
 #define IDM_VIEW_GUID                   13002
 #define IDM_VIEW_PCTC                   13003
+#define IDM_VIEW_CRON                   13004
 #define IDM_HELP_ABOUT                  19001
 #define IDC_STATIC                      -1
 

@@ -16,6 +16,7 @@ namespace hnrt
 		CronDialogBox(const CronDialogBox&) = delete;
 		virtual ~CronDialogBox() = default;
 		void operator =(const CronDialogBox&) = delete;
+		void OnCopy();
 
 	private:
 

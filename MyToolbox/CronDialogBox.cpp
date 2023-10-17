@@ -3,6 +3,8 @@
 #include "resource.h"
 #include "hnrt/WindowLayoutSnapshot.h"
 #include "hnrt/WindowDesign.h"
+#include "hnrt/Clipboard.h"
+#include "hnrt/ResourceString.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/StringBuffer.h"
@@ -210,6 +212,9 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 				m_bParse = true;
 			}
 		}
+		break;
+	case IDC_CRON_COPY:
+		OnCopy();
 		break;
 	case IDC_CRON_YEAR_ALL_RADIO:
 		DisableWindow(IDC_CRON_YEAR_EDIT);
@@ -470,6 +475,15 @@ void CronDialogBox::OnSecondChanged()
 		ShowWindow(GetDlgItem(hwnd, IDC_CRON_SECOND_EVAL_STATIC), SW_HIDE);
 	}
 	Format();
+}
+
+
+void CronDialogBox::OnCopy()
+{
+	if (!Clipboard::Copy(hwnd, hwnd, IDC_CRON_EXPR_EDIT))
+	{
+		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+	}
 }
 
 
