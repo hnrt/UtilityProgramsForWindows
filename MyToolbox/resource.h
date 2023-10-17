@@ -129,6 +129,8 @@
 #define IDC_CRON_SECOND_EDIT            4173
 #define IDC_CRON_SECOND_EVAL_STATIC     4179
 #define IDC_CRON_DESC_STATIC            4180
+#define IDC_COMBO1                      5000
+#define IDC_CRON_OFFSET_COMBO           5000
 #define IDM_FILE_EXIT                   11001
 #define IDM_EDIT_COPY                   12001
 #define IDM_VIEW_HASH                   13001
@@ -145,7 +147,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         32774
-#define _APS_NEXT_CONTROL_VALUE         5000
+#define _APS_NEXT_CONTROL_VALUE         5001
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

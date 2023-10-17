@@ -204,31 +204,6 @@ void CronValue::Free(CronValue*& pValue)
 }
 
 
-int hnrt::CountCronValues(CronValue*& pValue)
-{
-	int count = 0;
-	for (const CronValue* pCur = pValue; pCur; pCur = pCur->pNext)
-	{
-		count++;
-	}
-	return count;
-}
-
-
-int hnrt::CountCronValues(CronValue*& pValue, CronValueType type)
-{
-	int count = 0;
-	for (const CronValue* pCur = pValue; pCur; pCur = pCur->pNext)
-	{
-		if (pCur->type == type)
-		{
-			count++;
-		}
-	}
-	return count;
-}
-
-
 CronValue::operator PCWSTR() const
 {
 	return ToString();
@@ -295,6 +270,23 @@ PCWSTR CronValue::ToString() const
 }
 
 
+static int Adjust(int value, CronElement element, int offset)
+{
+	if (element == CRON_HOUR)
+	{
+		return (value + (offset / 60) + 24) % 24;
+	}
+	else if (element == CRON_MINUTE)
+	{
+		return (value + (offset % 60) + 60) % 60;
+	}
+	else
+	{
+		return value;
+	}
+}
+
+
 static void Add(Buffer<int>& buf, size_t& count, int value)
 {
 	if (count + 1 > buf.Len)
@@ -319,7 +311,7 @@ static void Add(Buffer<int>& buf, size_t& count, int value)
 }
 
 
-PCWSTR CronValue::Evaluate() const
+PCWSTR CronValue::Evaluate(int offset) const
 {
 	StringBuffer buf(260);
 	int min = Min(element);
@@ -349,18 +341,18 @@ PCWSTR CronValue::Evaluate() const
 			{
 				for (int next = pCur->single.value; next <= max; next += pCur->single.step)
 				{
-					Add(samples, count, next);
+					Add(samples, count, Adjust(next, element, offset));
 				}
 			}
 			else
 			{
-				Add(samples, count, pCur->single.value);
+				Add(samples, count, Adjust(pCur->single.value, element, offset));
 			}
 			break;
 		case CRON_RANGE:
 			for (int next = pCur->range.from; next <= pCur->range.to; next += pCur->range.step)
 			{
-				Add(samples, count, next);
+				Add(samples, count, Adjust(next, element, offset));
 			}
 			break;
 		case CRON_LASTDAY:
@@ -386,6 +378,31 @@ PCWSTR CronValue::Evaluate() const
 		}
 	}
 	return String::Copy(buf);
+}
+
+
+int CronValue::Count() const
+{
+	int count = 0;
+	for (const CronValue* pCur = this; pCur; pCur = pCur->pNext)
+	{
+		count++;
+	}
+	return count;
+}
+
+
+int CronValue::Count(CronValueType type) const
+{
+	int count = 0;
+	for (const CronValue* pCur = this; pCur; pCur = pCur->pNext)
+	{
+		if (pCur->type == type)
+		{
+			count++;
+		}
+	}
+	return count;
 }
 
 

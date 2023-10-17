@@ -45,12 +45,20 @@ void CronDialogBox::OnCreate()
 	SYSTEMTIME st = { 0 };
 	GetLocalTime(&st);
 	desc.AppendFormat(L"Year: %d-%d ( , - * / )", st.wYear, CronValue::Max(CRON_YEAR));
-	desc.AppendFormat(L"  Month: %d-%d or JAN-DEC ( , - * / )", CronValue::Min(CRON_MONTH), CronValue::Max(CRON_MONTH));
+	desc.AppendFormat(L"  Month: %d-%d or %s-%s ( , - * / )", CronValue::Min(CRON_MONTH), CronValue::Max(CRON_MONTH), MonthWords[0], MonthWords[11]);
 	desc.AppendFormat(L"  Day: %d-%d ( , - * / ? L W )", CronValue::Min(CRON_DAYOFMONTH), CronValue::Max(CRON_DAYOFMONTH));
-	desc.AppendFormat(L"\nDay Of the Week: 1-7 or SUN-SAT ( , - * / ? L # )", CronValue::Min(CRON_DAYOFWEEK), CronValue::Max(CRON_DAYOFWEEK));
+	desc.AppendFormat(L"\nDay Of the Week: %d-%d or %s-%s ( , - * / ? L # )", CronValue::Min(CRON_DAYOFWEEK), CronValue::Max(CRON_DAYOFWEEK), DayOfWeekWords[0], DayOfWeekWords[6]);
 	desc.AppendFormat(L"\nHour: %d-%d ( , - * / )", CronValue::Min(CRON_HOUR), CronValue::Max(CRON_HOUR));
 	desc.AppendFormat(L"  Minute: %d-%d ( , - * / )", CronValue::Min(CRON_MINUTE), CronValue::Max(CRON_MINUTE));
 	desc.AppendFormat(L"  Second: %d-%d ( , - * / )", CronValue::Min(CRON_SECOND), CronValue::Max(CRON_SECOND));
+	desc.AppendFormat(L"\nAsterisk means every year|month|day|hour|minute|second.");
+	desc.AppendFormat(L"  Question mark matches any.");
+	desc.AppendFormat(L"  Comma separates numbers or expressions.");
+	desc.AppendFormat(L"  Hyphen specifies a range.");
+	desc.AppendFormat(L" X-Y is equivalent to X-Y/1.");
+	desc.AppendFormat(L"  Slash followed by a number specifies a step.");
+	desc.AppendFormat(L" X/N means starting from X and incrementing by N.");
+	desc.AppendFormat(L" X-Y/N means starting from X and incrementing by N until Y.");
 	SetText(IDC_CRON_DESC_STATIC, desc);
 	CheckButton(IDC_CRON_EXPR_RADIO);
 	SetTimer(hwnd, CRON_TIMER1SEC, 250, NULL);
@@ -65,6 +73,34 @@ void CronDialogBox::OnCreate()
 	SetText(IDC_CRON_HOUR_EVAL_STATIC);
 	SetText(IDC_CRON_MINUTE_EVAL_STATIC);
 	SetText(IDC_CRON_SECOND_EVAL_STATIC);
+	WCHAR sz[64] = { 0 };
+	for (int offset = -23; offset < 24; offset++)
+	{
+		if (offset < 0)
+		{
+			swprintf_s(sz, L"-%02d:30", -offset);
+			AddStringToComboBox(IDC_CRON_OFFSET_COMBO, sz);
+			swprintf_s(sz, L"-%02d:00", -offset);
+			AddStringToComboBox(IDC_CRON_OFFSET_COMBO, sz);
+		}
+		else if (offset == 0)
+		{
+			swprintf_s(sz, L"-00:30");
+			AddStringToComboBox(IDC_CRON_OFFSET_COMBO, sz);
+			swprintf_s(sz, L"+00:00");
+			AddStringToComboBox(IDC_CRON_OFFSET_COMBO, sz);
+			swprintf_s(sz, L"+00:30");
+			AddStringToComboBox(IDC_CRON_OFFSET_COMBO, sz);
+		}
+		else
+		{
+			swprintf_s(sz, L"+%02d:00", offset);
+			AddStringToComboBox(IDC_CRON_OFFSET_COMBO, sz);
+			swprintf_s(sz, L"+%02d:30", offset);
+			AddStringToComboBox(IDC_CRON_OFFSET_COMBO, sz);
+		}
+	}
+	SetComboBoxSelection(IDC_CRON_OFFSET_COMBO, L"+00:00");
 	Parse();
 }
 
@@ -149,9 +185,8 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	after[IDC_CRON_DESC_STATIC].right = after[IDC_CRON_MONTH_STATIC].right;
 
 	MoveHorizontally(after[IDC_CRON_COPY], cxDelta);
+	MoveHorizontally(after[IDC_CRON_OFFSET_COMBO], cxDelta);
 	MoveHorizontally(after[IDC_CRON_SECOND_CHECK], cxDelta);
-
-	MoveVertically(after[IDC_CRON_SECOND_CHECK], cyDelta);
 
 	after.Apply();
 }
@@ -355,6 +390,16 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		break;
 	case IDC_CRON_SECOND_CHECK:
 		OnSecondChanged();
+		break;
+	case IDC_CRON_OFFSET_COMBO:
+		if (idNotif == CBN_SELCHANGE)
+		{
+			if (GetButtonState(IDC_CRON_INDI_RADIO) == BST_CHECKED)
+			{
+				m_bFormat = CRON_FORMAT_ALL;
+				Format();
+			}
+		}
 		break;
 	default:
 		return FALSE;
@@ -829,7 +874,7 @@ void CronDialogBox::SetEvalText(int id, const union CronValue& cv)
 	else
 	{
 		m_bFormatSuccessful |= GetFormatFlag(id);
-		SetText(id, cv.Evaluate());
+		SetText(id, cv.Evaluate(GetOffset()));
 	}
 }
 
@@ -867,4 +912,17 @@ int CronDialogBox::GetEvalStatic(int id)
 	case IDC_CRON_SECOND_EDIT: return IDC_CRON_SECOND_EVAL_STATIC;
 	default: throw Exception(L"CronDialogBox::GetEvalStatic: Bad id: %d", id);
 	}
+}
+
+
+int CronDialogBox::GetOffset()
+{
+	int index = GetComboBoxSelection(IDC_CRON_OFFSET_COMBO);
+	UINT cch = GetListBoxTextLength(IDC_CRON_OFFSET_COMBO, index);
+	WCHAR sz[64];
+	GetListBoxText(IDC_CRON_OFFSET_COMBO, index, sz);
+	int sign = sz[0] == L'-' ? -1 : 1;
+	int hour = wcstol(&sz[1], NULL, 10);
+	int minute = wcstol(&sz[4], NULL, 10);
+	return sign * (hour * 60 + minute);
 }

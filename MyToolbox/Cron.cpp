@@ -81,7 +81,7 @@ void Cron::Parse(PCWSTR psz)
 	{
 		throw Exception(L"? cannot be specified for both day of the month and of the week.");
 	}
-	if (CountCronValues(m_pDayOfWeek, CRON_NTH_DAYOFWEEK) > 1)
+	if (m_pDayOfWeek->Count(CRON_NTH_DAYOFWEEK) > 1)
 	{
 		throw Exception(L"# cannot be specified two or more times.");
 	}

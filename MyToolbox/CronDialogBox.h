@@ -33,6 +33,7 @@ namespace hnrt
 		void SetEvalText(int, const union CronValue&);
 		void ClearEvalStatics(int = 0);
 		int GetEvalStatic(int);
+		int GetOffset();
 
 		Cron m_cron;
 		ULONGLONG m_LastModifiedAt;

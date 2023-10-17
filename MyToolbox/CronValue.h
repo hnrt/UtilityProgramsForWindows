@@ -129,9 +129,13 @@ namespace hnrt
 		CronValueClosestWeekDay closestwd;
 		CronValueNthDayOfWeek nthdow;
 		CronValueLastDayOfWeek lastdow;
+
 		operator PCWSTR() const;
 		PCWSTR ToString() const;
-		PCWSTR Evaluate() const;
+		PCWSTR Evaluate(int offset = 0) const;
+		int Count() const;
+		int Count(CronValueType type) const;
+
 		static void Free(CronValue*& pValue);
 		static PCWSTR Name(CronElement element);
 		static int Min(CronElement element);
@@ -142,8 +146,4 @@ namespace hnrt
 	extern const PCWSTR MonthWords[];
 
 	extern const PCWSTR DayOfWeekWords[];
-
-	int CountCronValues(CronValue*& pValue);
-
-	int CountCronValues(CronValue*& pValue, CronValueType type);
 }
