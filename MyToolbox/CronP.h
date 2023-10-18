@@ -59,7 +59,7 @@ namespace hnrt
 	private:
 
 		bool ParseRange(CronElement element, int min, const PCWSTR* ppsz, int& value);
-		bool ParseStep(CronElement element, int min, const PCWSTR* ppsz, int& value);
+		bool ParseStep(CronElement element, int& value);
 		bool ParseInteger(CronElement element, int min, int max, const PCWSTR* ppsz, int& value);
 
 		CronTokenizer m_tokenizer;

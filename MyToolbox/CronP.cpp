@@ -197,25 +197,33 @@ union CronValue* CronParser::Run(CronElement element, UINT flags, const PCWSTR* 
 			{
 				pValue = CronValueRange::Create(element, value1, value2);
 				int value3 = ~0;
-				if ((flags & CRON_WC_STEP) != 0 && ParseStep(element, value1, ppsz, value3))
+				if ((flags & CRON_WC_STEP) != 0 && ParseStep(element, value3))
 				{
 					pValue->range.step = value3;
 				}
 			}
 			else if ((flags & CRON_WC_LASTDAY) != 0 && m_next == L'L')
 			{
+				if (value1 >= CRON_WORD_DISPLACEMENT)
+				{
+					throw Exception(L"Bad sequence for %s.", CronValue::Name(element));
+				}
 				m_next = m_tokenizer.GetNext();
 				pValue = CronValueLastDayOfWeek::Create(element, value1);
 			}
 			else if ((flags & CRON_WC_WEEKDAY) != 0 && m_next == L'W')
 			{
+				if (value1 >= CRON_WORD_DISPLACEMENT)
+				{
+					throw Exception(L"Bad sequence for %s.", CronValue::Name(element));
+				}
 				m_next = m_tokenizer.GetNext();
 				pValue = CronValueClosestWeekDay::Create(element, value1);
 			}
 			else if ((flags & CRON_WC_NTH) != 0 && m_next == L'#')
 			{
 				m_next = m_tokenizer.GetNext();
-				if (ParseInteger(element, 1, 5, ppsz, value2))
+				if (ParseInteger(element, 1, 5, nullptr, value2))
 				{
 					pValue = CronValueNthDayOfWeek::Create(element, value1, value2);
 				}
@@ -228,7 +236,7 @@ union CronValue* CronParser::Run(CronElement element, UINT flags, const PCWSTR* 
 			{
 				pValue = CronValueSingle::Create(element, value1);
 				int value3 = ~0;
-				if ((flags & CRON_WC_STEP) != 0 && ParseStep(element, value1, ppsz, value3))
+				if ((flags & CRON_WC_STEP) != 0 && ParseStep(element, value3))
 				{
 					pValue->single.step = value3;
 				}
@@ -259,7 +267,7 @@ bool CronParser::ParseRange(CronElement element, int min, const PCWSTR* ppsz, in
 	if (m_next == L'-')
 	{
 		m_next = m_tokenizer.GetNext();
-		if (ParseInteger(element, min, CronValue::Max(element), ppsz, value))
+		if (ParseInteger(element, (min >= CRON_WORD_DISPLACEMENT) ? (min - CRON_WORD_DISPLACEMENT) : min, CronValue::Max(element), ppsz, value))
 		{
 			return true;
 		}
@@ -275,12 +283,12 @@ bool CronParser::ParseRange(CronElement element, int min, const PCWSTR* ppsz, in
 }
 
 
-bool CronParser::ParseStep(CronElement element, int min, const PCWSTR* ppsz, int& value)
+bool CronParser::ParseStep(CronElement element, int& value)
 {
 	if (m_next == L'/')
 	{
 		m_next = m_tokenizer.GetNext();
-		if (ParseInteger(element, 1, CronValue::Max(element) - min, ppsz, value))
+		if (ParseInteger(element, 1, CronValue::Max(element) - 1, nullptr, value))
 		{
 			return true;
 		}
@@ -313,10 +321,11 @@ bool CronParser::ParseInteger(CronElement element, int min, int max, const PCWST
 	}
 	else if (ppsz && m_next == CRON_TOKEN_WORD)
 	{
-		m_tokenizer.FindValue(ppsz, min);
+		m_tokenizer.FindValue(ppsz, CronValue::Min(element));
 		value = m_tokenizer.GetValue();
 		if (min <= value && value <= max)
 		{
+			value += CRON_WORD_DISPLACEMENT;
 			m_next = m_tokenizer.GetNext();
 		}
 		else

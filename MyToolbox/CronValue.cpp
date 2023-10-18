@@ -210,6 +210,45 @@ CronValue::operator PCWSTR() const
 }
 
 
+static void AppendIntegerOrWord(int value, CronElement element, StringBuffer& buf)
+{
+	int min = CronValue::Min(element);
+	int max = CronValue::Max(element);
+	if (min <= value && value <= max)
+	{
+		buf.AppendFormat(L"%d", value);
+	}
+	else if (element == CRON_MONTH)
+	{
+		value -= CRON_WORD_DISPLACEMENT;
+		if (min <= value && value <= max)
+		{
+			buf.AppendFormat(L"%s", MonthWords[value - min]);
+		}
+		else
+		{
+			throw Exception(L"CronValue::ToString: Bad value: %d", value + CRON_WORD_DISPLACEMENT);
+		}
+	}
+	else if (element == CRON_DAYOFWEEK)
+	{
+		value -= CRON_WORD_DISPLACEMENT;
+		if (min <= value && value <= max)
+		{
+			buf.AppendFormat(L"%s", DayOfWeekWords[value - min]);
+		}
+		else
+		{
+			throw Exception(L"CronValue::ToString: Bad value: %d", value + CRON_WORD_DISPLACEMENT);
+		}
+	}
+	else
+	{
+		throw Exception(L"CronValue::ToString: Bad value: %d", value);
+	}
+}
+
+
 PCWSTR CronValue::ToString() const
 {
 	StringBuffer buf(260);
@@ -228,23 +267,19 @@ PCWSTR CronValue::ToString() const
 			buf.AppendFormat(L"?");
 			break;
 		case CRON_SINGLE:
+			AppendIntegerOrWord(pCur->single.value, pCur->single.element, buf);
 			if (pCur->single.step > 1)
 			{
-				buf.AppendFormat(L"%d/%d", pCur->single.value, pCur->single.step);
-			}
-			else
-			{
-				buf.AppendFormat(L"%d", pCur->single.value);
+				buf.AppendFormat(L"/%d", pCur->single.step);
 			}
 			break;
 		case CRON_RANGE:
+			AppendIntegerOrWord(pCur->range.from, pCur->range.element, buf);
+			buf.AppendFormat(L"-");
+			AppendIntegerOrWord(pCur->range.to, pCur->range.element, buf);
 			if (pCur->range.step > 1)
 			{
-				buf.AppendFormat(L"%d-%d/%d", pCur->range.from, pCur->range.to, pCur->range.step);
-			}
-			else
-			{
-				buf.AppendFormat(L"%d-%d", pCur->range.from, pCur->range.to);
+				buf.AppendFormat(L"/%d", pCur->range.step);
 			}
 			break;
 		case CRON_LASTDAY:
@@ -257,7 +292,8 @@ PCWSTR CronValue::ToString() const
 			buf.AppendFormat(L"%dW", pCur->closestwd.dom);
 			break;
 		case CRON_NTH_DAYOFWEEK:
-			buf.AppendFormat(L"%d#%d", pCur->nthdow.dow, pCur->nthdow.nth);
+			AppendIntegerOrWord(pCur->nthdow.dow, pCur->nthdow.element, buf);
+			buf.AppendFormat(L"#%d", pCur->nthdow.nth);
 			break;
 		case CRON_LAST_DAYOFWEEK:
 			buf.AppendFormat(L"%dL", pCur->lastdow.dow);
@@ -326,6 +362,8 @@ PCWSTR CronValue::Evaluate(int offset) const
 	size_t count = 0;
 	for (const CronValue* pCur = this; pCur; pCur = pCur->pNext)
 	{
+		int value1;
+		int value2;
 		switch (pCur->type)
 		{
 		case CRON_ALL:
@@ -337,20 +375,23 @@ PCWSTR CronValue::Evaluate(int offset) const
 		case CRON_ANY:
 			break;
 		case CRON_SINGLE:
+			value1 = pCur->single.value >= CRON_WORD_DISPLACEMENT ? pCur->single.value - CRON_WORD_DISPLACEMENT : pCur->single.value;
 			if (pCur->single.step > 0)
 			{
-				for (int next = pCur->single.value; next <= max; next += pCur->single.step)
+				for (int next = value1; next <= max; next += pCur->single.step)
 				{
 					Add(samples, count, Adjust(next, element, offset));
 				}
 			}
 			else
 			{
-				Add(samples, count, Adjust(pCur->single.value, element, offset));
+				Add(samples, count, Adjust(value1, element, offset));
 			}
 			break;
 		case CRON_RANGE:
-			for (int next = pCur->range.from; next <= pCur->range.to; next += pCur->range.step)
+			value1 = pCur->range.from >= CRON_WORD_DISPLACEMENT ? pCur->range.from - CRON_WORD_DISPLACEMENT : pCur->range.from;
+			value2 = pCur->range.to >= CRON_WORD_DISPLACEMENT ? pCur->range.to - CRON_WORD_DISPLACEMENT : pCur->range.to;
+			for (int next = value1; next <= value2; next += pCur->range.step)
 			{
 				Add(samples, count, Adjust(next, element, offset));
 			}

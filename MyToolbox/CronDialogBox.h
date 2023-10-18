@@ -28,14 +28,24 @@ namespace hnrt
 		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
 		void OnSourceSelection(int);
 		void OnSecondChanged();
+		void OnOffsetChanged();
 		void Parse();
 		void Format();
-		void SetEvalText(int, const union CronValue&);
+		void ClearExpression();
+		void AppendToExpression(PCWSTR);
+		void UpdateIndividualControls();
+		void UpdateValueControls(const CronValue& value, int idAll, int idAny, int idLast, int idWeek, int idExpr, int idEdit, int idStatic);
+		void SetEvalText(int, const CronValue&);
 		void ClearEvalStatics(int = 0);
 		int GetEvalStatic(int);
-		int GetOffset();
+		void ShowSecondControls();
+		void InitializeOffsetComboBox();
+		void SetOffsetComboBox(int offset);
+		int GetOffsetComboBox();
+		void InitializeDescriptionStatic();
 
 		Cron m_cron;
+		int m_offset;
 		ULONGLONG m_LastModifiedAt;
 		bool m_bParse;
 		bool m_bParseSuccessful;

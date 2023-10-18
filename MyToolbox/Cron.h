@@ -14,9 +14,11 @@ namespace hnrt
 		Cron(const Cron&) = delete;
 		~Cron();
 		void operator =(const Cron&) = delete;
+		operator PCWSTR() const;
 		void Clear();
 		bool isSecondEnabled() const;
 		void EnableSecond(bool bEnabled = true);
+		void SetAll();
 		void Parse(PCWSTR);
 		void ParseSecond(PCWSTR);
 		void ParseMinute(PCWSTR);
@@ -25,6 +27,7 @@ namespace hnrt
 		void ParseMonth(PCWSTR);
 		void ParseDayOfWeek(PCWSTR);
 		void ParseYear(PCWSTR);
+		PCWSTR ToString() const;
 		const CronValue& GetSecond() const;
 		const CronValue& GetMinute() const;
 		const CronValue& GetHour() const;

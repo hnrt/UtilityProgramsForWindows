@@ -2,6 +2,8 @@
 #include "Cron.h"
 #include "CronP.h"
 #include "hnrt/Exception.h"
+#include "hnrt/String.h"
+#include "hnrt/StringBuffer.h"
 
 
 using namespace hnrt;
@@ -38,6 +40,12 @@ void Cron::Clear()
 }
 
 
+Cron::operator PCWSTR() const
+{
+	return ToString();
+}
+
+
 bool Cron::isSecondEnabled() const
 {
 	return m_bSecond;
@@ -46,7 +54,23 @@ bool Cron::isSecondEnabled() const
 
 void Cron::EnableSecond(bool bEnabled)
 {
+	if (!m_bSecond && bEnabled && !m_pSecond)
+	{
+		m_pSecond = CronValueAll::Create(CRON_SECOND);
+	}
 	m_bSecond = bEnabled;
+}
+
+
+void Cron::SetAll()
+{
+	Clear();
+	m_pSecond = CronValueAll::Create(CRON_SECOND);
+	m_pMinute = CronValueAll::Create(CRON_MINUTE);
+	m_pHour = CronValueAll::Create(CRON_HOUR);
+	m_pDayOfMonth = CronValueAll::Create(CRON_DAYOFMONTH);
+	m_pMonth = CronValueAll::Create(CRON_MONTH);
+	m_pDayOfWeek = CronValueAny::Create(CRON_DAYOFWEEK);
 }
 
 
@@ -138,6 +162,41 @@ void Cron::ParseYear(PCWSTR psz)
 	{
 		m_pYear = CronParser(psz).Run(CRON_YEAR, CRON_WC_STEP);
 	}
+}
+
+
+PCWSTR Cron::ToString() const
+{
+	StringBuffer buf(260);
+	if (m_bSecond && m_pSecond)
+	{
+		buf.AppendFormat(L" %s", m_pSecond->ToString());
+	}
+	if (m_pMinute)
+	{
+		buf.AppendFormat(L" %s", m_pMinute->ToString());
+	}
+	if (m_pHour)
+	{
+		buf.AppendFormat(L" %s", m_pHour->ToString());
+	}
+	if (m_pDayOfMonth)
+	{
+		buf.AppendFormat(L" %s", m_pDayOfMonth->ToString());
+	}
+	if (m_pMonth)
+	{
+		buf.AppendFormat(L" %s", m_pMonth->ToString());
+	}
+	if (m_pDayOfWeek)
+	{
+		buf.AppendFormat(L" %s", m_pDayOfWeek->ToString());
+	}
+	if (m_pYear)
+	{
+		buf.AppendFormat(L" %s", m_pYear->ToString());
+	}
+	return String::Trim(buf);
 }
 
 
