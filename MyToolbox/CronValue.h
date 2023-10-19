@@ -1,7 +1,10 @@
 #pragma once
 
 
-#define CRON_WORD_DISPLACEMENT 100
+#include <Windows.h>
+
+
+#define CRON_WORD_DISPLACEMENT 10000
 
 
 namespace hnrt

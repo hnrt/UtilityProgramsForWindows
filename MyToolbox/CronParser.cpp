@@ -1,150 +1,16 @@
 #include "pch.h"
-#include "CronP.h"
-#include "CronValue.h"
+#include "CronParser.h"
 #include "hnrt/Exception.h"
 
 
+#define CRON_WC_STEP		1U
+#define CRON_WC_ANY			2U
+#define CRON_WC_LASTDAY		4U
+#define CRON_WC_WEEKDAY		8U
+#define CRON_WC_NTH			16U
+
+
 using namespace hnrt;
-
-
-#define FORMAT_BADSEQUENCE L"Error: Bad sequence at %u."
-#define FORMAT_BADCHARACTOR L"Error: Bad character %c at %u."
-
-
-CronTokenizer::CronTokenizer(PCWSTR psz)
-	: m_o(psz)
-	, m_p(psz + 1)
-	, m_c(*psz)
-	, m_v(0)
-	, m_s()
-{
-}
-
-
-int CronTokenizer::GetNext()
-{
-	int sym;
-	while (iswspace(m_c))
-	{
-		m_c = *m_p++;
-	}
-	if (m_c == 0)
-	{
-		sym = CRON_TOKEN_EOF;
-	}
-	else if (iswdigit(m_c))
-	{
-		WCHAR sz[32] = { 0 };
-		WCHAR* psz = sz;
-		*psz++ = m_c;
-		*psz = 0;
-		m_v = wcstoul(sz, nullptr, 10);
-		m_c = *m_p++;
-		while (iswdigit(m_c))
-		{
-			*psz++ = m_c;
-			*psz = 0;
-			m_v = wcstoul(sz, nullptr, 10);
-			psz = sz + swprintf_s(sz, L"%d", m_v);
-			m_c = *m_p++;
-		}
-		if (m_c == L'\0' || m_c == L' ' || m_c == L',' || m_c == L'-' || m_c == L'/' || m_c == L'L' || m_c == L'W' || m_c == L'#')
-		{
-			sym = CRON_TOKEN_INTEGER;
-		}
-		else
-		{
-			throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 1 - m_o));
-		}
-	}
-	else if (iswalpha(m_c))
-	{
-		WCHAR* psz = m_s;
-		*psz++ = m_c;
-		*psz = 0;
-		m_c = *m_p++;
-		if (iswalpha(m_c))
-		{
-			*psz++ = m_c;
-			*psz = 0;
-			m_c = *m_p++;
-			if (iswalpha(m_c))
-			{
-				*psz++ = m_c;
-				*psz = 0;
-				m_c = *m_p++;
-			}
-			else
-			{
-				throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 1 - m_o));
-			}
-			if (m_c == L'\0' || m_c == L' ' || m_c == L',' || m_c == L'-' || m_c == L'/' || m_c == L'#')
-			{
-				sym = CRON_TOKEN_WORD;
-			}
-			else
-			{
-				throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 1 - m_o));
-			}
-		}
-		else if (m_s[0] == L'L' || m_s[0] == L'W')
-		{
-			if (m_c == L'\0' || m_c == L' ' || m_c == L',')
-			{
-				sym = m_s[0];
-			}
-			else
-			{
-				throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 1 - m_o));
-			}
-		}
-		else
-		{
-			throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 1 - m_o));
-		}
-	}
-	else
-	{
-		switch (m_c)
-		{
-		case L'*':
-		case L'?':
-			sym = m_c;
-			m_c = *m_p++;
-			if (!(m_c == L'\0' || m_c == L' '))
-			{
-				throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 1 - m_o));
-			}
-			break;
-		case L'-':
-		case L',':
-		case L'/':
-		case L'#':
-			sym = m_c;
-			m_c = *m_p++;
-			break;
-		default:
-			throw Exception(FORMAT_BADCHARACTOR, m_c, static_cast<UINT>(m_p - 1 - m_o));
-		}
-	}
-	return sym;
-}
-
-
-void CronTokenizer::FindValue(const PCWSTR* ppsz, int base)
-{
-	unsigned int index = 0;
-	while (ppsz[index])
-	{
-		if (!wcscmp(ppsz[index], m_s))
-		{
-			m_v = base + index;
-			return;
-		}
-		index++;
-	}
-	throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 4 - m_o));
-}
 
 
 CronParser::CronParser(PCWSTR psz)
@@ -154,14 +20,121 @@ CronParser::CronParser(PCWSTR psz)
 }
 
 
-bool CronParser::isEOF() const
+void CronParser::Run(CronValue*& pYear, CronValue*& pMonth, CronValue*& pDayOfMonth, CronValue*& pDayOfWeek, CronValue*& pHour, CronValue*& pMinute)
 {
-	return m_next == CRON_TOKEN_EOF;
+	pMinute = Run(CRON_MINUTE);
+	pHour = Run(CRON_HOUR);
+	pDayOfMonth = Run(CRON_DAYOFMONTH);
+	pMonth = Run(CRON_MONTH);
+	pDayOfWeek = Run(CRON_DAYOFWEEK);
+	pYear = Run(CRON_YEAR);
+
+	if (!isEnd())
+	{
+		throw Exception(L"One or more extra characters follow.");
+	}
+
+	if (pDayOfMonth->type == CRON_ALL)
+	{
+		if (pDayOfWeek->type == CRON_ALL)
+		{
+			throw Exception(L"Both day of the month and day of the week cannot be *.");
+		}
+		else if (pDayOfWeek->type != CRON_ANY)
+		{
+			throw Exception(L"Day of the week must be ? when day of the month is *.");
+		}
+	}
+	else if (pDayOfMonth->type == CRON_ANY)
+	{
+		if (pDayOfWeek->type == CRON_ANY)
+		{
+			throw Exception(L"Both day of the month and day of the week cannot be ?.");
+		}
+	}
+	else if (pDayOfWeek->type == CRON_ALL)
+	{
+		if (pDayOfMonth->type != CRON_ANY)
+		{
+			throw Exception(L"Day of the month must be ? when day of the week is *.");
+		}
+	}
+	else if (pDayOfWeek->type != CRON_ANY)
+	{
+		throw Exception(L"Either day of the month or day of the week must be ?.");
+	}
+
+	if (pDayOfWeek->Count(CRON_NTH_DAYOFWEEK) > 1)
+	{
+		throw Exception(L"# cannot be specified two or more times.");
+	}
 }
 
 
-union CronValue* CronParser::Run(CronElement element, UINT flags, const PCWSTR* ppsz)
+void CronParser::Run(CronValue*& pYear, CronValue*& pMonth, CronValue*& pDayOfMonth, CronValue*& pDayOfWeek, CronValue*& pHour, CronValue*& pMinute, CronValue*& pSecond)
 {
+	pSecond = Run(CRON_SECOND);
+	Run(pYear, pMonth, pDayOfMonth, pDayOfWeek, pHour, pMinute);
+}
+
+
+CronValue* CronParser::RunOnlyFor(CronElement element)
+{
+	CronValue* pValue = Run(element);
+	if (isEnd())
+	{
+		return pValue;
+	}
+	else
+	{
+		throw Exception(L"One or more extra characters follow.");
+	}
+}
+
+
+static UINT GetFlags(CronElement element)
+{
+	switch (element)
+	{
+	case CRON_SECOND: return CRON_WC_STEP;
+	case CRON_MINUTE: return CRON_WC_STEP;
+	case CRON_HOUR: return CRON_WC_STEP;
+	case CRON_DAYOFMONTH: return CRON_WC_STEP | CRON_WC_ANY | CRON_WC_LASTDAY | CRON_WC_WEEKDAY;
+	case CRON_MONTH: return CRON_WC_STEP;
+	case CRON_DAYOFWEEK: return CRON_WC_ANY | CRON_WC_LASTDAY | CRON_WC_NTH;
+	case CRON_YEAR: return CRON_WC_STEP;
+	default: throw Exception(L"CronParser::Run: Bad element: %d", element);
+	}
+}
+
+
+static const PCWSTR* GetWords(CronElement element)
+{
+	switch (element)
+	{
+	case CRON_MONTH: return MonthWords;
+	case CRON_DAYOFWEEK: return DayOfWeekWords;
+	default: return nullptr;
+	}
+}
+
+
+CronValue* CronParser::Run(CronElement element)
+{
+	return Run(element, GetFlags(element), GetWords(element));
+}
+
+
+CronValue* CronParser::Run(CronElement element, UINT flags, const PCWSTR* ppsz)
+{
+	if (element == CRON_YEAR)
+	{
+		if (m_next == CRON_TOKEN_EOF)
+		{
+			return nullptr;
+		}
+	}
+
 	if (m_next == L'*')
 	{
 		m_next = m_tokenizer.GetNext();

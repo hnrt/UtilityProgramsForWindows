@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Cron.h"
-#include "CronP.h"
+#include "CronParser.h"
 #include "hnrt/Exception.h"
 #include "hnrt/String.h"
 #include "hnrt/StringBuffer.h"
@@ -77,37 +77,14 @@ void Cron::SetAll()
 void Cron::Parse(PCWSTR psz)
 {
 	Clear();
-
-	CronParser parser(psz);
-
 	if (m_bSecond)
 	{
-		m_pSecond = parser.Run(CRON_SECOND, CRON_WC_STEP);
+		CronParser(psz).Run(m_pYear, m_pMonth, m_pDayOfMonth, m_pDayOfWeek, m_pHour, m_pMinute, m_pSecond);
 	}
 	else
 	{
 		m_pSecond = CronValueAll::Create(CRON_SECOND);
-	}
-	m_pMinute = parser.Run(CRON_MINUTE, CRON_WC_STEP);
-	m_pHour = parser.Run(CRON_HOUR, CRON_WC_STEP);
-	m_pDayOfMonth = parser.Run(CRON_DAYOFMONTH, CRON_WC_STEP | CRON_WC_ANY | CRON_WC_LASTDAY | CRON_WC_WEEKDAY);
-	m_pMonth = parser.Run(CRON_MONTH, CRON_WC_STEP, MonthWords);
-	m_pDayOfWeek = parser.Run(CRON_DAYOFWEEK, CRON_WC_ANY | CRON_WC_LASTDAY | CRON_WC_NTH, DayOfWeekWords);
-	if (!parser.isEOF())
-	{
-		m_pYear = parser.Run(CRON_YEAR, CRON_WC_STEP);
-		if (!parser.isEOF())
-		{
-			throw Exception(L"One or more extra characters follow.");
-		}
-	}
-	if (m_pDayOfMonth->type == CRON_ANY && m_pDayOfWeek->type == CRON_ANY)
-	{
-		throw Exception(L"? cannot be specified for both day of the month and of the week.");
-	}
-	if (m_pDayOfWeek->Count(CRON_NTH_DAYOFWEEK) > 1)
-	{
-		throw Exception(L"# cannot be specified two or more times.");
+		CronParser(psz).Run(m_pYear, m_pMonth, m_pDayOfMonth, m_pDayOfWeek, m_pHour, m_pMinute);
 	}
 }
 
@@ -115,53 +92,49 @@ void Cron::Parse(PCWSTR psz)
 void Cron::ParseSecond(PCWSTR psz)
 {
 	CronValue::Free(m_pSecond);
-	m_pSecond = CronParser(psz).Run(CRON_SECOND, CRON_WC_STEP);
+	m_pSecond = CronParser(psz).RunOnlyFor(CRON_SECOND);
 }
 
 
 void Cron::ParseMinute(PCWSTR psz)
 {
 	CronValue::Free(m_pMinute);
-	m_pMinute = CronParser(psz).Run(CRON_MINUTE, CRON_WC_STEP);
+	m_pMinute = CronParser(psz).RunOnlyFor(CRON_MINUTE);
 }
 
 
 void Cron::ParseHour(PCWSTR psz)
 {
 	CronValue::Free(m_pHour);
-	m_pHour = CronParser(psz).Run(CRON_HOUR, CRON_WC_STEP);
+	m_pHour = CronParser(psz).RunOnlyFor(CRON_HOUR);
 }
 
 
 void Cron::ParseDayOfMonth(PCWSTR psz)
 {
 	CronValue::Free(m_pDayOfMonth);
-	m_pDayOfMonth = CronParser(psz).Run(CRON_DAYOFMONTH, CRON_WC_STEP | CRON_WC_ANY | CRON_WC_LASTDAY | CRON_WC_WEEKDAY);
+	m_pDayOfMonth = CronParser(psz).RunOnlyFor(CRON_DAYOFMONTH);
 }
 
 
 void Cron::ParseMonth(PCWSTR psz)
 {
 	CronValue::Free(m_pMonth);
-	m_pMonth = CronParser(psz).Run(CRON_MONTH, CRON_WC_STEP, MonthWords);
+	m_pMonth = CronParser(psz).RunOnlyFor(CRON_MONTH);
 }
 
 
 void Cron::ParseDayOfWeek(PCWSTR psz)
 {
 	CronValue::Free(m_pDayOfWeek);
-	m_pDayOfWeek = CronParser(psz).Run(CRON_DAYOFWEEK, CRON_WC_ANY | CRON_WC_LASTDAY | CRON_WC_NTH, DayOfWeekWords);
+	m_pDayOfWeek = CronParser(psz).RunOnlyFor(CRON_DAYOFWEEK);
 }
 
 
 void Cron::ParseYear(PCWSTR psz)
 {
 	CronValue::Free(m_pYear);
-	CronParser parser(psz);
-	if (!parser.isEOF())
-	{
-		m_pYear = CronParser(psz).Run(CRON_YEAR, CRON_WC_STEP);
-	}
+	m_pYear = CronParser(psz).RunOnlyFor(CRON_YEAR);
 }
 
 
