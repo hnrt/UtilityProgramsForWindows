@@ -15,7 +15,8 @@
 
 
 #define REG_SUBKEY L"SOFTWARE\\hnrt\\MyToolbox\\Cron"
-#define REG_NAME_OFFSET L"Offset"
+#define REG_NAME_BASEOFFSET L"BaseOffset"
+#define REG_NAME_DISPLAYOFFSET L"DisplayOffset"
 #define REG_NAME_SECOND L"Second"
 #define REG_NAME_EXPRESSION L"Expression"
 
@@ -50,24 +51,46 @@ CronDialogBox::CronDialogBox()
 
 void CronDialogBox::OnCreate()
 {
+	RegistryValue valueBaseOffset;
+	RegistryValue valueDisplayOffset;
 	RegistryValue valueExpression;
 	RegistryKey hKey;
 	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
 	if (rc == ERROR_SUCCESS)
 	{
 		RegistryValue value;
-		m_offset = value.GetDWORD(hKey, REG_NAME_OFFSET);
 		m_cron.SecondEnabled = value.GetDWORD(hKey, REG_NAME_SECOND, 1) != 0;
+		valueBaseOffset.GetDWORD(hKey, REG_NAME_BASEOFFSET);
+		valueDisplayOffset.GetDWORD(hKey, REG_NAME_DISPLAYOFFSET);
 		valueExpression.GetSZ(hKey, REG_NAME_EXPRESSION);
 	}
 	ClearEvalStatics();
-	InitializeOffsetComboBox();
+	InitializeOffsetComboBox(IDC_CRON_EXPR_COMBO);
+	InitializeOffsetComboBox(IDC_CRON_OFFSET_COMBO);
 	InitializeDescriptionStatic();
 	ShowSecondControls();
 	CheckButton(IDC_CRON_EXPR_RADIO);
 	OnSourceSelection(IDC_CRON_EXPR_RADIO);
 	CheckButton(IDC_CRON_SECOND_CHECK, m_cron.SecondEnabled ? TRUE : FALSE);
-	SetOffsetComboBox(m_offset);
+	SetOffsetComboBox(IDC_CRON_EXPR_COMBO, m_offset);
+	if (valueBaseOffset.Type == REG_DWORD)
+	{
+		SetOffsetComboBox(IDC_CRON_EXPR_COMBO, valueBaseOffset.Int32);
+		if (valueDisplayOffset.Type == REG_DWORD)
+		{
+			SetOffsetComboBox(IDC_CRON_OFFSET_COMBO, valueDisplayOffset.Int32);
+			m_offset = valueDisplayOffset.Int32 - valueBaseOffset.Int32;
+		}
+		else
+		{
+			SetOffsetComboBox(IDC_CRON_OFFSET_COMBO, valueBaseOffset.Int32);
+		}
+	}
+	else
+	{
+		SetOffsetComboBox(IDC_CRON_OFFSET_COMBO, 0);
+		SetOffsetComboBox(IDC_CRON_OFFSET_COMBO, 0);
+	}
 	if (valueExpression.Type == REG_SZ)
 	{
 		SetText(IDC_CRON_EXPR_EDIT, valueExpression);
@@ -89,8 +112,9 @@ void CronDialogBox::OnDestroy()
 	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY);
 	if (rc == ERROR_SUCCESS)
 	{
-		RegistryValue::SetDWORD(hKey, REG_NAME_OFFSET, m_offset);
 		RegistryValue::SetDWORD(hKey, REG_NAME_SECOND, m_cron.SecondEnabled ? 1U : 0U);
+		RegistryValue::SetDWORD(hKey, REG_NAME_BASEOFFSET, GetOffsetComboBox(IDC_CRON_EXPR_COMBO));
+		RegistryValue::SetDWORD(hKey, REG_NAME_DISPLAYOFFSET, GetOffsetComboBox(IDC_CRON_OFFSET_COMBO));
 		int cch = GetTextLength(IDC_CRON_EXPR_EDIT) + 1;
 		Buffer<WCHAR> buf(cch);
 		GetText(IDC_CRON_EXPR_EDIT, buf, buf.Len);
@@ -105,77 +129,117 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 
 	before.AddAllChildren(hDlg).Clone(after);
 
-	after[IDC_CRON_EXPR_EDIT].cx += cxDelta;
-	after[IDC_CRON_EXPR_STATIC].cx += cxDelta;
+	// RIGHT COLUMN
+	{
+		MoveHorizontally(after[IDC_CRON_COPY_BUTTON], cxDelta);
+	}
 
-	LONG cx, dx;
+	// TOP ROW
+	{
+		after[IDC_CRON_EXPR_EDIT].cx += cxDelta;
+		MoveHorizontally(after[IDC_CRON_EXPR_COMBO], cxDelta);
+		after[IDC_CRON_EXPR_STATIC].cx += cxDelta;
+	}
 
-	cx = (after[IDC_CRON_EXPR_EDIT].cx - (before[IDC_CRON_YEAR_STATIC].HorizontalGap(before[IDC_CRON_MONTH_STATIC]) + before[IDC_CRON_MONTH_STATIC].HorizontalGap(before[IDC_CRON_DAY_STATIC]))) / 3;
-	after[IDC_CRON_YEAR_STATIC].cx = cx;
-	after[IDC_CRON_MONTH_STATIC].cx = cx;
-	RepositionLeftByRight(after[IDC_CRON_MONTH_STATIC], before[IDC_CRON_YEAR_STATIC], after[IDC_CRON_YEAR_STATIC]);
-	RepositionLeftByRight(after[IDC_CRON_DAY_STATIC], before[IDC_CRON_MONTH_STATIC], after[IDC_CRON_MONTH_STATIC]);
-	after[IDC_CRON_DAY_STATIC].right = after[IDC_CRON_EXPR_EDIT].right;
-	after[IDC_CRON_DOW_STATIC].left = after[IDC_CRON_DAY_STATIC].left;
-	after[IDC_CRON_DOW_STATIC].right = after[IDC_CRON_DAY_STATIC].right;
-	after[IDC_CRON_HOUR_STATIC].right = after[IDC_CRON_YEAR_STATIC].right;
-	after[IDC_CRON_MINUTE_STATIC].left = after[IDC_CRON_MONTH_STATIC].left;
-	after[IDC_CRON_MINUTE_STATIC].right = after[IDC_CRON_MONTH_STATIC].right;
-	after[IDC_CRON_SECOND_STATIC].left = after[IDC_CRON_DAY_STATIC].left;
-	after[IDC_CRON_SECOND_STATIC].right = after[IDC_CRON_DAY_STATIC].right;
+	LONG dx, dcx, dy, dcy;
 
-	dx = after[IDC_CRON_YEAR_STATIC].cx - before[IDC_CRON_YEAR_STATIC].cx;
-	after[IDC_CRON_YEAR_EDIT].cx += dx;
-	after[IDC_CRON_YEAR_EVAL_STATIC].cx += dx;
-	after[IDC_CRON_HOUR_EDIT].cx += dx;
-	after[IDC_CRON_HOUR_EVAL_STATIC].cx += dx;
+	// MIDDLE ROW
+	{
+		// ALL GROUPS (HORIZONTAL)
+		ExtendHorizontally(after[IDC_CRON_YEAR_STATIC], after[IDC_CRON_MONTH_STATIC], after[IDC_CRON_DAY_STATIC], cxDelta);
+		after[IDC_CRON_DOW_STATIC].left = after[IDC_CRON_DAY_STATIC].left;
+		after[IDC_CRON_DOW_STATIC].right = after[IDC_CRON_DAY_STATIC].right;
+		after[IDC_CRON_HOUR_STATIC].left = after[IDC_CRON_YEAR_STATIC].left;
+		after[IDC_CRON_HOUR_STATIC].right = after[IDC_CRON_YEAR_STATIC].right;
+		after[IDC_CRON_MINUTE_STATIC].left = after[IDC_CRON_MONTH_STATIC].left;
+		after[IDC_CRON_MINUTE_STATIC].right = after[IDC_CRON_MONTH_STATIC].right;
+		after[IDC_CRON_SECOND_STATIC].left = after[IDC_CRON_DAY_STATIC].left;
+		after[IDC_CRON_SECOND_STATIC].right = after[IDC_CRON_DAY_STATIC].right;
+		// COLUMN:YEAR-DESC-HOUR (HORIZONTAL)
+		dx = 0;
+		dcx = after[IDC_CRON_YEAR_STATIC].cx - before[IDC_CRON_YEAR_STATIC].cx;
+		after[IDC_CRON_YEAR_EDIT].cx += dcx;
+		after[IDC_CRON_YEAR_EVAL_STATIC].cx += dcx;
+		after[IDC_CRON_DESC_STATIC].right = after[IDC_CRON_MONTH_STATIC].right + before[IDC_CRON_DESC_STATIC].right - before[IDC_CRON_MONTH_STATIC].right;
+		after[IDC_CRON_HOUR_EDIT].cx += dcx;
+		after[IDC_CRON_HOUR_EVAL_STATIC].cx += dcx;
+		// COLUMN:MONTH-MINUTE (HORIZONTAL)
+		dx = after[IDC_CRON_MONTH_STATIC].left - before[IDC_CRON_MONTH_STATIC].left;
+		dcx = after[IDC_CRON_MONTH_STATIC].cx - before[IDC_CRON_MONTH_STATIC].cx;
+		MoveHorizontally(after[IDC_CRON_MONTH_ALL_RADIO], dx);
+		MoveHorizontally(after[IDC_CRON_MONTH_EXPR_RADIO], dx);
+		MoveHorizontallyAndExtend(after[IDC_CRON_MONTH_EDIT], dx, dcx);
+		MoveHorizontallyAndExtend(after[IDC_CRON_MONTH_EVAL_STATIC], dx, dcx);
+		MoveHorizontally(after[IDC_CRON_MINUTE_ALL_RADIO], dx);
+		MoveHorizontally(after[IDC_CRON_MINUTE_EXPR_RADIO], dx);
+		MoveHorizontallyAndExtend(after[IDC_CRON_MINUTE_EDIT], dx, dcx);
+		MoveHorizontallyAndExtend(after[IDC_CRON_MINUTE_EVAL_STATIC], dx, dcx);
+		// COLUMN:DAY-DOW-SECOND (HORIZONTAL)
+		dx = after[IDC_CRON_DAY_STATIC].left - before[IDC_CRON_DAY_STATIC].left;
+		dcx = after[IDC_CRON_DAY_STATIC].cx - before[IDC_CRON_DAY_STATIC].cx;
+		MoveHorizontally(after[IDC_CRON_DAY_ALL_RADIO], dx);
+		MoveHorizontally(after[IDC_CRON_DAY_ANY_RADIO], dx);
+		MoveHorizontally(after[IDC_CRON_DAY_LASTDAY_RADIO], dx);
+		MoveHorizontally(after[IDC_CRON_DAY_WEEKDAY_RADIO], dx);
+		MoveHorizontally(after[IDC_CRON_DAY_EXPR_RADIO], dx);
+		MoveHorizontallyAndExtend(after[IDC_CRON_DAY_EDIT], dx, dcx);
+		MoveHorizontallyAndExtend(after[IDC_CRON_DAY_EVAL_STATIC], dx, dcx);
+		MoveHorizontally(after[IDC_CRON_DOW_ALL_RADIO], dx);
+		MoveHorizontally(after[IDC_CRON_DOW_ANY_RADIO], dx);
+		MoveHorizontally(after[IDC_CRON_DOW_LASTDAY_RADIO], dx);
+		MoveHorizontally(after[IDC_CRON_DOW_EXPR_RADIO], dx);
+		MoveHorizontallyAndExtend(after[IDC_CRON_DOW_EDIT], dx, dcx);
+		MoveHorizontallyAndExtend(after[IDC_CRON_DOW_EVAL_STATIC], dx, dcx);
+		MoveHorizontally(after[IDC_CRON_SECOND_ALL_RADIO], dx);
+		MoveHorizontally(after[IDC_CRON_SECOND_EXPR_RADIO], dx);
+		MoveHorizontallyAndExtend(after[IDC_CRON_SECOND_EDIT], dx, dcx);
+		MoveHorizontallyAndExtend(after[IDC_CRON_SECOND_EVAL_STATIC], dx, dcx);
+		// ALL GROUPS (VERTICAL)
+		ExtendVertically(after[IDC_CRON_DAY_STATIC], after[IDC_CRON_DOW_STATIC], after[IDC_CRON_SECOND_STATIC], cyDelta);
+		after[IDC_CRON_YEAR_STATIC].bottom = after[IDC_CRON_MONTH_STATIC].bottom = after[IDC_CRON_DAY_STATIC].bottom;
+		after[IDC_CRON_HOUR_STATIC].top = after[IDC_CRON_MINUTE_STATIC].top = after[IDC_CRON_SECOND_STATIC].top;
+		after[IDC_CRON_HOUR_STATIC].bottom = after[IDC_CRON_MINUTE_STATIC].bottom = after[IDC_CRON_SECOND_STATIC].bottom;
+		// ROW:YEAR-MONTH-DAY (VERTICAL)
+		dy = 0;
+		dcy = after[IDC_CRON_YEAR_STATIC].cy - before[IDC_CRON_YEAR_STATIC].cy;
+		after[IDC_CRON_YEAR_EVAL_STATIC].cy += dcy;
+		after[IDC_CRON_MONTH_EVAL_STATIC].cy += dcy;
+		after[IDC_CRON_DAY_EVAL_STATIC].cy += dcy;
+		// ROW:DESC-DOW (VERTICAL)
+		dy = after[IDC_CRON_DOW_STATIC].y - before[IDC_CRON_DOW_STATIC].y;
+		dcy = after[IDC_CRON_DOW_STATIC].cy - before[IDC_CRON_DOW_STATIC].cy;
+		MoveVerticallyAndExtend(after[IDC_CRON_DESC_STATIC], dy, dcy);
+		MoveVertically(after[IDC_CRON_DOW_ALL_RADIO], dy);
+		MoveVertically(after[IDC_CRON_DOW_ANY_RADIO], dy);
+		MoveVertically(after[IDC_CRON_DOW_LASTDAY_RADIO], dy);
+		MoveVertically(after[IDC_CRON_DOW_EXPR_RADIO], dy);
+		MoveVertically(after[IDC_CRON_DOW_EDIT], dy);
+		MoveVerticallyAndExtend(after[IDC_CRON_DOW_EVAL_STATIC], dy, dcy);
+		// ROW:HOUR-MINUTE-SECOND (VERTICAL)
+		dy = after[IDC_CRON_SECOND_STATIC].y - before[IDC_CRON_SECOND_STATIC].y;
+		dcy = after[IDC_CRON_SECOND_STATIC].cy - before[IDC_CRON_SECOND_STATIC].cy;
+		MoveVertically(after[IDC_CRON_HOUR_ALL_RADIO], dy);
+		MoveVertically(after[IDC_CRON_HOUR_EXPR_RADIO], dy);
+		MoveVertically(after[IDC_CRON_HOUR_EDIT], dy);
+		MoveVerticallyAndExtend(after[IDC_CRON_HOUR_EVAL_STATIC], dy, dcy);
+		MoveVertically(after[IDC_CRON_MINUTE_ALL_RADIO], dy);
+		MoveVertically(after[IDC_CRON_MINUTE_EXPR_RADIO], dy);
+		MoveVertically(after[IDC_CRON_MINUTE_EDIT], dy);
+		MoveVerticallyAndExtend(after[IDC_CRON_MINUTE_EVAL_STATIC], dy, dcy);
+		MoveVertically(after[IDC_CRON_SECOND_ALL_RADIO], dy);
+		MoveVertically(after[IDC_CRON_SECOND_EXPR_RADIO], dy);
+		MoveVertically(after[IDC_CRON_SECOND_EDIT], dy);
+		MoveVerticallyAndExtend(after[IDC_CRON_SECOND_EVAL_STATIC], dy, dcy);
+	}
 
-	dx = after[IDC_CRON_MONTH_STATIC].left - before[IDC_CRON_MONTH_STATIC].left;
-	MoveHorizontally(after[IDC_CRON_MONTH_ALL_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_MONTH_EXPR_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_MONTH_EDIT], dx);
-	MoveHorizontally(after[IDC_CRON_MONTH_EVAL_STATIC], dx);
-	MoveHorizontally(after[IDC_CRON_MINUTE_ALL_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_MINUTE_EXPR_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_MINUTE_EDIT], dx);
-	MoveHorizontally(after[IDC_CRON_MINUTE_EVAL_STATIC], dx);
-	dx = after[IDC_CRON_MONTH_STATIC].cx - before[IDC_CRON_MONTH_STATIC].cx;
-	after[IDC_CRON_MONTH_EDIT].cx += dx;
-	after[IDC_CRON_MONTH_EVAL_STATIC].cx += dx;
-	after[IDC_CRON_MINUTE_EDIT].cx += dx;
-	after[IDC_CRON_MINUTE_EVAL_STATIC].cx += dx;
+	// BOTTOM ROW
+	{
+		RepositionLeft(after[IDC_CRON_SECOND_CHECK], after[IDC_CRON_SECOND_STATIC].left + before[IDC_CRON_SECOND_CHECK].left - before[IDC_CRON_SECOND_STATIC].left);
 
-	dx = after[IDC_CRON_DAY_STATIC].left - before[IDC_CRON_DAY_STATIC].left;
-	MoveHorizontally(after[IDC_CRON_DAY_ALL_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_DAY_ANY_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_DAY_LASTDAY_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_DAY_WEEKDAY_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_DAY_EXPR_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_DAY_EDIT], dx);
-	MoveHorizontally(after[IDC_CRON_DAY_EVAL_STATIC], dx);
-	MoveHorizontally(after[IDC_CRON_DOW_ALL_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_DOW_ANY_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_DOW_LASTDAY_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_DOW_EXPR_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_DOW_EDIT], dx);
-	MoveHorizontally(after[IDC_CRON_DOW_EVAL_STATIC], dx);
-	MoveHorizontally(after[IDC_CRON_SECOND_ALL_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_SECOND_EXPR_RADIO], dx);
-	MoveHorizontally(after[IDC_CRON_SECOND_EDIT], dx);
-	MoveHorizontally(after[IDC_CRON_SECOND_EVAL_STATIC], dx);
-	dx = after[IDC_CRON_DAY_STATIC].cx - before[IDC_CRON_DAY_STATIC].cx;
-	after[IDC_CRON_DAY_EDIT].cx += dx;
-	after[IDC_CRON_DAY_EVAL_STATIC].cx += dx;
-	after[IDC_CRON_DOW_EDIT].cx += dx;
-	after[IDC_CRON_DOW_EVAL_STATIC].cx += dx;
-	after[IDC_CRON_SECOND_EDIT].cx += dx;
-	after[IDC_CRON_SECOND_EVAL_STATIC].cx += dx;
-
-	after[IDC_CRON_DESC_STATIC].right = after[IDC_CRON_MONTH_STATIC].right;
-
-	MoveHorizontally(after[IDC_CRON_COPY], cxDelta);
-	MoveHorizontally(after[IDC_CRON_OFFSET_COMBO], cxDelta);
-	MoveHorizontally(after[IDC_CRON_SECOND_CHECK], cxDelta);
+		MoveVertically(after[IDC_CRON_OFFSET_STATIC], cyDelta);
+		MoveVertically(after[IDC_CRON_OFFSET_COMBO], cyDelta);
+		MoveVertically(after[IDC_CRON_SECOND_CHECK], cyDelta);
+	}
 
 	after.Apply();
 }
@@ -230,14 +294,14 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			{
 				if (!m_bParse)
 				{
+					m_bParse = true;
 					ClearEvalStatics();
 				}
 				m_LastModifiedAt = GetCurrentMicroSeconds();
-				m_bParse = true;
 			}
 		}
 		break;
-	case IDC_CRON_COPY:
+	case IDC_CRON_COPY_BUTTON:
 		OnCopy();
 		break;
 	case IDC_CRON_YEAR_ALL_RADIO:
@@ -370,16 +434,17 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			{
 				if (!(m_bFormat & GetFormatFlag(idChild)))
 				{
+					m_bFormat |= GetFormatFlag(idChild);
 					ClearEvalStatics(GetEvalStatic(idChild));
 				}
 				m_LastModifiedAt = GetCurrentMicroSeconds();
-				m_bFormat |= GetFormatFlag(idChild);
 			}
 		}
 		break;
 	case IDC_CRON_SECOND_CHECK:
 		OnSecondChanged();
 		break;
+	case IDC_CRON_EXPR_COMBO:
 	case IDC_CRON_OFFSET_COMBO:
 		if (idNotif == CBN_SELCHANGE)
 		{
@@ -503,7 +568,9 @@ void CronDialogBox::OnSecondChanged()
 
 void CronDialogBox::OnOffsetChanged()
 {
-	m_offset = GetOffsetComboBox();
+	int offset1 = GetOffsetComboBox(IDC_CRON_EXPR_COMBO);
+	int offset2 = GetOffsetComboBox(IDC_CRON_OFFSET_COMBO);
+	m_offset = offset2 - offset1;
 	if (GetButtonState(IDC_CRON_EXPR_RADIO) == BST_CHECKED)
 	{
 		Parse();
@@ -830,25 +897,60 @@ void CronDialogBox::ShowSecondControls()
 }
 
 
-void CronDialogBox::InitializeOffsetComboBox()
+// from UTC-12:00 (Baker Island/Howland Island) through UTC+14:00 (Kiribati)
+void CronDialogBox::InitializeOffsetComboBox(int id)
 {
-	WCHAR sz[8] = { 0 };
-	for (int offset = -(23 * 60 + 30); offset < 24 * 60; offset += 30)
+	static const PCWSTR pszs[] = {
+		L"-12:00",
+		L"-11:00",
+		L"-10:00",
+		L"-09:30",
+		L"-09:00",
+		L"-08:00",
+		L"-07:00",
+		L"-06:00",
+		L"-05:00",
+		L"-04:30",
+		L"-04:00",
+		L"-03:30",
+		L"-03:00",
+		L"-02:00",
+		L"-01:00",
+		L"+00:00",
+		L"+01:00",
+		L"+02:00",
+		L"+03:00",
+		L"+03:30",
+		L"+04:00",
+		L"+04:30",
+		L"+05:00",
+		L"+05:30",
+		L"+05:45",
+		L"+06:00",
+		L"+06:30",
+		L"+07:00",
+		L"+08:00",
+		L"+08:30",
+		L"+08:45",
+		L"+09:00",
+		L"+09:30",
+		L"+10:00",
+		L"+10:30",
+		L"+11:00",
+		L"+11:45",
+		L"+12:00",
+		L"+12:45",
+		L"+13:00",
+		L"+14:00"
+	};
+	for (int i = 0; i < _countof(pszs); i++)
 	{
-		if (offset >= 0)
-		{
-			swprintf_s(sz, L"+%02d:%02d", offset / 60, offset % 60);
-		}
-		else
-		{
-			swprintf_s(sz, L"-%02d:%02d", -offset / 60, -offset % 60);
-		}
-		AddStringToComboBox(IDC_CRON_OFFSET_COMBO, sz);
+		AddStringToComboBox(id, pszs[i]);
 	}
 }
 
 
-void CronDialogBox::SetOffsetComboBox(int offset)
+void CronDialogBox::SetOffsetComboBox(int id, int offset)
 {
 	WCHAR sz[8] = { 0 };
 	if (offset >= 0)
@@ -859,14 +961,14 @@ void CronDialogBox::SetOffsetComboBox(int offset)
 	{
 		swprintf_s(sz, L"-%02d:%02d", -offset / 60, -offset % 60);
 	}
-	SetComboBoxSelection(IDC_CRON_OFFSET_COMBO, sz);
+	SetComboBoxSelection(id, sz);
 }
 
 
-int CronDialogBox::GetOffsetComboBox()
+int CronDialogBox::GetOffsetComboBox(int id)
 {
 	WCHAR sz[8];
-	GetListBoxText(IDC_CRON_OFFSET_COMBO, GetComboBoxSelection(IDC_CRON_OFFSET_COMBO), sz);
+	GetListBoxText(id, GetComboBoxSelection(id), sz);
 	int sign = sz[0] == L'-' ? -1 : 1;
 	int hour = wcstol(&sz[1], NULL, 10);
 	int minute = wcstol(&sz[4], NULL, 10);

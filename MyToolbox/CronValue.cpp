@@ -308,7 +308,11 @@ PCWSTR CronValue::ToString() const
 
 static int Adjust(int value, CronElement element, int offset)
 {
-	if (element == CRON_HOUR)
+	if (element == CRON_DAYOFMONTH)
+	{
+		return (value + (offset / (24 * 60)) + 32) % 32;
+	}
+	else if (element == CRON_HOUR)
 	{
 		return (value + (offset / 60) + 24) % 24;
 	}

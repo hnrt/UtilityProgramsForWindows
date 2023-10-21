@@ -39,9 +39,9 @@ namespace hnrt
 		void ClearEvalStatics(int = 0);
 		int GetEvalStatic(int);
 		void ShowSecondControls();
-		void InitializeOffsetComboBox();
-		void SetOffsetComboBox(int offset);
-		int GetOffsetComboBox();
+		void InitializeOffsetComboBox(int);
+		void SetOffsetComboBox(int, int offset);
+		int GetOffsetComboBox(int);
 		void InitializeDescriptionStatic();
 
 		Cron m_cron;

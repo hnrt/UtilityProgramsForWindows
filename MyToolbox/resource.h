@@ -84,9 +84,8 @@
 #define IDC_PCTC_USE_PLUS               3012
 #define IDC_CRON_EXPR_RADIO             4000
 #define IDC_CRON_EXPR_EDIT              4001
-#define IDC_CRON_EXPR_STATIC            4002
-#define IDC_CRON_COPY                   4003
-#define IDC_CRON_SECOND_CHECK           4004
+#define IDC_CRON_EXPR_COMBO             4002
+#define IDC_CRON_EXPR_STATIC            4003
 #define IDC_CRON_INDI_RADIO             4100
 #define IDC_CRON_YEAR_STATIC            4110
 #define IDC_CRON_YEAR_ALL_RADIO         4111
@@ -128,9 +127,11 @@
 #define IDC_CRON_SECOND_EXPR_RADIO      4172
 #define IDC_CRON_SECOND_EDIT            4173
 #define IDC_CRON_SECOND_EVAL_STATIC     4179
-#define IDC_CRON_DESC_STATIC            4180
-#define IDC_COMBO1                      5000
-#define IDC_CRON_OFFSET_COMBO           5000
+#define IDC_CRON_DESC_STATIC            4200
+#define IDC_CRON_OFFSET_STATIC          4300
+#define IDC_CRON_OFFSET_COMBO           4301
+#define IDC_CRON_SECOND_CHECK           4302
+#define IDC_CRON_COPY_BUTTON            4900
 #define IDM_FILE_EXIT                   11001
 #define IDM_EDIT_COPY                   12001
 #define IDM_VIEW_HASH                   13001
@@ -147,7 +148,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         32774
-#define _APS_NEXT_CONTROL_VALUE         5001
+#define _APS_NEXT_CONTROL_VALUE         5000
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

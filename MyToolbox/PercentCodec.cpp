@@ -66,11 +66,12 @@ void PercentCodec::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 
 	RepositionBottom(after[IDC_PCTC_USE_PLUS], after[IDC_PCTC_EDIT1].bottom);
 
-	RepositionTopByBottom(after[IDC_PCTC_ENCODE], before[IDC_PCTC_EDIT1], after[IDC_PCTC_EDIT1]);
-	RepositionTopByBottom(after[IDC_PCTC_ENCODING], before[IDC_PCTC_EDIT1], after[IDC_PCTC_EDIT1]);
-	RepositionTopByBottom(after[IDC_PCTC_DECODE], before[IDC_PCTC_EDIT1], after[IDC_PCTC_EDIT1]);
-	RepositionTopByBottom(after[IDC_PCTC_STATUS1], before[IDC_PCTC_EDIT1], after[IDC_PCTC_EDIT1]);
-	RepositionTopByBottom(after[IDC_PCTC_STATUS2], before[IDC_PCTC_EDIT1], after[IDC_PCTC_EDIT1]);
+	LONG dy = after[IDC_PCTC_EDIT1].bottom - before[IDC_PCTC_EDIT1].bottom;
+	MoveVertically(after[IDC_PCTC_STATUS1], dy);
+	MoveVertically(after[IDC_PCTC_ENCODE], dy);
+	MoveVertically(after[IDC_PCTC_ENCODING], dy);
+	MoveVertically(after[IDC_PCTC_DECODE], dy);
+	MoveVertically(after[IDC_PCTC_STATUS2], dy);
 
 	RepositionTop(after[IDC_PCTC_LABEL2], after[IDC_PCTC_EDIT2].top);
 	RepositionTop(after[IDC_PCTC_COPY2], after[IDC_PCTC_EDIT2].top);
