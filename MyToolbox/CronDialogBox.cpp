@@ -72,7 +72,6 @@ void CronDialogBox::OnCreate()
 	CheckButton(IDC_CRON_EXPR_RADIO);
 	OnSourceSelection(IDC_CRON_EXPR_RADIO);
 	CheckButton(IDC_CRON_SECOND_CHECK, m_cron.SecondEnabled ? TRUE : FALSE);
-	SetOffsetComboBox(IDC_CRON_EXPR_COMBO, m_offset);
 	if (valueBaseOffset.Type == REG_DWORD)
 	{
 		SetOffsetComboBox(IDC_CRON_EXPR_COMBO, valueBaseOffset.Int32);
@@ -235,7 +234,6 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	// BOTTOM ROW
 	{
 		RepositionLeft(after[IDC_CRON_SECOND_CHECK], after[IDC_CRON_SECOND_STATIC].left + before[IDC_CRON_SECOND_CHECK].left - before[IDC_CRON_SECOND_STATIC].left);
-
 		MoveVertically(after[IDC_CRON_OFFSET_STATIC], cyDelta);
 		MoveVertically(after[IDC_CRON_OFFSET_COMBO], cyDelta);
 		MoveVertically(after[IDC_CRON_SECOND_CHECK], cyDelta);
