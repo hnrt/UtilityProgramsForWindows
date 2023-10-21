@@ -166,6 +166,8 @@
     <ClInclude Include="AboutBox.h" />
     <ClInclude Include="Cron.h" />
     <ClInclude Include="CronDialogBox.h" />
+    <ClInclude Include="CronElement.h" />
+    <ClInclude Include="CronError.h" />
     <ClInclude Include="CronParser.h" />
     <ClInclude Include="CronTokenizer.h" />
     <ClInclude Include="CronValue.h" />

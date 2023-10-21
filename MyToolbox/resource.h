@@ -30,6 +30,7 @@
 #define IDS_PCTC_ERROR                  122
 #define IDS_CRON_TABLABEL               123
 #define IDS_MSG_CLIPBOARD_COPY_ERROR    124
+#define IDS_MSG_CLIPBOARD_PASTE_ERROR   125
 #define IDR_MAINFRAME                   128
 #define IDD_HASH                        129
 #define IDD_GUID                        130
@@ -132,6 +133,7 @@
 #define IDC_CRON_OFFSET_COMBO           4301
 #define IDC_CRON_SECOND_CHECK           4302
 #define IDC_CRON_COPY_BUTTON            4900
+#define IDC_CRON_PASTE_BUTTON           4901
 #define IDM_FILE_EXIT                   11001
 #define IDM_EDIT_COPY                   12001
 #define IDM_VIEW_HASH                   13001

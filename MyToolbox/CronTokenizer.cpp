@@ -1,10 +1,13 @@
 #include "pch.h"
 #include "CronTokenizer.h"
-#include "hnrt/Exception.h"
+#include "CronError.h"
 
 
-#define FORMAT_BADSEQUENCE L"Error: Bad sequence at %u."
-#define FORMAT_BADCHARACTOR L"Error: Bad character %c at %u."
+namespace hnrt
+{
+	extern const PCWSTR MonthWords[];
+	extern const PCWSTR DayOfWeekWords[];
+}
 
 
 using namespace hnrt;
@@ -12,10 +15,10 @@ using namespace hnrt;
 
 CronTokenizer::CronTokenizer(PCWSTR psz)
 	: m_o(psz)
-	, m_p(psz + 1)
+	, m_p(psz)
+	, m_q(psz + 1)
 	, m_c(*psz)
 	, m_v(0)
-	, m_s()
 {
 }
 
@@ -23,75 +26,89 @@ CronTokenizer::CronTokenizer(PCWSTR psz)
 int CronTokenizer::GetNext()
 {
 	int sym;
+	switch (m_c)
+	{
+	case L'-':
+	case L',':
+	case L'/':
+	case L'#':
+		m_p = m_q - 1;
+		sym = m_c;
+		m_c = *m_q++;
+		return sym;
+	default:
+		break;
+	}
 	while (iswspace(m_c))
 	{
-		m_c = *m_p++;
+		m_c = *m_q++;
 	}
+	m_p = m_q - 1;
 	if (m_c == 0)
 	{
-		sym = CRON_TOKEN_EOF;
+		return CRON_TOKEN_EOF;
 	}
 	else if (iswdigit(m_c))
 	{
 		m_v = m_c - L'0';
-		m_c = *m_p++;
+		m_c = *m_q++;
 		while (iswdigit(m_c))
 		{
 			m_v = m_v * 10 + m_c - L'0';
-			m_c = *m_p++;
+			m_c = *m_q++;
 		}
-		if (m_c == L'\0' || m_c == L' ' || m_c == L',' || m_c == L'-' || m_c == L'/' || m_c == L'L' || m_c == L'W' || m_c == L'#')
+		if (m_c == L'W')
 		{
-			sym = CRON_TOKEN_INTEGER;
+			sym = CRON_TOKEN_INTEGER_W;
+			m_c = *m_q++;
+		}
+		else if (m_c == L'L')
+		{
+			sym = CRON_TOKEN_INTEGER_L;
+			m_c = *m_q++;
 		}
 		else
 		{
-			throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 1 - m_o));
+			sym = CRON_TOKEN_INTEGER;
+		}
+		if (m_c == L'\0' || m_c == L' ' || m_c == L',' || m_c == L'-' || m_c == L'/' || m_c == L'#')
+		{
+			return sym;
 		}
 	}
 	else if (iswalpha(m_c))
 	{
-		WCHAR* psz = m_s;
-		*psz++ = m_c;
-		psz[0] = L'\0';
-		psz[1] = L'\0';
-		m_c = *m_p++;
+		WCHAR sz[4] = { 0 };
+		sz[0] = m_c;
+		m_c = *m_q++;
 		if (iswalpha(m_c))
 		{
-			*psz++ = m_c;
-			m_c = *m_p++;
+			sz[1] = m_c;
+			m_c = *m_q++;
 			if (iswalpha(m_c))
 			{
-				*psz++ = m_c;
-				m_c = *m_p++;
-			}
-			else
-			{
-				throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 1 - m_o));
-			}
-			if (m_c == L'\0' || m_c == L' ' || m_c == L',' || m_c == L'-' || m_c == L'/' || m_c == L'#')
-			{
-				sym = CRON_TOKEN_WORD;
-			}
-			else
-			{
-				throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 1 - m_o));
-			}
-		}
-		else if (m_s[0] == L'L' || m_s[0] == L'W')
-		{
-			if (m_c == L'\0' || m_c == L' ' || m_c == L',')
-			{
-				sym = m_s[0];
-			}
-			else
-			{
-				throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 1 - m_o));
+				sz[2] = m_c;
+				m_c = *m_q++;
+				if (m_c == L'\0' || m_c == L' ' || m_c == L',' || m_c == L'-' || m_c == L'/' || m_c == L'#')
+				{
+					int index;
+					if ((index = Find(MonthWords, sz)) >= 0)
+					{
+						return CRON_TOKEN_MONTH_MIN + index;
+					}
+					else if ((index = Find(DayOfWeekWords, sz)) >= 0)
+					{
+						return CRON_TOKEN_DAYOFWEEK_MIN + index;
+					}
+				}
 			}
 		}
-		else
+		else if (m_c == L'\0' || m_c == L' ' || m_c == L',')
 		{
-			throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 1 - m_o));
+			if (sz[0] == L'L' || sz[0] == L'W')
+			{
+				return sz[0];
+			}
 		}
 	}
 	else
@@ -101,38 +118,30 @@ int CronTokenizer::GetNext()
 		case L'*':
 		case L'?':
 			sym = m_c;
-			m_c = *m_p++;
-			if (!(m_c == L'\0' || m_c == L' '))
+			m_c = *m_q++;
+			if (m_c == L'\0' || m_c == L' ')
 			{
-				throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 1 - m_o));
+				return sym;
 			}
 			break;
-		case L'-':
-		case L',':
-		case L'/':
-		case L'#':
-			sym = m_c;
-			m_c = *m_p++;
-			break;
 		default:
-			throw Exception(FORMAT_BADCHARACTOR, m_c, static_cast<UINT>(m_p - 1 - m_o));
+			break;
 		}
 	}
-	return sym;
+	throw CronError(CRON_ERROR_BADSEQUENCE, CRON_ELEMENT_UNSPECIFIED, GetOffset());
 }
 
 
-void CronTokenizer::FindValue(const PCWSTR* ppsz, int base)
+int CronTokenizer::Find(const PCWSTR* ppsz, PCWSTR psz)
 {
-	unsigned int index = 0;
+	int index = 0;
 	while (ppsz[index])
 	{
-		if (!wcscmp(ppsz[index], m_s))
+		if (!wcscmp(ppsz[index], psz))
 		{
-			m_v = base + index;
-			return;
+			return index;
 		}
 		index++;
 	}
-	throw Exception(FORMAT_BADSEQUENCE, static_cast<UINT>(m_p - 4 - m_o));
+	return -1;
 }

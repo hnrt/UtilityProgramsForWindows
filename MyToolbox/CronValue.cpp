@@ -70,6 +70,18 @@ CronValue* CronValueSingle::Create(CronElement element, int value)
 }
 
 
+CronValue* CronValueSingle::Create(CronElement element, int value, int step)
+{
+	CronValueSingle* pThis = new CronValueSingle();
+	pThis->type = CRON_SINGLE;
+	pThis->pNext = nullptr;
+	pThis->element = element;
+	pThis->step = step;
+	pThis->value = value;
+	return reinterpret_cast<CronValue*>(pThis);
+}
+
+
 CronValue* CronValueRange::Create(CronElement element, int from, int to)
 {
 	CronValueRange* pThis = new CronValueRange();
@@ -77,6 +89,19 @@ CronValue* CronValueRange::Create(CronElement element, int from, int to)
 	pThis->pNext = nullptr;
 	pThis->element = element;
 	pThis->step = 1;
+	pThis->from = from;
+	pThis->to = to;
+	return reinterpret_cast<CronValue*>(pThis);
+}
+
+
+CronValue* CronValueRange::Create(CronElement element, int from, int to, int step)
+{
+	CronValueRange* pThis = new CronValueRange();
+	pThis->type = CRON_RANGE;
+	pThis->pNext = nullptr;
+	pThis->element = element;
+	pThis->step = step;
 	pThis->from = from;
 	pThis->to = to;
 	return reinterpret_cast<CronValue*>(pThis);
@@ -144,13 +169,14 @@ PCWSTR CronValue::Name(CronElement element)
 {
 	switch (element)
 	{
-	case CRON_YEAR: return L"year";
-	case CRON_MONTH: return L"month";
-	case CRON_DAYOFMONTH: return L"day of the month";
-	case CRON_DAYOFWEEK: return L"day of the week";
-	case CRON_HOUR: return L"hour";
-	case CRON_MINUTE: return L"minute";
-	case CRON_SECOND: return L"second";
+	case CRON_YEAR: return L"Year";
+	case CRON_MONTH: return L"Month";
+	case CRON_DAYOFMONTH: return L"Day of the month";
+	case CRON_DAYOFWEEK: return L"Day of the week";
+	case CRON_HOUR: return L"Hour";
+	case CRON_MINUTE: return L"Minute";
+	case CRON_SECOND: return L"Second";
+	case CRON_ELEMENT_UNSPECIFIED: return L"(unspecified)";
 	default: throw Exception(L"CronValue::Name: Bad element: %d", element);
 	}
 }
@@ -454,6 +480,6 @@ int CronValue::Count(CronValueType type) const
 const CronValue* CronValue::Invalid()
 {
 	static CronValueAny value;
-	value.type = CRON_INVALID;
+	value.type = CRON_INVALID_VALUE;
 	return const_cast<const CronValue*>(reinterpret_cast<CronValue*>(&value));
 }

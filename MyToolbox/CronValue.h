@@ -2,6 +2,7 @@
 
 
 #include <Windows.h>
+#include "CronElement.h"
 
 
 #define CRON_WORD_DISPLACEMENT 10000
@@ -9,17 +10,6 @@
 
 namespace hnrt
 {
-	enum CronElement
-	{
-		CRON_YEAR,
-		CRON_MONTH,
-		CRON_DAYOFMONTH,
-		CRON_DAYOFWEEK,
-		CRON_HOUR,
-		CRON_MINUTE,
-		CRON_SECOND
-	};
-
 	enum CronValueType
 	{
 		CRON_ALL, // *
@@ -31,7 +21,7 @@ namespace hnrt
 		CRON_CLOSEST_WEEKDAY, // 3W (Weekday closest to 3rd day in the month)
 		CRON_NTH_DAYOFWEEK, // 3#2 (2nd Tuesday in the month)
 		CRON_LAST_DAYOFWEEK, // 6L (Last Friday in the month)
-		CRON_INVALID
+		CRON_INVALID_VALUE
 	};
 
 	struct CronValueAll
@@ -59,6 +49,7 @@ namespace hnrt
 		int value;
 		int max;
 		static CronValue* Create(CronElement element, int value);
+		static CronValue* Create(CronElement element, int value, int step);
 	};
 
 	struct CronValueRange
@@ -70,6 +61,7 @@ namespace hnrt
 		int from;
 		int to;
 		static CronValue* Create(CronElement element, int from, int to);
+		static CronValue* Create(CronElement element, int from, int to, int step);
 	};
 
 	struct CronValueLastDay

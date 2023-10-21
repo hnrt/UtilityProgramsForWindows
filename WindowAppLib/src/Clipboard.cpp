@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hnrt/Clipboard.h"
 #include "hnrt/Buffer.h"
+#include <exception>
 
 
 using namespace hnrt;
@@ -26,11 +27,19 @@ bool Clipboard::Copy(HWND hwnd, const WCHAR* pText, size_t cch)
 	memcpy_s(pDst, cb, pText, cch * sizeof(WCHAR));
 	pDst[cch] = L'\0';
 	GlobalUnlock(hMem);
-	OpenClipboard(hwnd);
-	EmptyClipboard();
-	SetClipboardData(CF_UNICODETEXT, hMem);
-	CloseClipboard();
-	return true;
+	bool bRet = false;
+	if (OpenClipboard(hwnd))
+	{
+		if (EmptyClipboard())
+		{
+			if (SetClipboardData(CF_UNICODETEXT, hMem))
+			{
+				bRet = true;
+			}
+		}
+		CloseClipboard();
+	}
+	return bRet;
 }
 
 
@@ -46,4 +55,47 @@ bool Clipboard::Copy(HWND hwnd, HWND hwndText)
 bool Clipboard::Copy(HWND hwnd, HWND hwndDialog, int idControl)
 {
 	return Copy(hwnd, GetDlgItem(hwndDialog, idControl));
+}
+
+
+bool Clipboard::Paste(HWND hwnd, RefPtr<ClipboardText>& pText)
+{
+	bool bRet = false;
+	Buffer<WCHAR> buf(260);
+	if (OpenClipboard(hwnd))
+	{
+		if (IsClipboardFormatAvailable(CF_UNICODETEXT))
+		{
+			HANDLE hMem = GetClipboardData(CF_UNICODETEXT);
+			if (hMem)
+			{
+				PWCHAR pSrc = reinterpret_cast<PWCHAR>(GlobalLock(hMem));
+				if (pSrc)
+				{
+					pText = RefPtr<ClipboardText>(new ClipboardText(pSrc));
+					bRet = true;
+					GlobalUnlock(hMem);
+				}
+			}
+		}
+		CloseClipboard();
+	}
+	return bRet;
+}
+
+
+ClipboardText::ClipboardText(PCWSTR psz)
+	: RefObj()
+	, m_psz(_wcsdup(psz))
+{
+	if (!m_psz)
+	{
+		throw std::bad_alloc();
+	}
+}
+
+
+ClipboardText::~ClipboardText()
+{
+	free(m_psz);
 }

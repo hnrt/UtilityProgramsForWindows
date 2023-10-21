@@ -23,10 +23,14 @@ namespace hnrt
 	private:
 
 		CronValue* Run(CronElement element);
-		CronValue* Run(CronElement element, UINT flags, const PCWSTR* ppsz);
-		bool ParseRange(CronElement element, int min, const PCWSTR* ppsz, int& value);
+		CronValue* Run(CronElement element, UINT flags);
+		bool ParseRange(CronElement element, int min, int& value);
 		bool ParseStep(CronElement element, int& value);
-		bool ParseInteger(CronElement element, int min, int max, const PCWSTR* ppsz, int& value);
+		bool ParseOrdinal(int& value);
+		bool ParseIntegerOrLabel(CronElement element, int min, int max, int& value);
+		bool ParseInteger(CronElement element, int min, int max, int& value);
+		bool ParseIntegerW(int& value);
+		bool ParseIntegerL(int& value);
 
 		CronTokenizer m_tokenizer;
 		int m_next;

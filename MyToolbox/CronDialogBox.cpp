@@ -131,6 +131,7 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	// RIGHT COLUMN
 	{
 		MoveHorizontally(after[IDC_CRON_COPY_BUTTON], cxDelta);
+		MoveHorizontally(after[IDC_CRON_PASTE_BUTTON], cxDelta);
 	}
 
 	// TOP ROW
@@ -301,6 +302,9 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		break;
 	case IDC_CRON_COPY_BUTTON:
 		OnCopy();
+		break;
+	case IDC_CRON_PASTE_BUTTON:
+		OnPaste();
 		break;
 	case IDC_CRON_YEAR_ALL_RADIO:
 		DisableWindow(IDC_CRON_YEAR_EDIT);
@@ -514,7 +518,9 @@ INT_PTR CronDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 
 void CronDialogBox::OnSourceSelection(int id)
 {
-	EnableWindow(IDC_CRON_EXPR_EDIT, id == IDC_CRON_EXPR_RADIO);
+	BOOL bExpression = id == IDC_CRON_EXPR_RADIO;
+	EnableWindow(IDC_CRON_EXPR_EDIT, bExpression);
+	EnableWindow(IDC_CRON_PASTE_BUTTON, bExpression);
 	BOOL bIndividual = id == IDC_CRON_INDI_RADIO;
 	EnableWindow(IDC_CRON_YEAR_ALL_RADIO, bIndividual);
 	EnableWindow(IDC_CRON_YEAR_EXPR_RADIO, bIndividual);
@@ -586,6 +592,20 @@ void CronDialogBox::OnOffsetChanged()
 void CronDialogBox::OnCopy()
 {
 	if (!Clipboard::Copy(hwnd, hwnd, IDC_CRON_EXPR_EDIT))
+	{
+		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+	}
+}
+
+
+void CronDialogBox::OnPaste()
+{
+	RefPtr<ClipboardText> pText;
+	if (Clipboard::Paste(hwnd, pText))
+	{
+		SetText(IDC_CRON_EXPR_EDIT, pText->Ptr);
+	}
+	else
 	{
 		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 	}
@@ -830,7 +850,7 @@ void CronDialogBox::UpdateValueControls(const CronValue& value, int idAll, int i
 
 void CronDialogBox::SetEvalText(int id, const CronValue& value)
 {
-	if (value.type == CRON_INVALID)
+	if (value.type == CRON_INVALID_VALUE)
 	{
 		m_bFormatSuccessful &= ~GetFormatFlag(id);
 		SetText(id);
