@@ -28,6 +28,7 @@ namespace hnrt
 		void ParseDayOfWeek(PCWSTR);
 		void ParseYear(PCWSTR);
 		PCWSTR ToString() const;
+		bool GetNextTime(int, SYSTEMTIME&);
 		const CronValue& GetSecond() const;
 		const CronValue& GetMinute() const;
 		const CronValue& GetHour() const;
@@ -47,12 +48,14 @@ namespace hnrt
 
 	private:
 
+		friend class CronEvaluation;
+
 		CronValue* m_pSecond; // 0-59 ,-*/
 		CronValue* m_pMinute; // 0-59 ,-*/
 		CronValue* m_pHour; // 0-23 ,-*/
-		CronValue* m_pDayOfMonth; // 1-31 ,-*/LWC
-		CronValue* m_pMonth; // 0-11 or JAN-DEC ,-*/
 		CronValue* m_pDayOfWeek; // 1-7 or SUN-SAT ,-*/LC#
+		CronValue* m_pMonth; // 0-11 or JAN-DEC ,-*/
+		CronValue* m_pDayOfMonth; // 1-31 ,-*/LWC
 		CronValue* m_pYear; // empty or 1970-2099 ,-*/
 		bool m_bSecond;
 	};

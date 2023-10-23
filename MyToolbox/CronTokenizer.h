@@ -2,6 +2,7 @@
 
 
 #include <Windows.h>
+#include "CronElement.h"
 
 
 #define CRON_TOKEN_EOF           0x000000
@@ -35,14 +36,18 @@
 
 namespace hnrt
 {
+	extern const PCWSTR CronMonthWords[];
+	extern const PCWSTR CronDayOfWeekWords[];
+
 	class CronTokenizer
 	{
 	public:
 
-		CronTokenizer(PCWSTR);
+		CronTokenizer(PCWSTR, CronElement = CRON_ELEMENT_UNSPECIFIED);
 		CronTokenizer(const CronTokenizer&) = delete;
 		~CronTokenizer() = default;
 		void operator =(const CronTokenizer&) = delete;
+		void SetElement(CronElement);
 		int GetNext();
 		int GetValue() const;
 		int GetOffset() const;
@@ -56,7 +61,13 @@ namespace hnrt
 		const WCHAR* m_q;
 		WCHAR m_c;
 		int m_v;
+		CronElement m_e;
 	};
+
+	inline void CronTokenizer::SetElement(CronElement element)
+	{
+		m_e = element;
+	}
 
 	inline int CronTokenizer::GetValue() const
 	{

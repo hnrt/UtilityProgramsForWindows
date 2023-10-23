@@ -2,6 +2,7 @@
 
 
 #include "hnrt/DialogBox.h"
+#include "hnrt/Time.h"
 #include "Cron.h"
 
 
@@ -47,7 +48,7 @@ namespace hnrt
 
 		Cron m_cron;
 		int m_offset;
-		ULONGLONG m_LastModifiedAt;
+		FileTime m_LastModifiedAt;
 		bool m_bParse;
 		bool m_bParseSuccessful;
 		UINT m_bFormat;

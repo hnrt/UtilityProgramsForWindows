@@ -86,12 +86,12 @@
 #define IDC_CRON_EXPR_RADIO             4000
 #define IDC_CRON_EXPR_EDIT              4001
 #define IDC_CRON_EXPR_COMBO             4002
-#define IDC_CRON_EXPR_STATIC            4003
+#define IDC_CRON_EXPR_STATIC            4009
 #define IDC_CRON_INDI_RADIO             4100
 #define IDC_CRON_YEAR_STATIC            4110
 #define IDC_CRON_YEAR_ALL_RADIO         4111
 #define IDC_CRON_YEAR_EXPR_RADIO        4112
-#define IDC_CRON_YEAR_EDIT              4113
+#define IDC_CRON_YEAR_EDIT              4118
 #define IDC_CRON_YEAR_EVAL_STATIC       4119
 #define IDC_CRON_MONTH_STATIC           4120
 #define IDC_CRON_MONTH_ALL_RADIO        4121
@@ -109,9 +109,8 @@
 #define IDC_CRON_DOW_STATIC             4140
 #define IDC_CRON_DOW_ALL_RADIO          4141
 #define IDC_CRON_DOW_ANY_RADIO          4142
-#define IDC_CRON_DOW_LASTDAY_RADIO      4143
-#define IDC_CRON_DOW_EXPR_RADIO         4144
-#define IDC_CRON_DOW_EDIT               4145
+#define IDC_CRON_DOW_EXPR_RADIO         4143
+#define IDC_CRON_DOW_EDIT               4144
 #define IDC_CRON_DOW_EVAL_STATIC        4149
 #define IDC_CRON_HOUR_STATIC            4150
 #define IDC_CRON_HOUR_ALL_RADIO         4151

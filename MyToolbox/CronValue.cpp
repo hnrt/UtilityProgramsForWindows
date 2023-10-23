@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CronValue.h"
+#include "CronTokenizer.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/String.h"
@@ -9,33 +10,14 @@
 using namespace hnrt;
 
 
-const PCWSTR hnrt::MonthWords[] = {
-	L"JAN",
-	L"FEB",
-	L"MAR",
-	L"APR",
-	L"MAY",
-	L"JUN",
-	L"JUL",
-	L"AUG",
-	L"SEP",
-	L"OCT",
-	L"NOV",
-	L"DEC",
-	nullptr
-};
-
-
-const PCWSTR hnrt::DayOfWeekWords[] = {
-	L"SUN",
-	L"MON",
-	L"TUE",
-	L"WED",
-	L"THU",
-	L"FRI",
-	L"SAT",
-	nullptr
-};
+CronValue* CronValueEmpty::Create(CronElement element)
+{
+	CronValueEmpty* pThis = new CronValueEmpty();
+	pThis->type = CRON_EMPTY;
+	pThis->pNext = nullptr;
+	pThis->element = element;
+	return reinterpret_cast<CronValue*>(pThis);
+}
 
 
 CronValue* CronValueAll::Create(CronElement element)
@@ -249,7 +231,7 @@ static void AppendIntegerOrWord(int value, CronElement element, StringBuffer& bu
 		value -= CRON_WORD_DISPLACEMENT;
 		if (min <= value && value <= max)
 		{
-			buf.AppendFormat(L"%s", MonthWords[value - min]);
+			buf.AppendFormat(L"%s", CronMonthWords[value - min]);
 		}
 		else
 		{
@@ -261,7 +243,7 @@ static void AppendIntegerOrWord(int value, CronElement element, StringBuffer& bu
 		value -= CRON_WORD_DISPLACEMENT;
 		if (min <= value && value <= max)
 		{
-			buf.AppendFormat(L"%s", DayOfWeekWords[value - min]);
+			buf.AppendFormat(L"%s", CronDayOfWeekWords[value - min]);
 		}
 		else
 		{
@@ -286,6 +268,8 @@ PCWSTR CronValue::ToString() const
 		}
 		switch (pCur->type)
 		{
+		case CRON_EMPTY:
+			break;
 		case CRON_ALL:
 			buf.AppendFormat(L"*");
 			break;
@@ -336,7 +320,7 @@ static int Adjust(int value, CronElement element, int offset)
 {
 	if (element == CRON_DAYOFMONTH)
 	{
-		return (value + (offset / (24 * 60)) + 32) % 32;
+		return (((value - 1) + (offset / (24 * 60)) + 31) % 31) + 1;
 	}
 	else if (element == CRON_HOUR)
 	{
@@ -357,7 +341,10 @@ static void Add(Buffer<int>& buf, size_t& count, int value)
 {
 	if (count + 1 > buf.Len)
 	{
+		Buffer<int> tmp(buf.Len);
+		memcpy_s(tmp.Ptr, tmp.Len * sizeof(int), buf.Ptr, buf.Len * sizeof(int));
 		buf.Resize(buf.Len * 2);
+		memcpy_s(buf.Ptr, buf.Len * sizeof(int), tmp.Ptr, tmp.Len * sizeof(int));
 	}
 	for (size_t index = 0; index < count; index++)
 	{
@@ -377,18 +364,11 @@ static void Add(Buffer<int>& buf, size_t& count, int value)
 }
 
 
-PCWSTR CronValue::Evaluate(int offset) const
+RefPtr<CronValueEvaluation> CronValue::Evaluate(int offset) const
 {
-	StringBuffer buf(260);
 	int min = Min(element);
 	int max = Max(element);
-	Buffer<int> samples(max - min + 1);
-	if (element == CRON_YEAR)
-	{
-		SYSTEMTIME st = { 0 };
-		GetLocalTime(&st);
-		min = st.wYear;
-	}
+	Buffer<int> samples(static_cast<size_t>(max) - static_cast<size_t>(min) + 1);
 	size_t count = 0;
 	for (const CronValue* pCur = this; pCur; pCur = pCur->pNext)
 	{
@@ -396,6 +376,19 @@ PCWSTR CronValue::Evaluate(int offset) const
 		int value2;
 		switch (pCur->type)
 		{
+		case CRON_EMPTY:
+			if (pCur->element == CRON_YEAR)
+			{
+				for (int next = min; next <= max; next++)
+				{
+					Add(samples, count, next);
+				}
+			}
+			else if (pCur->element == CRON_SECOND)
+			{
+				Add(samples, count, 0);
+			}
+			break;
 		case CRON_ALL:
 			for (int next = min; next <= max; next++)
 			{
@@ -405,7 +398,7 @@ PCWSTR CronValue::Evaluate(int offset) const
 		case CRON_ANY:
 			break;
 		case CRON_SINGLE:
-			value1 = pCur->single.value >= CRON_WORD_DISPLACEMENT ? pCur->single.value - CRON_WORD_DISPLACEMENT : pCur->single.value;
+			value1 = CRON_NUMBER(pCur->single.value);
 			if (pCur->single.step > 0)
 			{
 				for (int next = value1; next <= max; next += pCur->single.step)
@@ -419,8 +412,8 @@ PCWSTR CronValue::Evaluate(int offset) const
 			}
 			break;
 		case CRON_RANGE:
-			value1 = pCur->range.from >= CRON_WORD_DISPLACEMENT ? pCur->range.from - CRON_WORD_DISPLACEMENT : pCur->range.from;
-			value2 = pCur->range.to >= CRON_WORD_DISPLACEMENT ? pCur->range.to - CRON_WORD_DISPLACEMENT : pCur->range.to;
+			value1 = CRON_NUMBER(pCur->range.from);
+			value2 = CRON_NUMBER(pCur->range.to);
 			for (int next = value1; next <= value2; next += pCur->range.step)
 			{
 				Add(samples, count, Adjust(next, element, offset));
@@ -440,15 +433,7 @@ PCWSTR CronValue::Evaluate(int offset) const
 			break;
 		}
 	}
-	if (count > 0)
-	{
-		buf.AppendFormat(L"%d", samples[0]);
-		for (size_t index = 1; index < count; index++)
-		{
-			buf.AppendFormat(L" %d", samples[index]);
-		}
-	}
-	return String::Copy(buf);
+	return RefPtr<CronValueEvaluation>(new CronValueEvaluation(samples.Detach(), static_cast<int>(count)));
 }
 
 

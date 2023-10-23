@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "CronDialogBox.h"
+#include "CronError.h"
+#include "CronTokenizer.h"
 #include "resource.h"
 #include "hnrt/WindowLayoutSnapshot.h"
 #include "hnrt/WindowDesign.h"
@@ -8,6 +10,7 @@
 #include "hnrt/Exception.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/StringBuffer.h"
+#include "hnrt/StringUtils.h"
 #include "hnrt/Time.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
@@ -35,6 +38,90 @@
 
 
 using namespace hnrt;
+
+
+static PCWSTR GetCronErrorText(CronError e, bool bDetails = false)
+{
+	static WCHAR sz[260];
+	switch (e.type)
+	{
+	case CRON_ERROR_BADSEQUENCE:
+		if (bDetails && e.element != CRON_ELEMENT_UNSPECIFIED)
+		{
+			swprintf_s(sz, L"%s: Bad sequence at %d.", CronValue::Name(e.element), e.offset);
+		}
+		else
+		{
+			swprintf_s(sz, L"Bad sequence at %d.", e.offset);
+		}
+		break;
+	case CRON_ERROR_OUTOFRANGE:
+		if (bDetails && e.element != CRON_ELEMENT_UNSPECIFIED)
+		{
+			swprintf_s(sz, L"%s: Value is out of range at %d.", CronValue::Name(e.element), e.offset);
+		}
+		else
+		{
+			swprintf_s(sz, L"Value is out of range at %d.", e.offset);
+		}
+		break;
+	case CRON_ERROR_NOSTEP:
+		if (bDetails && e.element != CRON_ELEMENT_UNSPECIFIED)
+		{
+			swprintf_s(sz, L"%s: Step number is missing right after / at %d.", CronValue::Name(e.element), e.offset);
+		}
+		else
+		{
+			swprintf_s(sz, L"Step number is missing right after / at % d.", e.offset);
+		}
+		break;
+	case CRON_ERROR_NOUPPERBOUND:
+		if (bDetails && e.element != CRON_ELEMENT_UNSPECIFIED)
+		{
+			swprintf_s(sz, L"%s: Upper bound number is missing right after - at %d.", CronValue::Name(e.element), e.offset);
+		}
+		else
+		{
+			swprintf_s(sz, L"Upper bound number is missing right after - at %d.", e.offset);
+		}
+		break;
+	case CRON_ERROR_NOORDINALNUMBER:
+		if (bDetails && e.element != CRON_ELEMENT_UNSPECIFIED)
+		{
+			swprintf_s(sz, L"%s: Ordinal number is missing right after # at %d.", CronValue::Name(e.element), e.offset);
+		}
+		else
+		{
+			swprintf_s(sz, L"Ordinal number is missing right after # at %d.", e.offset);
+		}
+		break;
+	case CRON_ERROR_EXTRACHARACTER:
+		swprintf_s(sz, L"Extra character at %d.", e.offset);
+		break;
+	case CRON_ERROR_DUPLICATEALL:
+		swprintf_s(sz, L"Both day of the month and day of the week cannot be *.");
+		break;
+	case CRON_ERROR_DUPLICATEANY:
+		swprintf_s(sz, L"Both day of the month and day of the week cannot be ?.");
+		break;
+	case CRON_ERROR_ANYDAYOFMONTHREQUIRED:
+		swprintf_s(sz, L"Day of the month must be ? when day of the month is *.");
+		break;
+	case CRON_ERROR_ANYDAYOFWEEKREQUIRED:
+		swprintf_s(sz, L"Day of the week must be ? when day of the week is *.");
+		break;
+	case CRON_ERROR_ANYDAYREQUIRED:
+		swprintf_s(sz, L"Either day of the month or day of the week must be ?.");
+		break;
+	case CRON_ERROR_MULTIPLEORDINAL:
+		swprintf_s(sz, L"# cannot be specified two or more times.");
+		break;
+	default:
+		swprintf_s(sz, L"Unknown error: type=%d element=%d offset=%d", e.type, e.element, e.offset);
+		break;
+	}
+	return sz;
+}
 
 
 CronDialogBox::CronDialogBox()
@@ -101,7 +188,7 @@ void CronDialogBox::OnCreate()
 	}
 	Parse();
 	UpdateIndividualControls();
-	SetTimer(hwnd, CRON_TIMER1SEC, 250, NULL);
+	SetTimer(hwnd, CRON_TIMER1SEC, 1000, NULL);
 }
 
 
@@ -186,7 +273,6 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 		MoveHorizontallyAndExtend(after[IDC_CRON_DAY_EVAL_STATIC], dx, dcx);
 		MoveHorizontally(after[IDC_CRON_DOW_ALL_RADIO], dx);
 		MoveHorizontally(after[IDC_CRON_DOW_ANY_RADIO], dx);
-		MoveHorizontally(after[IDC_CRON_DOW_LASTDAY_RADIO], dx);
 		MoveHorizontally(after[IDC_CRON_DOW_EXPR_RADIO], dx);
 		MoveHorizontallyAndExtend(after[IDC_CRON_DOW_EDIT], dx, dcx);
 		MoveHorizontallyAndExtend(after[IDC_CRON_DOW_EVAL_STATIC], dx, dcx);
@@ -211,7 +297,6 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 		MoveVerticallyAndExtend(after[IDC_CRON_DESC_STATIC], dy, dcy);
 		MoveVertically(after[IDC_CRON_DOW_ALL_RADIO], dy);
 		MoveVertically(after[IDC_CRON_DOW_ANY_RADIO], dy);
-		MoveVertically(after[IDC_CRON_DOW_LASTDAY_RADIO], dy);
 		MoveVertically(after[IDC_CRON_DOW_EXPR_RADIO], dy);
 		MoveVertically(after[IDC_CRON_DOW_EDIT], dy);
 		MoveVerticallyAndExtend(after[IDC_CRON_DOW_EVAL_STATIC], dy, dcy);
@@ -296,7 +381,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 					m_bParse = true;
 					ClearEvalStatics();
 				}
-				m_LastModifiedAt = GetCurrentMicroSeconds();
+				m_LastModifiedAt.FromSystemTime();
 			}
 		}
 		break;
@@ -309,7 +394,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_CRON_YEAR_ALL_RADIO:
 		DisableWindow(IDC_CRON_YEAR_EDIT);
 		SetText(IDC_CRON_YEAR_EDIT, L"*");
-		m_LastModifiedAt = GetCurrentMicroSeconds();
+		m_LastModifiedAt.FromSystemTime();
 		m_bFormat |= CRON_FORMAT_YEAR;
 		break;
 	case IDC_CRON_YEAR_EXPR_RADIO:
@@ -318,7 +403,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_CRON_MONTH_ALL_RADIO:
 		DisableWindow(IDC_CRON_MONTH_EDIT);
 		SetText(IDC_CRON_MONTH_EDIT, L"*");
-		m_LastModifiedAt = GetCurrentMicroSeconds();
+		m_LastModifiedAt.FromSystemTime();
 		m_bFormat |= CRON_FORMAT_MONTH;
 		break;
 	case IDC_CRON_MONTH_EXPR_RADIO:
@@ -327,79 +412,113 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_CRON_DAY_ALL_RADIO:
 		DisableWindow(IDC_CRON_DAY_EDIT);
 		SetText(IDC_CRON_DAY_EDIT, L"*");
-		if (GetButtonState(IDC_CRON_DOW_ALL_RADIO) == BST_CHECKED)
+		if (GetButtonState(IDC_CRON_DOW_ANY_RADIO) != BST_CHECKED)
 		{
 			UncheckButton(IDC_CRON_DOW_ALL_RADIO);
 			CheckButton(IDC_CRON_DOW_ANY_RADIO);
+			UncheckButton(IDC_CRON_DOW_EXPR_RADIO);
 			SetText(IDC_CRON_DOW_EDIT, L"?");
 		}
-		m_LastModifiedAt = GetCurrentMicroSeconds();
+		m_LastModifiedAt.FromSystemTime();
 		m_bFormat |= CRON_FORMAT_DAYOFMONTH;
 		break;
 	case IDC_CRON_DAY_ANY_RADIO:
 		DisableWindow(IDC_CRON_DAY_EDIT);
 		SetText(IDC_CRON_DAY_EDIT, L"?");
-		if (GetButtonState(IDC_CRON_DOW_ANY_RADIO) == BST_CHECKED)
+		if (GetButtonState(IDC_CRON_DOW_ALL_RADIO) != BST_CHECKED)
 		{
-			UncheckButton(IDC_CRON_DOW_ANY_RADIO);
 			CheckButton(IDC_CRON_DOW_ALL_RADIO);
+			UncheckButton(IDC_CRON_DOW_ANY_RADIO);
+			UncheckButton(IDC_CRON_DOW_EXPR_RADIO);
 			SetText(IDC_CRON_DOW_EDIT, L"*");
 		}
-		m_LastModifiedAt = GetCurrentMicroSeconds();
+		m_LastModifiedAt.FromSystemTime();
 		m_bFormat |= CRON_FORMAT_DAYOFMONTH;
 		break;
 	case IDC_CRON_DAY_LASTDAY_RADIO:
 		DisableWindow(IDC_CRON_DAY_EDIT);
 		SetText(IDC_CRON_DAY_EDIT, L"L");
-		m_LastModifiedAt = GetCurrentMicroSeconds();
+		if (GetButtonState(IDC_CRON_DOW_ANY_RADIO) != BST_CHECKED)
+		{
+			UncheckButton(IDC_CRON_DOW_ALL_RADIO);
+			CheckButton(IDC_CRON_DOW_ANY_RADIO);
+			UncheckButton(IDC_CRON_DOW_EXPR_RADIO);
+			SetText(IDC_CRON_DOW_EDIT, L"?");
+		}
+		m_LastModifiedAt.FromSystemTime();
 		m_bFormat |= CRON_FORMAT_DAYOFMONTH;
 		break;
 	case IDC_CRON_DAY_WEEKDAY_RADIO:
 		DisableWindow(IDC_CRON_DAY_EDIT);
 		SetText(IDC_CRON_DAY_EDIT, L"W");
-		m_LastModifiedAt = GetCurrentMicroSeconds();
+		if (GetButtonState(IDC_CRON_DOW_ANY_RADIO) != BST_CHECKED)
+		{
+			UncheckButton(IDC_CRON_DOW_ALL_RADIO);
+			CheckButton(IDC_CRON_DOW_ANY_RADIO);
+			UncheckButton(IDC_CRON_DOW_EXPR_RADIO);
+			SetText(IDC_CRON_DOW_EDIT, L"?");
+		}
+		m_LastModifiedAt.FromSystemTime();
 		m_bFormat |= CRON_FORMAT_DAYOFWEEK;
 		break;
 	case IDC_CRON_DAY_EXPR_RADIO:
 		EnableWindow(IDC_CRON_DAY_EDIT);
+		SetText(IDC_CRON_DAY_EDIT);
+		if (GetButtonState(IDC_CRON_DOW_ANY_RADIO) != BST_CHECKED)
+		{
+			UncheckButton(IDC_CRON_DOW_ALL_RADIO);
+			CheckButton(IDC_CRON_DOW_ANY_RADIO);
+			UncheckButton(IDC_CRON_DOW_EXPR_RADIO);
+			SetText(IDC_CRON_DOW_EDIT, L"?");
+		}
 		break;
 	case IDC_CRON_DOW_ALL_RADIO:
 		DisableWindow(IDC_CRON_DOW_EDIT);
 		SetText(IDC_CRON_DOW_EDIT, L"*");
-		if (GetButtonState(IDC_CRON_DAY_ALL_RADIO) == BST_CHECKED)
+		if (GetButtonState(IDC_CRON_DAY_ANY_RADIO) != BST_CHECKED)
 		{
 			UncheckButton(IDC_CRON_DAY_ALL_RADIO);
 			CheckButton(IDC_CRON_DAY_ANY_RADIO);
+			UncheckButton(IDC_CRON_DAY_LASTDAY_RADIO);
+			UncheckButton(IDC_CRON_DAY_WEEKDAY_RADIO);
+			UncheckButton(IDC_CRON_DAY_EXPR_RADIO);
 			SetText(IDC_CRON_DAY_EDIT, L"?");
 		}
-		m_LastModifiedAt = GetCurrentMicroSeconds();
+		m_LastModifiedAt.FromSystemTime();
 		m_bFormat |= CRON_FORMAT_DAYOFWEEK;
 		break;
 	case IDC_CRON_DOW_ANY_RADIO:
 		DisableWindow(IDC_CRON_DOW_EDIT);
 		SetText(IDC_CRON_DOW_EDIT, L"?");
-		if (GetButtonState(IDC_CRON_DAY_ANY_RADIO) == BST_CHECKED)
+		if (GetButtonState(IDC_CRON_DAY_ALL_RADIO) != BST_CHECKED)
 		{
-			UncheckButton(IDC_CRON_DAY_ANY_RADIO);
 			CheckButton(IDC_CRON_DAY_ALL_RADIO);
+			UncheckButton(IDC_CRON_DAY_ANY_RADIO);
+			UncheckButton(IDC_CRON_DAY_LASTDAY_RADIO);
+			UncheckButton(IDC_CRON_DAY_WEEKDAY_RADIO);
+			UncheckButton(IDC_CRON_DAY_EXPR_RADIO);
 			SetText(IDC_CRON_DAY_EDIT, L"*");
 		}
-		m_LastModifiedAt = GetCurrentMicroSeconds();
-		m_bFormat |= CRON_FORMAT_DAYOFWEEK;
-		break;
-	case IDC_CRON_DOW_LASTDAY_RADIO:
-		DisableWindow(IDC_CRON_DOW_EDIT);
-		SetText(IDC_CRON_DOW_EDIT, L"L");
-		m_LastModifiedAt = GetCurrentMicroSeconds();
+		m_LastModifiedAt.FromSystemTime();
 		m_bFormat |= CRON_FORMAT_DAYOFWEEK;
 		break;
 	case IDC_CRON_DOW_EXPR_RADIO:
 		EnableWindow(IDC_CRON_DOW_EDIT);
+		SetText(IDC_CRON_DOW_EDIT);
+		if (GetButtonState(IDC_CRON_DAY_ANY_RADIO) != BST_CHECKED)
+		{
+			UncheckButton(IDC_CRON_DAY_ALL_RADIO);
+			CheckButton(IDC_CRON_DAY_ANY_RADIO);
+			UncheckButton(IDC_CRON_DAY_LASTDAY_RADIO);
+			UncheckButton(IDC_CRON_DAY_WEEKDAY_RADIO);
+			UncheckButton(IDC_CRON_DAY_EXPR_RADIO);
+			SetText(IDC_CRON_DAY_EDIT, L"?");
+		}
 		break;
 	case IDC_CRON_HOUR_ALL_RADIO:
 		DisableWindow(IDC_CRON_HOUR_EDIT);
 		SetText(IDC_CRON_HOUR_EDIT, L"*");
-		m_LastModifiedAt = GetCurrentMicroSeconds();
+		m_LastModifiedAt.FromSystemTime();
 		m_bFormat |= CRON_FORMAT_HOUR;
 		break;
 	case IDC_CRON_HOUR_EXPR_RADIO:
@@ -408,7 +527,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_CRON_MINUTE_ALL_RADIO:
 		DisableWindow(IDC_CRON_MINUTE_EDIT);
 		SetText(IDC_CRON_MINUTE_EDIT, L"*");
-		m_LastModifiedAt = GetCurrentMicroSeconds();
+		m_LastModifiedAt.FromSystemTime();
 		m_bFormat |= CRON_FORMAT_MINUTE;
 		break;
 	case IDC_CRON_MINUTE_EXPR_RADIO:
@@ -417,7 +536,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_CRON_SECOND_ALL_RADIO:
 		DisableWindow(IDC_CRON_SECOND_EDIT);
 		SetText(IDC_CRON_SECOND_EDIT, L"*");
-		m_LastModifiedAt = GetCurrentMicroSeconds();
+		m_LastModifiedAt.FromSystemTime();
 		m_bFormat |= CRON_FORMAT_SECOND;
 		break;
 	case IDC_CRON_SECOND_EXPR_RADIO:
@@ -439,7 +558,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 					m_bFormat |= GetFormatFlag(idChild);
 					ClearEvalStatics(GetEvalStatic(idChild));
 				}
-				m_LastModifiedAt = GetCurrentMicroSeconds();
+				m_LastModifiedAt.FromSystemTime();
 			}
 		}
 		break;
@@ -467,7 +586,7 @@ INT_PTR CronDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 	case CRON_TIMER1SEC:
 		if (m_bParse)
 		{
-			if (m_LastModifiedAt + 3000000 <= GetCurrentMicroSeconds())
+			if (m_LastModifiedAt <= FileTime().AddSeconds(-3))
 			{
 				Parse();
 				UpdateIndividualControls();
@@ -475,10 +594,23 @@ INT_PTR CronDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 		}
 		else if (m_bFormat)
 		{
-			if (m_LastModifiedAt + 3000000 <= GetCurrentMicroSeconds())
+			if (m_LastModifiedAt <= FileTime().AddSeconds(-3))
 			{
 				Format();
 				Parse();
+			}
+		}
+		else if (m_bParseSuccessful)
+		{
+			SYSTEMTIME st = { 0 };
+			if (m_cron.GetNextTime(GetOffsetComboBox(IDC_CRON_EXPR_COMBO), st))
+			{
+				FileTime ft(st);
+				ft.AddMinutes(m_offset);
+				ft.ToSystemTime(st);
+				WCHAR buf[260] = { 0 };
+				swprintf_s(buf, L"OK (%04d-%02d-%02d %02d:%02d:%02d)", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+				SetText(IDC_CRON_EXPR_STATIC, buf);
 			}
 		}
 		break;
@@ -536,7 +668,6 @@ void CronDialogBox::OnSourceSelection(int id)
 	EnableWindow(IDC_CRON_DAY_EDIT, bIndividual && (GetButtonState(IDC_CRON_DAY_EXPR_RADIO) == BST_CHECKED));
 	EnableWindow(IDC_CRON_DOW_ALL_RADIO, bIndividual);
 	EnableWindow(IDC_CRON_DOW_ANY_RADIO, bIndividual);
-	EnableWindow(IDC_CRON_DOW_LASTDAY_RADIO, bIndividual);
 	EnableWindow(IDC_CRON_DOW_EXPR_RADIO, bIndividual);
 	EnableWindow(IDC_CRON_DOW_EDIT, bIndividual && (GetButtonState(IDC_CRON_DOW_EXPR_RADIO) == BST_CHECKED));
 	EnableWindow(IDC_CRON_HOUR_ALL_RADIO, bIndividual);
@@ -624,27 +755,11 @@ void CronDialogBox::Parse()
 		m_bParseSuccessful = true;
 		SetText(IDC_CRON_EXPR_STATIC, L"OK");
 	}
-	catch (Exception ex)
+	catch (CronError e)
 	{
 		m_bParseSuccessful = false;
-		SetText(IDC_CRON_EXPR_STATIC, ex.Message);
+		SetText(IDC_CRON_EXPR_STATIC, GetCronErrorText(e, true));
 	}
-}
-
-
-static PCWSTR Trim(PWSTR buf)
-{
-	PWCHAR p1 = buf;
-	while (*p1 == L' ')
-	{
-		p1++;
-	}
-	PWCHAR p2 = p1 + wcslen(p1);
-	while (p1 < p2 && p2[-1] == L' ')
-	{
-		*(--p2) = L'\0';
-	}
-	return p1;
 }
 
 
@@ -664,15 +779,15 @@ void CronDialogBox::Format()
 			m_bFormatSuccessful |= CRON_FORMAT_SECOND;
 			SetEvalText(IDC_CRON_SECOND_EVAL_STATIC, m_cron.Second);
 		}
-		catch (Exception ex)
+		catch (CronError e)
 		{
 			m_bFormatSuccessful &= ~CRON_FORMAT_SECOND;
-			SetText(IDC_CRON_SECOND_EVAL_STATIC, ex.Message);
+			SetText(IDC_CRON_SECOND_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
 	if (GetButtonState(IDC_CRON_SECOND_CHECK) == BST_CHECKED)
 	{
-		AppendToExpression(Trim(buf));
+		AppendToExpression(TrimString(buf));
 	}
 
 	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_MINUTE_EDIT)) + 1);
@@ -685,13 +800,13 @@ void CronDialogBox::Format()
 			m_bFormatSuccessful |= CRON_FORMAT_MINUTE;
 			SetEvalText(IDC_CRON_MINUTE_EVAL_STATIC, m_cron.Minute);
 		}
-		catch (Exception ex)
+		catch (CronError e)
 		{
 			m_bFormatSuccessful &= ~CRON_FORMAT_MINUTE;
-			SetText(IDC_CRON_MINUTE_EVAL_STATIC, ex.Message);
+			SetText(IDC_CRON_MINUTE_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
-	AppendToExpression(Trim(buf));
+	AppendToExpression(TrimString(buf));
 
 	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_HOUR_EDIT)) + 1);
 	GetText(IDC_CRON_HOUR_EDIT, buf, buf.Len);
@@ -703,13 +818,13 @@ void CronDialogBox::Format()
 			m_bFormatSuccessful |= CRON_FORMAT_HOUR;
 			SetEvalText(IDC_CRON_HOUR_EVAL_STATIC, m_cron.Hour);
 		}
-		catch (Exception ex)
+		catch (CronError e)
 		{
 			m_bFormatSuccessful &= ~CRON_FORMAT_HOUR;
-			SetText(IDC_CRON_HOUR_EVAL_STATIC, ex.Message);
+			SetText(IDC_CRON_HOUR_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
-	AppendToExpression(Trim(buf));
+	AppendToExpression(TrimString(buf));
 
 	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_DAY_EDIT)) + 1);
 	GetText(IDC_CRON_DAY_EDIT, buf, buf.Len);
@@ -721,13 +836,13 @@ void CronDialogBox::Format()
 			m_bFormatSuccessful |= CRON_FORMAT_DAYOFMONTH;
 			SetEvalText(IDC_CRON_DAY_EVAL_STATIC, m_cron.DayOfMonth);
 		}
-		catch (Exception ex)
+		catch (CronError e)
 		{
 			m_bFormatSuccessful &= ~CRON_FORMAT_DAYOFMONTH;
-			SetText(IDC_CRON_DAY_EVAL_STATIC, ex.Message);
+			SetText(IDC_CRON_DAY_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
-	AppendToExpression(Trim(buf));
+	AppendToExpression(TrimString(buf));
 
 	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_MONTH_EDIT)) + 1);
 	GetText(IDC_CRON_MONTH_EDIT, buf, buf.Len);
@@ -739,13 +854,13 @@ void CronDialogBox::Format()
 			m_bFormatSuccessful |= CRON_FORMAT_MONTH;
 			SetEvalText(IDC_CRON_MONTH_EVAL_STATIC, m_cron.Month);
 		}
-		catch (Exception ex)
+		catch (CronError e)
 		{
 			m_bFormatSuccessful &= ~CRON_FORMAT_MONTH;
-			SetText(IDC_CRON_MONTH_EVAL_STATIC, ex.Message);
+			SetText(IDC_CRON_MONTH_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
-	AppendToExpression(Trim(buf));
+	AppendToExpression(TrimString(buf));
 
 	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_DOW_EDIT)) + 1);
 	GetText(IDC_CRON_DOW_EDIT, buf, buf.Len);
@@ -757,13 +872,13 @@ void CronDialogBox::Format()
 			m_bFormatSuccessful |= CRON_FORMAT_DAYOFWEEK;
 			SetEvalText(IDC_CRON_DOW_EVAL_STATIC, m_cron.DayOfWeek);
 		}
-		catch (Exception ex)
+		catch (CronError e)
 		{
 			m_bFormatSuccessful &= ~CRON_FORMAT_DAYOFWEEK;
-			SetText(IDC_CRON_DOW_EVAL_STATIC, ex.Message);
+			SetText(IDC_CRON_DOW_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
-	AppendToExpression(Trim(buf));
+	AppendToExpression(TrimString(buf));
 
 	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_YEAR_EDIT)) + 1);
 	GetText(IDC_CRON_YEAR_EDIT, buf, buf.Len);
@@ -775,13 +890,13 @@ void CronDialogBox::Format()
 			m_bFormatSuccessful |= CRON_FORMAT_YEAR;
 			SetEvalText(IDC_CRON_YEAR_EVAL_STATIC, m_cron.Year);
 		}
-		catch (Exception ex)
+		catch (CronError e)
 		{
 			m_bFormatSuccessful &= ~CRON_FORMAT_YEAR;
-			SetText(IDC_CRON_YEAR_EVAL_STATIC, ex.Message);
+			SetText(IDC_CRON_YEAR_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
-	AppendToExpression(Trim(buf));
+	AppendToExpression(TrimString(buf));
 
 	m_bFormat = 0;
 }
@@ -820,7 +935,7 @@ void CronDialogBox::UpdateIndividualControls()
 	UpdateValueControls(m_cron.Year, IDC_CRON_YEAR_ALL_RADIO, 0, 0, 0, IDC_CRON_YEAR_EXPR_RADIO, IDC_CRON_YEAR_EDIT, IDC_CRON_YEAR_EVAL_STATIC);
 	UpdateValueControls(m_cron.Month, IDC_CRON_MONTH_ALL_RADIO, 0, 0, 0, IDC_CRON_MONTH_EXPR_RADIO, IDC_CRON_MONTH_EDIT, IDC_CRON_MONTH_EVAL_STATIC);
 	UpdateValueControls(m_cron.DayOfMonth, IDC_CRON_DAY_ALL_RADIO, IDC_CRON_DAY_ANY_RADIO, IDC_CRON_DAY_LASTDAY_RADIO, IDC_CRON_DAY_WEEKDAY_RADIO, IDC_CRON_DAY_EXPR_RADIO, IDC_CRON_DAY_EDIT, IDC_CRON_DAY_EVAL_STATIC);
-	UpdateValueControls(m_cron.DayOfWeek, IDC_CRON_DOW_ALL_RADIO, IDC_CRON_DOW_ANY_RADIO, IDC_CRON_DOW_LASTDAY_RADIO, 0, IDC_CRON_DOW_EXPR_RADIO, IDC_CRON_DOW_EDIT, IDC_CRON_DOW_EVAL_STATIC);
+	UpdateValueControls(m_cron.DayOfWeek, IDC_CRON_DOW_ALL_RADIO, IDC_CRON_DOW_ANY_RADIO, 0, 0, IDC_CRON_DOW_EXPR_RADIO, IDC_CRON_DOW_EDIT, IDC_CRON_DOW_EVAL_STATIC);
 	UpdateValueControls(m_cron.Hour, IDC_CRON_HOUR_ALL_RADIO, 0, 0, 0, IDC_CRON_HOUR_EXPR_RADIO, IDC_CRON_HOUR_EDIT, IDC_CRON_HOUR_EVAL_STATIC);
 	UpdateValueControls(m_cron.Minute, IDC_CRON_MINUTE_ALL_RADIO, 0, 0, 0, IDC_CRON_MINUTE_EXPR_RADIO, IDC_CRON_MINUTE_EDIT, IDC_CRON_MINUTE_EVAL_STATIC);
 	UpdateValueControls(m_cron.Second, IDC_CRON_SECOND_ALL_RADIO, 0, 0, 0, IDC_CRON_SECOND_EXPR_RADIO, IDC_CRON_SECOND_EDIT, IDC_CRON_SECOND_EVAL_STATIC);
@@ -863,7 +978,7 @@ void CronDialogBox::SetEvalText(int id, const CronValue& value)
 	else
 	{
 		m_bFormatSuccessful |= GetFormatFlag(id);
-		SetText(id, value.Evaluate(m_offset));
+		SetText(id, value.Evaluate(m_offset)->ToString());
 	}
 }
 
@@ -998,9 +1113,9 @@ void CronDialogBox::InitializeDescriptionStatic()
 {
 	StringBuffer desc(260);
 	desc.AppendFormat(L"Year: %d-%d ( , - * / )", CronValue::Min(CRON_YEAR), CronValue::Max(CRON_YEAR));
-	desc.AppendFormat(L"  Month: %d-%d or %s-%s ( , - * / )", CronValue::Min(CRON_MONTH), CronValue::Max(CRON_MONTH), MonthWords[0], MonthWords[11]);
+	desc.AppendFormat(L"  Month: %d-%d or %s-%s ( , - * / )", CronValue::Min(CRON_MONTH), CronValue::Max(CRON_MONTH), CronMonthWords[0], CronMonthWords[11]);
 	desc.AppendFormat(L"  Day: %d-%d ( , - * / ? L W )", CronValue::Min(CRON_DAYOFMONTH), CronValue::Max(CRON_DAYOFMONTH));
-	desc.AppendFormat(L"\nDay Of the Week: %d-%d or %s-%s ( , - * / ? L # )", CronValue::Min(CRON_DAYOFWEEK), CronValue::Max(CRON_DAYOFWEEK), DayOfWeekWords[0], DayOfWeekWords[6]);
+	desc.AppendFormat(L"\nDay Of the Week: %d-%d or %s-%s ( , - * / ? L # )", CronValue::Min(CRON_DAYOFWEEK), CronValue::Max(CRON_DAYOFWEEK), CronDayOfWeekWords[0], CronDayOfWeekWords[6]);
 	desc.AppendFormat(L"\nHour: %d-%d ( , - * / )", CronValue::Min(CRON_HOUR), CronValue::Max(CRON_HOUR));
 	desc.AppendFormat(L"  Minute: %d-%d ( , - * / )", CronValue::Min(CRON_MINUTE), CronValue::Max(CRON_MINUTE));
 	desc.AppendFormat(L"  Second: %d-%d ( , - * / )", CronValue::Min(CRON_SECOND), CronValue::Max(CRON_SECOND));

@@ -1,9 +1,11 @@
 #include "pch.h"
 #include "Cron.h"
 #include "CronParser.h"
+#include "CronEvaluation.h"
 #include "hnrt/Exception.h"
 #include "hnrt/String.h"
 #include "hnrt/StringBuffer.h"
+#include "hnrt/Debug.h"
 
 
 using namespace hnrt;
@@ -54,9 +56,9 @@ bool Cron::isSecondEnabled() const
 
 void Cron::EnableSecond(bool bEnabled)
 {
-	if (!m_bSecond && bEnabled && !m_pSecond)
+	if (!m_bSecond && bEnabled)
 	{
-		m_pSecond = CronValueAll::Create(CRON_SECOND);
+		m_pSecond = CronValueSingle::Create(CRON_SECOND, 0);
 	}
 	m_bSecond = bEnabled;
 }
@@ -83,7 +85,7 @@ void Cron::Parse(PCWSTR psz)
 	}
 	else
 	{
-		m_pSecond = CronValueAll::Create(CRON_SECOND);
+		m_pSecond = CronValueEmpty::Create(CRON_SECOND);
 		CronParser(psz).Run(m_pYear, m_pMonth, m_pDayOfMonth, m_pDayOfWeek, m_pHour, m_pMinute);
 	}
 }
@@ -170,6 +172,21 @@ PCWSTR Cron::ToString() const
 		buf.AppendFormat(L" %s", m_pYear->ToString());
 	}
 	return String::Trim(buf);
+}
+
+
+bool Cron::GetNextTime(int offset, SYSTEMTIME& stReturn)
+{
+	CronEvaluation eval(*this);
+	if (eval.Run(offset))
+	{
+		stReturn = eval;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 

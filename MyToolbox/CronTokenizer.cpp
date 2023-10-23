@@ -3,22 +3,45 @@
 #include "CronError.h"
 
 
-namespace hnrt
-{
-	extern const PCWSTR MonthWords[];
-	extern const PCWSTR DayOfWeekWords[];
-}
+const PCWSTR hnrt::CronMonthWords[] = {
+	L"JAN",
+	L"FEB",
+	L"MAR",
+	L"APR",
+	L"MAY",
+	L"JUN",
+	L"JUL",
+	L"AUG",
+	L"SEP",
+	L"OCT",
+	L"NOV",
+	L"DEC",
+	nullptr
+};
+
+
+const PCWSTR hnrt::CronDayOfWeekWords[] = {
+	L"SUN",
+	L"MON",
+	L"TUE",
+	L"WED",
+	L"THU",
+	L"FRI",
+	L"SAT",
+	nullptr
+};
 
 
 using namespace hnrt;
 
 
-CronTokenizer::CronTokenizer(PCWSTR psz)
+CronTokenizer::CronTokenizer(PCWSTR psz, CronElement element)
 	: m_o(psz)
 	, m_p(psz)
 	, m_q(psz + 1)
 	, m_c(*psz)
 	, m_v(0)
+	, m_e(element)
 {
 }
 
@@ -92,11 +115,11 @@ int CronTokenizer::GetNext()
 				if (m_c == L'\0' || m_c == L' ' || m_c == L',' || m_c == L'-' || m_c == L'/' || m_c == L'#')
 				{
 					int index;
-					if ((index = Find(MonthWords, sz)) >= 0)
+					if ((index = Find(CronMonthWords, sz)) >= 0)
 					{
 						return CRON_TOKEN_MONTH_MIN + index;
 					}
-					else if ((index = Find(DayOfWeekWords, sz)) >= 0)
+					else if ((index = Find(CronDayOfWeekWords, sz)) >= 0)
 					{
 						return CRON_TOKEN_DAYOFWEEK_MIN + index;
 					}
@@ -128,7 +151,7 @@ int CronTokenizer::GetNext()
 			break;
 		}
 	}
-	throw CronError(CRON_ERROR_BADSEQUENCE, CRON_ELEMENT_UNSPECIFIED, GetOffset());
+	throw CronError(CRON_ERROR_BADSEQUENCE, m_e, GetOffset());
 }
 
 

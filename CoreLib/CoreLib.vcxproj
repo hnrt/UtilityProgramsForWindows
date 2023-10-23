@@ -234,6 +234,7 @@
     <ClInclude Include="inc\hnrt\SidPtr.h" />
     <ClInclude Include="inc\hnrt\StringCollection.h" />
     <ClInclude Include="inc\hnrt\StringStore.h" />
+    <ClInclude Include="inc\hnrt\StringUtils.h" />
     <ClInclude Include="inc\hnrt\SyntheticInput.h" />
     <ClInclude Include="inc\hnrt\Time.h" />
     <ClInclude Include="inc\hnrt\UiAutomation.h" />
@@ -307,6 +308,7 @@
     <ClCompile Include="src\StringStore.cpp" />
     <ClCompile Include="src\StringStoreInternal.cpp" />
     <ClCompile Include="src\String.cpp" />
+    <ClCompile Include="src\StringUtils.cpp" />
     <ClCompile Include="src\SyntheticInput.cpp" />
     <ClCompile Include="src\Time.cpp" />
     <ClCompile Include="src\UiAutomationFactory.cpp" />

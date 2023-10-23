@@ -1,17 +1,20 @@
 #pragma once
 
 
-#include <Windows.h>
 #include "CronElement.h"
+#include "CronValueEvaluation.h"
 
 
 #define CRON_WORD_DISPLACEMENT 10000
+
+#define CRON_NUMBER(x) (((x) < CRON_WORD_DISPLACEMENT) ? (x) : ((x) - CRON_WORD_DISPLACEMENT))
 
 
 namespace hnrt
 {
 	enum CronValueType
 	{
+		CRON_EMPTY,
 		CRON_ALL, // *
 		CRON_ANY, // ?
 		CRON_LASTDAY, // L
@@ -22,6 +25,14 @@ namespace hnrt
 		CRON_NTH_DAYOFWEEK, // 3#2 (2nd Tuesday in the month)
 		CRON_LAST_DAYOFWEEK, // 6L (Last Friday in the month)
 		CRON_INVALID_VALUE
+	};
+
+	struct CronValueEmpty
+	{
+		CronValueType type; // CRON_EMPTY
+		union CronValue* pNext; // null
+		CronElement element; // CRON_YEAR / CRON_SECOND
+		static CronValue* Create(CronElement element);
 	};
 
 	struct CronValueAll
@@ -118,6 +129,7 @@ namespace hnrt
 			union CronValue* pNext;
 			CronElement element;
 		};
+		CronValueEmpty empty;
 		CronValueAll all;
 		CronValueAny any;
 		CronValueSingle single;
@@ -130,7 +142,7 @@ namespace hnrt
 
 		operator PCWSTR() const;
 		PCWSTR ToString() const;
-		PCWSTR Evaluate(int offset = 0) const;
+		RefPtr<CronValueEvaluation> Evaluate(int offset = 0) const;
 		int Count() const;
 		int Count(CronValueType type) const;
 
@@ -140,8 +152,4 @@ namespace hnrt
 		static int Max(CronElement element);
 		static const CronValue* Invalid();
 	};
-
-	extern const PCWSTR MonthWords[];
-
-	extern const PCWSTR DayOfWeekWords[];
 }
