@@ -64,63 +64,51 @@ bool CronEvaluation::Run(int offset)
 	FileTime ft;
 	ft.AddMinutes(offset);
 	ft.ToSystemTime(m_ct);
-	if (m_pYearEval->EqualToOrGreaterThan(m_ct.wYear, m_et.wYear))
-	{
-		if (m_et.wYear == m_ct.wYear)
-		{
-			if (m_pMonthEval->EqualToOrGreaterThan(m_ct.wMonth, m_et.wMonth) && m_et.wMonth == m_ct.wMonth)
-			{
-				if (GetDayOfMonthEqualToOrLaterThanToday())
-				{
-					if (m_et.wDay == m_ct.wDay)
-					{
-						if (m_pHourEval->EqualToOrGreaterThan(m_ct.wHour, m_et.wHour) && m_et.wHour == m_ct.wHour)
-						{
-							if (m_pMinuteEval->EqualToOrGreaterThan(m_ct.wMinute, m_et.wMinute) && m_et.wMinute == m_ct.wMinute)
-							{
-								if (m_pSecondEval->EqualToOrGreaterThan(m_ct.wSecond, m_et.wSecond))
-								{
-									return true;
-								}
-								else
-								{
-									return GetNextMinuteSecond();
-								}
-							}
-							else
-							{
-								return GetNextHourMinuteSecond();
-							}
-						}
-						else
-						{
-							return GetNextDayOfMonthHourMinuteSecond();
-						}
-					}
-					else
-					{
-						return GetNextHourMinuteSecond();
-					}
-				}
-				else
-				{
-					return GetNextMonthDayOfMonthHourMinuteSecond();
-				}
-			}
-			else
-			{
-				return GetNextYearMonthDayOfMonthHourMinuteSecond();
-			}
-		}
-		else
-		{
-			return GetNextMonthDayOfMonthHourMinuteSecond();
-		}
-	}
-	else
+	if (!m_pYearEval->EqualToOrGreaterThan(m_ct.wYear, m_et.wYear))
 	{
 		return false;
 	}
+	else if (m_ct.wYear < m_et.wYear)
+	{
+		return GetNextMonthDayOfMonthHourMinuteSecond();
+	}
+	else if (!m_pMonthEval->EqualToOrGreaterThan(m_ct.wMonth, m_et.wMonth))
+	{
+		return GetNextYearMonthDayOfMonthHourMinuteSecond();
+	}
+	else if (m_ct.wMonth < m_et.wMonth)
+	{
+		return GetNextDayOfMonthHourMinuteSecond();
+	}
+	else if (!GetDayOfMonthEqualToOrLaterThanToday())
+	{
+		return GetNextMonthDayOfMonthHourMinuteSecond();
+	}
+	else if (m_ct.wDay < m_et.wDay)
+	{
+		return GetNextHourMinuteSecond();
+	}
+	else if (!m_pHourEval->EqualToOrGreaterThan(m_ct.wHour, m_et.wHour))
+	{
+		return GetNextDayOfMonthHourMinuteSecond();
+	}
+	else if (m_ct.wHour < m_et.wHour)
+	{
+		return GetNextMinuteSecond();
+	}
+	else if (!m_pMinuteEval->EqualToOrGreaterThan(m_ct.wMinute, m_et.wMinute))
+	{
+		return GetNextHourMinuteSecond();
+	}
+	else if (m_ct.wMinute < m_et.wMinute)
+	{
+		return GetNextSecond();
+	}
+	else if (!m_pSecondEval->EqualToOrGreaterThan(m_ct.wSecond, m_et.wSecond))
+	{
+		return GetNextMinuteSecond();
+	}
+	return true;
 }
 
 
@@ -130,98 +118,52 @@ bool CronEvaluation::GetNextYearMonthDayOfMonthHourMinuteSecond()
 	{
 		return false;
 	}
-	if (!GetNextMonth())
-	{
-		return false;
-	}
-	if (!GetNextDayOfMonth())
-	{
-		return false;
-	}
-	if (!GetNextHour())
-	{
-		return false;
-	}
-	if (!GetNextMinute())
-	{
-		return false;
-	}
-	return GetNextSecond();
+	return GetNextMonthDayOfMonthHourMinuteSecond();
 }
 
 
 bool CronEvaluation::GetNextMonthDayOfMonthHourMinuteSecond()
 {
-	if (GetNextMonth())
-	{
-		if (!GetNextDayOfMonth())
-		{
-			return false;
-		}
-		if (!GetNextHour())
-		{
-			return false;
-		}
-		if (!GetNextMinute())
-		{
-			return false;
-		}
-		return GetNextSecond();
-	}
-	else
+	if (!GetNextMonth())
 	{
 		return GetNextYearMonthDayOfMonthHourMinuteSecond();
 	}
+	return GetNextDayOfMonthHourMinuteSecond();
 }
 
 
 bool CronEvaluation::GetNextDayOfMonthHourMinuteSecond()
 {
-	if (GetNextDayOfMonth())
-	{
-		if (!GetNextHour())
-		{
-			return false;
-		}
-		if (!GetNextMinute())
-		{
-			return false;
-		}
-		return GetNextSecond();
-	}
-	else
+	if (!GetNextDayOfMonth())
 	{
 		return GetNextMonthDayOfMonthHourMinuteSecond();
 	}
+	return GetNextHourMinuteSecond();
 }
 
 
 bool CronEvaluation::GetNextHourMinuteSecond()
 {
-	if (GetNextHour())
-	{
-		if (!GetNextMinute())
-		{
-			return false;
-		}
-		return GetNextSecond();
-	}
-	else
+	if (!GetNextHour())
 	{
 		return GetNextDayOfMonthHourMinuteSecond();
 	}
+	return GetNextMinuteSecond();
 }
 
 
 bool CronEvaluation::GetNextMinuteSecond()
 {
-	if (GetNextMinute())
+	while (true)
 	{
-		return GetNextSecond();
-	}
-	else
-	{
-		return GetNextHourMinuteSecond();
+		if (!GetNextMinute())
+		{
+			return GetNextHourMinuteSecond();
+		}
+		if (GetNextSecond())
+		{
+			return true;
+		}
 	}
 }
 
