@@ -1,8 +1,10 @@
 #include "pch.h"
 #include "CronDialogBox.h"
+#include "MyToolbox.h"
 #include "CronError.h"
 #include "CronTokenizer.h"
 #include "resource.h"
+#include "hnrt/Menu.h"
 #include "hnrt/WindowLayoutSnapshot.h"
 #include "hnrt/WindowDesign.h"
 #include "hnrt/Clipboard.h"
@@ -133,20 +135,6 @@ CronDialogBox::CronDialogBox()
 	, m_bFormat(0)
 	, m_bFormatSuccessful(0)
 {
-}
-
-
-void CronDialogBox::OnTabSelectionChanging()
-{
-	MyDialogBox::OnTabSelectionChanging();
-	KillTimer(hwnd, CRON_TIMER1SEC);
-}
-
-
-void CronDialogBox::OnTabSelectionChanged()
-{
-	MyDialogBox::OnTabSelectionChanged();
-	SetTimer(hwnd, CRON_TIMER1SEC, 1000, NULL);
 }
 
 
@@ -339,6 +327,29 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	}
 
 	after.Apply();
+}
+
+
+void CronDialogBox::OnTabSelectionChanging()
+{
+	MyDialogBox::OnTabSelectionChanging();
+	KillTimer(hwnd, CRON_TIMER1SEC);
+	Menu topLevel(GetApp<MyToolbox>().hwnd);
+	Menu(topLevel[2])
+		.Enable(IDM_VIEW_CRON, MF_ENABLED);
+}
+
+
+void CronDialogBox::OnTabSelectionChanged()
+{
+	MyDialogBox::OnTabSelectionChanged();
+	Menu topLevel(GetApp<MyToolbox>().hwnd);
+	Menu(topLevel[1])
+		.RemoveAll()
+		.Add(ResourceString(IDS_COPY), IDM_EDIT_COPY);
+	Menu(topLevel[2])
+		.Enable(IDM_VIEW_CRON, MF_DISABLED);
+	SetTimer(hwnd, CRON_TIMER1SEC, 1000, NULL);
 }
 
 

@@ -63,9 +63,16 @@ Menu& Menu::AddSeparator()
 }
 
 
-Menu& Menu::Modify(UINT uPosition, PCWSTR psz, UINT id, UINT flags)
+Menu& Menu::Modify(UINT uPosition, UINT uFlags, UINT_PTR id, PCWSTR psz)
 {
-    ModifyMenuW(m_h, uPosition, MF_STRING | flags, id, psz);
+    ModifyMenuW(m_h, uPosition, MF_STRING | uFlags, id, psz);
+    return *this;
+}
+
+
+Menu& Menu::Enable(UINT uItem, UINT uEnable)
+{
+    EnableMenuItem(m_h, uItem, uEnable);
     return *this;
 }
 

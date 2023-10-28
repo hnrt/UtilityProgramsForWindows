@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "PercentCodecDialogBox.h"
+#include "MyToolbox.h"
 #include "resource.h"
+#include "hnrt/Menu.h"
 #include "hnrt/WindowDesign.h"
 #include "hnrt/WindowHandle.h"
 #include "hnrt/WindowLayoutSnapshot.h"
@@ -79,6 +81,28 @@ void PercentCodecDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	MoveVertically(after[IDC_PCTC_LABEL3], cyDelta);
 
 	after.Apply();
+}
+
+
+void PercentCodecDialogBox::OnTabSelectionChanging()
+{
+	MyDialogBox::OnTabSelectionChanging();
+	Menu topLevel(GetApp<MyToolbox>().hwnd);
+	Menu(topLevel[2])
+		.Enable(IDM_VIEW_PCTC, MF_ENABLED);
+}
+
+
+void PercentCodecDialogBox::OnTabSelectionChanged()
+{
+	MyDialogBox::OnTabSelectionChanged();
+	MyToolbox& app = GetApp<MyToolbox>();
+	Menu topLevel(app.hwnd);
+	Menu(topLevel[1])
+		.RemoveAll()
+		.Add(ResourceString(IDS_COPY), IDM_EDIT_COPY);
+	Menu(topLevel[2])
+		.Enable(IDM_VIEW_PCTC, MF_DISABLED);
 }
 
 

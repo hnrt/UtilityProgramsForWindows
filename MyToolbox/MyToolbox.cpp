@@ -151,9 +151,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         m_about.Show();
         break;
     default:
-        break;
+        return FALSE;
     }
-    return 0;
+    return TRUE;
 }
 
 

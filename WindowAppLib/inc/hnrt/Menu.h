@@ -22,7 +22,8 @@ namespace hnrt
 		Menu& Add(PCWSTR psz, HMENU h);
 		Menu& Add(PCWSTR psz, UINT id, UINT flags = 0);
 		Menu& AddSeparator();
-		Menu& Modify(UINT uPosition, PCWSTR psz, UINT id, UINT flags = MF_BYPOSITION);
+		Menu& Modify(UINT uPosition, UINT uFlags, UINT_PTR id = 0, PCWSTR psz = nullptr);
+		Menu& Enable(UINT uItem, UINT uEnable = MF_BYCOMMAND | MF_ENABLED);
 		Menu& RemoveAll();
 
 	protected:

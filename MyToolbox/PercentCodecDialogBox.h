@@ -15,6 +15,8 @@ namespace hnrt
 		PercentCodecDialogBox(const PercentCodecDialogBox&) = delete;
 		virtual ~PercentCodecDialogBox() = default;
 		void operator =(const PercentCodecDialogBox&) = delete;
+		virtual void OnTabSelectionChanging();
+		virtual void OnTabSelectionChanged();
 		virtual void OnCopy();
 
 	private:

@@ -3,6 +3,7 @@
 #include "MyToolbox.h"
 #include "MyFileDataFeeder.h"
 #include "resource.h"
+#include "hnrt/Menu.h"
 #include "hnrt/Clipboard.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Win32Exception.h"
@@ -122,6 +123,28 @@ void HashDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_LINEBREAK, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_PATH, 0, 0, cxDelta, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_CONTENT, 0, 0, cxDelta, cyDelta);
+}
+
+
+void HashDialogBox::OnTabSelectionChanging()
+{
+    MyDialogBox::OnTabSelectionChanging();
+    Menu topLevel(GetApp<MyToolbox>().hwnd);
+    Menu(topLevel[2])
+        .Enable(IDM_VIEW_HASH, MF_ENABLED);
+}
+
+
+void HashDialogBox::OnTabSelectionChanged()
+{
+    MyDialogBox::OnTabSelectionChanged();
+    MyToolbox& app = GetApp<MyToolbox>();
+    Menu topLevel(app.hwnd);
+    Menu(topLevel[1])
+        .RemoveAll()
+        .Add(ResourceString(IDS_COPY), IDM_EDIT_COPY);
+    Menu(topLevel[2])
+        .Enable(IDM_VIEW_HASH, MF_DISABLED);
 }
 
 

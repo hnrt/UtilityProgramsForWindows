@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "GuidDialogBox.h"
+#include "MyToolbox.h"
 #include "resource.h"
+#include "hnrt/Menu.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
 #include "hnrt/Clipboard.h"
@@ -67,6 +69,28 @@ void GuidDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
     WindowLayout::UpdateLayout(hDlg, IDC_GUID_FORMAT_GROUPBOX, 0, 0, cxDelta, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_GUID_RESULT_GROUPBOX, 0, 0, cxDelta, cyDelta);
     WindowLayout::UpdateLayout(hDlg, IDC_GUID_RESULT, 0, 0, cxDelta, cyDelta);
+}
+
+
+void GuidDialogBox::OnTabSelectionChanging()
+{
+    MyDialogBox::OnTabSelectionChanging();
+    Menu topLevel(GetApp<MyToolbox>().hwnd);
+    Menu(topLevel[2])
+        .Enable(IDM_VIEW_GUID, MF_ENABLED);
+}
+
+
+void GuidDialogBox::OnTabSelectionChanged()
+{
+    MyDialogBox::OnTabSelectionChanged();
+    MyToolbox& app = GetApp<MyToolbox>();
+    Menu topLevel(app.hwnd);
+    Menu(topLevel[1])
+        .RemoveAll()
+        .Add(ResourceString(IDS_COPY), IDM_EDIT_COPY);
+    Menu(topLevel[2])
+        .Enable(IDM_VIEW_GUID, MF_DISABLED);
 }
 
 

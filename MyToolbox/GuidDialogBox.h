@@ -15,6 +15,8 @@ namespace hnrt
 		GuidDialogBox(const GuidDialogBox&) = delete;
 		virtual ~GuidDialogBox() = default;
 		void operator =(const GuidDialogBox&) = delete;
+		virtual void OnTabSelectionChanging();
+		virtual void OnTabSelectionChanged();
 		virtual void OnCopy();
 
 	private:

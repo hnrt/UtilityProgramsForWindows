@@ -16,6 +16,8 @@ namespace hnrt
 		HashDialogBox(const HashDialogBox&) = delete;
 		virtual ~HashDialogBox() = default;
 		void operator =(const HashDialogBox&) = delete;
+		virtual void OnTabSelectionChanging();
+		virtual void OnTabSelectionChanged();
 		virtual void OnCopy();
 		virtual void OnFeederNotify(ULONGLONG);
 
