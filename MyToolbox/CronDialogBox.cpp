@@ -125,7 +125,7 @@ static PCWSTR GetCronErrorText(CronError e, bool bDetails = false)
 
 
 CronDialogBox::CronDialogBox()
-	: DialogBox(IDD_CRON)
+	: MyDialogBox(IDD_CRON)
 	, m_offset(0)
 	, m_LastModifiedAt(0)
 	, m_bParse(false)
@@ -133,6 +133,20 @@ CronDialogBox::CronDialogBox()
 	, m_bFormat(0)
 	, m_bFormatSuccessful(0)
 {
+}
+
+
+void CronDialogBox::OnTabSelectionChanging()
+{
+	MyDialogBox::OnTabSelectionChanging();
+	KillTimer(hwnd, CRON_TIMER1SEC);
+}
+
+
+void CronDialogBox::OnTabSelectionChanged()
+{
+	MyDialogBox::OnTabSelectionChanged();
+	SetTimer(hwnd, CRON_TIMER1SEC, 1000, NULL);
 }
 
 
@@ -188,7 +202,6 @@ void CronDialogBox::OnCreate()
 	}
 	Parse();
 	UpdateIndividualControls();
-	SetTimer(hwnd, CRON_TIMER1SEC, 1000, NULL);
 }
 
 
@@ -609,8 +622,9 @@ INT_PTR CronDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 				ft.AddMinutes(m_offset);
 				ft.ToSystemTime(st);
 				WCHAR buf[260] = { 0 };
-				swprintf_s(buf, L"OK (%04d-%02d-%02d %02d:%02d:%02d)", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+				swprintf_s(buf, L"OK  [ %04d-%02d-%02d %02d:%02d:%02d ]", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 				SetText(IDC_CRON_EXPR_STATIC, buf);
+				DBGPUT(L"Cron: %s", buf);
 			}
 		}
 		break;

@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "PercentCodec.h"
+#include "PercentCodecDialogBox.h"
 #include "resource.h"
 #include "hnrt/WindowDesign.h"
 #include "hnrt/WindowHandle.h"
@@ -18,15 +18,15 @@
 using namespace hnrt;
 
 
-PercentCodec::PercentCodec()
-	: DialogBox(IDD_PCTC)
+PercentCodecDialogBox::PercentCodecDialogBox()
+	: MyDialogBox(IDD_PCTC)
 	, m_bEncodingError(false)
 	, m_bDecodingError(false)
 {
 }
 
 
-void PercentCodec::OnCreate()
+void PercentCodecDialogBox::OnCreate()
 {
 	AddStringToComboBox(IDC_PCTC_ENCODING, LABEL_UTF8);
 	AddStringToComboBox(IDC_PCTC_ENCODING, LABEL_CP932);
@@ -38,12 +38,12 @@ void PercentCodec::OnCreate()
 }
 
 
-void PercentCodec::OnDestroy()
+void PercentCodecDialogBox::OnDestroy()
 {
 }
 
 
-void PercentCodec::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
+void PercentCodecDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
 	WindowLayoutSnapshot before, after;
 
@@ -82,7 +82,7 @@ void PercentCodec::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 }
 
 
-INT_PTR PercentCodec::OnCommand(WPARAM wParam, LPARAM lParam)
+INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
 	UINT idChild = LOWORD(wParam);
@@ -135,7 +135,7 @@ INT_PTR PercentCodec::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
-INT_PTR PercentCodec::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
+INT_PTR PercentCodecDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 {
 	HDC hdc = reinterpret_cast<HDC>(wParam);
 	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
@@ -153,7 +153,7 @@ INT_PTR PercentCodec::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 }
 
 
-void PercentCodec::OnCopy()
+void PercentCodecDialogBox::OnCopy()
 {
 	if (GetButtonState(IDC_PCTC_LABEL1) == BST_CHECKED)
 	{
@@ -166,7 +166,7 @@ void PercentCodec::OnCopy()
 }
 
 
-void PercentCodec::OnSelectSource(int id)
+void PercentCodecDialogBox::OnSelectSource(int id)
 {
 	CheckButton(IDC_PCTC_LABEL1, id == IDC_PCTC_LABEL1 ? BST_CHECKED : BST_UNCHECKED);
 	EnableWindow(IDC_PCTC_EDIT1, id == IDC_PCTC_LABEL1);
@@ -190,7 +190,7 @@ void PercentCodec::OnSelectSource(int id)
 }
 
 
-void PercentCodec::OnCopy1()
+void PercentCodecDialogBox::OnCopy1()
 {
 	if (!Clipboard::Copy(hwnd, hwnd, IDC_PCTC_EDIT1))
 	{
@@ -200,7 +200,7 @@ void PercentCodec::OnCopy1()
 }
 
 
-void PercentCodec::OnCopy2()
+void PercentCodecDialogBox::OnCopy2()
 {
 	if (!Clipboard::Copy(hwnd, hwnd, IDC_PCTC_EDIT2))
 	{
@@ -210,7 +210,7 @@ void PercentCodec::OnCopy2()
 }
 
 
-bool PercentCodec::OnEncode()
+bool PercentCodecDialogBox::OnEncode()
 {
 	try
 	{
@@ -243,7 +243,7 @@ bool PercentCodec::OnEncode()
 }
 
 
-bool PercentCodec::OnDecode()
+bool PercentCodecDialogBox::OnDecode()
 {
 	try
 	{
@@ -276,7 +276,7 @@ bool PercentCodec::OnDecode()
 }
 
 
-UINT PercentCodec::GetCodePage()
+UINT PercentCodecDialogBox::GetCodePage()
 {
 	int index = GetComboBoxSelection(IDC_PCTC_ENCODING);
 	UINT length = GetListBoxTextLength(IDC_PCTC_ENCODING, index);
@@ -300,7 +300,7 @@ UINT PercentCodec::GetCodePage()
 #define ENCODE_BUFFER_TOO_SHORT L"PercentCodec::Encode: Buffer is too short."
 
 
-void PercentCodec::Encode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut, bool bUsePlus)
+void PercentCodecDialogBox::Encode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut, bool bUsePlus)
 {
 	PWCHAR pOutBound = pOut + cchOut;
 	const WCHAR* pCur = pszIn;
@@ -375,7 +375,7 @@ void PercentCodec::Encode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut,
 }
 
 
-void PercentCodec::Encode(WCHAR c, UINT uCodePage, PWCHAR& pOut, PWCHAR pOutBound, UINT offset)
+void PercentCodecDialogBox::Encode(WCHAR c, UINT uCodePage, PWCHAR& pOut, PWCHAR pOutBound, UINT offset)
 {
 	DWORD dwFlags = (uCodePage == CP_UTF8 || uCodePage == 54936) ? WC_ERR_INVALID_CHARS : 0;
 	BOOL bDefaultCharUse = FALSE;
@@ -403,7 +403,7 @@ void PercentCodec::Encode(WCHAR c, UINT uCodePage, PWCHAR& pOut, PWCHAR pOutBoun
 #define DECODE_BUFFER_TOO_SHORT L"PercentCodec::Decode: Buffer is too short."
 
 
-void PercentCodec::Decode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut)
+void PercentCodecDialogBox::Decode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut)
 {
 	Buffer<CHAR> mbBuf(cchIn);
 	PBYTE pDst = reinterpret_cast<PBYTE>(mbBuf.Ptr);
@@ -529,7 +529,7 @@ void PercentCodec::Decode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut,
 }
 
 
-UINT PercentCodec::GetDecodedOffset(PCWSTR pszIn, UINT cbOut)
+UINT PercentCodecDialogBox::GetDecodedOffset(PCWSTR pszIn, UINT cbOut)
 {
 	const WCHAR* pCur = pszIn;
 	while (cbOut > 0)

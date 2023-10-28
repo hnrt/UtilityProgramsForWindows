@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "HashCalculator.h"
+#include "HashDialogBox.h"
 #include "MyToolbox.h"
 #include "MyFileDataFeeder.h"
 #include "resource.h"
@@ -36,8 +36,8 @@
 using namespace hnrt;
 
 
-HashCalculator::HashCalculator()
-    : DialogBox(IDD_HASH)
+HashDialogBox::HashDialogBox()
+    : MyDialogBox(IDD_HASH)
     , m_hash()
     , m_uSource(IDC_HASH_FILE)
     , m_uMethod(IDC_HASH_MD5)
@@ -46,7 +46,7 @@ HashCalculator::HashCalculator()
 }
 
 
-void HashCalculator::OnCreate()
+void HashDialogBox::OnCreate()
 {
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
@@ -73,7 +73,7 @@ void HashCalculator::OnCreate()
 }
 
 
-void HashCalculator::OnDestroy()
+void HashDialogBox::OnDestroy()
 {
     RegistryKey hKey;
     LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY);
@@ -102,7 +102,7 @@ void HashCalculator::OnDestroy()
 }
 
 
-void HashCalculator::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
+void HashDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_CALCULATE, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_COPY, cxDelta, 0, 0, 0);
@@ -125,7 +125,7 @@ void HashCalculator::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 }
 
 
-INT_PTR HashCalculator::OnCommand(WPARAM wParam, LPARAM lParam)
+INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
     UINT idChild = LOWORD(wParam);
@@ -171,7 +171,7 @@ INT_PTR HashCalculator::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
-void HashCalculator::OnBrowse()
+void HashDialogBox::OnBrowse()
 {
     WCHAR szPath[MAX_PATH] = { 0 };
     OPENFILENAMEW ofn = { 0 };
@@ -187,7 +187,7 @@ void HashCalculator::OnBrowse()
 }
 
 
-void HashCalculator::OnCalculate()
+void HashDialogBox::OnCalculate()
 {
     OnSelectSource(0);
     OnSelectMethod(0);
@@ -263,7 +263,7 @@ void HashCalculator::OnCalculate()
 }
 
 
-void HashCalculator::OnCopy()
+void HashDialogBox::OnCopy()
 {
     if (!m_hash.Value)
     {
@@ -287,7 +287,13 @@ void HashCalculator::OnCopy()
 }
 
 
-void HashCalculator::OnSelectSource(UINT uSource)
+void HashDialogBox::OnFeederNotify(ULONGLONG nBytesIn)
+{
+    SetResultHeader(nBytesIn);
+}
+
+
+void HashDialogBox::OnSelectSource(UINT uSource)
 {
     BOOL bRadio = uSource ? TRUE : FALSE;
     BOOL bFile = uSource == IDC_HASH_FILE ? TRUE : FALSE;
@@ -309,7 +315,7 @@ void HashCalculator::OnSelectSource(UINT uSource)
 }
 
 
-void HashCalculator::OnSelectMethod(UINT uMethod)
+void HashDialogBox::OnSelectMethod(UINT uMethod)
 {
     BOOL bRadio = uMethod ? TRUE : FALSE;
     EnableWindow(IDC_HASH_MD5, bRadio);
@@ -327,7 +333,7 @@ void HashCalculator::OnSelectMethod(UINT uMethod)
 }
 
 
-void HashCalculator::OnUppercase()
+void HashDialogBox::OnUppercase()
 {
     UINT value = GetButtonState(IDC_HASH_UPPERCASE);
     if (value == BST_CHECKED)
@@ -347,7 +353,7 @@ void HashCalculator::OnUppercase()
 }
 
 
-void HashCalculator::Calculate(DataFeeder& rDataFeeder)
+void HashDialogBox::Calculate(DataFeeder& rDataFeeder)
 {
     SetResult(L"");
     switch (m_uMethod)
@@ -388,7 +394,7 @@ void HashCalculator::Calculate(DataFeeder& rDataFeeder)
 }
 
 
-UINT HashCalculator::GetCodePage()
+UINT HashDialogBox::GetCodePage()
 {
     int selected = GetComboBoxSelection(IDC_HASH_ENCODING);
     UINT length = GetListBoxTextLength(IDC_HASH_ENCODING, selected);
@@ -413,7 +419,7 @@ UINT HashCalculator::GetCodePage()
 }
 
 
-UINT HashCalculator::GetLineBreak()
+UINT HashDialogBox::GetLineBreak()
 {
     int selected = GetComboBoxSelection(IDC_HASH_LINEBREAK);
     UINT length = GetListBoxTextLength(IDC_HASH_LINEBREAK, selected);
@@ -434,7 +440,7 @@ UINT HashCalculator::GetLineBreak()
 }
 
 
-UINT HashCalculator::ConvertToLF(PWCHAR pStart, UINT uLength)
+UINT HashDialogBox::ConvertToLF(PWCHAR pStart, UINT uLength)
 {
     PWCHAR pCur = wmemchr(pStart, L'\r', uLength);
     if (!pCur)
@@ -455,13 +461,13 @@ UINT HashCalculator::ConvertToLF(PWCHAR pStart, UINT uLength)
 }
 
 
-void HashCalculator::SetResultHeader()
+void HashDialogBox::SetResultHeader()
 {
     SetText(IDC_HASH_RESULT, ResourceString(IDS_RESULT));
 }
 
 
-void HashCalculator::SetResultHeader(ULONGLONG nBytesIn)
+void HashDialogBox::SetResultHeader(ULONGLONG nBytesIn)
 {
     WCHAR szBuf[260];
     _snwprintf_s(szBuf, _TRUNCATE, ResourceString(IDS_RESULT_IN), NumberText(nBytesIn).Ptr);
@@ -469,7 +475,7 @@ void HashCalculator::SetResultHeader(ULONGLONG nBytesIn)
 }
 
 
-void HashCalculator::SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut)
+void HashDialogBox::SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut)
 {
     ULONG nBitsOut = nBytesOut * 8;
     WCHAR szBuf[260];
@@ -478,13 +484,13 @@ void HashCalculator::SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut)
 }
 
 
-void HashCalculator::SetResult(PCWSTR psz)
+void HashDialogBox::SetResult(PCWSTR psz)
 {
     SetText(IDC_HASH_VALUE, psz);
 }
 
 
-void HashCalculator::SetResult(Hash& rHash)
+void HashDialogBox::SetResult(Hash& rHash)
 {
     m_hash = rHash;
     Buffer<WCHAR> buf(wcslen(m_hash.Text) + 1);
@@ -501,7 +507,7 @@ void HashCalculator::SetResult(Hash& rHash)
 }
 
 
-void HashCalculator::ResetResultCase()
+void HashDialogBox::ResetResultCase()
 {
     UINT length = GetTextLength(IDC_HASH_VALUE);
     Buffer<WCHAR> buf(length + 1);

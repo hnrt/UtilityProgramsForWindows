@@ -1,21 +1,21 @@
 #pragma once
 
 
-#include "hnrt/DialogBox.h"
+#include "MyDialogBox.h"
 
 
 namespace hnrt
 {
-	class PercentCodec
-		: public DialogBox
+	class PercentCodecDialogBox
+		: public MyDialogBox
 	{
 	public:
 
-		PercentCodec();
-		PercentCodec(const PercentCodec&) = delete;
-		virtual ~PercentCodec() = default;
-		void operator =(const PercentCodec&) = delete;
-		void OnCopy();
+		PercentCodecDialogBox();
+		PercentCodecDialogBox(const PercentCodecDialogBox&) = delete;
+		virtual ~PercentCodecDialogBox() = default;
+		void operator =(const PercentCodecDialogBox&) = delete;
+		virtual void OnCopy();
 
 	private:
 

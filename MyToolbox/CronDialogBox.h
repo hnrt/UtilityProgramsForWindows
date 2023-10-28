@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "hnrt/DialogBox.h"
+#include "MyDialogBox.h"
 #include "hnrt/Time.h"
 #include "Cron.h"
 
@@ -9,7 +9,7 @@
 namespace hnrt
 {
 	class CronDialogBox
-		: public DialogBox
+		: public MyDialogBox
 	{
 	public:
 
@@ -17,7 +17,9 @@ namespace hnrt
 		CronDialogBox(const CronDialogBox&) = delete;
 		virtual ~CronDialogBox() = default;
 		void operator =(const CronDialogBox&) = delete;
-		void OnCopy();
+		virtual void OnTabSelectionChanging();
+		virtual void OnTabSelectionChanged();
+		virtual void OnCopy();
 		void OnPaste();
 
 	private:

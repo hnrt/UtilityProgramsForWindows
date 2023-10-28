@@ -30,7 +30,7 @@
     <ClInclude Include="pch.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="HashCalculator.h">
+    <ClInclude Include="HashDialogBox.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="AboutBox.h">
@@ -39,13 +39,13 @@
     <ClInclude Include="MyTabControl.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="GuidGenerator.h">
+    <ClInclude Include="GuidDialogBox.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="MyFileDataFeeder.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="PercentCodec.h">
+    <ClInclude Include="PercentCodecDialogBox.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Cron.h">
@@ -75,6 +75,9 @@
     <ClInclude Include="CronEvaluation.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="MyDialogBox.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MyToolbox.cpp">
@@ -86,7 +89,7 @@
     <ClCompile Include="pch.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="HashCalculator.cpp">
+    <ClCompile Include="HashDialogBox.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="AboutBox.cpp">
@@ -95,13 +98,13 @@
     <ClCompile Include="MyTabControl.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="GuidGenerator.cpp">
+    <ClCompile Include="GuidDialogBox.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="MyFileDataFeeder.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="PercentCodec.cpp">
+    <ClCompile Include="PercentCodecDialogBox.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="CronDialogBox.cpp">

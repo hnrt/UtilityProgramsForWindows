@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "GuidGenerator.h"
+#include "GuidDialogBox.h"
 #include "resource.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
@@ -17,8 +17,8 @@
 using namespace hnrt;
 
 
-GuidGenerator::GuidGenerator()
-    : DialogBox(IDD_GUID)
+GuidDialogBox::GuidDialogBox()
+    : MyDialogBox(IDD_GUID)
     , m_guid()
     , m_szFormatted()
     , m_uCurrentlySelected(IDC_GUID_RADIO_UPPERCASE)
@@ -26,7 +26,7 @@ GuidGenerator::GuidGenerator()
 }
 
 
-void GuidGenerator::OnCreate()
+void GuidDialogBox::OnCreate()
 {
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_KEY, 0, KEY_READ);
@@ -40,7 +40,7 @@ void GuidGenerator::OnCreate()
 }
 
 
-void GuidGenerator::OnDestroy()
+void GuidDialogBox::OnDestroy()
 {
     RegistryKey hKey;
     DWORD dwRet = hKey.Create(HKEY_CURRENT_USER, REG_KEY, 0, KEY_WRITE);
@@ -60,7 +60,7 @@ void GuidGenerator::OnDestroy()
 }
 
 
-void GuidGenerator::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
+void GuidDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
     WindowLayout::UpdateLayout(hDlg, IDC_GUID_BUTTON_NEW, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_GUID_BUTTON_COPY, cxDelta, 0, 0, 0);
@@ -70,7 +70,7 @@ void GuidGenerator::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 }
 
 
-INT_PTR GuidGenerator::OnCommand(WPARAM wParam, LPARAM lParam)
+INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
     switch (LOWORD(wParam))
     {
@@ -97,7 +97,7 @@ INT_PTR GuidGenerator::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
-void GuidGenerator::ChangeGuid()
+void GuidDialogBox::ChangeGuid()
 {
     HRESULT hRes = CoCreateGuid(&m_guid);
     if (hRes == S_OK)
@@ -113,7 +113,7 @@ void GuidGenerator::ChangeGuid()
 }
 
 
-void GuidGenerator::ChangeFormat(UINT uSelected)
+void GuidDialogBox::ChangeFormat(UINT uSelected)
 {
     if (uSelected)
     {
@@ -195,7 +195,7 @@ void GuidGenerator::ChangeFormat(UINT uSelected)
 }
 
 
-void GuidGenerator::OnCopy()
+void GuidDialogBox::OnCopy()
 {
     if (!Clipboard::Copy(hwnd, m_szFormatted))
     {

@@ -1,23 +1,23 @@
 #pragma once
 
 
-#include "hnrt/DialogBox.h"
+#include "MyDialogBox.h"
 #include "hnrt/Hash.h"
 
 
 namespace hnrt
 {
-	class HashCalculator
-		: public DialogBox
+	class HashDialogBox
+		: public MyDialogBox
 	{
 	public:
 
-		HashCalculator();
-		HashCalculator(const HashCalculator&) = delete;
-		virtual ~HashCalculator() = default;
-		void operator =(const HashCalculator&) = delete;
-		void OnCopy();
-		void SetResultHeader(ULONGLONG nBytesIn);
+		HashDialogBox();
+		HashDialogBox(const HashDialogBox&) = delete;
+		virtual ~HashDialogBox() = default;
+		void operator =(const HashDialogBox&) = delete;
+		virtual void OnCopy();
+		virtual void OnFeederNotify(ULONGLONG);
 
 	private:
 
@@ -36,6 +36,7 @@ namespace hnrt
 		UINT GetLineBreak();
 		UINT ConvertToLF(PWCHAR pStart, UINT uLength);
 		void SetResultHeader();
+		void SetResultHeader(ULONGLONG nBytesIn);
 		void SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut);
 		void SetResult(PCWSTR psz = L"");
 		void SetResult(Hash& rHash);

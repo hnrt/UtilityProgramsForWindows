@@ -1,21 +1,21 @@
 #pragma once
 
 
-#include "hnrt/DialogBox.h"
+#include "MyDialogBox.h"
 
 
 namespace hnrt
 {
-	class GuidGenerator
-		: public DialogBox
+	class GuidDialogBox
+		: public MyDialogBox
 	{
 	public:
 
-		GuidGenerator();
-		GuidGenerator(const GuidGenerator&) = delete;
-		virtual ~GuidGenerator() = default;
-		void operator =(const GuidGenerator&) = delete;
-		void OnCopy();
+		GuidDialogBox();
+		GuidDialogBox(const GuidDialogBox&) = delete;
+		virtual ~GuidDialogBox() = default;
+		void operator =(const GuidDialogBox&) = delete;
+		virtual void OnCopy();
 
 	private:
 

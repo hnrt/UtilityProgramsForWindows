@@ -1,14 +1,14 @@
 #pragma once
 
 
+#include "hnrt/WindowApp.h"
 #include "resource.h"
 #include "AboutBox.h"
 #include "MyTabControl.h"
-#include "HashCalculator.h"
-#include "GuidGenerator.h"
-#include "PercentCodec.h"
+#include "HashDialogBox.h"
+#include "GuidDialogBox.h"
+#include "PercentCodecDialogBox.h"
 #include "CronDialogBox.h"
-#include "hnrt/WindowApp.h"
 
 
 namespace hnrt
@@ -22,7 +22,6 @@ namespace hnrt
 		MyToolbox(const MyToolbox&) = delete;
 		virtual ~MyToolbox() = default;
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
-		HWND GetChild(INT);
 		bool OnFeederNotify(ULONGLONG);
 
 	private:
@@ -38,26 +37,9 @@ namespace hnrt
 
 		AboutBox m_about;
 		MyTabControl m_tabs;
-		HashCalculator m_hashTab;
-		GuidGenerator m_guidTab;
-		PercentCodec m_pctcTab;
+		HashDialogBox m_hashTab;
+		GuidDialogBox m_guidTab;
+		PercentCodecDialogBox m_pctcTab;
 		CronDialogBox m_cronTab;
 	};
-
-	inline HWND MyToolbox::GetChild(INT iIndex)
-	{
-		switch (iIndex)
-		{
-		case 0:
-			return m_hashTab;
-		case 1:
-			return m_guidTab;
-		case 2:
-			return m_pctcTab;
-		case 3:
-			return m_cronTab;
-		default:
-			return nullptr;
-		}
-	}
 }

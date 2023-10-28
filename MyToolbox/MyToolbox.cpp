@@ -4,7 +4,6 @@
 #include "hnrt/Debug.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/Menu.h"
-#include "hnrt/TabControlItem.h"
 #include "hnrt/WindowHandle.h"
 #include "hnrt/WindowDesign.h"
 
@@ -75,14 +74,14 @@ void MyToolbox::OnCreate()
 
 void MyToolbox::CreateChildren()
 {
-    TabControlItem().SetText(ResourceString(IDS_HASH_TABLABEL)).InsertInto(m_tabs);
-    m_hashTab.DialogBox::Open(m_tabs);
-    TabControlItem().SetText(ResourceString(IDS_GUID_TABLABEL)).InsertInto(m_tabs);
-    m_guidTab.DialogBox::Open(m_tabs);
-    TabControlItem().SetText(ResourceString(IDS_PCTC_TABLABEL)).InsertInto(m_tabs);
-    m_pctcTab.DialogBox::Open(m_tabs);
-    TabControlItem().SetText(ResourceString(IDS_CRON_TABLABEL)).InsertInto(m_tabs);
-    m_cronTab.DialogBox::Open(m_tabs);
+    m_tabs.Add(ResourceString(IDS_HASH_TABLABEL), &m_hashTab);
+    m_tabs.Add(ResourceString(IDS_GUID_TABLABEL), &m_guidTab);
+    m_tabs.Add(ResourceString(IDS_PCTC_TABLABEL), &m_pctcTab);
+    m_tabs.Add(ResourceString(IDS_CRON_TABLABEL), &m_cronTab);
+    for (int index = 0; index < m_tabs.ItemCount; index++)
+    {
+        m_tabs[index].Open(m_tabs);
+    }
 }
 
 
@@ -95,15 +94,14 @@ void MyToolbox::SetMinimumSize()
     LONG bcx = rect1.cx - rect2.cx + LeftFrameThickness + RightFrameThickness;
     LONG bcy = rect1.cy - rect2.cy + TopFrameThickness + BottomFrameThickness;
     LONG cxMin = 0;
-    cxMin = cxMin > m_hashTab.MinimumWidth ? cxMin : m_hashTab.MinimumWidth;
-    cxMin = cxMin > m_guidTab.MinimumWidth ? cxMin : m_guidTab.MinimumWidth;
-    cxMin = cxMin > m_pctcTab.MinimumWidth ? cxMin : m_pctcTab.MinimumWidth;
-    cxMin = cxMin > m_cronTab.MinimumWidth ? cxMin : m_cronTab.MinimumWidth;
     LONG cyMin = 0;
-    cyMin = cyMin > m_hashTab.MinimumHeight ? cyMin : m_hashTab.MinimumHeight;
-    cyMin = cyMin > m_guidTab.MinimumHeight ? cyMin : m_guidTab.MinimumHeight;
-    cyMin = cyMin > m_pctcTab.MinimumHeight ? cyMin : m_pctcTab.MinimumHeight;
-    cyMin = cyMin > m_cronTab.MinimumHeight ? cyMin : m_cronTab.MinimumHeight;
+    for (int index = 0; index < m_tabs.ItemCount; index++)
+    {
+        LONG cx = m_tabs[index].MinimumWidth;
+        LONG cy = m_tabs[index].MinimumHeight;
+        cxMin = cxMin > cx ? cxMin : cx;
+        cyMin = cyMin > cy ? cyMin : cy;
+    }
     WindowSize::SetMinimumSize(cxMin + bcx, cyMin + bcy);
 }
 
@@ -114,7 +112,7 @@ void MyToolbox::ProcessMessage(MSG* pMsg)
     {
         // OK
     }
-    else if (IsDialogMessageW(GetChild(m_tabs.CurrentItem), pMsg))
+    else if (IsDialogMessageW(m_tabs[m_tabs.CurrentItem], pMsg))
     {
         // OK
     }
@@ -135,35 +133,19 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         OnClose();
         break;
     case IDM_EDIT_COPY:
-        switch (m_tabs.CurrentItem)
-        {
-        case 0:
-            m_hashTab.OnCopy();
-            break;
-        case 1:
-            m_guidTab.OnCopy();
-            break;
-        case 2:
-            m_pctcTab.OnCopy();
-            break;
-        case 3:
-            m_cronTab.OnCopy();
-            break;
-        default:
-            break;
-        }
+        m_tabs[m_tabs.CurrentItem].OnCopy();
         break;
     case IDM_VIEW_HASH:
-        m_tabs.CurrentItem = 0;
+        m_tabs.CurrentItem = m_hashTab.Id;
         break;
     case IDM_VIEW_GUID:
-        m_tabs.CurrentItem = 1;
+        m_tabs.CurrentItem = m_guidTab.Id;
         break;
     case IDM_VIEW_PCTC:
-        m_tabs.CurrentItem = 2;
+        m_tabs.CurrentItem = m_pctcTab.Id;
         break;
     case IDM_VIEW_CRON:
-        m_tabs.CurrentItem = 3;
+        m_tabs.CurrentItem = m_cronTab.Id;
         break;
     case IDM_HELP_ABOUT:
         m_about.Show();
@@ -187,23 +169,16 @@ void MyToolbox::UpdateLayout(HWND hwnd, LONG cxDelta, LONG cyDelta)
     WindowLayout::UpdateLayout(hwnd, m_tabs, 0, 0, cxDelta, cyDelta);
     RectangleMetrics rect;
     m_tabs.GetViewRect(&rect);
-    SetWindowGeometry(m_hashTab, rect);
-    SetWindowGeometry(m_guidTab, rect);
-    SetWindowGeometry(m_pctcTab, rect);
-    SetWindowGeometry(m_cronTab, rect);
+    for (int index = 0; index < m_tabs.ItemCount; index++)
+    {
+        SetWindowGeometry(m_tabs[index], rect);
+    }
 }
 
 
 bool MyToolbox::OnFeederNotify(ULONGLONG cbTotalLength)
 {
-    switch (m_tabs.CurrentItem)
-    {
-    case 0:
-        m_hashTab.SetResultHeader(cbTotalLength);
-        break;
-    default:
-        break;
-    }
+    m_tabs[m_tabs.CurrentItem].OnFeederNotify(cbTotalLength);
     while (1)
     {
         int rc = TryProcessMessage();
