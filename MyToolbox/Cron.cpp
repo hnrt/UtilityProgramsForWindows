@@ -12,14 +12,14 @@ using namespace hnrt;
 
 
 Cron::Cron()
-	: m_pSecond(nullptr)
-	, m_pMinute(nullptr)
-	, m_pHour(nullptr)
-	, m_pDayOfMonth(nullptr)
-	, m_pMonth(nullptr)
-	, m_pDayOfWeek(nullptr)
-	, m_pYear(nullptr)
-	, m_bSecond(true)
+	: m_pSecond()
+	, m_pMinute()
+	, m_pHour()
+	, m_pDayOfMonth()
+	, m_pMonth()
+	, m_pDayOfWeek()
+	, m_pYear()
+	, m_bSecond()
 {
 }
 
@@ -32,110 +32,72 @@ Cron::~Cron()
 
 void Cron::Clear()
 {
-	CronValue::Free(m_pSecond);
-	CronValue::Free(m_pMinute);
-	CronValue::Free(m_pHour);
-	CronValue::Free(m_pDayOfMonth);
-	CronValue::Free(m_pMonth);
-	CronValue::Free(m_pDayOfWeek);
-	CronValue::Free(m_pYear);
-}
-
-
-Cron::operator PCWSTR() const
-{
-	return ToString();
-}
-
-
-bool Cron::isSecondEnabled() const
-{
-	return m_bSecond;
-}
-
-
-void Cron::EnableSecond(bool bEnabled)
-{
-	if (!m_bSecond && bEnabled)
-	{
-		m_pSecond = CronValueSingle::Create(CRON_SECOND, 0);
-	}
-	m_bSecond = bEnabled;
+	m_pSecond = nullptr;
+	m_pMinute = nullptr;
+	m_pHour = nullptr;
+	m_pDayOfMonth = nullptr;
+	m_pMonth = nullptr;
+	m_pDayOfWeek = nullptr;
+	m_pYear = nullptr;
 }
 
 
 void Cron::SetAll()
 {
-	Clear();
 	m_pSecond = CronValueAll::Create(CRON_SECOND);
 	m_pMinute = CronValueAll::Create(CRON_MINUTE);
 	m_pHour = CronValueAll::Create(CRON_HOUR);
 	m_pDayOfMonth = CronValueAll::Create(CRON_DAYOFMONTH);
 	m_pMonth = CronValueAll::Create(CRON_MONTH);
 	m_pDayOfWeek = CronValueAny::Create(CRON_DAYOFWEEK);
+	m_pYear = CronValueEmpty::Create(CRON_YEAR);
 }
 
 
 void Cron::Parse(PCWSTR psz)
 {
-	Clear();
-	if (m_bSecond)
-	{
-		CronParser(psz).Run(m_pYear, m_pMonth, m_pDayOfMonth, m_pDayOfWeek, m_pHour, m_pMinute, m_pSecond);
-	}
-	else
-	{
-		m_pSecond = CronValueEmpty::Create(CRON_SECOND);
-		CronParser(psz).Run(m_pYear, m_pMonth, m_pDayOfMonth, m_pDayOfWeek, m_pHour, m_pMinute);
-	}
+	CronParser(psz).Run(*this);
 }
 
 
 void Cron::ParseSecond(PCWSTR psz)
 {
-	CronValue::Free(m_pSecond);
 	m_pSecond = CronParser(psz).RunOnlyFor(CRON_SECOND);
 }
 
 
 void Cron::ParseMinute(PCWSTR psz)
 {
-	CronValue::Free(m_pMinute);
 	m_pMinute = CronParser(psz).RunOnlyFor(CRON_MINUTE);
 }
 
 
 void Cron::ParseHour(PCWSTR psz)
 {
-	CronValue::Free(m_pHour);
 	m_pHour = CronParser(psz).RunOnlyFor(CRON_HOUR);
 }
 
 
 void Cron::ParseDayOfMonth(PCWSTR psz)
 {
-	CronValue::Free(m_pDayOfMonth);
 	m_pDayOfMonth = CronParser(psz).RunOnlyFor(CRON_DAYOFMONTH);
 }
 
 
 void Cron::ParseMonth(PCWSTR psz)
 {
-	CronValue::Free(m_pMonth);
 	m_pMonth = CronParser(psz).RunOnlyFor(CRON_MONTH);
 }
 
 
 void Cron::ParseDayOfWeek(PCWSTR psz)
 {
-	CronValue::Free(m_pDayOfWeek);
 	m_pDayOfWeek = CronParser(psz).RunOnlyFor(CRON_DAYOFWEEK);
 }
 
 
 void Cron::ParseYear(PCWSTR psz)
 {
-	CronValue::Free(m_pYear);
 	m_pYear = CronParser(psz).RunOnlyFor(CRON_YEAR);
 }
 
@@ -194,11 +156,11 @@ const CronValue& Cron::GetSecond() const
 {
 	if (m_pSecond)
 	{
-		return *m_pSecond;
+		return *(m_pSecond.Ptr);
 	}
 	else
 	{
-		return *CronValue::Invalid();
+		return *(CronValue::InvalidValue().Ptr);
 	}
 }
 
@@ -207,11 +169,11 @@ const CronValue& Cron::GetMinute() const
 {
 	if (m_pMinute)
 	{
-		return *m_pMinute;
+		return *(m_pMinute.Ptr);
 	}
 	else
 	{
-		return *CronValue::Invalid();
+		return *(CronValue::InvalidValue().Ptr);
 	}
 }
 
@@ -220,11 +182,11 @@ const CronValue& Cron::GetHour() const
 {
 	if (m_pHour)
 	{
-		return *m_pHour;
+		return *(m_pHour.Ptr);
 	}
 	else
 	{
-		return *CronValue::Invalid();
+		return *(CronValue::InvalidValue().Ptr);
 	}
 }
 
@@ -233,11 +195,11 @@ const CronValue& Cron::GetDayOfMonth() const
 {
 	if (m_pDayOfMonth)
 	{
-		return *m_pDayOfMonth;
+		return *(m_pDayOfMonth.Ptr);
 	}
 	else
 	{
-		return *CronValue::Invalid();
+		return *(CronValue::InvalidValue().Ptr);
 	}
 }
 
@@ -246,11 +208,11 @@ const CronValue& Cron::GetMonth() const
 {
 	if (m_pMonth)
 	{
-		return *m_pMonth;
+		return *(m_pMonth.Ptr);
 	}
 	else
 	{
-		return *CronValue::Invalid();
+		return *(CronValue::InvalidValue().Ptr);
 	}
 }
 
@@ -259,11 +221,11 @@ const CronValue& Cron::GetDayOfWeek() const
 {
 	if (m_pDayOfWeek)
 	{
-		return *m_pDayOfWeek;
+		return *(m_pDayOfWeek.Ptr);
 	}
 	else
 	{
-		return *CronValue::Invalid();
+		return *(CronValue::InvalidValue().Ptr);
 	}
 }
 
@@ -272,10 +234,10 @@ const CronValue& Cron::GetYear() const
 {
 	if (m_pYear)
 	{
-		return *m_pYear;
+		return *(m_pYear.Ptr);
 	}
 	else
 	{
-		return *CronValue::Invalid();
+		return *(CronValue::InvalidValue().Ptr);
 	}
 }

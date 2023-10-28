@@ -15,15 +15,14 @@ namespace hnrt
 		CronParser(const CronParser&) = delete;
 		~CronParser() = default;
 		void operator =(const CronParser&) = delete;
-		void Run(CronValue*& pYear, CronValue*& pMonth, CronValue*& pDayOfMonth, CronValue*& pDayOfWeek, CronValue*& pHour, CronValue*& pMinute);
-		void Run(CronValue*& pYear, CronValue*& pMonth, CronValue*& pDayOfMonth, CronValue*& pDayOfWeek, CronValue*& pHour, CronValue*& pMinute, CronValue*& pSecond);
-		CronValue* RunOnlyFor(CronElement element);
+		void Run(class Cron& cron);
+		RefPtr<CronValue> RunOnlyFor(CronElement element);
 		bool isEnd() const;
 
 	private:
 
-		CronValue* Run(CronElement element);
-		CronValue* Run(CronElement element, UINT flags);
+		RefPtr<CronValue> Run(CronElement element);
+		RefPtr<CronValue> Run(CronElement element, UINT flags);
 		bool ParseRange(CronElement element, int min, int& value);
 		bool ParseStep(CronElement element, int& value);
 		bool ParseOrdinal(int& value);

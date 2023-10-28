@@ -689,15 +689,11 @@ void CronDialogBox::OnSecondChanged()
 	ShowSecondControls();
 	if (GetButtonState(IDC_CRON_EXPR_RADIO) == BST_CHECKED)
 	{
-		Parse();
 		UpdateIndividualControls();
 	}
-	else
-	{
-		m_bFormat = CRON_FORMAT_ALL;
-		Format();
-		Parse();
-	}
+	m_bFormat = CRON_FORMAT_ALL;
+	Format();
+	Parse();
 }
 
 

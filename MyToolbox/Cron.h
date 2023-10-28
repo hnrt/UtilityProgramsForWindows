@@ -48,15 +48,31 @@ namespace hnrt
 
 	private:
 
+		friend class CronParser;
 		friend class CronEvaluation;
 
-		CronValue* m_pSecond; // 0-59 ,-*/
-		CronValue* m_pMinute; // 0-59 ,-*/
-		CronValue* m_pHour; // 0-23 ,-*/
-		CronValue* m_pDayOfWeek; // 1-7 or SUN-SAT ,-*/LC#
-		CronValue* m_pMonth; // 0-11 or JAN-DEC ,-*/
-		CronValue* m_pDayOfMonth; // 1-31 ,-*/LWC
-		CronValue* m_pYear; // empty or 1970-2099 ,-*/
+		RefPtr<CronValue> m_pSecond; // 0-59 ,-*/
+		RefPtr<CronValue> m_pMinute; // 0-59 ,-*/
+		RefPtr<CronValue> m_pHour; // 0-23 ,-*/
+		RefPtr<CronValue> m_pDayOfWeek; // 1-7 or SUN-SAT ,-*/LC#
+		RefPtr<CronValue> m_pMonth; // 0-11 or JAN-DEC ,-*/
+		RefPtr<CronValue> m_pDayOfMonth; // 1-31 ,-*/LWC
+		RefPtr<CronValue> m_pYear; // empty or 1970-2099 ,-*/
 		bool m_bSecond;
 	};
+
+	inline Cron::operator PCWSTR() const
+	{
+		return ToString();
+	}
+
+	inline bool Cron::isSecondEnabled() const
+	{
+		return m_bSecond;
+	}
+
+	inline void Cron::EnableSecond(bool bEnabled)
+	{
+		m_bSecond = bEnabled;
+	}
 }

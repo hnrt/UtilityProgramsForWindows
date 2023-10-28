@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CronParser.h"
+#include "Cron.h"
 #include "CronError.h"
 #include "hnrt/Exception.h"
 
@@ -23,74 +24,74 @@ CronParser::CronParser(PCWSTR psz)
 }
 
 
-void CronParser::Run(CronValue*& pYear, CronValue*& pMonth, CronValue*& pDayOfMonth, CronValue*& pDayOfWeek, CronValue*& pHour, CronValue*& pMinute)
+void CronParser::Run(Cron& cron)
 {
-	pMinute = Run(CRON_MINUTE);
-	pHour = Run(CRON_HOUR);
-	pDayOfMonth = Run(CRON_DAYOFMONTH);
-	pMonth = Run(CRON_MONTH);
-	pDayOfWeek = Run(CRON_DAYOFWEEK);
-	pYear = Run(CRON_YEAR);
+	if (cron.m_bSecond)
+	{
+		cron.m_pSecond = Run(CRON_SECOND);
+	}
+	else if (!cron.m_pSecond)
+	{
+		cron.m_pSecond = CronValueAll::Create(CRON_SECOND);
+	}
+	cron.m_pMinute = Run(CRON_MINUTE);
+	cron.m_pHour = Run(CRON_HOUR);
+	cron.m_pDayOfMonth = Run(CRON_DAYOFMONTH);
+	cron.m_pMonth = Run(CRON_MONTH);
+	cron.m_pDayOfWeek = Run(CRON_DAYOFWEEK);
+	cron.m_pYear = Run(CRON_YEAR);
 
 	if (!isEnd())
 	{
 		throw CronError(CRON_ERROR_EXTRACHARACTER, CRON_ELEMENT_UNSPECIFIED, m_tokenizer.GetOffset());
 	}
 
-	if (pDayOfMonth->type == CRON_ALL)
+	if (cron.m_pDayOfMonth->type == CRON_ALL)
 	{
-		if (pDayOfWeek->type == CRON_ALL)
+		if (cron.m_pDayOfWeek->type == CRON_ALL)
 		{
 			throw CronError(CRON_ERROR_DUPLICATEALL, CRON_ELEMENT_UNSPECIFIED, m_tokenizer.GetOffset());
 		}
-		else if (pDayOfWeek->type != CRON_ANY)
+		else if (cron.m_pDayOfWeek->type != CRON_ANY)
 		{
 			throw CronError(CRON_ERROR_ANYDAYOFWEEKREQUIRED, CRON_ELEMENT_UNSPECIFIED, m_tokenizer.GetOffset());
 		}
 	}
-	else if (pDayOfMonth->type == CRON_ANY)
+	else if (cron.m_pDayOfMonth->type == CRON_ANY)
 	{
-		if (pDayOfWeek->type == CRON_ANY)
+		if (cron.m_pDayOfWeek->type == CRON_ANY)
 		{
 			throw CronError(CRON_ERROR_DUPLICATEANY, CRON_ELEMENT_UNSPECIFIED, m_tokenizer.GetOffset());
 		}
 	}
-	else if (pDayOfWeek->type == CRON_ALL)
+	else if (cron.m_pDayOfWeek->type == CRON_ALL)
 	{
-		if (pDayOfMonth->type != CRON_ANY)
+		if (cron.m_pDayOfMonth->type != CRON_ANY)
 		{
 			throw CronError(CRON_ERROR_ANYDAYOFMONTHREQUIRED, CRON_ELEMENT_UNSPECIFIED, m_tokenizer.GetOffset());
 		}
 	}
-	else if (pDayOfWeek->type != CRON_ANY)
+	else if (cron.m_pDayOfWeek->type != CRON_ANY)
 	{
 		throw CronError(CRON_ERROR_ANYDAYREQUIRED, CRON_ELEMENT_UNSPECIFIED, m_tokenizer.GetOffset());
 	}
 
-	if (pDayOfWeek->Count(CRON_NTH_DAYOFWEEK) > 1)
+	if (cron.m_pDayOfWeek->Count(CRON_NTH_DAYOFWEEK) > 1)
 	{
 		throw CronError(CRON_ERROR_MULTIPLEORDINAL, CRON_ELEMENT_UNSPECIFIED, m_tokenizer.GetOffset());
 	}
 }
 
 
-void CronParser::Run(CronValue*& pYear, CronValue*& pMonth, CronValue*& pDayOfMonth, CronValue*& pDayOfWeek, CronValue*& pHour, CronValue*& pMinute, CronValue*& pSecond)
+RefPtr<CronValue> CronParser::RunOnlyFor(CronElement element)
 {
-	pSecond = Run(CRON_SECOND);
-	Run(pYear, pMonth, pDayOfMonth, pDayOfWeek, pHour, pMinute);
-}
-
-
-CronValue* CronParser::RunOnlyFor(CronElement element)
-{
-	CronValue* pValue = Run(element);
+	RefPtr<CronValue> pValue = Run(element);
 	if (isEnd())
 	{
 		return pValue;
 	}
 	else
 	{
-		CronValue::Free(pValue);
 		throw CronError(CRON_ERROR_EXTRACHARACTER, element, m_tokenizer.GetOffset());
 	}
 }
@@ -112,13 +113,13 @@ static UINT GetFlags(CronElement element)
 }
 
 
-CronValue* CronParser::Run(CronElement element)
+RefPtr<CronValue> CronParser::Run(CronElement element)
 {
 	return Run(element, GetFlags(element));
 }
 
 
-CronValue* CronParser::Run(CronElement element, UINT flags)
+RefPtr<CronValue> CronParser::Run(CronElement element, UINT flags)
 {
 	m_tokenizer.SetElement(element);
 
@@ -141,81 +142,78 @@ CronValue* CronParser::Run(CronElement element, UINT flags)
 		return CronValueAny::Create(element);
 	}
 
-	CronValue* pReturnValue = nullptr;
-	CronValue** ppNext = &pReturnValue;
+	RefPtr<CronValue> pReturnValue;
 
-	try
+	while (true)
 	{
-		while (true)
+		RefPtr<CronValue> pValue;
+		int value1 = ~0;
+		int value2 = ~0;
+		int value3 = ~0;
+		if ((flags & CRON_WC_WEEKDAY) != 0 && m_next == L'W')
 		{
-			CronValue* pValue = nullptr;
-			int value1 = ~0;
-			int value2 = ~0;
-			int value3 = ~0;
-			if ((flags & CRON_WC_WEEKDAY) != 0 && m_next == L'W')
+			m_next = m_tokenizer.GetNext();
+			pValue = CronValueWeekDay::Create(element);
+		}
+		else if ((flags & CRON_WC_LASTDAY) != 0 && m_next == L'L')
+		{
+			m_next = m_tokenizer.GetNext();
+			pValue = CronValueLastDay::Create(element);
+		}
+		else if (ParseIntegerOrLabel(element, CronValue::Min(element), CronValue::Max(element), value1))
+		{
+			if (ParseRange(element, value1, value2))
 			{
-				m_next = m_tokenizer.GetNext();
-				pValue = CronValueWeekDay::Create(element);
-			}
-			else if ((flags & CRON_WC_LASTDAY) != 0 && m_next == L'L')
-			{
-				m_next = m_tokenizer.GetNext();
-				pValue = CronValueLastDay::Create(element);
-			}
-			else if (ParseIntegerOrLabel(element, CronValue::Min(element), CronValue::Max(element), value1))
-			{
-				if (ParseRange(element, value1, value2))
+				if ((flags & CRON_WC_STEP) != 0 && ParseStep(element, value3))
 				{
-					if ((flags & CRON_WC_STEP) != 0 && ParseStep(element, value3))
-					{
-						pValue = CronValueRange::Create(element, value1, value2, value3);
-					}
-					else
-					{
-						pValue = CronValueRange::Create(element, value1, value2);
-					}
-				}
-				else if ((flags & CRON_WC_NTH_DAYOFWEEK) != 0 && ParseOrdinal(value2))
-				{
-					pValue = CronValueNthDayOfWeek::Create(element, value1, value2);
-				}
-				else if ((flags & CRON_WC_STEP) != 0 && ParseStep(element, value3))
-				{
-					pValue = CronValueSingle::Create(element, value1, value3);
+					pValue = CronValueRange::Create(element, value1, value2, value3);
 				}
 				else
 				{
-					pValue = CronValueSingle::Create(element, value1);
+					pValue = CronValueRange::Create(element, value1, value2);
 				}
 			}
-			else if ((flags & CRON_WC_CLOSEST_WEEKDAY) != 0 && ParseIntegerW(value1))
+			else if ((flags & CRON_WC_NTH_DAYOFWEEK) != 0 && ParseOrdinal(value2))
 			{
-				pValue = CronValueClosestWeekDay::Create(element, value1);
+				pValue = CronValueNthDayOfWeek::Create(element, value1, value2);
 			}
-			else if ((flags & CRON_WC_LAST_DAYOFWEEK) != 0 && ParseIntegerL(value1))
+			else if ((flags & CRON_WC_STEP) != 0 && ParseStep(element, value3))
 			{
-				pValue = CronValueLastDayOfWeek::Create(element, value1);
-			}
-			else
-			{
-				throw CronError(CRON_ERROR_BADSEQUENCE, element, m_tokenizer.GetOffset());
-			}
-			*ppNext = pValue;
-			ppNext = &pValue->any.pNext;
-			if (m_next == L',')
-			{
-				m_next = m_tokenizer.GetNext();
+				pValue = CronValueSingle::Create(element, value1, value3);
 			}
 			else
 			{
-				return pReturnValue;
+				pValue = CronValueSingle::Create(element, value1);
 			}
 		}
-	}
-	catch (CronError e)
-	{
-		CronValue::Free(pReturnValue);
-		throw e;
+		else if ((flags & CRON_WC_CLOSEST_WEEKDAY) != 0 && ParseIntegerW(value1))
+		{
+			pValue = CronValueClosestWeekDay::Create(element, value1);
+		}
+		else if ((flags & CRON_WC_LAST_DAYOFWEEK) != 0 && ParseIntegerL(value1))
+		{
+			pValue = CronValueLastDayOfWeek::Create(element, value1);
+		}
+		else
+		{
+			throw CronError(CRON_ERROR_BADSEQUENCE, element, m_tokenizer.GetOffset());
+		}
+		if (pReturnValue)
+		{
+			pReturnValue->Append(pValue);
+		}
+		else
+		{
+			pReturnValue = pValue;
+		}
+		if (m_next == L',')
+		{
+			m_next = m_tokenizer.GetNext();
+		}
+		else
+		{
+			return pReturnValue;
+		}
 	}
 }
 

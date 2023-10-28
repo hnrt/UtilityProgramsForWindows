@@ -12,6 +12,8 @@ namespace hnrt
 	{
 	public:
 
+		static RefPtr<CronValueEvaluation> CreateZero();
+
 		CronValueEvaluation(int*, int);
 		CronValueEvaluation(const CronValueEvaluation&) = delete;
 		virtual ~CronValueEvaluation();

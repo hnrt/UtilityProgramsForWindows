@@ -7,6 +7,11 @@
 using namespace hnrt;
 
 
+RefPtr<CronValueEvaluation> CronValueEvaluation::CreateZero()
+{
+	return RefPtr<CronValueEvaluation>(new CronValueEvaluation(new int[1] { 0 }, 1));
+}
+
 
 
 CronValueEvaluation::CronValueEvaluation(int* ptr, int len)

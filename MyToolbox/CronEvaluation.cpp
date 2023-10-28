@@ -25,7 +25,7 @@ CronEvaluation::CronEvaluation(const Cron& cron)
 
 bool CronEvaluation::Run(int offset)
 {
-	if (!m_cron.m_pSecond || m_cron.m_pSecond->type == CRON_INVALID_VALUE)
+	if (m_cron.m_bSecond && (!m_cron.m_pSecond || m_cron.m_pSecond->type == CRON_INVALID_VALUE))
 	{
 		return false;
 	}
@@ -59,7 +59,7 @@ bool CronEvaluation::Run(int offset)
 	m_pDayOfWeekEval = m_cron.m_pDayOfWeek->Evaluate(0);
 	m_pHourEval = m_cron.m_pHour->Evaluate(0);
 	m_pMinuteEval = m_cron.m_pMinute->Evaluate(0);
-	m_pSecondEval = m_cron.m_pSecond->Evaluate(0);
+	m_pSecondEval = m_cron.m_bSecond ? m_cron.m_pSecond->Evaluate(0) : CronValueEvaluation::CreateZero();
 	memset(&m_et, 0, sizeof(m_et));
 	FileTime ft;
 	ft.AddMinutes(offset);
@@ -213,12 +213,12 @@ bool CronEvaluation::GetNextDayOfWeekEqualToOrLaterThanToday()
 	if (m_cron.m_pDayOfWeek->type == CRON_LAST_DAYOFWEEK)
 	{
 		m_et.wDay = m_ct.wDay;
-		GetLastDayOfMonth(m_et.wYear, m_et.wMonth, m_et.wDay, CRON_NUMBER(m_cron.m_pDayOfWeek->lastdow.dow) - 1);
+		GetLastDayOfMonth(m_et.wYear, m_et.wMonth, m_et.wDay, CRON_NUMBER(dynamic_cast<const CronValueLastDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->dow) - 1);
 	}
 	else if (m_cron.m_pDayOfWeek->type == CRON_NTH_DAYOFWEEK)
 	{
 		m_et.wDay = m_ct.wDay;
-		GetDayOfWeek(m_et.wYear, m_et.wMonth, m_et.wDay, CRON_NUMBER(m_cron.m_pDayOfWeek->nthdow.dow) - 1, m_cron.m_pDayOfWeek->nthdow.nth);
+		GetDayOfWeek(m_et.wYear, m_et.wMonth, m_et.wDay, CRON_NUMBER(dynamic_cast<const CronValueNthDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->dow) - 1, dynamic_cast<const CronValueNthDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->nth);
 	}
 	else
 	{
@@ -290,11 +290,11 @@ bool CronEvaluation::GetNextDayOfWeek()
 	m_et.wDay = tt.wDay;
 	if (m_cron.m_pDayOfWeek->type == CRON_LAST_DAYOFWEEK)
 	{
-		GetLastDayOfMonth(m_et.wYear, m_et.wMonth, m_et.wDay, CRON_NUMBER(m_cron.m_pDayOfWeek->lastdow.dow) - 1);
+		GetLastDayOfMonth(m_et.wYear, m_et.wMonth, m_et.wDay, CRON_NUMBER(dynamic_cast<const CronValueLastDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->dow) - 1);
 	}
 	else if (m_cron.m_pDayOfWeek->type == CRON_NTH_DAYOFWEEK)
 	{
-		GetDayOfWeek(m_et.wYear, m_et.wMonth, m_et.wDay, CRON_NUMBER(m_cron.m_pDayOfWeek->nthdow.dow) - 1, m_cron.m_pDayOfWeek->nthdow.nth);
+		GetDayOfWeek(m_et.wYear, m_et.wMonth, m_et.wDay, CRON_NUMBER(dynamic_cast<const CronValueNthDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->dow) - 1, dynamic_cast<const CronValueNthDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->nth);
 	}
 	else
 	{

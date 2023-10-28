@@ -67,89 +67,84 @@ int CronTokenizer::GetNext()
 		m_c = *m_q++;
 	}
 	m_p = m_q - 1;
-	if (m_c == 0)
+	switch (m_c)
 	{
+	case L'\0':
 		return CRON_TOKEN_EOF;
-	}
-	else if (iswdigit(m_c))
-	{
-		m_v = m_c - L'0';
+	case L'*':
+	case L'?':
+		sym = m_c;
 		m_c = *m_q++;
-		while (iswdigit(m_c))
-		{
-			m_v = m_v * 10 + m_c - L'0';
-			m_c = *m_q++;
-		}
-		if (m_c == L'W')
-		{
-			sym = CRON_TOKEN_INTEGER_W;
-			m_c = *m_q++;
-		}
-		else if (m_c == L'L')
-		{
-			sym = CRON_TOKEN_INTEGER_L;
-			m_c = *m_q++;
-		}
-		else
-		{
-			sym = CRON_TOKEN_INTEGER;
-		}
-		if (m_c == L'\0' || m_c == L' ' || m_c == L',' || m_c == L'-' || m_c == L'/' || m_c == L'#')
+		if (m_c == L'\0' || m_c == L' ')
 		{
 			return sym;
 		}
-	}
-	else if (iswalpha(m_c))
-	{
-		WCHAR sz[4] = { 0 };
-		sz[0] = m_c;
-		m_c = *m_q++;
-		if (iswalpha(m_c))
+		break;
+	default:
+		if (iswdigit(m_c))
 		{
-			sz[1] = m_c;
+			m_v = m_c - L'0';
 			m_c = *m_q++;
-			if (iswalpha(m_c))
+			while (iswdigit(m_c))
 			{
-				sz[2] = m_c;
+				m_v = m_v * 10 + m_c - L'0';
 				m_c = *m_q++;
-				if (m_c == L'\0' || m_c == L' ' || m_c == L',' || m_c == L'-' || m_c == L'/' || m_c == L'#')
-				{
-					int index;
-					if ((index = Find(CronMonthWords, sz)) >= 0)
-					{
-						return CRON_TOKEN_MONTH_MIN + index;
-					}
-					else if ((index = Find(CronDayOfWeekWords, sz)) >= 0)
-					{
-						return CRON_TOKEN_DAYOFWEEK_MIN + index;
-					}
-				}
 			}
-		}
-		else if (m_c == L'\0' || m_c == L' ' || m_c == L',')
-		{
-			if (sz[0] == L'L' || sz[0] == L'W')
+			if (m_c == L'W')
 			{
-				return sz[0];
+				sym = CRON_TOKEN_INTEGER_W;
+				m_c = *m_q++;
 			}
-		}
-	}
-	else
-	{
-		switch (m_c)
-		{
-		case L'*':
-		case L'?':
-			sym = m_c;
-			m_c = *m_q++;
-			if (m_c == L'\0' || m_c == L' ')
+			else if (m_c == L'L')
+			{
+				sym = CRON_TOKEN_INTEGER_L;
+				m_c = *m_q++;
+			}
+			else
+			{
+				sym = CRON_TOKEN_INTEGER;
+			}
+			if (m_c == L'\0' || m_c == L' ' || m_c == L',' || m_c == L'-' || m_c == L'/' || m_c == L'#')
 			{
 				return sym;
 			}
-			break;
-		default:
-			break;
 		}
+		else if (iswalpha(m_c))
+		{
+			WCHAR sz[4] = { 0 };
+			sz[0] = m_c;
+			m_c = *m_q++;
+			if (iswalpha(m_c))
+			{
+				sz[1] = m_c;
+				m_c = *m_q++;
+				if (iswalpha(m_c))
+				{
+					sz[2] = m_c;
+					m_c = *m_q++;
+					if (m_c == L'\0' || m_c == L' ' || m_c == L',' || m_c == L'-' || m_c == L'/' || m_c == L'#')
+					{
+						int index;
+						if ((index = Find(CronMonthWords, sz)) >= 0)
+						{
+							return CRON_TOKEN_MONTH_MIN + index;
+						}
+						else if ((index = Find(CronDayOfWeekWords, sz)) >= 0)
+						{
+							return CRON_TOKEN_DAYOFWEEK_MIN + index;
+						}
+					}
+				}
+			}
+			else if (m_c == L'\0' || m_c == L' ' || m_c == L',')
+			{
+				if (sz[0] == L'L' || sz[0] == L'W')
+				{
+					return sz[0];
+				}
+			}
+		}
+		break;
 	}
 	throw CronError(CRON_ERROR_BADSEQUENCE, m_e, GetOffset());
 }
