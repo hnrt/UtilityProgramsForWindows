@@ -38,6 +38,9 @@ namespace hnrt
 		UINT GetTextLength(int id);
 		PWCHAR GetText(int id, PWCHAR pBuf, size_t cch);
 		void SetText(int id, PCWSTR psz = L"");
+		bool PasteIntoEdit(int id);
+		void SelectAllInEdit(int id);
+		void ClearEdit(int id);
 		void CheckButton(int id, BOOL bCheck = TRUE);
 		void UncheckButton(int id);
 		int GetButtonState(int id);
@@ -48,6 +51,7 @@ namespace hnrt
 		void ClearComboBoxSelection(int id);
 		UINT GetListBoxTextLength(int id, int index, size_t defaultValue = 0);
 		PWCHAR GetListBoxText(int id, int index, PWCHAR pBuf, PCWSTR pszDefault = L"");
+		void SetFocus(int id);
 
 		HWND get_hwnd() const;
 		HFONT get_hFont() const;

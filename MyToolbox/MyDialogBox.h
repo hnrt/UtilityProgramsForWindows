@@ -20,6 +20,9 @@ namespace hnrt
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
 		virtual void OnCopy();
+		virtual void OnPaste();
+		virtual void OnSelectAll();
+		virtual void OnClear();
 		virtual void OnFeederNotify(ULONGLONG);
 
 		INT get_id() const;
@@ -65,6 +68,18 @@ namespace hnrt
 	}
 
 	inline void MyDialogBox::OnCopy()
+	{
+	}
+
+	inline void MyDialogBox::OnPaste()
+	{
+	}
+
+	inline void MyDialogBox::OnSelectAll()
+	{
+	}
+
+	inline void MyDialogBox::OnClear()
 	{
 	}
 

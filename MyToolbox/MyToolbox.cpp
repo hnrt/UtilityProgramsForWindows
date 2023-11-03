@@ -53,7 +53,8 @@ HMENU MyToolbox::CreateMenuBar()
             .Add(ResourceString(IDS_HASH_TABLABEL), IDM_VIEW_HASH)
             .Add(ResourceString(IDS_GUID_TABLABEL), IDM_VIEW_GUID)
             .Add(ResourceString(IDS_PCTC_TABLABEL), IDM_VIEW_PCTC)
-            .Add(ResourceString(IDS_CRON_TABLABEL), IDM_VIEW_CRON))
+            .Add(ResourceString(IDS_CRON_TABLABEL), IDM_VIEW_CRON)
+            .Add(ResourceString(IDS_NTOA_TABLABEL), IDM_VIEW_NTOA))
         .Add(ResourceString(IDS_HELP),
             Menu()
             .Add(ResourceString(IDS_ABOUT), IDM_HELP_ABOUT));
@@ -78,6 +79,7 @@ void MyToolbox::CreateChildren()
     m_tabs.Add(ResourceString(IDS_GUID_TABLABEL), &m_guidTab);
     m_tabs.Add(ResourceString(IDS_PCTC_TABLABEL), &m_pctcTab);
     m_tabs.Add(ResourceString(IDS_CRON_TABLABEL), &m_cronTab);
+    m_tabs.Add(ResourceString(IDS_NTOA_TABLABEL), &m_ntoaTab);
     for (int index = 0; index < m_tabs.ItemCount; index++)
     {
         m_tabs[index].Open(m_tabs);
@@ -135,6 +137,15 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_EDIT_COPY:
         m_tabs[m_tabs.CurrentItem].OnCopy();
         break;
+    case IDM_EDIT_PASTE:
+        m_tabs[m_tabs.CurrentItem].OnPaste();
+        break;
+    case IDM_EDIT_SELECTALL:
+        m_tabs[m_tabs.CurrentItem].OnSelectAll();
+        break;
+    case IDM_EDIT_CLEAR:
+        m_tabs[m_tabs.CurrentItem].OnClear();
+        break;
     case IDM_VIEW_HASH:
         m_tabs.CurrentItem = m_hashTab.Id;
         break;
@@ -146,6 +157,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         break;
     case IDM_VIEW_CRON:
         m_tabs.CurrentItem = m_cronTab.Id;
+        break;
+    case IDM_VIEW_NTOA:
+        m_tabs.CurrentItem = m_ntoaTab.Id;
         break;
     case IDM_HELP_ABOUT:
         m_about.Show();

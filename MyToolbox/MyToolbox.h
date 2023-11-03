@@ -8,6 +8,7 @@
 #include "HashDialogBox.h"
 #include "GuidDialogBox.h"
 #include "PercentCodecDialogBox.h"
+#include "NativeToAsciiDialogBox.h"
 #include "CronDialogBox.h"
 
 
@@ -41,5 +42,6 @@ namespace hnrt
 		GuidDialogBox m_guidTab;
 		PercentCodecDialogBox m_pctcTab;
 		CronDialogBox m_cronTab;
+		NativeToAsciiDialogBox m_ntoaTab;
 	};
 }

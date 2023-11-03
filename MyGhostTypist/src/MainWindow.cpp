@@ -298,7 +298,7 @@ void MainWindow::ToggleButtonVisibility(HWND hwnd, UINT uIndex)
     InvalidateRect(hwnd, NULL, TRUE);
     Menu menuBar(hwnd);
     Menu menuView(menuBar[ResourceString(IDS_VIEW)]);
-    menuView.Modify(IDM_VIEW_TARGET_BASE + uIndex, pTarget->Name, IDM_VIEW_TARGET_BASE + uIndex, pTarget->IsVisible ? MF_CHECKED : MF_UNCHECKED);
+    menuView.Modify(IDM_VIEW_TARGET_BASE + uIndex, pTarget->IsVisible ? MF_CHECKED : MF_UNCHECKED, IDM_VIEW_TARGET_BASE + uIndex, pTarget->Name);
 }
 
 

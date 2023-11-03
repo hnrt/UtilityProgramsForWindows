@@ -3,6 +3,8 @@
 #include "hnrt/Win32Exception.h"
 #include "hnrt/WindowHandle.h"
 #include "hnrt/WindowDesign.h"
+#include "hnrt/Clipboard.h"
+#include "hnrt/Buffer.h"
 
 
 using namespace hnrt;
@@ -117,6 +119,80 @@ void DialogBox::SetText(int id, PCWSTR psz)
 }
 
 
+static void InsertText(PWCHAR pBuf, size_t size, size_t length, size_t start, size_t end, PCWSTR pszText)
+{
+    if (length + 1 > size)
+    {
+        length = size - 1;
+    }
+    if (start > length)
+    {
+        start = length;
+    }
+    if (end > length)
+    {
+        end = length;
+    }
+    if (end < start)
+    {
+        end = start;
+    }
+    size_t cch1 = start;
+    size_t cch2 = wcslen(pszText);
+    size_t cch3 = length - end;
+    if (cch1 + cch2 + cch3 + 1 > size)
+    {
+        cch2 = size - (cch1 + cch3 + 1);
+    }
+    if (cch3 > 0)
+    {
+        wmemmove_s(pBuf + cch1 + cch2, size - (cch1 + cch2), pBuf + end, cch3);
+    }
+    wmemcpy_s(pBuf + cch1, cch2, pszText, cch2);
+    pBuf[cch1 + cch2 + cch3] = L'\0';
+}
+
+
+bool DialogBox::PasteIntoEdit(int id)
+{
+    RefPtr<ClipboardText> pText;
+    if (!Clipboard::Paste(hwnd, pText))
+    {
+        return false;
+    }
+    PCWSTR psz2 = *pText.Ptr;
+    int cch2 = static_cast<int>(wcslen(psz2));
+    DWORD dwStart = ~0UL;
+    DWORD dwEnd = ~0UL;
+    SendDlgItemMessageW(hwnd, id, EM_GETSEL, reinterpret_cast<WPARAM>(&dwStart), reinterpret_cast<LPARAM>(&dwEnd));
+    int cch1 = GetTextLength(id);
+    int size = cch1 + cch2 + 1;
+    Buffer<WCHAR> buf(size);
+    GetText(id, buf, buf.Len);
+    InsertText(buf, buf.Len, cch1, dwStart, dwEnd, psz2);
+    SetText(id, buf);
+    dwEnd = dwStart += cch2;
+    SendDlgItemMessageW(hwnd, id, EM_SETSEL, dwStart, dwEnd);
+    SetFocus(id);
+    return true;
+}
+
+
+void DialogBox::SelectAllInEdit(int id)
+{
+    int cch = GetTextLength(id);
+    SendDlgItemMessageW(hwnd, id, EM_SETSEL, 0, cch);
+    SetFocus(id);
+}
+
+
+void DialogBox::ClearEdit(int id)
+{
+    SetText(id);
+    SetFocus(id);
+}
+
+
 void DialogBox::CheckButton(int id, BOOL bCheck)
 {
     SendMessage(id, BM_SETCHECK, bCheck ? BST_CHECKED : BST_UNCHECKED);
@@ -199,6 +275,12 @@ PWCHAR DialogBox::GetListBoxText(int id, int index, PWCHAR pBuf, PCWSTR pszDefau
         wcscpy_s(pBuf, wcslen(pszDefault) + 1, pszDefault);
     }
     return pBuf;
+}
+
+
+void DialogBox::SetFocus(int id)
+{
+    ::SetFocus(GetDlgItem(hwnd, id));
 }
 
 

@@ -269,6 +269,13 @@ namespace hnrt
 		rect3.right += cxDelta;
 	}
 
+	inline void CenterHorizontally(const RectangleMetrics& rect0, RectangleMetrics& rect1, RectangleMetrics& rect2)
+	{
+		LONG cxGap12 = rect1.HorizontalGap(rect2);
+		RepositionLeft(rect1, rect0.left + (rect0.cx - rect1.FromLeftToRight(rect2)) / 2);
+		RepositionLeft(rect2, rect1.right + cxGap12);
+	}
+
 	inline void CenterHorizontally(const RectangleMetrics& rect0, RectangleMetrics& rect1, RectangleMetrics& rect2, RectangleMetrics& rect3)
 	{
 		LONG cxGap12 = rect1.HorizontalGap(rect2);

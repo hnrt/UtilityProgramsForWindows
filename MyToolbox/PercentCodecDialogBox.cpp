@@ -126,14 +126,14 @@ INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		if (OnEncode())
 		{
 			OnSelectSource(IDC_PCTC_LABEL2);
-			SetFocus(GetDlgItem(hwnd, IDC_PCTC_COPY2));
+			SetFocus(IDC_PCTC_COPY2);
 		}
 		break;
 	case IDC_PCTC_DECODE:
 		if (OnDecode())
 		{
 			OnSelectSource(IDC_PCTC_LABEL1);
-			SetFocus(GetDlgItem(hwnd, IDC_PCTC_COPY1));
+			SetFocus(IDC_PCTC_COPY1);
 		}
 		break;
 	case IDC_PCTC_EDIT1:
@@ -252,7 +252,8 @@ bool PercentCodecDialogBox::OnEncode()
 		Buffer<WCHAR> buf1(cch);
 		GetText(IDC_PCTC_EDIT1, buf1, cch);
 		UINT uCodePage = GetCodePage();
-		Buffer<WCHAR> buf2(static_cast<size_t>(cch * 4 * 3));
+		UINT size = cch * 4 * 3;
+		Buffer<WCHAR> buf2(size);
 		Encode(buf1, cch, uCodePage, buf2, static_cast<UINT>(buf2.Len), GetButtonState(IDC_PCTC_USE_PLUS) == BST_CHECKED);
 		SetText(IDC_PCTC_EDIT2, buf2);
 		m_bDecodingError = false;

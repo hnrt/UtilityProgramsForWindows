@@ -31,11 +31,16 @@
 #define IDS_CRON_TABLABEL               123
 #define IDS_MSG_CLIPBOARD_COPY_ERROR    124
 #define IDS_MSG_CLIPBOARD_PASTE_ERROR   125
+#define IDS_NTOA_TABLABEL               126
+#define IDS_PASTE                       127
 #define IDR_MAINFRAME                   128
+#define IDS_SELECTALL                   128
+#define IDS_CLEAR                       129
 #define IDD_HASH                        800
 #define IDD_GUID                        801
 #define IDD_PCTC                        802
 #define IDD_CRON                        803
+#define IDD_NTOA                        804
 #define IDC_ABOUT_HEADER_STATIC         990
 #define IDC_ABOUT_VERSION_STATIC        991
 #define IDC_ABOUT_COPYRIGHT_STATIC      992
@@ -136,12 +141,31 @@
 #define IDC_CRON_SECOND_CHECK           4302
 #define IDC_CRON_COPY_BUTTON            4900
 #define IDC_CRON_PASTE_BUTTON           4901
+#define IDC_NTOA_NATIVE_RADIO           5000
+#define IDC_NTOA_ASCII_RADIO            5001
+#define IDC_NTOA_NATIVE_EDIT            5002
+#define IDC_NTOA_COPY1_BUTTON           5003
+#define IDC_NTOA_ENCODE_BUTTON          5004
+#define IDC_NTOA_ASCII_EDIT             5005
+#define IDC_NTOA_COPY2_BUTTON           5006
+#define IDC_NTOA_DECODE_BUTTON          5007
+#define IDC_NTOA_PASTE1_BUTTON          5008
+#define IDC_NTOA_COPY2_BUTTON2          5009
+#define IDC_NTOA_PASTE2_BUTTON          5009
 #define IDM_FILE_EXIT                   11001
 #define IDM_EDIT_COPY                   12001
+#define IDM_EDIT_PASTE                  12002
+#define IDM_EDIT_SELECTALL              12003
+#define IDM_EDIT_CLEAR                  12004
+#define IDM_EDIT_COPY2                  12011
+#define IDM_EDIT_PASTE2                 12012
+#define IDM_EDIT_SELECTALL2             12013
+#define IDM_EDIT_CLEAR2                 12014
 #define IDM_VIEW_HASH                   13001
 #define IDM_VIEW_GUID                   13002
 #define IDM_VIEW_PCTC                   13003
 #define IDM_VIEW_CRON                   13004
+#define IDM_VIEW_NTOA                   13005
 #define IDM_HELP_ABOUT                  19001
 #define IDC_STATIC                      -1
 
@@ -152,7 +176,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         32774
-#define _APS_NEXT_CONTROL_VALUE         5000
+#define _APS_NEXT_CONTROL_VALUE         6000
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif
