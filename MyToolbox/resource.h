@@ -32,10 +32,13 @@
 #define IDS_MSG_CLIPBOARD_COPY_ERROR    124
 #define IDS_MSG_CLIPBOARD_PASTE_ERROR   125
 #define IDR_MAINFRAME                   128
-#define IDD_HASH                        129
-#define IDD_GUID                        130
-#define IDD_PCTC                        131
-#define IDD_CRON                        132
+#define IDD_HASH                        800
+#define IDD_GUID                        801
+#define IDD_PCTC                        802
+#define IDD_CRON                        803
+#define IDC_ABOUT_HEADER_STATIC         990
+#define IDC_ABOUT_VERSION_STATIC        991
+#define IDC_ABOUT_COPYRIGHT_STATIC      992
 #define IDC_HASH_FILE                   1000
 #define IDC_HASH_PATH                   1001
 #define IDC_HASH_BROWSE                 1002
