@@ -240,6 +240,7 @@
     <ClInclude Include="inc\hnrt\UiAutomation.h" />
     <ClInclude Include="inc\hnrt\UiAutomationFactory.h" />
     <ClInclude Include="inc\hnrt\Unicode.h" />
+    <ClInclude Include="inc\hnrt\UnicodeEscape.h" />
     <ClInclude Include="inc\hnrt\VersionInfo.h" />
     <ClInclude Include="inc\hnrt\VirtualKey.h" />
     <ClInclude Include="inc\hnrt\WhileInScope.h" />
@@ -313,6 +314,7 @@
     <ClCompile Include="src\Time.cpp" />
     <ClCompile Include="src\UiAutomationFactory.cpp" />
     <ClCompile Include="src\UiAutomationInternal.cpp" />
+    <ClCompile Include="src\UnicodeEscape.cpp" />
     <ClCompile Include="src\VersionInfoInternal.cpp" />
     <ClCompile Include="src\VirtualKey.cpp" />
     <ClCompile Include="src\Win32Exception.cpp" />

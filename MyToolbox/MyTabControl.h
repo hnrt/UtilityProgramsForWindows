@@ -2,12 +2,11 @@
 
 
 #include "hnrt/TabControl.h"
-#include "MyDialogBox.h"
 
 
 namespace hnrt
 {
-	class MyToolbox;
+	class MyDialogBox;
 
 	class MyTabControl
 		: public TabControl
@@ -18,7 +17,7 @@ namespace hnrt
 		MyTabControl(const MyTabControl&) = delete;
 		virtual ~MyTabControl() = default;
 		void operator = (const MyTabControl&) = delete;
-		void Open(MyToolbox*);
+		void Open(HWND);
 		void Add(PCWSTR, MyDialogBox*);
 		const MyDialogBox& operator [](int) const;
 		MyDialogBox& operator [](int);
@@ -29,7 +28,6 @@ namespace hnrt
 
 	private:
 
-		MyToolbox* m_pApp;
 		MyDialogBox* m_pDialogBoxes[16];
 	};
 }

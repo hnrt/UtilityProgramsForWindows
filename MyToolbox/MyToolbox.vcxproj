@@ -197,6 +197,7 @@
     <ClCompile Include="CronValueEvaluation.cpp" />
     <ClCompile Include="GuidDialogBox.cpp" />
     <ClCompile Include="HashDialogBox.cpp" />
+    <ClCompile Include="MyDialogBox.cpp" />
     <ClCompile Include="MyFileDataFeeder.cpp" />
     <ClCompile Include="MyTabControl.cpp" />
     <ClCompile Include="MyToolbox.cpp" />

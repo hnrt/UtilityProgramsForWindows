@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "GuidDialogBox.h"
-#include "MyToolbox.h"
 #include "resource.h"
 #include "hnrt/Menu.h"
 #include "hnrt/RegistryKey.h"
@@ -30,6 +29,7 @@ GuidDialogBox::GuidDialogBox()
 
 void GuidDialogBox::OnCreate()
 {
+    MyDialogBox::OnCreate();
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_KEY, 0, KEY_READ);
     if (rc == ERROR_SUCCESS)
@@ -39,6 +39,8 @@ void GuidDialogBox::OnCreate()
     }
     ChangeGuid();
     CheckButton(m_uCurrentlySelected);
+    m_menuView
+        .Add(ResourceString(IDS_GUID_TABLABEL), IDM_VIEW_GUID);
 }
 
 
@@ -59,6 +61,7 @@ void GuidDialogBox::OnDestroy()
             Debug::Put(L"Failed to set SZ to HKCU\\%s\\%s: %s", REG_KEY, REG_NAME_LAST, ErrorMessage::Get(dwRet));
         }
     }
+    MyDialogBox::OnDestroy();
 }
 
 
@@ -75,8 +78,7 @@ void GuidDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void GuidDialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
-    Menu topLevel(GetApp<MyToolbox>().hwnd);
-    Menu(topLevel[2])
+    m_menuView
         .Enable(IDM_VIEW_GUID, MF_ENABLED);
 }
 
@@ -84,12 +86,9 @@ void GuidDialogBox::OnTabSelectionChanging()
 void GuidDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
-    MyToolbox& app = GetApp<MyToolbox>();
-    Menu topLevel(app.hwnd);
-    Menu(topLevel[1])
-        .RemoveAll()
+    m_menuEdit
         .Add(ResourceString(IDS_COPY), IDM_EDIT_COPY);
-    Menu(topLevel[2])
+    m_menuView
         .Enable(IDM_VIEW_GUID, MF_DISABLED);
 }
 

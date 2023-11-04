@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "CronDialogBox.h"
-#include "MyToolbox.h"
 #include "CronError.h"
 #include "CronTokenizer.h"
 #include "resource.h"
@@ -19,7 +18,6 @@
 #include "hnrt/Debug.h"
 
 
-#define REG_SUBKEY L"SOFTWARE\\hnrt\\MyToolbox\\Cron"
 #define REG_NAME_BASEOFFSET L"BaseOffset"
 #define REG_NAME_DISPLAYOFFSET L"DisplayOffset"
 #define REG_NAME_SECOND L"Second"
@@ -140,11 +138,12 @@ CronDialogBox::CronDialogBox()
 
 void CronDialogBox::OnCreate()
 {
+	MyDialogBox::OnCreate();
 	RegistryValue valueBaseOffset;
 	RegistryValue valueDisplayOffset;
 	RegistryValue valueExpression;
 	RegistryKey hKey;
-	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
+	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY_(Cron));
 	if (rc == ERROR_SUCCESS)
 	{
 		RegistryValue value;
@@ -190,13 +189,15 @@ void CronDialogBox::OnCreate()
 	}
 	Parse();
 	UpdateIndividualControls();
+	m_menuView
+		.Add(ResourceString(IDS_CRON_TABLABEL), IDM_VIEW_CRON);
 }
 
 
 void CronDialogBox::OnDestroy()
 {
 	RegistryKey hKey;
-	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY);
+	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY_(Cron));
 	if (rc == ERROR_SUCCESS)
 	{
 		RegistryValue::SetDWORD(hKey, REG_NAME_SECOND, m_cron.SecondEnabled ? 1U : 0U);
@@ -207,6 +208,7 @@ void CronDialogBox::OnDestroy()
 		GetText(IDC_CRON_EXPR_EDIT, buf, buf.Len);
 		RegistryValue::SetSZ(hKey, REG_NAME_EXPRESSION, buf);
 	}
+	MyDialogBox::OnDestroy();
 }
 
 
@@ -334,8 +336,7 @@ void CronDialogBox::OnTabSelectionChanging()
 {
 	MyDialogBox::OnTabSelectionChanging();
 	KillTimer(hwnd, CRON_TIMER1SEC);
-	Menu topLevel(GetApp<MyToolbox>().hwnd);
-	Menu(topLevel[2])
+	m_menuView
 		.Enable(IDM_VIEW_CRON, MF_ENABLED);
 }
 
@@ -343,11 +344,9 @@ void CronDialogBox::OnTabSelectionChanging()
 void CronDialogBox::OnTabSelectionChanged()
 {
 	MyDialogBox::OnTabSelectionChanged();
-	Menu topLevel(GetApp<MyToolbox>().hwnd);
-	Menu(topLevel[1])
-		.RemoveAll()
+	m_menuEdit
 		.Add(ResourceString(IDS_COPY), IDM_EDIT_COPY);
-	Menu(topLevel[2])
+	m_menuView
 		.Enable(IDM_VIEW_CRON, MF_DISABLED);
 	SetTimer(hwnd, CRON_TIMER1SEC, 1000, NULL);
 }

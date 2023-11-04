@@ -17,10 +17,13 @@ namespace hnrt
 		void operator =(const NativeToAsciiDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
+		virtual void OnLoadFrom();
+		virtual void OnSaveAs();
 		virtual void OnCopy();
 		virtual void OnPaste();
 		virtual void OnSelectAll();
 		virtual void OnClear();
+		virtual void OnSettingChanged(UINT);
 
 	private:
 
@@ -35,6 +38,9 @@ namespace hnrt
 		void OnPaste2();
 		void OnEncode();
 		void OnDecode();
+
+		WCHAR m_szNativePath[MAX_PATH];
+		WCHAR m_szAsciiPath[MAX_PATH];
 	};
 }
 

@@ -30,15 +30,22 @@ Menu::Menu(const Menu& src)
 }
 
 
-HMENU Menu::operator [](size_t index)
+Menu Menu::operator [](size_t index) const
 {
-    return GetSubMenu(m_h, static_cast<int>(index));
+    return Menu(GetSubMenu(m_h, static_cast<int>(index)));
 }
 
 
-HMENU Menu::operator [](PCWSTR psz) const
+Menu Menu::operator [](PCWSTR psz) const
 {
-    return FindMenu(m_h, psz);
+    return Menu(FindMenu(m_h, psz));
+}
+
+
+Menu& Menu::Set(HMENU h)
+{
+    m_h = h;
+    return *this;
 }
 
 

@@ -2,6 +2,11 @@
 
 
 #include "hnrt/DialogBox.h"
+#include "hnrt/Menu.h"
+
+
+#define CP_AUTODETECT 0
+#define CP_UTF16 1200
 
 
 namespace hnrt
@@ -19,28 +24,46 @@ namespace hnrt
 		bool IsActive() const;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
+		virtual void OnLoadFrom();
+		virtual void OnSaveAs();
 		virtual void OnCopy();
 		virtual void OnPaste();
 		virtual void OnSelectAll();
 		virtual void OnClear();
+		virtual void OnSettingChanged(UINT);
 		virtual void OnFeederNotify(ULONGLONG);
 
 		INT get_id() const;
 
 		__declspec(property(get = get_id)) INT Id;
 
+	protected:
+
+		virtual void OnCreate();
+		virtual void OnDestroy();
+		void AddInputCodePageSettingMenus();
+		void AddOutputCodePageSettingMenus();
+		bool ApplyToInputCodePage(UINT);
+		bool ApplyToOutputCodePage(UINT);
+		void LoadTextFromFile(int id, PWSTR psz = nullptr, DWORD dwLen = 0);
+		void SaveTextAsFile(int id, PWSTR psz = nullptr, DWORD dwLen = 0);
+
 	private:
 
 		INT m_id;
 		bool m_bActive;
-	};
 
-	inline MyDialogBox::MyDialogBox(UINT idTemplate)
-		: DialogBox(idTemplate)
-		, m_id(-1)
-		, m_bActive(false)
-	{
-	}
+	protected:
+
+		Menu m_menuFile;
+		Menu m_menuEdit;
+		Menu m_menuView;
+		Menu m_menuSettings;
+		Menu m_menuHelp;
+		UINT m_uInputCodePage;
+		UINT m_uOutputCodePage;
+		bool m_bOutputBOM;
+	};
 
 	inline void MyDialogBox::SetId(INT id)
 	{
@@ -57,14 +80,12 @@ namespace hnrt
 		return m_id;
 	}
 
-	inline void MyDialogBox::OnTabSelectionChanging()
+	inline void MyDialogBox::OnLoadFrom()
 	{
-		m_bActive = false;
 	}
 
-	inline void MyDialogBox::OnTabSelectionChanged()
+	inline void MyDialogBox::OnSaveAs()
 	{
-		m_bActive = true;
 	}
 
 	inline void MyDialogBox::OnCopy()
@@ -83,7 +104,16 @@ namespace hnrt
 	{
 	}
 
+	inline void MyDialogBox::OnSettingChanged(UINT uId)
+	{
+		UNREFERENCED_PARAMETER(uId);
+	}
+
 	inline void MyDialogBox::OnFeederNotify(ULONGLONG unused)
 	{
 	}
 }
+
+
+#define REG_SUBKEY L"SOFTWARE\\hnrt\\MyToolbox"
+#define REG_SUBKEY_(name) REG_SUBKEY L"\\" L#name

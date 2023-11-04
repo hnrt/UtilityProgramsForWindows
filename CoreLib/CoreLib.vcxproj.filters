@@ -243,6 +243,9 @@
     <ClInclude Include="inc\hnrt\StringUtils.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="inc\hnrt\UnicodeEscape.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pch.cpp">
@@ -408,6 +411,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\StringUtils.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UnicodeEscape.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

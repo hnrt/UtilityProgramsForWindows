@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "HashDialogBox.h"
-#include "MyToolbox.h"
 #include "MyFileDataFeeder.h"
 #include "resource.h"
 #include "hnrt/Menu.h"
@@ -20,7 +19,6 @@
 #include "hnrt/Debug.h"
 
 
-#define REG_SUBKEY L"SOFTWARE\\hnrt\\MyToolbox\\Hash"
 #define REG_NAME_SOURCE L"Source"
 #define REG_NAME_METHOD L"Method"
 #define REG_NAME_UPPERCASE L"Uppercase"
@@ -49,8 +47,9 @@ HashDialogBox::HashDialogBox()
 
 void HashDialogBox::OnCreate()
 {
+    MyDialogBox::OnCreate();
     RegistryKey hKey;
-    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
+    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY_(Hash));
     if (rc == ERROR_SUCCESS)
     {
         RegistryValue value;
@@ -71,35 +70,22 @@ void HashDialogBox::OnCreate()
     SetComboBoxSelection(IDC_HASH_LINEBREAK, LABEL_CRLF);
     DisableWindow(IDC_HASH_COPY);
     OnSelectSource(m_uSource);
+    m_menuView
+        .Add(ResourceString(IDS_HASH_TABLABEL), IDM_VIEW_HASH);
 }
 
 
 void HashDialogBox::OnDestroy()
 {
     RegistryKey hKey;
-    LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY);
+    LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY_(Hash));
     if (rc == ERROR_SUCCESS)
     {
-        rc = RegistryValue::SetDWORD(hKey, REG_NAME_SOURCE, m_uSource == IDC_HASH_FILE ? 1 : 2);
-        if (rc != ERROR_SUCCESS)
-        {
-            Debug::Put(L"Failed to set DWORD to HKCU\\%s\\%s: %s", REG_SUBKEY, REG_NAME_SOURCE, ErrorMessage::Get(rc));
-        }
-        rc = RegistryValue::SetDWORD(hKey, REG_NAME_METHOD, m_uMethod - IDC_HASH_MD5 + 1);
-        if (rc != ERROR_SUCCESS)
-        {
-            Debug::Put(L"Failed to set DWORD to HKCU\\%s\\%s: %s", REG_SUBKEY, REG_NAME_METHOD, ErrorMessage::Get(rc));
-        }
-        rc = RegistryValue::SetDWORD(hKey, REG_NAME_UPPERCASE, m_bUppercase ? 1UL : 0UL);
-        if (rc != ERROR_SUCCESS)
-        {
-            Debug::Put(L"Failed to set DWORD to HKCU\\%s\\%s: %s", REG_SUBKEY, REG_NAME_UPPERCASE, ErrorMessage::Get(rc));
-        }
+        RegistryValue::SetDWORD(hKey, REG_NAME_SOURCE, m_uSource == IDC_HASH_FILE ? 1 : 2);
+        RegistryValue::SetDWORD(hKey, REG_NAME_METHOD, m_uMethod - IDC_HASH_MD5 + 1);
+        RegistryValue::SetDWORD(hKey, REG_NAME_UPPERCASE, m_bUppercase ? 1UL : 0UL);
     }
-    else
-    {
-        Debug::Put(L"Failed to create HKCU\\%s: %s", REG_SUBKEY, ErrorMessage::Get(rc));
-    }
+    MyDialogBox::OnDestroy();
 }
 
 
@@ -129,8 +115,7 @@ void HashDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void HashDialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
-    Menu topLevel(GetApp<MyToolbox>().hwnd);
-    Menu(topLevel[2])
+    m_menuView
         .Enable(IDM_VIEW_HASH, MF_ENABLED);
 }
 
@@ -138,12 +123,9 @@ void HashDialogBox::OnTabSelectionChanging()
 void HashDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
-    MyToolbox& app = GetApp<MyToolbox>();
-    Menu topLevel(app.hwnd);
-    Menu(topLevel[1])
-        .RemoveAll()
+    m_menuEdit
         .Add(ResourceString(IDS_COPY), IDM_EDIT_COPY);
-    Menu(topLevel[2])
+    m_menuView
         .Enable(IDM_VIEW_HASH, MF_DISABLED);
 }
 

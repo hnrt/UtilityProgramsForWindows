@@ -4,11 +4,16 @@
 #include "hnrt/Debug.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/Menu.h"
+#include "hnrt/LogicalFont.h"
 #include "hnrt/WindowHandle.h"
 #include "hnrt/WindowDesign.h"
 
 
 using namespace hnrt;
+
+
+#define FACENAME L"Segoe UI"
+#define POINTSIZE 8
 
 
 static const WCHAR s_szClassName[] = { L"HNRT_MyToolbox" };
@@ -46,15 +51,11 @@ HMENU MyToolbox::CreateMenuBar()
             Menu()
             .Add(ResourceString(IDS_EXIT), IDM_FILE_EXIT))
         .Add(ResourceString(IDS_EDIT),
-            Menu()
-            .Add(ResourceString(IDS_COPY), IDM_EDIT_COPY))
+            Menu())
         .Add(ResourceString(IDS_VIEW),
-            Menu()
-            .Add(ResourceString(IDS_HASH_TABLABEL), IDM_VIEW_HASH)
-            .Add(ResourceString(IDS_GUID_TABLABEL), IDM_VIEW_GUID)
-            .Add(ResourceString(IDS_PCTC_TABLABEL), IDM_VIEW_PCTC)
-            .Add(ResourceString(IDS_CRON_TABLABEL), IDM_VIEW_CRON)
-            .Add(ResourceString(IDS_NTOA_TABLABEL), IDM_VIEW_NTOA))
+            Menu())
+        .Add(ResourceString(IDS_SETTINGS),
+            Menu())
         .Add(ResourceString(IDS_HELP),
             Menu()
             .Add(ResourceString(IDS_ABOUT), IDM_HELP_ABOUT));
@@ -63,10 +64,17 @@ HMENU MyToolbox::CreateMenuBar()
 
 void MyToolbox::OnCreate()
 {
+    SetFont(hwnd,
+        LogicalFont()
+        .SetFaceName(FACENAME)
+        .SetHeight(POINTSIZE, hwnd)
+        .SetJapaneseCharSet()
+        .Create());
     m_about.Open(GetInstanceHandle(hwnd));
-    m_tabs.Open(this);
+    m_tabs.Open(hwnd);
     CreateChildren();
     m_tabs.LoadFromRegistry();
+    m_tabs.OnTabSelectionChanging();
     m_tabs.OnTabSelectionChanged();
     SetMinimumSize();
     SetWindowSize(hwnd, MinimumWidth, MinimumHeight);
@@ -134,6 +142,12 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_FILE_EXIT:
         OnClose();
         break;
+    case IDM_FILE_LOADFROM:
+        m_tabs[m_tabs.CurrentItem].OnLoadFrom();
+        break;
+    case IDM_FILE_SAVEAS:
+        m_tabs[m_tabs.CurrentItem].OnSaveAs();
+        break;
     case IDM_EDIT_COPY:
         m_tabs[m_tabs.CurrentItem].OnCopy();
         break;
@@ -160,6 +174,17 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         break;
     case IDM_VIEW_NTOA:
         m_tabs.CurrentItem = m_ntoaTab.Id;
+        break;
+    case IDM_SETTINGS_ICP_AUTO:
+    case IDM_SETTINGS_ICP_UTF8:
+    case IDM_SETTINGS_ICP_UTF16:
+    case IDM_SETTINGS_ICP_ANSI:
+    case IDM_SETTINGS_OCP_UTF8:
+    case IDM_SETTINGS_OCP_UTF8BOM:
+    case IDM_SETTINGS_OCP_UTF16:
+    case IDM_SETTINGS_OCP_UTF16BOM:
+    case IDM_SETTINGS_OCP_ANSI:
+        m_tabs[m_tabs.CurrentItem].OnSettingChanged(wControlId);
         break;
     case IDM_HELP_ABOUT:
         m_about.Show();

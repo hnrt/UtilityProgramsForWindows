@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "NativeToAsciiDialogBox.h"
 #include "resource.h"
+#include "hnrt/RegistryKey.h"
+#include "hnrt/RegistryValue.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/WindowDesign.h"
 #include "hnrt/WindowLayoutSnapshot.h"
@@ -8,143 +10,60 @@
 #include "hnrt/WindowHandle.h"
 #include "hnrt/Clipboard.h"
 #include "hnrt/Buffer.h"
-#include "MyToolbox.h"
-
-
-static int FromNativeToAscii(PCWSTR psz, PWCHAR pOut = nullptr)
-{
-	WCHAR* pOutEnd = pOut;
-	const WCHAR* pCur = psz;
-	WCHAR c;
-	if (pOut)
-	{
-		while ((c = *pCur++) != L'\0')
-		{
-			if (0 < c && c < 0x80)
-			{
-				*pOutEnd++ = c;
-			}
-			else
-			{
-				static const WCHAR szHex[] = { L"0123456789ABCDEF" };
-				pOutEnd[5] = szHex[c & 0xF]; c >>= 4;
-				pOutEnd[4] = szHex[c & 0xF]; c >>= 4;
-				pOutEnd[3] = szHex[c & 0xF]; c >>= 4;
-				pOutEnd[2] = szHex[c & 0xF];
-				pOutEnd[1] = L'u';
-				pOutEnd[0] = L'\\';
-				pOutEnd += 6;
-			}
-		}
-		*pOutEnd = L'\0';
-	}
-	else
-	{
-		while ((c = *pCur++) != L'\0')
-		{
-			if (0 < c && c < 0x80)
-			{
-				pOutEnd++;
-			}
-			else
-			{
-				pOutEnd += 6;
-			}
-		}
-	}
-	return static_cast<int>(pOutEnd - pOut);
-}
-
-
-static int ToHex(WCHAR c)
-{
-	return (L'0' <= c && c <= L'9') ? (c - L'0')
-		: (L'A' <= c && c <= L'F') ? (10 + c - L'A')
-		: (L'a' <= c && c <= L'f') ? (10 + c - L'a')
-		: -1;
-}
-
-
-static int FromAsciiToNative(PCWSTR psz, PWCHAR pOut = nullptr)
-{
-	WCHAR* pOutEnd = pOut;
-	const WCHAR* pCur = psz;
-	WCHAR c;
-	if (pOut)
-	{
-		while ((c = *pCur++) != L'\0')
-		{
-			if (c == L'\\')
-			{
-				c = *pCur++;
-				if (c == L'\0')
-				{
-					*pOutEnd++ = L'\\';
-					break;
-				}
-				else if ((c == L'u' || c == L'U') && ToHex(pCur[0]) >= 0 && ToHex(pCur[1]) >= 0 && ToHex(pCur[2]) >= 0 && ToHex(pCur[3]) >= 0)
-				{
-					c = ToHex(*pCur++);
-					c <<= 4;
-					c |= ToHex(*pCur++);
-					c <<= 4;
-					c |= ToHex(*pCur++);
-					c <<= 4;
-					c |= ToHex(*pCur++);
-				}
-				else
-				{
-					*pOutEnd++ = L'\\';
-				}
-			}
-			*pOutEnd++ = c;
-		}
-		*pOutEnd = L'\0';
-	}
-	else
-	{
-		while ((c = *pCur++) != L'\0')
-		{
-			if (c == L'\\')
-			{
-				c = *pCur++;
-				if (c == L'\0')
-				{
-					pOutEnd++;
-					break;
-				}
-				else if ((c == L'u' || c == L'U') && ToHex(pCur[0]) >= 0 && ToHex(pCur[1]) >= 0 && ToHex(pCur[2]) >= 0 && ToHex(pCur[3]) >= 0)
-				{
-					pCur += 4;
-				}
-				else
-				{
-					pOutEnd++;
-				}
-			}
-			pOutEnd++;
-		}
-	}
-	return static_cast<int>(pOutEnd - pOut);
-}
+#include "hnrt/String.h"
+#include "hnrt/UnicodeEscape.h"
 
 
 using namespace hnrt;
 
 
+#define REG_NAME_INPUT_CODEPAGE L"InputCodePage"
+#define REG_NAME_OUTPUT_CODEPAGE L"OutputCodePage"
+#define REG_NAME_OUTPUT_BOM L"OutputBOM"
+#define REG_NAME_NATIVE_PATH L"NativePath"
+#define REG_NAME_ASCII_PATH L"AsciiPath"
+
+
 NativeToAsciiDialogBox::NativeToAsciiDialogBox()
 	: MyDialogBox(IDD_NTOA)
+	, m_szNativePath()
+	, m_szAsciiPath()
 {
 }
 
 
 void NativeToAsciiDialogBox::OnCreate()
 {
+	MyDialogBox::OnCreate();
+	RegistryKey hKey;
+	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY_(NativeToAscii));
+	if (rc == ERROR_SUCCESS)
+	{
+		RegistryValue value;
+		m_uInputCodePage = value.GetDWORD(hKey, REG_NAME_INPUT_CODEPAGE, CP_AUTODETECT);
+		m_uOutputCodePage = value.GetDWORD(hKey, REG_NAME_OUTPUT_CODEPAGE, CP_UTF8);
+		m_bOutputBOM = value.GetDWORD(hKey, REG_NAME_OUTPUT_BOM, 0) ? true : false;
+		wcscpy_s(m_szNativePath, value.GetSZ(hKey, REG_NAME_NATIVE_PATH, L""));
+		wcscpy_s(m_szAsciiPath, value.GetSZ(hKey, REG_NAME_ASCII_PATH, L""));
+	}
+	m_menuView
+		.Add(ResourceString(IDS_NTOA_TABLABEL), IDM_VIEW_NTOA);
 }
 
 
 void NativeToAsciiDialogBox::OnDestroy()
 {
+	RegistryKey hKey;
+	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY_(NativeToAscii));
+	if (rc == ERROR_SUCCESS)
+	{
+		RegistryValue::SetDWORD(hKey, REG_NAME_INPUT_CODEPAGE, m_uInputCodePage);
+		RegistryValue::SetDWORD(hKey, REG_NAME_OUTPUT_CODEPAGE, m_uOutputCodePage);
+		RegistryValue::SetDWORD(hKey, REG_NAME_OUTPUT_BOM, m_bOutputBOM ? 1 : 0);
+		RegistryValue::SetSZ(hKey, REG_NAME_NATIVE_PATH, m_szNativePath);
+		RegistryValue::SetSZ(hKey, REG_NAME_ASCII_PATH, m_szAsciiPath);
+	}
+	MyDialogBox::OnDestroy();
 }
 
 
@@ -178,8 +97,7 @@ void NativeToAsciiDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void NativeToAsciiDialogBox::OnTabSelectionChanging()
 {
 	MyDialogBox::OnTabSelectionChanging();
-	Menu topLevel(GetApp<MyToolbox>().hwnd);
-	Menu(topLevel[2])
+	m_menuView
 		.Enable(IDM_VIEW_NTOA, MF_ENABLED);
 }
 
@@ -187,16 +105,26 @@ void NativeToAsciiDialogBox::OnTabSelectionChanging()
 void NativeToAsciiDialogBox::OnTabSelectionChanged()
 {
 	MyDialogBox::OnTabSelectionChanged();
-	MyToolbox& app = GetApp<MyToolbox>();
-	Menu topLevel(app.hwnd);
-	Menu(topLevel[1])
+	m_menuFile
+		.RemoveAll()
+		.Add(ResourceString(IDS_LOADFROM), IDM_FILE_LOADFROM)
+		.Add(ResourceString(IDS_SAVEAS), IDM_FILE_SAVEAS)
+		.AddSeparator()
+		.Add(ResourceString(IDS_EXIT), IDM_FILE_EXIT);
+	m_menuEdit
 		.RemoveAll()
 		.Add(ResourceString(IDS_COPY), IDM_EDIT_COPY)
 		.Add(ResourceString(IDS_PASTE), IDM_EDIT_PASTE)
+		.AddSeparator()
 		.Add(ResourceString(IDS_SELECTALL), IDM_EDIT_SELECTALL)
+		.AddSeparator()
 		.Add(ResourceString(IDS_CLEAR), IDM_EDIT_CLEAR);
-	Menu(topLevel[2])
+	m_menuView
 		.Enable(IDM_VIEW_NTOA, MF_DISABLED);
+	m_menuSettings
+		.RemoveAll();
+	AddInputCodePageSettingMenus();
+	AddOutputCodePageSettingMenus();
 }
 
 
@@ -232,6 +160,32 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		return FALSE;
 	}
 	return TRUE;
+}
+
+
+void NativeToAsciiDialogBox::OnLoadFrom()
+{
+	if (GetButtonState(IDC_NTOA_NATIVE_RADIO) == BST_CHECKED)
+	{
+		LoadTextFromFile(IDC_NTOA_NATIVE_EDIT, m_szNativePath, MAX_PATH);
+	}
+	else if (GetButtonState(IDC_NTOA_ASCII_RADIO) == BST_CHECKED)
+	{
+		LoadTextFromFile(IDC_NTOA_ASCII_EDIT, m_szAsciiPath, MAX_PATH);
+	}
+}
+
+
+void NativeToAsciiDialogBox::OnSaveAs()
+{
+	if (GetButtonState(IDC_NTOA_NATIVE_RADIO) == BST_CHECKED)
+	{
+		SaveTextAsFile(IDC_NTOA_NATIVE_EDIT, m_szNativePath, MAX_PATH);
+	}
+	else if (GetButtonState(IDC_NTOA_ASCII_RADIO) == BST_CHECKED)
+	{
+		SaveTextAsFile(IDC_NTOA_ASCII_EDIT, m_szAsciiPath, MAX_PATH);
+	}
 }
 
 
@@ -279,10 +233,25 @@ void NativeToAsciiDialogBox::OnClear()
 	if (GetButtonState(IDC_NTOA_NATIVE_RADIO) == BST_CHECKED)
 	{
 		ClearEdit(IDC_NTOA_NATIVE_EDIT);
+		memset(m_szNativePath, 0, sizeof(m_szNativePath));
 	}
 	else if (GetButtonState(IDC_NTOA_ASCII_RADIO) == BST_CHECKED)
 	{
 		ClearEdit(IDC_NTOA_ASCII_EDIT);
+		memset(m_szAsciiPath, 0, sizeof(m_szAsciiPath));
+	}
+}
+
+
+void NativeToAsciiDialogBox::OnSettingChanged(UINT uId)
+{
+	if (ApplyToInputCodePage(uId))
+	{
+		return;
+	}
+	if (ApplyToOutputCodePage(uId))
+	{
+		return;
 	}
 }
 
@@ -290,12 +259,12 @@ void NativeToAsciiDialogBox::OnClear()
 void NativeToAsciiDialogBox::OnSelectSource(int id)
 {
 	CheckButton(IDC_NTOA_NATIVE_RADIO, id == IDC_NTOA_NATIVE_RADIO ? BST_CHECKED : BST_UNCHECKED);
-	EnableWindow(IDC_NTOA_NATIVE_EDIT, id == IDC_NTOA_NATIVE_RADIO);
+	SendMessage(IDC_NTOA_NATIVE_EDIT, EM_SETREADONLY, id == IDC_NTOA_NATIVE_RADIO ? FALSE : TRUE, 0);
 	EnableWindow(IDC_NTOA_COPY1_BUTTON);
 	EnableWindow(IDC_NTOA_PASTE1_BUTTON, id == IDC_NTOA_NATIVE_RADIO);
 	EnableWindow(IDC_NTOA_ENCODE_BUTTON, id == IDC_NTOA_NATIVE_RADIO);
 	CheckButton(IDC_NTOA_ASCII_RADIO, id == IDC_NTOA_ASCII_RADIO ? BST_CHECKED : BST_UNCHECKED);
-	EnableWindow(IDC_NTOA_ASCII_EDIT, id == IDC_NTOA_ASCII_RADIO);
+	SendMessage(IDC_NTOA_ASCII_EDIT, EM_SETREADONLY, id == IDC_NTOA_ASCII_RADIO ? FALSE : TRUE, 0);
 	EnableWindow(IDC_NTOA_COPY2_BUTTON);
 	EnableWindow(IDC_NTOA_PASTE2_BUTTON, id == IDC_NTOA_ASCII_RADIO);
 	EnableWindow(IDC_NTOA_DECODE_BUTTON, id == IDC_NTOA_ASCII_RADIO);

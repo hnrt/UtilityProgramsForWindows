@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "MyTabControl.h"
-#include "MyToolbox.h"
+#include "MyDialogBox.h"
 #include "hnrt/TabControlItem.h"
 #include "hnrt/LogicalFont.h"
 #include "hnrt/WindowHandle.h"
@@ -9,29 +9,26 @@
 #include "hnrt/Exception.h"
 
 
-#define FACENAME L"Segoe UI"
-#define POINTSIZE 8
-
-
-#define REG_SUBKEY L"SOFTWARE\\hnrt\\MyToolbox"
-#define REG_NAME_CURRENTTAB L"CurrentTab"
-
-
 using namespace hnrt;
+
+
+#define FACENAME L"Segoe UI"
+#define POINTSIZE 10
+
+
+#define REG_NAME_CURRENTTAB L"CurrentTab"
 
 
 MyTabControl::MyTabControl()
 	: TabControl()
-	, m_pApp(nullptr)
     , m_pDialogBoxes()
 {
 }
 
 
-void MyTabControl::Open(MyToolbox* pApp)
+void MyTabControl::Open(HWND hwndParent)
 {
-	m_pApp = pApp;
-	TabControl::Open(pApp->hwnd);
+	TabControl::Open(hwndParent);
     SetFont(*this,
         LogicalFont()
         .SetFaceName(FACENAME)

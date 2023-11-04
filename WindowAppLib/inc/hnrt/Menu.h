@@ -4,6 +4,9 @@
 #include <Windows.h>
 
 
+#define HMENU_NULL reinterpret_cast<HMENU>(0)
+
+
 namespace hnrt
 {
 	class Menu
@@ -17,8 +20,9 @@ namespace hnrt
 		virtual ~Menu() = default;
 		void operator =(const Menu&) = delete;
 		operator HMENU() const;
-		HMENU operator [](size_t index);
-		HMENU operator [](PCWSTR psz) const;
+		Menu operator [](size_t index) const;
+		Menu operator [](PCWSTR psz) const;
+		Menu& Set(HMENU);
 		Menu& Add(PCWSTR psz, HMENU h);
 		Menu& Add(PCWSTR psz, UINT id, UINT flags = 0);
 		Menu& AddSeparator();

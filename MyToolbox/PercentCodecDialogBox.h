@@ -17,7 +17,13 @@ namespace hnrt
 		void operator =(const PercentCodecDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
+		virtual void OnLoadFrom();
+		virtual void OnSaveAs();
 		virtual void OnCopy();
+		virtual void OnPaste();
+		virtual void OnSelectAll();
+		virtual void OnClear();
+		virtual void OnSettingChanged(UINT);
 
 	private:
 
@@ -39,5 +45,7 @@ namespace hnrt
 
 		bool m_bEncodingError;
 		bool m_bDecodingError;
+		WCHAR m_szOriginalPath[MAX_PATH];
+		WCHAR m_szEncodedPath[MAX_PATH];
 	};
 }
