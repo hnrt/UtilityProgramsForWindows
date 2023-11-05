@@ -148,11 +148,17 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_FILE_SAVEAS:
         m_tabs[m_tabs.CurrentItem].OnSaveAs();
         break;
+    case IDM_EDIT_CUT:
+        m_tabs[m_tabs.CurrentItem].OnCut();
+        break;
     case IDM_EDIT_COPY:
         m_tabs[m_tabs.CurrentItem].OnCopy();
         break;
     case IDM_EDIT_PASTE:
         m_tabs[m_tabs.CurrentItem].OnPaste();
+        break;
+    case IDM_EDIT_DELETE:
+        m_tabs[m_tabs.CurrentItem].OnDelete();
         break;
     case IDM_EDIT_SELECTALL:
         m_tabs[m_tabs.CurrentItem].OnSelectAll();

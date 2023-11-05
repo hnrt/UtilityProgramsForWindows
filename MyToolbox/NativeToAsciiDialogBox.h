@@ -19,6 +19,7 @@ namespace hnrt
 		virtual void OnTabSelectionChanged();
 		virtual void OnLoadFrom();
 		virtual void OnSaveAs();
+		virtual void OnCut();
 		virtual void OnCopy();
 		virtual void OnPaste();
 		virtual void OnSelectAll();
@@ -32,12 +33,14 @@ namespace hnrt
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		void OnSelectSource(int);
-		void OnCopy1();
-		void OnCopy2();
-		void OnPaste1();
-		void OnPaste2();
 		void OnEncode();
 		void OnDecode();
+
+		int get_CurrentEdit() const;
+		PWSTR get_CurrentPath();
+
+		__declspec(property(get = get_CurrentEdit)) int CurrentEdit;
+		__declspec(property(get = get_CurrentPath)) PWSTR CurrentPath;
 
 		WCHAR m_szNativePath[MAX_PATH];
 		WCHAR m_szAsciiPath[MAX_PATH];

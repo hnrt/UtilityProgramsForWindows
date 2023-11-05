@@ -49,6 +49,7 @@
 #define IDS_LOADTEXTFROMFILEASUTF16     139
 #define IDS_INUTF16BOM                  139
 #define IDS_LOADTEXTFROMFILEASCPX       140
+#define IDS_CUT                         140
 #define IDS_MSG_TOO_LARGE_FILE          141
 #define IDS_INPUTCODEPAGE               142
 #define IDS_OUTPUTCODEPAGE              143
@@ -168,16 +169,15 @@
 #define IDC_NTOA_ASCII_EDIT             5005
 #define IDC_NTOA_COPY2_BUTTON           5006
 #define IDC_NTOA_DECODE_BUTTON          5007
-#define IDC_NTOA_PASTE1_BUTTON          5008
-#define IDC_NTOA_COPY2_BUTTON2          5009
-#define IDC_NTOA_PASTE2_BUTTON          5009
 #define IDM_FILE_EXIT                   11001
 #define IDM_FILE_LOADFROM               11002
 #define IDM_FILE_SAVEAS                 11003
-#define IDM_EDIT_COPY                   12001
-#define IDM_EDIT_PASTE                  12002
-#define IDM_EDIT_SELECTALL              12003
-#define IDM_EDIT_CLEAR                  12004
+#define IDM_EDIT_CUT                    12001
+#define IDM_EDIT_COPY                   12002
+#define IDM_EDIT_PASTE                  12003
+#define IDM_EDIT_DELETE                 12004
+#define IDM_EDIT_SELECTALL              12005
+#define IDM_EDIT_CLEAR                  12006
 #define IDM_VIEW_HASH                   13001
 #define IDM_VIEW_GUID                   13002
 #define IDM_VIEW_PCTC                   13003
@@ -201,7 +201,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        133
-#define _APS_NEXT_COMMAND_VALUE         32774
+#define _APS_NEXT_COMMAND_VALUE         32779
 #define _APS_NEXT_CONTROL_VALUE         6000
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

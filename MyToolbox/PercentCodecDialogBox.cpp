@@ -137,6 +137,7 @@ void PercentCodecDialogBox::OnTabSelectionChanged()
 		.AddSeparator()
 		.Add(ResourceString(IDS_EXIT), IDM_FILE_EXIT);
 	m_menuEdit
+		.Add(ResourceString(IDS_CUT), IDM_EDIT_CUT)
 		.Add(ResourceString(IDS_COPY), IDM_EDIT_COPY)
 		.Add(ResourceString(IDS_PASTE), IDM_EDIT_PASTE)
 		.AddSeparator()
@@ -163,10 +164,10 @@ INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		OnSelectSource(idChild);
 		break;
 	case IDC_PCTC_COPY1:
-		OnCopy1();
+		CopyAllText(IDC_PCTC_EDIT1);
 		break;
 	case IDC_PCTC_COPY2:
-		OnCopy2();
+		CopyAllText(IDC_PCTC_EDIT2);
 		break;
 	case IDC_PCTC_ENCODE:
 		if (OnEncode())
@@ -225,81 +226,44 @@ INT_PTR PercentCodecDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam
 
 void PercentCodecDialogBox::OnLoadFrom()
 {
-	if (GetButtonState(IDC_PCTC_LABEL1) == BST_CHECKED)
-	{
-		LoadTextFromFile(IDC_PCTC_EDIT1, m_szOriginalPath, MAX_PATH);
-	}
-	else if (GetButtonState(IDC_PCTC_LABEL2) == BST_CHECKED)
-	{
-		LoadTextFromFile(IDC_PCTC_EDIT2, m_szEncodedPath, MAX_PATH);
-	}
+	LoadTextFromFile(CurrentEdit, CurrentPath, MAX_PATH);
 }
 
 
 void PercentCodecDialogBox::OnSaveAs()
 {
-	if (GetButtonState(IDC_PCTC_LABEL1) == BST_CHECKED)
-	{
-		SaveTextAsFile(IDC_PCTC_EDIT1, m_szOriginalPath, MAX_PATH);
-	}
-	else if (GetButtonState(IDC_PCTC_LABEL2) == BST_CHECKED)
-	{
-		SaveTextAsFile(IDC_PCTC_EDIT2, m_szEncodedPath, MAX_PATH);
-	}
+	SaveTextAsFile(CurrentEdit, CurrentPath, MAX_PATH);
+}
+
+
+void PercentCodecDialogBox::OnCut()
+{
+	CutText(CurrentEdit);
 }
 
 
 void PercentCodecDialogBox::OnCopy()
 {
-	if (GetButtonState(IDC_PCTC_LABEL1) == BST_CHECKED)
-	{
-		OnCopy1();
-	}
-	else if (GetButtonState(IDC_PCTC_LABEL2) == BST_CHECKED)
-	{
-		OnCopy2();
-	}
+	CopyAllText(CurrentEdit);
 }
 
 
 void PercentCodecDialogBox::OnPaste()
 {
-	if (GetButtonState(IDC_PCTC_LABEL1) == BST_CHECKED)
-	{
-		PasteIntoEdit(IDC_PCTC_EDIT1);
-	}
-	else if (GetButtonState(IDC_PCTC_LABEL2) == BST_CHECKED)
-	{
-		PasteIntoEdit(IDC_PCTC_EDIT2);
-	}
+	PasteText(CurrentEdit);
 }
 
 
 void PercentCodecDialogBox::OnSelectAll()
 {
-	if (GetButtonState(IDC_PCTC_LABEL1) == BST_CHECKED)
-	{
-		SelectAllInEdit(IDC_PCTC_EDIT1);
-	}
-	else if (GetButtonState(IDC_PCTC_LABEL2) == BST_CHECKED)
-	{
-		SelectAllInEdit(IDC_PCTC_EDIT2);
-	}
+	SelectAllText(CurrentEdit);
 }
 
 
 void PercentCodecDialogBox::OnClear()
 {
-	if (GetButtonState(IDC_PCTC_LABEL1) == BST_CHECKED)
-	{
-		ClearEdit(IDC_PCTC_EDIT1);
-		memset(m_szOriginalPath, 0, sizeof(m_szOriginalPath));
-	}
-	else if (GetButtonState(IDC_PCTC_LABEL2) == BST_CHECKED)
-	{
-		ClearEdit(IDC_PCTC_EDIT2);
-		memset(m_szEncodedPath, 0, sizeof(m_szEncodedPath));
-	}
+	ClearEdit(CurrentEdit);
+	wmemset(CurrentPath, L'\0', MAX_PATH);
 }
 
 
@@ -319,12 +283,12 @@ void PercentCodecDialogBox::OnSettingChanged(UINT uId)
 void PercentCodecDialogBox::OnSelectSource(int id)
 {
 	CheckButton(IDC_PCTC_LABEL1, id == IDC_PCTC_LABEL1 ? BST_CHECKED : BST_UNCHECKED);
-	SendMessage(IDC_PCTC_EDIT1, EM_SETREADONLY, id == IDC_PCTC_LABEL1 ? FALSE : TRUE, 0);
+	SetReadOnlyEdit(IDC_PCTC_EDIT1, id == IDC_PCTC_LABEL1 ? FALSE : TRUE);
 	EnableWindow(IDC_PCTC_COPY1, id == IDC_PCTC_LABEL1);
 	EnableWindow(IDC_PCTC_USE_PLUS, id == IDC_PCTC_LABEL1);
 	EnableWindow(IDC_PCTC_ENCODE, id == IDC_PCTC_LABEL1);
 	CheckButton(IDC_PCTC_LABEL2, id == IDC_PCTC_LABEL2 ? BST_CHECKED : BST_UNCHECKED);
-	SendMessage(IDC_PCTC_EDIT2, EM_SETREADONLY, id == IDC_PCTC_LABEL2 ? FALSE : TRUE, 0);
+	SetReadOnlyEdit(IDC_PCTC_EDIT2, id == IDC_PCTC_LABEL2 ? FALSE : TRUE);
 	EnableWindow(IDC_PCTC_COPY2, id == IDC_PCTC_LABEL2);
 	EnableWindow(IDC_PCTC_DECODE, id == IDC_PCTC_LABEL2);
 	if (m_bEncodingError)
@@ -336,26 +300,6 @@ void PercentCodecDialogBox::OnSelectSource(int id)
 	{
 		m_bDecodingError = false;
 		SetText(IDC_PCTC_STATUS2, L"");
-	}
-}
-
-
-void PercentCodecDialogBox::OnCopy1()
-{
-	if (!Clipboard::Copy(hwnd, hwnd, IDC_PCTC_EDIT1))
-	{
-		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-		return;
-	}
-}
-
-
-void PercentCodecDialogBox::OnCopy2()
-{
-	if (!Clipboard::Copy(hwnd, hwnd, IDC_PCTC_EDIT2))
-	{
-		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-		return;
 	}
 }
 
@@ -759,4 +703,35 @@ UINT PercentCodecDialogBox::GetDecodedOffset(PCWSTR pszIn, UINT cbOut)
 		}
 	}
 	return static_cast<UINT>(pCur - pszIn);
+}
+
+
+int PercentCodecDialogBox::get_CurrentEdit() const
+{
+	if (GetButtonState(IDC_PCTC_LABEL1) == BST_CHECKED)
+	{
+		return IDC_PCTC_EDIT1;
+	}
+	else if (GetButtonState(IDC_PCTC_LABEL2) == BST_CHECKED)
+	{
+		return IDC_PCTC_EDIT2;
+	}
+	else
+	{
+		throw Exception(L"PercentCodecDialogBox::get_CurrentEdit: Unexpected state.");
+	}
+}
+
+
+PWSTR PercentCodecDialogBox::get_CurrentPath()
+{
+	switch (CurrentEdit)
+	{
+	case IDC_PCTC_EDIT1:
+		return m_szOriginalPath;
+	case IDC_PCTC_EDIT2:
+		return m_szEncodedPath;
+	default:
+		throw Exception(L"PercentCodecDialogBox::get_CurrentPath: Unexpected state.");
+	}
 }

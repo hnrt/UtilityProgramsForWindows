@@ -26,8 +26,10 @@ namespace hnrt
 		virtual void OnTabSelectionChanged();
 		virtual void OnLoadFrom();
 		virtual void OnSaveAs();
+		virtual void OnCut();
 		virtual void OnCopy();
 		virtual void OnPaste();
+		virtual void OnDelete();
 		virtual void OnSelectAll();
 		virtual void OnClear();
 		virtual void OnSettingChanged(UINT);
@@ -88,11 +90,19 @@ namespace hnrt
 	{
 	}
 
+	inline void MyDialogBox::OnCut()
+	{
+	}
+
 	inline void MyDialogBox::OnCopy()
 	{
 	}
 
 	inline void MyDialogBox::OnPaste()
+	{
+	}
+
+	inline void MyDialogBox::OnDelete()
 	{
 	}
 
@@ -109,8 +119,9 @@ namespace hnrt
 		UNREFERENCED_PARAMETER(uId);
 	}
 
-	inline void MyDialogBox::OnFeederNotify(ULONGLONG unused)
+	inline void MyDialogBox::OnFeederNotify(ULONGLONG nbytes)
 	{
+		UNREFERENCED_PARAMETER(nbytes);
 	}
 }
 

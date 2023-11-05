@@ -8,10 +8,10 @@
 #include "hnrt/WindowLayoutSnapshot.h"
 #include "hnrt/Menu.h"
 #include "hnrt/WindowHandle.h"
-#include "hnrt/Clipboard.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/String.h"
 #include "hnrt/UnicodeEscape.h"
+#include "hnrt/Exception.h"
 
 
 using namespace hnrt;
@@ -75,11 +75,9 @@ void NativeToAsciiDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 
 	after[IDC_NTOA_NATIVE_EDIT].right += cxDelta;
 	MoveHorizontally(after[IDC_NTOA_COPY1_BUTTON], cxDelta);
-	MoveHorizontally(after[IDC_NTOA_PASTE1_BUTTON], cxDelta);
 	CenterHorizontally(after[IDC_NTOA_NATIVE_EDIT], after[IDC_NTOA_ENCODE_BUTTON], after[IDC_NTOA_DECODE_BUTTON]);
 	after[IDC_NTOA_ASCII_EDIT].right += cxDelta;
 	MoveHorizontally(after[IDC_NTOA_COPY2_BUTTON], cxDelta);
-	MoveHorizontally(after[IDC_NTOA_PASTE2_BUTTON], cxDelta);
 
 	ExtendVertically(after[IDC_NTOA_NATIVE_EDIT], after[IDC_NTOA_ASCII_EDIT], cyDelta);
 	LONG dy = after[IDC_NTOA_NATIVE_EDIT].bottom - before[IDC_NTOA_NATIVE_EDIT].bottom;
@@ -88,7 +86,6 @@ void NativeToAsciiDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	RepositionTop(after[IDC_NTOA_ASCII_RADIO], after[IDC_NTOA_ASCII_EDIT].top);
 	RepositionTop(after[IDC_NTOA_COPY2_BUTTON], after[IDC_NTOA_ASCII_EDIT].top);
 	dy = after[IDC_NTOA_COPY2_BUTTON].bottom - before[IDC_NTOA_COPY2_BUTTON].bottom;
-	MoveVertically(after[IDC_NTOA_PASTE2_BUTTON], dy);
 
 	after.Apply();
 }
@@ -113,6 +110,7 @@ void NativeToAsciiDialogBox::OnTabSelectionChanged()
 		.Add(ResourceString(IDS_EXIT), IDM_FILE_EXIT);
 	m_menuEdit
 		.RemoveAll()
+		.Add(ResourceString(IDS_CUT), IDM_EDIT_CUT)
 		.Add(ResourceString(IDS_COPY), IDM_EDIT_COPY)
 		.Add(ResourceString(IDS_PASTE), IDM_EDIT_PASTE)
 		.AddSeparator()
@@ -139,16 +137,10 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		OnSelectSource(idChild);
 		break;
 	case IDC_NTOA_COPY1_BUTTON:
-		OnCopy1();
+		CopyAllText(IDC_NTOA_NATIVE_EDIT);
 		break;
 	case IDC_NTOA_COPY2_BUTTON:
-		OnCopy2();
-		break;
-	case IDC_NTOA_PASTE1_BUTTON:
-		OnPaste1();
-		break;
-	case IDC_NTOA_PASTE2_BUTTON:
-		OnPaste2();
+		CopyAllText(IDC_NTOA_ASCII_EDIT);
 		break;
 	case IDC_NTOA_ENCODE_BUTTON:
 		OnEncode();
@@ -165,81 +157,44 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 
 void NativeToAsciiDialogBox::OnLoadFrom()
 {
-	if (GetButtonState(IDC_NTOA_NATIVE_RADIO) == BST_CHECKED)
-	{
-		LoadTextFromFile(IDC_NTOA_NATIVE_EDIT, m_szNativePath, MAX_PATH);
-	}
-	else if (GetButtonState(IDC_NTOA_ASCII_RADIO) == BST_CHECKED)
-	{
-		LoadTextFromFile(IDC_NTOA_ASCII_EDIT, m_szAsciiPath, MAX_PATH);
-	}
+	LoadTextFromFile(CurrentEdit, CurrentPath, MAX_PATH);
 }
 
 
 void NativeToAsciiDialogBox::OnSaveAs()
 {
-	if (GetButtonState(IDC_NTOA_NATIVE_RADIO) == BST_CHECKED)
-	{
-		SaveTextAsFile(IDC_NTOA_NATIVE_EDIT, m_szNativePath, MAX_PATH);
-	}
-	else if (GetButtonState(IDC_NTOA_ASCII_RADIO) == BST_CHECKED)
-	{
-		SaveTextAsFile(IDC_NTOA_ASCII_EDIT, m_szAsciiPath, MAX_PATH);
-	}
+	SaveTextAsFile(CurrentEdit, CurrentPath, MAX_PATH);
+}
+
+
+void NativeToAsciiDialogBox::OnCut()
+{
+	CutText(CurrentEdit);
 }
 
 
 void NativeToAsciiDialogBox::OnCopy()
 {
-	if (GetButtonState(IDC_NTOA_NATIVE_RADIO) == BST_CHECKED)
-	{
-		OnCopy1();
-	}
-	else if (GetButtonState(IDC_NTOA_ASCII_RADIO) == BST_CHECKED)
-	{
-		OnCopy2();
-	}
+	CopyAllText(CurrentEdit);
 }
 
 
 void NativeToAsciiDialogBox::OnPaste()
 {
-	if (GetButtonState(IDC_NTOA_NATIVE_RADIO) == BST_CHECKED)
-	{
-		OnPaste1();
-	}
-	else if (GetButtonState(IDC_NTOA_ASCII_RADIO) == BST_CHECKED)
-	{
-		OnPaste2();
-	}
+	PasteText(CurrentEdit);
 }
 
 
 void NativeToAsciiDialogBox::OnSelectAll()
 {
-	if (GetButtonState(IDC_NTOA_NATIVE_RADIO) == BST_CHECKED)
-	{
-		SelectAllInEdit(IDC_NTOA_NATIVE_EDIT);
-	}
-	else if (GetButtonState(IDC_NTOA_ASCII_RADIO) == BST_CHECKED)
-	{
-		SelectAllInEdit(IDC_NTOA_ASCII_EDIT);
-	}
+	SelectAllText(CurrentEdit);
 }
 
 
 void NativeToAsciiDialogBox::OnClear()
 {
-	if (GetButtonState(IDC_NTOA_NATIVE_RADIO) == BST_CHECKED)
-	{
-		ClearEdit(IDC_NTOA_NATIVE_EDIT);
-		memset(m_szNativePath, 0, sizeof(m_szNativePath));
-	}
-	else if (GetButtonState(IDC_NTOA_ASCII_RADIO) == BST_CHECKED)
-	{
-		ClearEdit(IDC_NTOA_ASCII_EDIT);
-		memset(m_szAsciiPath, 0, sizeof(m_szAsciiPath));
-	}
+	ClearEdit(CurrentEdit);
+	wmemset(CurrentPath, L'\0', MAX_PATH);
 }
 
 
@@ -259,47 +214,13 @@ void NativeToAsciiDialogBox::OnSettingChanged(UINT uId)
 void NativeToAsciiDialogBox::OnSelectSource(int id)
 {
 	CheckButton(IDC_NTOA_NATIVE_RADIO, id == IDC_NTOA_NATIVE_RADIO ? BST_CHECKED : BST_UNCHECKED);
-	SendMessage(IDC_NTOA_NATIVE_EDIT, EM_SETREADONLY, id == IDC_NTOA_NATIVE_RADIO ? FALSE : TRUE, 0);
+	SetReadOnlyEdit(IDC_NTOA_NATIVE_EDIT, id == IDC_NTOA_NATIVE_RADIO ? FALSE : TRUE);
 	EnableWindow(IDC_NTOA_COPY1_BUTTON);
-	EnableWindow(IDC_NTOA_PASTE1_BUTTON, id == IDC_NTOA_NATIVE_RADIO);
 	EnableWindow(IDC_NTOA_ENCODE_BUTTON, id == IDC_NTOA_NATIVE_RADIO);
 	CheckButton(IDC_NTOA_ASCII_RADIO, id == IDC_NTOA_ASCII_RADIO ? BST_CHECKED : BST_UNCHECKED);
-	SendMessage(IDC_NTOA_ASCII_EDIT, EM_SETREADONLY, id == IDC_NTOA_ASCII_RADIO ? FALSE : TRUE, 0);
+	SetReadOnlyEdit(IDC_NTOA_ASCII_EDIT, id == IDC_NTOA_ASCII_RADIO ? FALSE : TRUE);
 	EnableWindow(IDC_NTOA_COPY2_BUTTON);
-	EnableWindow(IDC_NTOA_PASTE2_BUTTON, id == IDC_NTOA_ASCII_RADIO);
 	EnableWindow(IDC_NTOA_DECODE_BUTTON, id == IDC_NTOA_ASCII_RADIO);
-}
-
-
-void NativeToAsciiDialogBox::OnCopy1()
-{
-	if (!Clipboard::Copy(hwnd, hwnd, IDC_NTOA_NATIVE_EDIT))
-	{
-		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-		return;
-	}
-}
-
-
-void NativeToAsciiDialogBox::OnCopy2()
-{
-	if (!Clipboard::Copy(hwnd, hwnd, IDC_NTOA_ASCII_EDIT))
-	{
-		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-		return;
-	}
-}
-
-
-void NativeToAsciiDialogBox::OnPaste1()
-{
-	PasteIntoEdit(IDC_NTOA_NATIVE_EDIT);
-}
-
-
-void NativeToAsciiDialogBox::OnPaste2()
-{
-	PasteIntoEdit(IDC_NTOA_ASCII_EDIT);
 }
 
 
@@ -324,4 +245,35 @@ void NativeToAsciiDialogBox::OnDecode()
 	Buffer<WCHAR> bufNative(cch);
 	FromAsciiToNative(bufAscii, bufNative);
 	SetText(IDC_NTOA_NATIVE_EDIT, bufNative);
+}
+
+
+int NativeToAsciiDialogBox::get_CurrentEdit() const
+{
+	if (GetButtonState(IDC_NTOA_NATIVE_RADIO) == BST_CHECKED)
+	{
+		return IDC_NTOA_NATIVE_EDIT;
+	}
+	else if (GetButtonState(IDC_NTOA_ASCII_RADIO) == BST_CHECKED)
+	{
+		return IDC_NTOA_ASCII_EDIT;
+	}
+	else
+	{
+		throw Exception(L"NativeToAsciiDialogBox::get_CurrentEdit: Unexpected state.");
+	}
+}
+
+
+PWSTR NativeToAsciiDialogBox::get_CurrentPath()
+{
+	switch (CurrentEdit)
+	{
+	case IDC_NTOA_NATIVE_EDIT:
+		return m_szNativePath;
+	case IDC_NTOA_ASCII_EDIT:
+		return m_szAsciiPath;
+	default:
+		throw Exception(L"NativeToAsciiDialogBox::get_CurrentPath: Unexpected state.");
+	}
 }

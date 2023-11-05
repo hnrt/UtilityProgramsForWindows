@@ -25,7 +25,7 @@ MyDialogBox::MyDialogBox(UINT idTemplate)
 	, m_menuView(HMENU_NULL)
 	, m_menuSettings(HMENU_NULL)
 	, m_menuHelp(HMENU_NULL)
-	, m_uInputCodePage(0)
+	, m_uInputCodePage(CP_AUTODETECT)
 	, m_uOutputCodePage(CP_UTF8)
 	, m_bOutputBOM(false)
 {
@@ -244,18 +244,14 @@ static int TranslateAs(LPCVOID ptr, size_t len, UINT uCodePage)
 		}
 		Buffer<CHAR> mbs(cb);
 		WideCharToMultiByte(CP_UTF8, 0, reinterpret_cast<const WCHAR*>(ptr), static_cast<int>(len / sizeof(WCHAR)), mbs, cb, NULL, NULL);
-		int cch = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, mbs, cb, NULL, 0);
+		int cch = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, mbs, cb, NULL, 0);
 		if (!cch)
 		{
 			return static_cast<int>(len);
 		}
 		Buffer<WCHAR> wcs(cch);
 		MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, mbs, cb, wcs, cch);
-		if (CountCharacter(wcs, cch, 0x0000))
-		{
-			return static_cast<int>(len);
-		}
-		return CountCharacter(wcs, cch, REPLACEMENT_CHARACTER);
+		return CountCharacter(wcs, cch, REPLACEMENT_CHARACTER) + CountCharacter(wcs, cch, 0x0000);
 	}
 	else
 	{
@@ -266,11 +262,7 @@ static int TranslateAs(LPCVOID ptr, size_t len, UINT uCodePage)
 		}
 		Buffer<WCHAR> wcs(cch);
 		MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, reinterpret_cast<const CHAR*>(ptr), static_cast<int>(len), wcs, cch);
-		if (CountCharacter(wcs, cch, 0x0000))
-		{
-			return static_cast<int>(len);
-		}
-		return CountCharacter(wcs, cch, REPLACEMENT_CHARACTER);
+		return CountCharacter(wcs, cch, REPLACEMENT_CHARACTER) + CountCharacter(wcs, cch, 0x0000);
 	}
 }
 

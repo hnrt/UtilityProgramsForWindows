@@ -41,6 +41,7 @@ HashDialogBox::HashDialogBox()
     , m_uSource(IDC_HASH_FILE)
     , m_uMethod(IDC_HASH_MD5)
     , m_bUppercase(FALSE)
+    , m_szTextPath()
 {
 }
 
@@ -123,8 +124,23 @@ void HashDialogBox::OnTabSelectionChanging()
 void HashDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
+    UINT uTextFlags = GetButtonState(IDC_HASH_TEXT) == BST_CHECKED ? MF_ENABLED : MF_DISABLED;
+    m_menuFile
+        .RemoveAll()
+        .Add(ResourceString(IDS_LOADFROM), IDM_FILE_LOADFROM)
+        .Add(ResourceString(IDS_SAVEAS), IDM_FILE_SAVEAS, uTextFlags)
+        .AddSeparator()
+        .Add(ResourceString(IDS_EXIT), IDM_FILE_EXIT);
     m_menuEdit
-        .Add(ResourceString(IDS_COPY), IDM_EDIT_COPY);
+        .RemoveAll()
+        .Add(ResourceString(IDS_COPY), IDM_EDIT_COPY, MF_DISABLED)
+        .AddSeparator()
+        .Add(ResourceString(IDS_CUT), IDM_EDIT_CUT, uTextFlags)
+        .Add(ResourceString(IDS_PASTE), IDM_EDIT_PASTE, uTextFlags)
+        .AddSeparator()
+        .Add(ResourceString(IDS_SELECTALL), IDM_EDIT_SELECTALL, uTextFlags)
+        .AddSeparator()
+        .Add(ResourceString(IDS_CLEAR), IDM_EDIT_CLEAR, uTextFlags);
     m_menuView
         .Enable(IDM_VIEW_HASH, MF_DISABLED);
 }
@@ -268,6 +284,37 @@ void HashDialogBox::OnCalculate()
 }
 
 
+void HashDialogBox::OnLoadFrom()
+{
+    if (GetButtonState(IDC_HASH_FILE) == BST_CHECKED)
+    {
+        OnBrowse();
+    }
+    else if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    {
+        LoadTextFromFile(IDC_HASH_CONTENT, m_szTextPath, MAX_PATH);
+    }
+}
+
+
+void HashDialogBox::OnSaveAs()
+{
+    if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    {
+        SaveTextAsFile(IDC_HASH_CONTENT, m_szTextPath, MAX_PATH);
+    }
+}
+
+
+void HashDialogBox::OnCut()
+{
+    if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    {
+        CutText(IDC_HASH_CONTENT);
+    }
+}
+
+
 void HashDialogBox::OnCopy()
 {
     if (!m_hash.Value)
@@ -292,6 +339,34 @@ void HashDialogBox::OnCopy()
 }
 
 
+void HashDialogBox::OnPaste()
+{
+    if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    {
+        PasteText(IDC_HASH_CONTENT);
+    }
+}
+
+
+void HashDialogBox::OnSelectAll()
+{
+    if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    {
+        SelectAllText(IDC_HASH_CONTENT);
+    }
+}
+
+
+void HashDialogBox::OnClear()
+{
+    if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    {
+        ClearEdit(IDC_HASH_CONTENT);
+        wmemset(m_szTextPath, L'\0', MAX_PATH);
+    }
+}
+
+
 void HashDialogBox::OnFeederNotify(ULONGLONG nBytesIn)
 {
     SetResultHeader(nBytesIn);
@@ -307,7 +382,7 @@ void HashDialogBox::OnSelectSource(UINT uSource)
     EnableWindow(IDC_HASH_PATH, bFile);
     EnableWindow(IDC_HASH_BROWSE, bFile);
     EnableWindow(IDC_HASH_TEXT, bRadio);
-    EnableWindow(IDC_HASH_CONTENT, bText);
+    SetReadOnlyEdit(IDC_HASH_CONTENT, bText ? FALSE : TRUE);
     EnableWindow(IDC_HASH_ENCODING, bText);
     EnableWindow(IDC_HASH_LINEBREAK, bText);
     if (uSource && m_uSource != uSource)
@@ -316,7 +391,28 @@ void HashDialogBox::OnSelectSource(UINT uSource)
         m_hash.Close();
         SetResultHeader();
         SetResult();
+        DisableWindow(IDC_HASH_COPY);
     }
+    m_menuFile
+        .Modify(
+            IDM_FILE_SAVEAS, bText ? MF_ENABLED : MF_DISABLED,
+            IDM_FILE_SAVEAS, ResourceString(IDS_SAVEAS));
+    m_menuEdit
+        .Modify(
+            IDM_EDIT_COPY, GetTextLength(IDC_HASH_VALUE) > 0 ? MF_ENABLED : MF_DISABLED,
+            IDM_EDIT_COPY, ResourceString(IDS_COPY))
+        .Modify(
+            IDM_EDIT_CUT, bText ? MF_ENABLED : MF_DISABLED,
+            IDM_EDIT_CUT, ResourceString(IDS_CUT))
+        .Modify(
+            IDM_EDIT_PASTE, bText ? MF_ENABLED : MF_DISABLED,
+            IDM_EDIT_PASTE, ResourceString(IDS_PASTE))
+        .Modify(
+            IDM_EDIT_SELECTALL, bText ? MF_ENABLED : MF_DISABLED,
+            IDM_EDIT_SELECTALL, ResourceString(IDS_SELECTALL))
+        .Modify(
+            IDM_EDIT_CLEAR, bText ? MF_ENABLED : MF_DISABLED,
+            IDM_EDIT_CLEAR, ResourceString(IDS_CLEAR));
 }
 
 

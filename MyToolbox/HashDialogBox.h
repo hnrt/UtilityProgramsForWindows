@@ -18,7 +18,13 @@ namespace hnrt
 		void operator =(const HashDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
+		virtual void OnLoadFrom();
+		virtual void OnSaveAs();
+		virtual void OnCut();
 		virtual void OnCopy();
+		virtual void OnPaste();
+		virtual void OnSelectAll();
+		virtual void OnClear();
 		virtual void OnFeederNotify(ULONGLONG);
 
 	private:
@@ -48,5 +54,6 @@ namespace hnrt
 		UINT m_uSource;
 		UINT m_uMethod;
 		BOOL m_bUppercase;
+		WCHAR m_szTextPath[MAX_PATH];
 	};
 }

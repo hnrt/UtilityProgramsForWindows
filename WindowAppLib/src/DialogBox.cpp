@@ -5,6 +5,7 @@
 #include "hnrt/WindowDesign.h"
 #include "hnrt/Clipboard.h"
 #include "hnrt/Buffer.h"
+#include "hnrt/Debug.h"
 
 
 using namespace hnrt;
@@ -82,149 +83,185 @@ void DialogBox::SetFont(HFONT hFont)
 }
 
 
-BOOL DialogBox::EnableWindow(int id, BOOL bEnabled)
+BOOL DialogBox::EnableWindow(int id, BOOL bEnabled) const
 {
     return ::EnableWindow(GetDlgItem(m_hwnd, id), bEnabled);
 }
 
 
-BOOL DialogBox::DisableWindow(int id)
+BOOL DialogBox::DisableWindow(int id) const
 {
     return ::EnableWindow(GetDlgItem(m_hwnd, id), FALSE);
 }
 
 
-LRESULT DialogBox::SendMessage(int id, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT DialogBox::SendMessage(int id, UINT msg, WPARAM wParam, LPARAM lParam) const
 {
     return SendDlgItemMessageW(m_hwnd, id, msg, wParam, lParam);
 }
 
 
-UINT DialogBox::GetTextLength(int id)
+UINT DialogBox::GetTextLength(int id) const
 {
     return static_cast<UINT>(SendMessage(id, WM_GETTEXTLENGTH));
 }
 
 
-PWCHAR DialogBox::GetText(int id, PWCHAR pBuf, size_t cch)
+PWCHAR DialogBox::GetText(int id, PWCHAR pBuf, size_t cch) const
 {
     SendMessage(id, WM_GETTEXT, cch, reinterpret_cast<LPARAM>(pBuf));
     return pBuf;
 }
 
 
-void DialogBox::SetText(int id, PCWSTR psz)
+void DialogBox::SetText(int id, PCWSTR psz) const
 {
     SendMessage(id, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(psz ? psz : L""));
 }
 
 
-static void InsertText(PWCHAR pBuf, size_t size, size_t length, size_t start, size_t end, PCWSTR pszText)
+void DialogBox::GetTextSelection(int id, int& start, int& end) const
 {
-    if (length + 1 > size)
-    {
-        length = size - 1;
-    }
-    if (start > length)
-    {
-        start = length;
-    }
-    if (end > length)
-    {
-        end = length;
-    }
-    if (end < start)
-    {
-        end = start;
-    }
-    size_t cch1 = start;
-    size_t cch2 = wcslen(pszText);
-    size_t cch3 = length - end;
-    if (cch1 + cch2 + cch3 + 1 > size)
-    {
-        cch2 = size - (cch1 + cch3 + 1);
-    }
-    if (cch3 > 0)
-    {
-        wmemmove_s(pBuf + cch1 + cch2, size - (cch1 + cch2), pBuf + end, cch3);
-    }
-    wmemcpy_s(pBuf + cch1, cch2, pszText, cch2);
-    pBuf[cch1 + cch2 + cch3] = L'\0';
+    SendMessage(id, EM_GETSEL, reinterpret_cast<WPARAM>(&start), reinterpret_cast<LPARAM>(&end));
 }
 
 
-bool DialogBox::PasteIntoEdit(int id)
+void DialogBox::SetTextSelection(int id, int start, int end) const
 {
+    SendMessage(id, EM_SETSEL, start, end);
+}
+
+
+void DialogBox::SetReadOnlyEdit(int id, BOOL bReadOnly) const
+{
+    SendMessage(id, EM_SETREADONLY, bReadOnly, 0);
+}
+
+
+void DialogBox::CutText(int id) const
+{
+    //
+    // |<-------------------- cch ---------------------->|
+    // |<--- cch1 --->|<--- SELECTION --->|<--- cch3 --->|
+    // |<----------- off3 --------------->|
+    // |<--- cch1 --->|<--- cch3 --->|
+    //
+    int cch = GetTextLength(id) + 1;
+    int cch1 = 0;
+    int off3 = 0;
+    GetTextSelection(id, cch1, off3);
+    if (cch1 >= off3 || off3 >= cch)
+    {
+        Debug::Put(L"DialogBox::CutText: Unexpected state: cch=%d cch1=%d off3=%d", cch, cch1, off3);
+        return;
+    }
+    Buffer<WCHAR> buf(cch);
+    GetText(id, buf, buf.Len);
+    int cch3 = cch - off3;
+    wmemmove_s(&buf[cch1], cch3, &buf[off3], cch3);
+    SetText(id, buf);
+    SetTextSelection(id, cch1, cch1);
+    SetFocus(id);
+}
+
+
+void DialogBox::CopyAllText(int id) const
+{
+    if (!Clipboard::Copy(hwnd, hwnd, id))
+    {
+        Debug::Put(L"DialogBox::CopyAllText: Clipboard error.");
+    }
+}
+
+
+void DialogBox::PasteText(int id) const
+{
+    //
+    // |<-------------------- cch ---------------------->|
+    // |<--- cch1 --->|<--- SELECTION --->|<--- cch3 --->|
+    // |<----------- off3 --------------->|
+    // |<-------------------------------------- size ------------------>|
+    // |<-------------------- cch ---------------------->|<--- cch2 --->|
+    // |<----------- off4 ---------->|
+    // |<--- cch1 --->|<--- cch2 --->|<--- cch3 --->|
+    //
     RefPtr<ClipboardText> pText;
     if (!Clipboard::Paste(hwnd, pText))
     {
-        return false;
+        Debug::Put(L"DialogBox::PasteText: Clipboard error.");
+        return;
     }
     PCWSTR psz2 = *pText.Ptr;
     int cch2 = static_cast<int>(wcslen(psz2));
-    DWORD dwStart = ~0UL;
-    DWORD dwEnd = ~0UL;
-    SendDlgItemMessageW(hwnd, id, EM_GETSEL, reinterpret_cast<WPARAM>(&dwStart), reinterpret_cast<LPARAM>(&dwEnd));
-    int cch1 = GetTextLength(id);
-    int size = cch1 + cch2 + 1;
+    int cch = GetTextLength(id) + 1;
+    int cch1 = 0;
+    int off3 = 0;
+    GetTextSelection(id, cch1, off3);
+    if (cch1 > off3 || off3 >= cch)
+    {
+        Debug::Put(L"DialogBox::PasteText: Unexpected state: cch=%d cch1=%d off3=%d", cch, cch1, off3);
+        return;
+    }
+    int size = cch + cch2;
     Buffer<WCHAR> buf(size);
     GetText(id, buf, buf.Len);
-    InsertText(buf, buf.Len, cch1, dwStart, dwEnd, psz2);
+    int cch3 = cch - off3;
+    int off4 = cch1 + cch2;
+    wmemmove_s(&buf[off4], cch3, &buf[off3], cch3);
+    wmemcpy_s(&buf[cch1], cch2, psz2, cch2);
     SetText(id, buf);
-    dwEnd = dwStart += cch2;
-    SendDlgItemMessageW(hwnd, id, EM_SETSEL, dwStart, dwEnd);
+    SetTextSelection(id, off4, off4);
     SetFocus(id);
-    return true;
 }
 
 
-void DialogBox::SelectAllInEdit(int id)
+void DialogBox::SelectAllText(int id) const
 {
     int cch = GetTextLength(id);
-    SendDlgItemMessageW(hwnd, id, EM_SETSEL, 0, cch);
+    SetTextSelection(id, 0, cch);
     SetFocus(id);
 }
 
 
-void DialogBox::ClearEdit(int id)
+void DialogBox::ClearEdit(int id) const
 {
     SetText(id);
     SetFocus(id);
 }
 
 
-void DialogBox::CheckButton(int id, BOOL bCheck)
+void DialogBox::CheckButton(int id, BOOL bCheck) const
 {
     SendMessage(id, BM_SETCHECK, bCheck ? BST_CHECKED : BST_UNCHECKED);
 }
 
 
-void DialogBox::UncheckButton(int id)
+void DialogBox::UncheckButton(int id) const
 {
     SendMessage(id, BM_SETCHECK, BST_UNCHECKED);
 }
 
 
-int DialogBox::GetButtonState(int id)
+int DialogBox::GetButtonState(int id) const
 {
     return static_cast<int>(SendMessage(id, BM_GETCHECK));
 }
 
 
-void DialogBox::AddStringToComboBox(int id, PCWSTR psz)
+void DialogBox::AddStringToComboBox(int id, PCWSTR psz) const
 {
     SendMessage(id, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(psz));
 }
 
 
-int DialogBox::GetComboBoxSelection(int id, int defaultValue)
+int DialogBox::GetComboBoxSelection(int id, int defaultValue) const
 {
     LRESULT selected = SendMessage(id, CB_GETCURSEL);
     return selected != CB_ERR ? static_cast<int>(selected) : defaultValue;
 }
 
 
-void DialogBox::SetComboBoxSelection(int id, int index)
+void DialogBox::SetComboBoxSelection(int id, int index) const
 {
     LRESULT count = SendMessage(id, LB_GETCOUNT);
     if (count > 0)
@@ -247,19 +284,19 @@ void DialogBox::SetComboBoxSelection(int id, int index)
 }
 
 
-void DialogBox::SetComboBoxSelection(int id, PCWSTR psz)
+void DialogBox::SetComboBoxSelection(int id, PCWSTR psz) const
 {
     SendMessage(id, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(psz));
 }
 
 
-void DialogBox::ClearComboBoxSelection(int id)
+void DialogBox::ClearComboBoxSelection(int id) const
 {
     SendMessage(id, CB_SETCURSEL, -1);
 }
 
 
-UINT DialogBox::GetListBoxTextLength(int id, int index, size_t defaultValue)
+UINT DialogBox::GetListBoxTextLength(int id, int index, size_t defaultValue) const
 {
     LRESULT length = SendMessage(id, CB_GETLBTEXTLEN, index);
     return length != CB_ERR ? static_cast<UINT>(length) : static_cast<UINT>(defaultValue);
@@ -267,7 +304,7 @@ UINT DialogBox::GetListBoxTextLength(int id, int index, size_t defaultValue)
 }
 
 
-PWCHAR DialogBox::GetListBoxText(int id, int index, PWCHAR pBuf, PCWSTR pszDefault)
+PWCHAR DialogBox::GetListBoxText(int id, int index, PWCHAR pBuf, PCWSTR pszDefault) const
 {
     LRESULT length = SendMessage(id, CB_GETLBTEXT, index, reinterpret_cast<LPARAM>(pBuf));
     if (length == CB_ERR)
@@ -278,7 +315,7 @@ PWCHAR DialogBox::GetListBoxText(int id, int index, PWCHAR pBuf, PCWSTR pszDefau
 }
 
 
-void DialogBox::SetFocus(int id)
+void DialogBox::SetFocus(int id) const
 {
     ::SetFocus(GetDlgItem(hwnd, id));
 }
