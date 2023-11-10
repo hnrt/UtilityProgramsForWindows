@@ -21,7 +21,7 @@ namespace hnrt
 
 		MyToolbox();
 		MyToolbox(const MyToolbox&) = delete;
-		virtual ~MyToolbox() = default;
+		virtual ~MyToolbox();
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
 		bool OnFeederNotify(ULONGLONG);
 

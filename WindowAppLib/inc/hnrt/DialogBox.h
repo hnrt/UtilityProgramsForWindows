@@ -42,9 +42,11 @@ namespace hnrt
 		void SetTextSelection(int id, int start, int end) const;
 		void SetReadOnlyEdit(int id, BOOL bReadOnly = TRUE) const;
 		void CutText(int id) const;
-		void CopyAllText(int id) const;
+		void CopyText(int id) const;
 		void PasteText(int id) const;
+		void DeleteText(int id) const;
 		void SelectAllText(int id) const;
+		void CopyAllText(int id) const;
 		void ClearEdit(int id) const;
 		void CheckButton(int id, BOOL bCheck = TRUE) const;
 		void UncheckButton(int id) const;

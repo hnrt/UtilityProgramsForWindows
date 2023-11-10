@@ -40,7 +40,7 @@ void GuidDialogBox::OnCreate()
     ChangeGuid();
     CheckButton(m_uCurrentlySelected);
     m_menuView
-        .Add(ResourceString(IDS_GUID_TABLABEL), IDM_VIEW_GUID);
+        .Add(ResourceString(IDS_MENU_GUID), IDM_VIEW_GUID);
 }
 
 
@@ -87,7 +87,7 @@ void GuidDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
     m_menuEdit
-        .Add(ResourceString(IDS_COPY), IDM_EDIT_COPY);
+        .Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY);
     m_menuView
         .Enable(IDM_VIEW_GUID, MF_DISABLED);
 }

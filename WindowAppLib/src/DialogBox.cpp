@@ -4,6 +4,7 @@
 #include "hnrt/WindowHandle.h"
 #include "hnrt/WindowDesign.h"
 #include "hnrt/Clipboard.h"
+#include "hnrt/String.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/Debug.h"
 
@@ -142,35 +143,61 @@ void DialogBox::CutText(int id) const
 {
     //
     // |<-------------------- cch ---------------------->|
-    // |<--- cch1 --->|<--- SELECTION --->|<--- cch3 --->|
+    // |<--- off2 --->|<--- SELECTION --->|<--- cch3 --->|
     // |<----------- off3 --------------->|
-    // |<--- cch1 --->|<--- cch3 --->|
+    //
+    // |<--- off2 --->|<--- cch3 --->|
     //
     int cch = GetTextLength(id) + 1;
-    int cch1 = 0;
+    int off2 = 0;
     int off3 = 0;
-    GetTextSelection(id, cch1, off3);
-    if (cch1 >= off3 || off3 >= cch)
+    GetTextSelection(id, off2, off3);
+    if (off2 > off3 || off3 >= cch)
     {
-        Debug::Put(L"DialogBox::CutText: Unexpected state: cch=%d cch1=%d off3=%d", cch, cch1, off3);
+        Debug::Put(L"DialogBox::CutText: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
         return;
     }
     Buffer<WCHAR> buf(cch);
     GetText(id, buf, buf.Len);
+    int cch2 = off3 - off2;
+    if (!Clipboard::Copy(hwnd, &buf[off2], cch2))
+    {
+        MessageBoxW(hwnd, L"Unable to write text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
+        return;
+    }
     int cch3 = cch - off3;
-    wmemmove_s(&buf[cch1], cch3, &buf[off3], cch3);
+    wmemmove_s(&buf[off2], cch3, &buf[off3], cch3);
     SetText(id, buf);
-    SetTextSelection(id, cch1, cch1);
+    SetTextSelection(id, off2, off2);
     SetFocus(id);
 }
 
 
-void DialogBox::CopyAllText(int id) const
+void DialogBox::CopyText(int id) const
 {
-    if (!Clipboard::Copy(hwnd, hwnd, id))
+    //
+    // |<-------------------- cch ---------------------->|
+    // |<--- off2 --->|<--- SELECTION --->|<--- cch3 --->|
+    // |<----------- off3 --------------->|
+    //
+    int cch = GetTextLength(id) + 1;
+    int off2 = 0;
+    int off3 = 0;
+    GetTextSelection(id, off2, off3);
+    if (off2 > off3 || off3 >= cch)
     {
-        Debug::Put(L"DialogBox::CopyAllText: Clipboard error.");
+        Debug::Put(L"DialogBox::CopyText: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
+        return;
     }
+    Buffer<WCHAR> buf(cch);
+    GetText(id, buf, buf.Len);
+    int cch2 = off3 - off2;
+    if (!Clipboard::Copy(hwnd, &buf[off2], cch2))
+    {
+        MessageBoxW(hwnd, L"Unable to write text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
+        return;
+    }
+    SetFocus(id);
 }
 
 
@@ -178,39 +205,75 @@ void DialogBox::PasteText(int id) const
 {
     //
     // |<-------------------- cch ---------------------->|
-    // |<--- cch1 --->|<--- SELECTION --->|<--- cch3 --->|
+    // |<--- off2 --->|<--- SELECTION --->|<--- cch3 --->|
     // |<----------- off3 --------------->|
     // |<-------------------------------------- size ------------------>|
     // |<-------------------- cch ---------------------->|<--- cch2 --->|
     // |<----------- off4 ---------->|
-    // |<--- cch1 --->|<--- cch2 --->|<--- cch3 --->|
+    // |<--- off2 --->|<--- cch2 --->|<--- cch3 --->|
     //
     RefPtr<ClipboardText> pText;
     if (!Clipboard::Paste(hwnd, pText))
     {
-        Debug::Put(L"DialogBox::PasteText: Clipboard error.");
+        MessageBoxW(hwnd, L"Unable to read text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
         return;
     }
     PCWSTR psz2 = *pText.Ptr;
     int cch2 = static_cast<int>(wcslen(psz2));
     int cch = GetTextLength(id) + 1;
-    int cch1 = 0;
+    int off2 = 0;
     int off3 = 0;
-    GetTextSelection(id, cch1, off3);
-    if (cch1 > off3 || off3 >= cch)
+    GetTextSelection(id, off2, off3);
+    if (off2 > off3 || off3 >= cch)
     {
-        Debug::Put(L"DialogBox::PasteText: Unexpected state: cch=%d cch1=%d off3=%d", cch, cch1, off3);
+        Debug::Put(L"DialogBox::PasteText: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
         return;
     }
     int size = cch + cch2;
     Buffer<WCHAR> buf(size);
     GetText(id, buf, buf.Len);
     int cch3 = cch - off3;
-    int off4 = cch1 + cch2;
+    int off4 = off2 + cch2;
     wmemmove_s(&buf[off4], cch3, &buf[off3], cch3);
-    wmemcpy_s(&buf[cch1], cch2, psz2, cch2);
+    wmemcpy_s(&buf[off2], cch2, psz2, cch2);
     SetText(id, buf);
     SetTextSelection(id, off4, off4);
+    SetFocus(id);
+}
+
+
+void DialogBox::DeleteText(int id) const
+{
+    //
+    // |<-------------------- cch ---------------------->|
+    // |<--- off2 --->|<--- SELECTION --->|<--- cch3 --->|
+    // |<----------- off3 --------------->|
+    //
+    // |<--- off2 --->|<--- cch3 --->|
+    //
+    int cch = GetTextLength(id) + 1;
+    int off2 = 0;
+    int off3 = 0;
+    GetTextSelection(id, off2, off3);
+    if (off2 > off3 || off3 >= cch)
+    {
+        Debug::Put(L"DialogBox::DeleteText: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
+        return;
+    }
+    if (off2 == off3)
+    {
+        if (++off3 == cch)
+        {
+            return;
+        }
+    }
+    Buffer<WCHAR> buf(cch);
+    GetText(id, buf, buf.Len);
+    int cch2 = off3 - off2;
+    int cch3 = cch - off3;
+    wmemmove_s(&buf[off2], cch3, &buf[off3], cch3);
+    SetText(id, buf);
+    SetTextSelection(id, off2, off2);
     SetFocus(id);
 }
 
@@ -220,6 +283,15 @@ void DialogBox::SelectAllText(int id) const
     int cch = GetTextLength(id);
     SetTextSelection(id, 0, cch);
     SetFocus(id);
+}
+
+
+void DialogBox::CopyAllText(int id) const
+{
+    if (!Clipboard::Copy(hwnd, hwnd, id))
+    {
+        MessageBoxW(hwnd, L"Unable to write text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
+    }
 }
 
 

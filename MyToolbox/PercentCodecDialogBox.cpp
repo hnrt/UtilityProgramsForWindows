@@ -60,7 +60,7 @@ void PercentCodecDialogBox::OnCreate()
 	SetText(IDC_PCTC_STATUS1, L"");
 	SetText(IDC_PCTC_STATUS2, L"");
 	m_menuView
-		.Add(ResourceString(IDS_PCTC_TABLABEL), IDM_VIEW_PCTC);
+		.Add(ResourceString(IDS_MENU_PCTC), IDM_VIEW_PCTC);
 }
 
 
@@ -132,18 +132,22 @@ void PercentCodecDialogBox::OnTabSelectionChanged()
 	MyDialogBox::OnTabSelectionChanged();
 	m_menuFile
 		.RemoveAll()
-		.Add(ResourceString(IDS_LOADFROM), IDM_FILE_LOADFROM)
-		.Add(ResourceString(IDS_SAVEAS), IDM_FILE_SAVEAS)
+		.Add(ResourceString(IDS_MENU_LOADFROM), IDM_FILE_LOADFROM)
+		.Add(ResourceString(IDS_MENU_SAVEAS), IDM_FILE_SAVEAS)
 		.AddSeparator()
-		.Add(ResourceString(IDS_EXIT), IDM_FILE_EXIT);
+		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
 	m_menuEdit
-		.Add(ResourceString(IDS_CUT), IDM_EDIT_CUT)
-		.Add(ResourceString(IDS_COPY), IDM_EDIT_COPY)
-		.Add(ResourceString(IDS_PASTE), IDM_EDIT_PASTE)
+		.RemoveAll()
+		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
+		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
+		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
+		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE)
 		.AddSeparator()
-		.Add(ResourceString(IDS_SELECTALL), IDM_EDIT_SELECTALL)
+		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL)
 		.AddSeparator()
-		.Add(ResourceString(IDS_CLEAR), IDM_EDIT_CLEAR);
+		.Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
 	m_menuView
 		.Enable(IDM_VIEW_PCTC, MF_DISABLED);
 	m_menuSettings
@@ -244,7 +248,7 @@ void PercentCodecDialogBox::OnCut()
 
 void PercentCodecDialogBox::OnCopy()
 {
-	CopyAllText(CurrentEdit);
+	CopyText(CurrentEdit);
 }
 
 
@@ -254,9 +258,21 @@ void PercentCodecDialogBox::OnPaste()
 }
 
 
+void PercentCodecDialogBox::OnDelete()
+{
+	DeleteText(CurrentEdit);
+}
+
+
 void PercentCodecDialogBox::OnSelectAll()
 {
 	SelectAllText(CurrentEdit);
+}
+
+
+void PercentCodecDialogBox::OnCopyAll()
+{
+	CopyAllText(CurrentEdit);
 }
 
 

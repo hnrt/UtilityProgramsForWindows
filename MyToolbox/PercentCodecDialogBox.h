@@ -22,7 +22,9 @@ namespace hnrt
 		virtual void OnCut();
 		virtual void OnCopy();
 		virtual void OnPaste();
+		virtual void OnDelete();
 		virtual void OnSelectAll();
+		virtual void OnCopyAll();
 		virtual void OnClear();
 		virtual void OnSettingChanged(UINT);
 

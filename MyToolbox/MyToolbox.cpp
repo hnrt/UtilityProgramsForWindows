@@ -7,6 +7,8 @@
 #include "hnrt/LogicalFont.h"
 #include "hnrt/WindowHandle.h"
 #include "hnrt/WindowDesign.h"
+#include "hnrt/RegistryKey.h"
+#include "hnrt/RegistryValue.h"
 
 
 using namespace hnrt;
@@ -30,6 +32,21 @@ MyToolbox::MyToolbox()
 {
     INITCOMMONCONTROLSEX iccx = { sizeof(iccx), ICC_TAB_CLASSES };
     InitCommonControlsEx(&iccx);
+    RegistryKey hKey;
+    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
+    if (rc == ERROR_SUCCESS)
+    {
+    }
+}
+
+
+MyToolbox::~MyToolbox()
+{
+    RegistryKey hKey;
+    LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY);
+    if (rc == ERROR_SUCCESS)
+    {
+    }
 }
 
 
@@ -47,18 +64,18 @@ void MyToolbox::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 HMENU MyToolbox::CreateMenuBar()
 {
     return Menu()
-        .Add(ResourceString(IDS_FILE),
+        .Add(ResourceString(IDS_MENU_FILE),
             Menu()
-            .Add(ResourceString(IDS_EXIT), IDM_FILE_EXIT))
-        .Add(ResourceString(IDS_EDIT),
+            .Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT))
+        .Add(ResourceString(IDS_MENU_EDIT),
             Menu())
-        .Add(ResourceString(IDS_VIEW),
+        .Add(ResourceString(IDS_MENU_VIEW),
             Menu())
-        .Add(ResourceString(IDS_SETTINGS),
+        .Add(ResourceString(IDS_MENU_SETTINGS),
             Menu())
-        .Add(ResourceString(IDS_HELP),
+        .Add(ResourceString(IDS_MENU_HELP),
             Menu()
-            .Add(ResourceString(IDS_ABOUT), IDM_HELP_ABOUT));
+            .Add(ResourceString(IDS_MENU_ABOUT), IDM_HELP_ABOUT));
 }
 
 
@@ -83,11 +100,11 @@ void MyToolbox::OnCreate()
 
 void MyToolbox::CreateChildren()
 {
-    m_tabs.Add(ResourceString(IDS_HASH_TABLABEL), &m_hashTab);
-    m_tabs.Add(ResourceString(IDS_GUID_TABLABEL), &m_guidTab);
-    m_tabs.Add(ResourceString(IDS_PCTC_TABLABEL), &m_pctcTab);
-    m_tabs.Add(ResourceString(IDS_CRON_TABLABEL), &m_cronTab);
-    m_tabs.Add(ResourceString(IDS_NTOA_TABLABEL), &m_ntoaTab);
+    m_tabs.Add(ResourceString(IDS_TAB_HASH), &m_hashTab);
+    m_tabs.Add(ResourceString(IDS_TAB_GUID), &m_guidTab);
+    m_tabs.Add(ResourceString(IDS_TAB_PCTC), &m_pctcTab);
+    m_tabs.Add(ResourceString(IDS_TAB_CRON), &m_cronTab);
+    m_tabs.Add(ResourceString(IDS_TAB_NTOA), &m_ntoaTab);
     for (int index = 0; index < m_tabs.ItemCount; index++)
     {
         m_tabs[index].Open(m_tabs);
@@ -163,6 +180,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_EDIT_SELECTALL:
         m_tabs[m_tabs.CurrentItem].OnSelectAll();
         break;
+    case IDM_EDIT_COPYALL:
+        m_tabs[m_tabs.CurrentItem].OnCopyAll();
+        break;
     case IDM_EDIT_CLEAR:
         m_tabs[m_tabs.CurrentItem].OnClear();
         break;
@@ -181,15 +201,39 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_VIEW_NTOA:
         m_tabs.CurrentItem = m_ntoaTab.Id;
         break;
-    case IDM_SETTINGS_ICP_AUTO:
-    case IDM_SETTINGS_ICP_UTF8:
-    case IDM_SETTINGS_ICP_UTF16:
-    case IDM_SETTINGS_ICP_ANSI:
-    case IDM_SETTINGS_OCP_UTF8:
-    case IDM_SETTINGS_OCP_UTF8BOM:
-    case IDM_SETTINGS_OCP_UTF16:
-    case IDM_SETTINGS_OCP_UTF16BOM:
-    case IDM_SETTINGS_OCP_ANSI:
+    case IDM_SETTINGS_IN_AUTO:
+    case IDM_SETTINGS_IN_UTF8:
+    case IDM_SETTINGS_IN_UTF16:
+    case IDM_SETTINGS_IN_CP932:
+    case IDM_SETTINGS_IN_CP936:
+    case IDM_SETTINGS_IN_CP949:
+    case IDM_SETTINGS_IN_CP950:
+    case IDM_SETTINGS_IN_CP1250:
+    case IDM_SETTINGS_IN_CP1251:
+    case IDM_SETTINGS_IN_CP1252:
+    case IDM_SETTINGS_IN_CP1253:
+    case IDM_SETTINGS_IN_CP1254:
+    case IDM_SETTINGS_IN_CP1255:
+    case IDM_SETTINGS_IN_CP1256:
+    case IDM_SETTINGS_IN_CP1257:
+    case IDM_SETTINGS_IN_CP1258:
+    case IDM_SETTINGS_OUT_UTF8:
+    case IDM_SETTINGS_OUT_UTF8BOM:
+    case IDM_SETTINGS_OUT_UTF16:
+    case IDM_SETTINGS_OUT_UTF16BOM:
+    case IDM_SETTINGS_OUT_CP932:
+    case IDM_SETTINGS_OUT_CP936:
+    case IDM_SETTINGS_OUT_CP949:
+    case IDM_SETTINGS_OUT_CP950:
+    case IDM_SETTINGS_OUT_CP1250:
+    case IDM_SETTINGS_OUT_CP1251:
+    case IDM_SETTINGS_OUT_CP1252:
+    case IDM_SETTINGS_OUT_CP1253:
+    case IDM_SETTINGS_OUT_CP1254:
+    case IDM_SETTINGS_OUT_CP1255:
+    case IDM_SETTINGS_OUT_CP1256:
+    case IDM_SETTINGS_OUT_CP1257:
+    case IDM_SETTINGS_OUT_CP1258:
         m_tabs[m_tabs.CurrentItem].OnSettingChanged(wControlId);
         break;
     case IDM_HELP_ABOUT:

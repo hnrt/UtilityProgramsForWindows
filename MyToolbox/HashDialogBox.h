@@ -25,6 +25,7 @@ namespace hnrt
 		virtual void OnPaste();
 		virtual void OnSelectAll();
 		virtual void OnClear();
+		virtual void OnSettingChanged(UINT);
 		virtual void OnFeederNotify(ULONGLONG);
 
 	private:
@@ -39,6 +40,7 @@ namespace hnrt
 		void OnSelectSource(UINT uSource);
 		void OnSelectMethod(UINT uMethod);
 		void OnUppercase();
+		void SwitchMenu(bool bOnTabSelectionChanged = false);
 		void Calculate(DataFeeder& rDataFeeder);
 		UINT GetCodePage();
 		UINT GetLineBreak();

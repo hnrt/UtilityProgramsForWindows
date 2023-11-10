@@ -47,7 +47,7 @@ void NativeToAsciiDialogBox::OnCreate()
 		wcscpy_s(m_szAsciiPath, value.GetSZ(hKey, REG_NAME_ASCII_PATH, L""));
 	}
 	m_menuView
-		.Add(ResourceString(IDS_NTOA_TABLABEL), IDM_VIEW_NTOA);
+		.Add(ResourceString(IDS_MENU_NTOA), IDM_VIEW_NTOA);
 }
 
 
@@ -104,19 +104,22 @@ void NativeToAsciiDialogBox::OnTabSelectionChanged()
 	MyDialogBox::OnTabSelectionChanged();
 	m_menuFile
 		.RemoveAll()
-		.Add(ResourceString(IDS_LOADFROM), IDM_FILE_LOADFROM)
-		.Add(ResourceString(IDS_SAVEAS), IDM_FILE_SAVEAS)
+		.Add(ResourceString(IDS_MENU_LOADFROM), IDM_FILE_LOADFROM)
+		.Add(ResourceString(IDS_MENU_SAVEAS), IDM_FILE_SAVEAS)
 		.AddSeparator()
-		.Add(ResourceString(IDS_EXIT), IDM_FILE_EXIT);
+		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
 	m_menuEdit
 		.RemoveAll()
-		.Add(ResourceString(IDS_CUT), IDM_EDIT_CUT)
-		.Add(ResourceString(IDS_COPY), IDM_EDIT_COPY)
-		.Add(ResourceString(IDS_PASTE), IDM_EDIT_PASTE)
+		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
+		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
+		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
+		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE)
 		.AddSeparator()
-		.Add(ResourceString(IDS_SELECTALL), IDM_EDIT_SELECTALL)
+		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL)
 		.AddSeparator()
-		.Add(ResourceString(IDS_CLEAR), IDM_EDIT_CLEAR);
+		.Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
 	m_menuView
 		.Enable(IDM_VIEW_NTOA, MF_DISABLED);
 	m_menuSettings
@@ -175,7 +178,7 @@ void NativeToAsciiDialogBox::OnCut()
 
 void NativeToAsciiDialogBox::OnCopy()
 {
-	CopyAllText(CurrentEdit);
+	CopyText(CurrentEdit);
 }
 
 
@@ -185,9 +188,21 @@ void NativeToAsciiDialogBox::OnPaste()
 }
 
 
+void NativeToAsciiDialogBox::OnDelete()
+{
+	DeleteText(CurrentEdit);
+}
+
+
 void NativeToAsciiDialogBox::OnSelectAll()
 {
 	SelectAllText(CurrentEdit);
+}
+
+
+void NativeToAsciiDialogBox::OnCopyAll()
+{
+	CopyAllText(CurrentEdit);
 }
 
 

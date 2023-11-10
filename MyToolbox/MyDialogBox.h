@@ -31,6 +31,7 @@ namespace hnrt
 		virtual void OnPaste();
 		virtual void OnDelete();
 		virtual void OnSelectAll();
+		virtual void OnCopyAll();
 		virtual void OnClear();
 		virtual void OnSettingChanged(UINT);
 		virtual void OnFeederNotify(ULONGLONG);
@@ -107,6 +108,10 @@ namespace hnrt
 	}
 
 	inline void MyDialogBox::OnSelectAll()
+	{
+	}
+
+	inline void MyDialogBox::OnCopyAll()
 	{
 	}
 

@@ -72,7 +72,7 @@ void HashDialogBox::OnCreate()
     DisableWindow(IDC_HASH_COPY);
     OnSelectSource(m_uSource);
     m_menuView
-        .Add(ResourceString(IDS_HASH_TABLABEL), IDM_VIEW_HASH);
+        .Add(ResourceString(IDS_MENU_HASH), IDM_VIEW_HASH);
 }
 
 
@@ -124,25 +124,7 @@ void HashDialogBox::OnTabSelectionChanging()
 void HashDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
-    UINT uTextFlags = GetButtonState(IDC_HASH_TEXT) == BST_CHECKED ? MF_ENABLED : MF_DISABLED;
-    m_menuFile
-        .RemoveAll()
-        .Add(ResourceString(IDS_LOADFROM), IDM_FILE_LOADFROM)
-        .Add(ResourceString(IDS_SAVEAS), IDM_FILE_SAVEAS, uTextFlags)
-        .AddSeparator()
-        .Add(ResourceString(IDS_EXIT), IDM_FILE_EXIT);
-    m_menuEdit
-        .RemoveAll()
-        .Add(ResourceString(IDS_COPY), IDM_EDIT_COPY, MF_DISABLED)
-        .AddSeparator()
-        .Add(ResourceString(IDS_CUT), IDM_EDIT_CUT, uTextFlags)
-        .Add(ResourceString(IDS_PASTE), IDM_EDIT_PASTE, uTextFlags)
-        .AddSeparator()
-        .Add(ResourceString(IDS_SELECTALL), IDM_EDIT_SELECTALL, uTextFlags)
-        .AddSeparator()
-        .Add(ResourceString(IDS_CLEAR), IDM_EDIT_CLEAR, uTextFlags);
-    m_menuView
-        .Enable(IDM_VIEW_HASH, MF_DISABLED);
+    SwitchMenu(true);
 }
 
 
@@ -367,6 +349,19 @@ void HashDialogBox::OnClear()
 }
 
 
+void HashDialogBox::OnSettingChanged(UINT uId)
+{
+    if (ApplyToInputCodePage(uId))
+    {
+        return;
+    }
+    if (ApplyToOutputCodePage(uId))
+    {
+        return;
+    }
+}
+
+
 void HashDialogBox::OnFeederNotify(ULONGLONG nBytesIn)
 {
     SetResultHeader(nBytesIn);
@@ -393,26 +388,7 @@ void HashDialogBox::OnSelectSource(UINT uSource)
         SetResult();
         DisableWindow(IDC_HASH_COPY);
     }
-    m_menuFile
-        .Modify(
-            IDM_FILE_SAVEAS, bText ? MF_ENABLED : MF_DISABLED,
-            IDM_FILE_SAVEAS, ResourceString(IDS_SAVEAS));
-    m_menuEdit
-        .Modify(
-            IDM_EDIT_COPY, GetTextLength(IDC_HASH_VALUE) > 0 ? MF_ENABLED : MF_DISABLED,
-            IDM_EDIT_COPY, ResourceString(IDS_COPY))
-        .Modify(
-            IDM_EDIT_CUT, bText ? MF_ENABLED : MF_DISABLED,
-            IDM_EDIT_CUT, ResourceString(IDS_CUT))
-        .Modify(
-            IDM_EDIT_PASTE, bText ? MF_ENABLED : MF_DISABLED,
-            IDM_EDIT_PASTE, ResourceString(IDS_PASTE))
-        .Modify(
-            IDM_EDIT_SELECTALL, bText ? MF_ENABLED : MF_DISABLED,
-            IDM_EDIT_SELECTALL, ResourceString(IDS_SELECTALL))
-        .Modify(
-            IDM_EDIT_CLEAR, bText ? MF_ENABLED : MF_DISABLED,
-            IDM_EDIT_CLEAR, ResourceString(IDS_CLEAR));
+    SwitchMenu();
 }
 
 
@@ -450,6 +426,52 @@ void HashDialogBox::OnUppercase()
     else
     {
         Debug::Put(L"SendDlgItemMessage(UPPERCASE,BM_GETCHECK) unexpectedly returned %ld.", value);
+    }
+}
+
+
+void HashDialogBox::SwitchMenu(bool bOnTabSelectionChanged)
+{
+    if (GetButtonState(IDC_HASH_FILE) == BST_CHECKED)
+    {
+        m_menuFile
+            .RemoveAll()
+            .Add(ResourceString(IDS_MENU_LOADFROM), IDM_FILE_LOADFROM)
+            .AddSeparator()
+            .Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
+        m_menuEdit
+            .RemoveAll()
+            .Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY);
+        m_menuSettings
+            .RemoveAll();
+    }
+    else if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    {
+        m_menuFile
+            .RemoveAll()
+            .Add(ResourceString(IDS_MENU_LOADFROM), IDM_FILE_LOADFROM)
+            .Add(ResourceString(IDS_MENU_SAVEAS), IDM_FILE_SAVEAS)
+            .AddSeparator()
+            .Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
+        m_menuEdit
+            .RemoveAll()
+            .Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
+            .AddSeparator()
+            .Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
+            .Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
+            .AddSeparator()
+            .Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL)
+            .AddSeparator()
+            .Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
+        m_menuSettings
+            .RemoveAll();
+        AddInputCodePageSettingMenus();
+        AddOutputCodePageSettingMenus();
+    }
+    if (bOnTabSelectionChanged)
+    {
+        m_menuView
+            .Enable(IDM_VIEW_HASH, MF_DISABLED);
     }
 }
 
@@ -588,6 +610,7 @@ void HashDialogBox::SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut)
 void HashDialogBox::SetResult(PCWSTR psz)
 {
     SetText(IDC_HASH_VALUE, psz);
+    m_menuEdit.Enable(IDM_EDIT_COPY, *psz ? MF_ENABLED : MF_DISABLED);
 }
 
 

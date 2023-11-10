@@ -190,7 +190,7 @@ void CronDialogBox::OnCreate()
 	Parse();
 	UpdateIndividualControls();
 	m_menuView
-		.Add(ResourceString(IDS_CRON_TABLABEL), IDM_VIEW_CRON);
+		.Add(ResourceString(IDS_MENU_CRON), IDM_VIEW_CRON);
 }
 
 
@@ -345,7 +345,7 @@ void CronDialogBox::OnTabSelectionChanged()
 {
 	MyDialogBox::OnTabSelectionChanged();
 	m_menuEdit
-		.Add(ResourceString(IDS_COPY), IDM_EDIT_COPY);
+		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY);
 	m_menuView
 		.Enable(IDM_VIEW_CRON, MF_DISABLED);
 	SetTimer(hwnd, CRON_TIMER1SEC, 1000, NULL);
