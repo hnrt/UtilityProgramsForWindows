@@ -33,6 +33,7 @@ namespace hnrt
 		virtual void OnSelectAll();
 		virtual void OnCopyAll();
 		virtual void OnClear();
+		virtual void OnExecute();
 		virtual void OnSettingChanged(UINT);
 		virtual void OnFeederNotify(ULONGLONG);
 
@@ -48,8 +49,15 @@ namespace hnrt
 		void AddOutputCodePageSettingMenus();
 		bool ApplyToInputCodePage(UINT);
 		bool ApplyToOutputCodePage(UINT);
+		void AddHashAlgorithmSettingMenus(UINT);
+		bool ApplyToHashAlgorithm(UINT, UINT&, UINT);
+		void AddLettercaseSettingMenus(UINT);
+		bool ApplyToLettercase(UINT, UINT&, UINT);
 		void LoadTextFromFile(int id, PWSTR psz = nullptr, DWORD dwLen = 0);
 		void SaveTextAsFile(int id, PWSTR psz = nullptr, DWORD dwLen = 0);
+		void InitializeCodePageComboBox(int id, int initialSelection = CP_UTF8);
+		void InitializeLineBreakComboBox(int id, int initialSelection = 0x0d0a);
+		void InitializeOffsetComboBox(int id, int initialSelection = 0);
 
 	private:
 
@@ -116,6 +124,10 @@ namespace hnrt
 	}
 
 	inline void MyDialogBox::OnClear()
+	{
+	}
+	
+	inline void MyDialogBox::OnExecute()
 	{
 	}
 

@@ -32,6 +32,7 @@ namespace hnrt
 		virtual void Open(HWND hwndParent, int x, int y, int cx, int cy);
 		virtual void Close();
 		void SetFont(HFONT hFont);
+		HWND GetChild(int id) const;
 		BOOL EnableWindow(int id, BOOL bEnabled = TRUE) const;
 		BOOL DisableWindow(int id) const;
 		LRESULT SendMessage(int id, UINT msg, WPARAM wParam = 0, LPARAM lParam = 0) const;
@@ -51,12 +52,12 @@ namespace hnrt
 		void CheckButton(int id, BOOL bCheck = TRUE) const;
 		void UncheckButton(int id) const;
 		int GetButtonState(int id) const;
-		void AddStringToComboBox(int id, PCWSTR psz) const;
+		void AddStringToComboBox(int id, PCWSTR psz, int value) const;
 		int GetComboBoxSelection(int id, int defaultValue = 0) const;
-		void SetComboBoxSelection(int id, int index) const;
+		void SetComboBoxSelection(int id, int value) const;
 		void SetComboBoxSelection(int id, PCWSTR psz) const;
 		void ClearComboBoxSelection(int id) const;
-		UINT GetListBoxTextLength(int id, int index, size_t defaultValue = 0) const;
+		int GetListBoxTextLength(int id, int index, size_t defaultValue = 0) const;
 		PWCHAR GetListBoxText(int id, int index, PWCHAR pBuf, PCWSTR pszDefault = L"") const;
 		void SetFocus(int id) const;
 

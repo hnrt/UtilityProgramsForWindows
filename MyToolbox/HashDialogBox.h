@@ -25,6 +25,7 @@ namespace hnrt
 		virtual void OnPaste();
 		virtual void OnSelectAll();
 		virtual void OnClear();
+		virtual void OnExecute();
 		virtual void OnSettingChanged(UINT);
 		virtual void OnFeederNotify(ULONGLONG);
 
@@ -40,22 +41,26 @@ namespace hnrt
 		void OnSelectSource(UINT uSource);
 		void OnSelectMethod(UINT uMethod);
 		void OnUppercase();
-		void SwitchMenu(bool bOnTabSelectionChanged = false);
+		void SwitchMenu();
 		void Calculate(DataFeeder& rDataFeeder);
-		UINT GetCodePage();
-		UINT GetLineBreak();
-		UINT ConvertToLF(PWCHAR pStart, UINT uLength);
+		bool CanCalculate();
+		bool HasResult();
+		void ClearResult();
 		void SetResultHeader();
 		void SetResultHeader(ULONGLONG nBytesIn);
 		void SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut);
 		void SetResult(PCWSTR psz = L"");
 		void SetResult(Hash& rHash);
 		void ResetResultCase();
+		void SetPath(PCWSTR psz = L"");
+		UINT GetCodePage();
+		UINT GetLineBreak();
+		UINT ConvertToLF(PWCHAR pStart, UINT uLength);
 
 		Hash m_hash;
 		UINT m_uSource;
 		UINT m_uMethod;
-		BOOL m_bUppercase;
+		UINT m_uLettercase;
 		WCHAR m_szTextPath[MAX_PATH];
 	};
 }

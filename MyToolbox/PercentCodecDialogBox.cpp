@@ -52,9 +52,7 @@ void PercentCodecDialogBox::OnCreate()
 		wcscpy_s(m_szOriginalPath, value.GetSZ(hKey, REG_NAME_ORIGINAL_PATH, L""));
 		wcscpy_s(m_szEncodedPath, value.GetSZ(hKey, REG_NAME_ENCODED_PATH, L""));
 	}
-	AddStringToComboBox(IDC_PCTC_ENCODING, LABEL_UTF8);
-	AddStringToComboBox(IDC_PCTC_ENCODING, LABEL_CP932);
-	SetComboBoxSelection(IDC_PCTC_ENCODING, LABEL_UTF8);
+	InitializeCodePageComboBox(IDC_PCTC_ENCODING);
 	CheckButton(IDC_PCTC_USE_PLUS);
 	OnSelectSource(IDC_PCTC_LABEL1);
 	SetText(IDC_PCTC_STATUS1, L"");

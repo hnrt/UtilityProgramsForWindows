@@ -162,21 +162,16 @@ void CronDialogBox::OnCreate()
 	CheckButton(IDC_CRON_SECOND_CHECK, m_cron.SecondEnabled ? TRUE : FALSE);
 	if (valueBaseOffset.Type == REG_DWORD)
 	{
-		SetOffsetComboBox(IDC_CRON_EXPR_COMBO, valueBaseOffset.Int32);
+		SetComboBoxSelection(IDC_CRON_EXPR_COMBO, valueBaseOffset.Int32);
 		if (valueDisplayOffset.Type == REG_DWORD)
 		{
-			SetOffsetComboBox(IDC_CRON_OFFSET_COMBO, valueDisplayOffset.Int32);
+			SetComboBoxSelection(IDC_CRON_OFFSET_COMBO, valueDisplayOffset.Int32);
 			m_offset = valueDisplayOffset.Int32 - valueBaseOffset.Int32;
 		}
 		else
 		{
-			SetOffsetComboBox(IDC_CRON_OFFSET_COMBO, valueBaseOffset.Int32);
+			SetComboBoxSelection(IDC_CRON_OFFSET_COMBO, valueBaseOffset.Int32);
 		}
-	}
-	else
-	{
-		SetOffsetComboBox(IDC_CRON_OFFSET_COMBO, 0);
-		SetOffsetComboBox(IDC_CRON_OFFSET_COMBO, 0);
 	}
 	if (valueExpression.Type == REG_SZ)
 	{
@@ -201,8 +196,8 @@ void CronDialogBox::OnDestroy()
 	if (rc == ERROR_SUCCESS)
 	{
 		RegistryValue::SetDWORD(hKey, REG_NAME_SECOND, m_cron.SecondEnabled ? 1U : 0U);
-		RegistryValue::SetDWORD(hKey, REG_NAME_BASEOFFSET, GetOffsetComboBox(IDC_CRON_EXPR_COMBO));
-		RegistryValue::SetDWORD(hKey, REG_NAME_DISPLAYOFFSET, GetOffsetComboBox(IDC_CRON_OFFSET_COMBO));
+		RegistryValue::SetDWORD(hKey, REG_NAME_BASEOFFSET, GetComboBoxSelection(IDC_CRON_EXPR_COMBO));
+		RegistryValue::SetDWORD(hKey, REG_NAME_DISPLAYOFFSET, GetComboBoxSelection(IDC_CRON_OFFSET_COMBO));
 		int cch = GetTextLength(IDC_CRON_EXPR_EDIT) + 1;
 		Buffer<WCHAR> buf(cch);
 		GetText(IDC_CRON_EXPR_EDIT, buf, buf.Len);
@@ -626,7 +621,7 @@ INT_PTR CronDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 		else if (m_bParseSuccessful)
 		{
 			SYSTEMTIME st = { 0 };
-			if (m_cron.GetNextTime(GetOffsetComboBox(IDC_CRON_EXPR_COMBO), st))
+			if (m_cron.GetNextTime(GetComboBoxSelection(IDC_CRON_EXPR_COMBO), st))
 			{
 				FileTime ft(st);
 				ft.AddMinutes(m_offset);
@@ -723,8 +718,8 @@ void CronDialogBox::OnSecondChanged()
 
 void CronDialogBox::OnOffsetChanged()
 {
-	int offset1 = GetOffsetComboBox(IDC_CRON_EXPR_COMBO);
-	int offset2 = GetOffsetComboBox(IDC_CRON_OFFSET_COMBO);
+	int offset1 = GetComboBoxSelection(IDC_CRON_EXPR_COMBO);
+	int offset2 = GetComboBoxSelection(IDC_CRON_OFFSET_COMBO);
 	m_offset = offset2 - offset1;
 	if (GetButtonState(IDC_CRON_EXPR_RADIO) == BST_CHECKED)
 	{
@@ -1047,85 +1042,6 @@ void CronDialogBox::ShowSecondControls()
 	ShowWindow(GetDlgItem(hwnd, IDC_CRON_SECOND_EXPR_RADIO), nCmdShow);
 	ShowWindow(GetDlgItem(hwnd, IDC_CRON_SECOND_EDIT), nCmdShow);
 	ShowWindow(GetDlgItem(hwnd, IDC_CRON_SECOND_EVAL_STATIC), nCmdShow);
-}
-
-
-// from UTC-12:00 (Baker Island/Howland Island) through UTC+14:00 (Kiribati)
-void CronDialogBox::InitializeOffsetComboBox(int id)
-{
-	static const PCWSTR pszs[] = {
-		L"-12:00",
-		L"-11:00",
-		L"-10:00",
-		L"-09:30",
-		L"-09:00",
-		L"-08:00",
-		L"-07:00",
-		L"-06:00",
-		L"-05:00",
-		L"-04:30",
-		L"-04:00",
-		L"-03:30",
-		L"-03:00",
-		L"-02:00",
-		L"-01:00",
-		L"+00:00",
-		L"+01:00",
-		L"+02:00",
-		L"+03:00",
-		L"+03:30",
-		L"+04:00",
-		L"+04:30",
-		L"+05:00",
-		L"+05:30",
-		L"+05:45",
-		L"+06:00",
-		L"+06:30",
-		L"+07:00",
-		L"+08:00",
-		L"+08:30",
-		L"+08:45",
-		L"+09:00",
-		L"+09:30",
-		L"+10:00",
-		L"+10:30",
-		L"+11:00",
-		L"+11:45",
-		L"+12:00",
-		L"+12:45",
-		L"+13:00",
-		L"+14:00"
-	};
-	for (int i = 0; i < _countof(pszs); i++)
-	{
-		AddStringToComboBox(id, pszs[i]);
-	}
-}
-
-
-void CronDialogBox::SetOffsetComboBox(int id, int offset)
-{
-	WCHAR sz[8] = { 0 };
-	if (offset >= 0)
-	{
-		swprintf_s(sz, L"+%02d:%02d", offset / 60, offset % 60);
-	}
-	else
-	{
-		swprintf_s(sz, L"-%02d:%02d", -offset / 60, -offset % 60);
-	}
-	SetComboBoxSelection(id, sz);
-}
-
-
-int CronDialogBox::GetOffsetComboBox(int id)
-{
-	WCHAR sz[8];
-	GetListBoxText(id, GetComboBoxSelection(id), sz);
-	int sign = sz[0] == L'-' ? -1 : 1;
-	int hour = wcstol(&sz[1], NULL, 10);
-	int minute = wcstol(&sz[4], NULL, 10);
-	return sign * (hour * 60 + minute);
 }
 
 

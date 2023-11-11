@@ -7,6 +7,7 @@
 #include "hnrt/String.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/Debug.h"
+#include <map>
 
 
 using namespace hnrt;
@@ -84,15 +85,21 @@ void DialogBox::SetFont(HFONT hFont)
 }
 
 
+HWND DialogBox::GetChild(int id) const
+{
+    return GetDlgItem(m_hwnd, id);
+}
+
+
 BOOL DialogBox::EnableWindow(int id, BOOL bEnabled) const
 {
-    return ::EnableWindow(GetDlgItem(m_hwnd, id), bEnabled);
+    return ::EnableWindow(GetChild(id), bEnabled);
 }
 
 
 BOOL DialogBox::DisableWindow(int id) const
 {
-    return ::EnableWindow(GetDlgItem(m_hwnd, id), FALSE);
+    return ::EnableWindow(GetChild(id), FALSE);
 }
 
 
@@ -320,39 +327,66 @@ int DialogBox::GetButtonState(int id) const
 }
 
 
-void DialogBox::AddStringToComboBox(int id, PCWSTR psz) const
+typedef std::map<PCWSTR, int, StringLessThan> StringIntMap;
+typedef std::pair<PCWSTR, int> StringIntPair;
+
+
+void DialogBox::AddStringToComboBox(int id, PCWSTR psz, int value) const
 {
+    StringIntMap* pMap = GetWindowUserData<StringIntMap>(GetChild(id));
+    if (!pMap)
+    {
+        pMap = SetWindowUserData<StringIntMap>(GetChild(id), new StringIntMap());
+    }
+    pMap->insert(StringIntPair(psz, value));
     SendMessage(id, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(psz));
 }
 
 
 int DialogBox::GetComboBoxSelection(int id, int defaultValue) const
 {
-    LRESULT selected = SendMessage(id, CB_GETCURSEL);
-    return selected != CB_ERR ? static_cast<int>(selected) : defaultValue;
+    StringIntMap* pMap = GetWindowUserData<StringIntMap>(GetChild(id));
+    if (!pMap)
+    {
+        Debug::Put(L"DialogBox::GetComboBoxSelection(%d): Has no map.", id);
+        return defaultValue;
+    }
+    int selected = static_cast<int>(SendMessage(id, CB_GETCURSEL));
+    if (selected == CB_ERR)
+    {
+        Debug::Put(L"DialogBox::GetComboBoxSelection(%d): CB_GETCURSEL failed.", id);
+        return defaultValue;
+    }
+    int cch = GetListBoxTextLength(id, selected) + 1;
+    Buffer<WCHAR> name(cch);
+    GetListBoxText(id, selected, name);
+    StringIntMap::const_iterator iter = pMap->find(name);
+    if (iter == pMap->cend())
+    {
+        Debug::Put(L"DialogBox::GetComboBoxSelection(%d): Map has no entry for %s.", id, name.Ptr);
+        return defaultValue;
+    }
+    return iter->second;
 }
 
 
-void DialogBox::SetComboBoxSelection(int id, int index) const
+void DialogBox::SetComboBoxSelection(int id, int value) const
 {
-    LRESULT count = SendMessage(id, LB_GETCOUNT);
-    if (count > 0)
+    StringIntMap* pMap = GetWindowUserData<StringIntMap>(GetChild(id));
+    if (!pMap)
     {
-        if (index >= 0)
+        Debug::Put(L"DialogBox::SetComboBoxSelection(%d): Has no map.", id);
+        return;
+    }
+    for (StringIntMap::const_iterator iter = pMap->cbegin(); iter != pMap->cend(); iter++)
+    {
+        if (iter->second == value)
         {
-            if (index < count)
-            {
-                SendMessage(id, CB_SETCURSEL, index);
-            }
-        }
-        else
-        {
-            if (count + index >= 0)
-            {
-                SendMessage(id, CB_SETCURSEL, count + index);
-            }
+            SetComboBoxSelection(id, iter->first);
+            return;
         }
     }
+    Debug::Put(L"DialogBox::SetComboBoxSelection(%d): Map has no entry for %d.", id, value);
 }
 
 
@@ -368,10 +402,10 @@ void DialogBox::ClearComboBoxSelection(int id) const
 }
 
 
-UINT DialogBox::GetListBoxTextLength(int id, int index, size_t defaultValue) const
+int DialogBox::GetListBoxTextLength(int id, int index, size_t defaultValue) const
 {
     LRESULT length = SendMessage(id, CB_GETLBTEXTLEN, index);
-    return length != CB_ERR ? static_cast<UINT>(length) : static_cast<UINT>(defaultValue);
+    return length != CB_ERR ? static_cast<int>(length) : static_cast<int>(defaultValue);
 
 }
 

@@ -26,6 +26,9 @@ namespace hnrt
         static LSTATUS SetBINARY(HKEY hKey, PCWSTR pszName, const void* pValue, size_t cbValue);
 
         RegistryValue();
+        RegistryValue(DWORD);
+        RegistryValue(ULONGLONG);
+        RegistryValue(PCWSTR, DWORD);
         RegistryValue(const RegistryValue&) = delete;
         ~RegistryValue();
         void operator =(const RegistryValue&) = delete;

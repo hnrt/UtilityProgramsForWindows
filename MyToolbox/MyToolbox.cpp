@@ -186,6 +186,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_EDIT_CLEAR:
         m_tabs[m_tabs.CurrentItem].OnClear();
         break;
+    case IDM_EDIT_EXECUTE:
+        m_tabs[m_tabs.CurrentItem].OnExecute();
+        break;
     case IDM_VIEW_HASH:
         m_tabs.CurrentItem = m_hashTab.Id;
         break;
@@ -234,6 +237,13 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_SETTINGS_OUT_CP1256:
     case IDM_SETTINGS_OUT_CP1257:
     case IDM_SETTINGS_OUT_CP1258:
+    case IDM_SETTINGS_MD5:
+    case IDM_SETTINGS_SHA1:
+    case IDM_SETTINGS_SHA256:
+    case IDM_SETTINGS_SHA384:
+    case IDM_SETTINGS_SHA512:
+    case IDM_SETTINGS_UPPERCASE:
+    case IDM_SETTINGS_LOWERCASE:
         m_tabs[m_tabs.CurrentItem].OnSettingChanged(wControlId);
         break;
     case IDM_HELP_ABOUT:

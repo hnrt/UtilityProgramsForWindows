@@ -75,6 +75,43 @@ RegistryValue::RegistryValue()
 }
 
 
+RegistryValue::RegistryValue(DWORD dwValue)
+	: m_dwType(REG_DWORD)
+	, m_dwSize(sizeof(dwValue))
+	, m_value()
+{
+	m_value.dw = dwValue;
+}
+
+
+RegistryValue::RegistryValue(ULONGLONG qwValue)
+	: m_dwType(REG_QWORD)
+	, m_dwSize(sizeof(qwValue))
+	, m_value()
+{
+	m_value.qw = qwValue;
+}
+
+
+RegistryValue::RegistryValue(PCWSTR pszValue, DWORD dwType)
+	: m_dwType(dwType)
+	, m_dwSize(0)
+	, m_value()
+{
+	if (m_dwType == REG_SZ || m_dwType == REG_EXPAND_SZ || m_dwType == REG_LINK)
+	{
+		size_t cch = wcslen(pszValue) + 1;
+		m_value.psz = Allocate<WCHAR>(cch);
+		wmemcpy_s(m_value.psz, cch, pszValue, cch);
+		m_dwSize = static_cast<DWORD>(cch * sizeof(WCHAR));
+	}
+	else
+	{
+		throw Exception(L"RegistryValue::ctor(PCWSTR): Bad type.");
+	}
+}
+
+
 RegistryValue::~RegistryValue()
 {
 	Clear();

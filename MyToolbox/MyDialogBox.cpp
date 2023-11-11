@@ -372,6 +372,83 @@ bool MyDialogBox::ApplyToOutputCodePage(UINT uId)
 }
 
 
+void MyDialogBox::AddHashAlgorithmSettingMenus(UINT uId)
+{
+	m_menuSettings
+		.Add(String::Copy(ResourceString(IDS_MENU_ALGORITHM)), Menu()
+			.Add(String::Copy(ResourceString(IDS_MENU_MD5)), IDM_SETTINGS_MD5, uId == IDM_SETTINGS_MD5 ? MF_CHECKED : MF_UNCHECKED)
+			.Add(String::Copy(ResourceString(IDS_MENU_SHA1)), IDM_SETTINGS_SHA1, uId == IDM_SETTINGS_SHA1 ? MF_CHECKED : MF_UNCHECKED)
+			.Add(String::Copy(ResourceString(IDS_MENU_SHA256)), IDM_SETTINGS_SHA256, uId == IDM_SETTINGS_SHA256 ? MF_CHECKED : MF_UNCHECKED)
+			.Add(String::Copy(ResourceString(IDS_MENU_SHA384)), IDM_SETTINGS_SHA384, uId == IDM_SETTINGS_SHA384 ? MF_CHECKED : MF_UNCHECKED)
+			.Add(String::Copy(ResourceString(IDS_MENU_SHA512)), IDM_SETTINGS_SHA512, uId == IDM_SETTINGS_SHA512 ? MF_CHECKED : MF_UNCHECKED));
+}
+
+
+bool MyDialogBox::ApplyToHashAlgorithm(UINT uId, UINT& uValue, UINT uBase)
+{
+	switch (uId)
+	{
+	case IDM_SETTINGS_MD5:
+	case IDM_SETTINGS_SHA1:
+	case IDM_SETTINGS_SHA256:
+	case IDM_SETTINGS_SHA384:
+	case IDM_SETTINGS_SHA512:
+		uValue = uBase + uId - IDM_SETTINGS_MD5;
+		break;
+	default:
+		return false;
+	}
+	m_menuSettings[String::Copy(ResourceString(IDS_MENU_ALGORITHM))]
+		.Modify(
+			IDM_SETTINGS_MD5, uId == IDM_SETTINGS_MD5 ? MF_CHECKED : MF_UNCHECKED,
+			IDM_SETTINGS_MD5, String::Copy(ResourceString(IDS_MENU_MD5)))
+		.Modify(
+			IDM_SETTINGS_SHA1, uId == IDM_SETTINGS_SHA1 ? MF_CHECKED : MF_UNCHECKED,
+			IDM_SETTINGS_SHA1, String::Copy(ResourceString(IDS_MENU_SHA1)))
+		.Modify(
+			IDM_SETTINGS_SHA256, uId == IDM_SETTINGS_SHA256 ? MF_CHECKED : MF_UNCHECKED,
+			IDM_SETTINGS_SHA256, String::Copy(ResourceString(IDS_MENU_SHA256)))
+		.Modify(
+			IDM_SETTINGS_SHA384, uId == IDM_SETTINGS_SHA384 ? MF_CHECKED : MF_UNCHECKED,
+			IDM_SETTINGS_SHA384, String::Copy(ResourceString(IDS_MENU_SHA384)))
+		.Modify(
+			IDM_SETTINGS_SHA512, uId == IDM_SETTINGS_SHA512 ? MF_CHECKED : MF_UNCHECKED,
+			IDM_SETTINGS_SHA512, String::Copy(ResourceString(IDS_MENU_SHA512)));
+	return true;
+}
+
+
+void MyDialogBox::AddLettercaseSettingMenus(UINT uId)
+{
+	m_menuSettings
+		.Add(String::Copy(ResourceString(IDS_MENU_FORMAT)), Menu()
+			.Add(String::Copy(ResourceString(IDS_MENU_UPPERCASE)), IDM_SETTINGS_UPPERCASE, uId == IDM_SETTINGS_UPPERCASE ? MF_CHECKED : MF_UNCHECKED)
+			.Add(String::Copy(ResourceString(IDS_MENU_LOWERCASE)), IDM_SETTINGS_LOWERCASE, uId == IDM_SETTINGS_LOWERCASE ? MF_CHECKED : MF_UNCHECKED));
+}
+
+
+bool MyDialogBox::ApplyToLettercase(UINT uId, UINT& uValue, UINT uBase)
+{
+	switch (uId)
+	{
+	case IDM_SETTINGS_UPPERCASE:
+	case IDM_SETTINGS_LOWERCASE:
+		uValue = uBase + uId - IDM_SETTINGS_UPPERCASE;
+		break;
+	default:
+		return false;
+	}
+	m_menuSettings[String::Copy(ResourceString(IDS_MENU_FORMAT))]
+		.Modify(
+			IDM_SETTINGS_UPPERCASE, uId == IDM_SETTINGS_UPPERCASE ? MF_CHECKED : MF_UNCHECKED,
+			IDM_SETTINGS_UPPERCASE, String::Copy(ResourceString(IDS_MENU_UPPERCASE)))
+		.Modify(
+			IDM_SETTINGS_LOWERCASE, uId == IDM_SETTINGS_LOWERCASE ? MF_CHECKED : MF_UNCHECKED,
+			IDM_SETTINGS_LOWERCASE, String::Copy(ResourceString(IDS_MENU_LOWERCASE)));
+	return true;
+}
+
+
 static int CountCharacter(const WCHAR* ptr, size_t len, WCHAR c)
 {
 	int count = 0;
@@ -632,4 +709,96 @@ void MyDialogBox::SaveTextAsFile(int id, PWSTR psz, DWORD dwLen)
 	{
 		MessageBoxW(hwnd, ResourceString(IDS_MSG_FILE_WRITE_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 	}
+}
+
+
+void MyDialogBox::InitializeCodePageComboBox(int id, int initialSelection)
+{
+#define ADD(x,y) AddStringToComboBox(id,x,y)
+#define ADDCP(x) ADD(L"CP" L#x,x)
+	ADD(L"UTF-8", CP_UTF8);
+	ADD(L"UTF-16", CP_UTF16);
+	ADDCP(932);
+	ADDCP(936);
+	ADDCP(949);
+	ADDCP(950);
+	ADDCP(1250);
+	ADDCP(1251);
+	ADDCP(1252);
+	ADDCP(1253);
+	ADDCP(1254);
+	ADDCP(1255);
+	ADDCP(1256);
+	ADDCP(1257);
+	ADDCP(1258);
+#undef ADD
+#undef ADDCP
+	SetComboBoxSelection(id, initialSelection);
+}
+
+
+void MyDialogBox::InitializeLineBreakComboBox(int id, int initialSelection)
+{
+	AddStringToComboBox(id, L"CRLF", 0x0d0a);
+	AddStringToComboBox(id, L"LF", 0x0a);
+	SetComboBoxSelection(id, initialSelection);
+}
+
+
+// from UTC-12:00 (Baker Island/Howland Island) through UTC+14:00 (Kiribati)
+void MyDialogBox::InitializeOffsetComboBox(int id, int initialSelection)
+{
+	static const struct {
+		PCWSTR psz;
+		int offset;
+	} data[] = {
+#define OFFSET(h,m) ((h)*60+(m))
+		{ L"-12:00", -OFFSET(12, 0) },
+		{ L"-11:00", -OFFSET(11, 0) },
+		{ L"-10:00", -OFFSET(10, 0) },
+		{ L"-09:30", -OFFSET(9, 30) },
+		{ L"-09:00", -OFFSET(9, 0) },
+		{ L"-08:00", -OFFSET(8, 0) },
+		{ L"-07:00", -OFFSET(7, 0) },
+		{ L"-06:00", -OFFSET(6, 0) },
+		{ L"-05:00", -OFFSET(5, 0) },
+		{ L"-04:30", -OFFSET(4, 30) },
+		{ L"-04:00", -OFFSET(4, 0) },
+		{ L"-03:30", -OFFSET(3, 30) },
+		{ L"-03:00", -OFFSET(3, 0) },
+		{ L"-02:00", -OFFSET(2, 0) },
+		{ L"-01:00", -OFFSET(1, 0) },
+		{ L"+00:00", OFFSET(0, 0) },
+		{ L"+01:00", OFFSET(1, 0) },
+		{ L"+02:00", OFFSET(2, 0) },
+		{ L"+03:00", OFFSET(3, 0) },
+		{ L"+03:30", OFFSET(3, 30) },
+		{ L"+04:00", OFFSET(4, 0) },
+		{ L"+04:30", OFFSET(4, 30) },
+		{ L"+05:00", OFFSET(5, 0) },
+		{ L"+05:30", OFFSET(5, 30) },
+		{ L"+05:45", OFFSET(5, 45) },
+		{ L"+06:00", OFFSET(6, 0) },
+		{ L"+06:30", OFFSET(6, 30) },
+		{ L"+07:00", OFFSET(7, 0) },
+		{ L"+08:00", OFFSET(8, 0) },
+		{ L"+08:30", OFFSET(8, 30) },
+		{ L"+08:45", OFFSET(8, 45) },
+		{ L"+09:00", OFFSET(9, 0) },
+		{ L"+09:30", OFFSET(9, 30) },
+		{ L"+10:00", OFFSET(10, 0) },
+		{ L"+10:30", OFFSET(10, 30) },
+		{ L"+11:00", OFFSET(11, 0) },
+		{ L"+11:45", OFFSET(11, 45) },
+		{ L"+12:00", OFFSET(12, 0) },
+		{ L"+12:45", OFFSET(12, 45) },
+		{ L"+13:00", OFFSET(13, 0) },
+		{ L"+14:00", OFFSET(14, 0) }
+#undef OFFSET
+	};
+	for (int i = 0; i < _countof(data); i++)
+	{
+		AddStringToComboBox(id, data[i].psz, data[i].offset);
+	}
+	SetComboBoxSelection(id, initialSelection);
 }
