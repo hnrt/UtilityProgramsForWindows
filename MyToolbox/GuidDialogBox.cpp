@@ -87,7 +87,8 @@ void GuidDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
     m_menuEdit
-        .Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY);
+        .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE)
+        .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPY);
     m_menuView
         .Enable(IDM_VIEW_GUID, MF_DISABLED);
 }
@@ -117,6 +118,21 @@ INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         return FALSE;
     }
     return TRUE;
+}
+
+
+void GuidDialogBox::OnCopy()
+{
+    if (!Clipboard::Copy(hwnd, m_szFormatted))
+    {
+        MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+    }
+}
+
+
+void GuidDialogBox::OnExecute()
+{
+    ChangeGuid();
 }
 
 
@@ -215,13 +231,4 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
     }
     SetText(IDC_GUID_RESULT, m_szFormatted);
     EnableWindow(IDC_GUID_BUTTON_COPY);
-}
-
-
-void GuidDialogBox::OnCopy()
-{
-    if (!Clipboard::Copy(hwnd, m_szFormatted))
-    {
-        MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-    }
 }

@@ -61,6 +61,7 @@
 #define IDS_MENU_FORMAT                 162
 #define IDS_MENU_UPPERCASE              163
 #define IDS_MENU_LOWERCASE              164
+#define IDS_MENU_USESECOND              165
 #define IDS_TAB_HASH                    190
 #define IDS_TAB_GUID                    191
 #define IDS_TAB_PCTC                    192
@@ -252,6 +253,7 @@
 #define IDM_SETTINGS_SHA512             14044
 #define IDM_SETTINGS_UPPERCASE          14050
 #define IDM_SETTINGS_LOWERCASE          14051
+#define IDM_SETTINGS_USESECOND          14052
 #define IDM_HELP_ABOUT                  19001
 #define IDC_STATIC                      -1
 

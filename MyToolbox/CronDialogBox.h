@@ -20,7 +20,8 @@ namespace hnrt
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
 		virtual void OnCopy();
-		void OnPaste();
+		virtual void OnPaste();
+		virtual void OnSettingChanged(UINT);
 
 	private:
 

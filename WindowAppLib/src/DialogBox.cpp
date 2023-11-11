@@ -343,6 +343,30 @@ void DialogBox::AddStringToComboBox(int id, PCWSTR psz, int value) const
 }
 
 
+void DialogBox::RemoveValueFromComboBox(int id, int value) const
+{
+    StringIntMap* pMap = GetWindowUserData<StringIntMap>(GetChild(id));
+    if (!pMap)
+    {
+        Debug::Put(L"DialogBox::RemoveValueFromComboBox(%d): Has no map.", id);
+        return;
+    }
+    for (StringIntMap::const_iterator iter = pMap->cbegin(); iter != pMap->cend(); iter++)
+    {
+        if (iter->second == value)
+        {
+            LRESULT index = SendMessage(id, CB_FINDSTRING, -1, reinterpret_cast<LPARAM>(iter->first));
+            if (index != CB_ERR)
+            {
+                SendMessage(id, CB_DELETESTRING, index, 0);
+            }
+            return;
+        }
+    }
+    Debug::Put(L"DialogBox::RemoveValueFromComboBox(%d): Map has no entry for %d.", id, value);
+}
+
+
 int DialogBox::GetComboBoxSelection(int id, int defaultValue) const
 {
     StringIntMap* pMap = GetWindowUserData<StringIntMap>(GetChild(id));

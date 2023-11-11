@@ -244,6 +244,7 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_SETTINGS_SHA512:
     case IDM_SETTINGS_UPPERCASE:
     case IDM_SETTINGS_LOWERCASE:
+    case IDM_SETTINGS_USESECOND:
         m_tabs[m_tabs.CurrentItem].OnSettingChanged(wControlId);
         break;
     case IDM_HELP_ABOUT:

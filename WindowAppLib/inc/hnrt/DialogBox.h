@@ -53,6 +53,7 @@ namespace hnrt
 		void UncheckButton(int id) const;
 		int GetButtonState(int id) const;
 		void AddStringToComboBox(int id, PCWSTR psz, int value) const;
+		void RemoveValueFromComboBox(int id, int value) const;
 		int GetComboBoxSelection(int id, int defaultValue = 0) const;
 		void SetComboBoxSelection(int id, int value) const;
 		void SetComboBoxSelection(int id, PCWSTR psz) const;

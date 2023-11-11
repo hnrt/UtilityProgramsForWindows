@@ -110,6 +110,8 @@ void NativeToAsciiDialogBox::OnTabSelectionChanged()
 		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
 	m_menuEdit
 		.RemoveAll()
+		.Add(ResourceString(CurrentEdit == IDC_NTOA_NATIVE_EDIT ? IDS_MENU_ENCODE : IDS_MENU_DECODE), IDM_EDIT_EXECUTE)
+		.AddSeparator()
 		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
 		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
 		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
@@ -147,9 +149,11 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		break;
 	case IDC_NTOA_ENCODE_BUTTON:
 		OnEncode();
+		SetFocus(IDC_NTOA_COPY2_BUTTON);
 		break;
 	case IDC_NTOA_DECODE_BUTTON:
 		OnDecode();
+		SetFocus(IDC_NTOA_COPY1_BUTTON);
 		break;
 	default:
 		return FALSE;
@@ -213,6 +217,24 @@ void NativeToAsciiDialogBox::OnClear()
 }
 
 
+void NativeToAsciiDialogBox::OnExecute()
+{
+	switch (CurrentEdit)
+	{
+	case IDC_NTOA_NATIVE_EDIT:
+		OnEncode();
+		SetFocus(IDC_NTOA_COPY2_BUTTON);
+		break;
+	case IDC_NTOA_ASCII_EDIT:
+		OnDecode();
+		SetFocus(IDC_NTOA_COPY1_BUTTON);
+		break;
+	default:
+		break;
+	}
+}
+
+
 void NativeToAsciiDialogBox::OnSettingChanged(UINT uId)
 {
 	if (ApplyToInputCodePage(uId))
@@ -230,12 +252,14 @@ void NativeToAsciiDialogBox::OnSelectSource(int id)
 {
 	CheckButton(IDC_NTOA_NATIVE_RADIO, id == IDC_NTOA_NATIVE_RADIO ? BST_CHECKED : BST_UNCHECKED);
 	SetReadOnlyEdit(IDC_NTOA_NATIVE_EDIT, id == IDC_NTOA_NATIVE_RADIO ? FALSE : TRUE);
-	EnableWindow(IDC_NTOA_COPY1_BUTTON);
 	EnableWindow(IDC_NTOA_ENCODE_BUTTON, id == IDC_NTOA_NATIVE_RADIO);
 	CheckButton(IDC_NTOA_ASCII_RADIO, id == IDC_NTOA_ASCII_RADIO ? BST_CHECKED : BST_UNCHECKED);
 	SetReadOnlyEdit(IDC_NTOA_ASCII_EDIT, id == IDC_NTOA_ASCII_RADIO ? FALSE : TRUE);
-	EnableWindow(IDC_NTOA_COPY2_BUTTON);
 	EnableWindow(IDC_NTOA_DECODE_BUTTON, id == IDC_NTOA_ASCII_RADIO);
+	m_menuEdit
+		.Modify(
+			IDM_EDIT_EXECUTE, 0,
+			IDM_EDIT_EXECUTE, ResourceString(id == IDC_NTOA_NATIVE_RADIO ? IDS_MENU_ENCODE : IDS_MENU_DECODE));
 }
 
 

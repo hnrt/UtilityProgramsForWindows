@@ -24,10 +24,6 @@ using namespace hnrt;
 #define REG_NAME_ENCODED_PATH L"EncodedPath"
 
 
-#define LABEL_UTF8 L"UTF-8"
-#define LABEL_CP932 L"CP932"
-
-
 PercentCodecDialogBox::PercentCodecDialogBox()
 	: MyDialogBox(IDD_PCTC)
 	, m_bEncodingError(false)
@@ -53,6 +49,7 @@ void PercentCodecDialogBox::OnCreate()
 		wcscpy_s(m_szEncodedPath, value.GetSZ(hKey, REG_NAME_ENCODED_PATH, L""));
 	}
 	InitializeCodePageComboBox(IDC_PCTC_ENCODING);
+	RemoveValueFromComboBox(IDC_PCTC_ENCODING, CP_UTF16);
 	CheckButton(IDC_PCTC_USE_PLUS);
 	OnSelectSource(IDC_PCTC_LABEL1);
 	SetText(IDC_PCTC_STATUS1, L"");
@@ -136,6 +133,8 @@ void PercentCodecDialogBox::OnTabSelectionChanged()
 		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
 	m_menuEdit
 		.RemoveAll()
+		.Add(ResourceString(CurrentEdit == IDC_PCTC_EDIT1 ? IDS_MENU_ENCODE : IDS_MENU_DECODE), IDM_EDIT_EXECUTE)
+		.AddSeparator()
 		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
 		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
 		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
@@ -174,14 +173,12 @@ INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_PCTC_ENCODE:
 		if (OnEncode())
 		{
-			OnSelectSource(IDC_PCTC_LABEL2);
 			SetFocus(IDC_PCTC_COPY2);
 		}
 		break;
 	case IDC_PCTC_DECODE:
 		if (OnDecode())
 		{
-			OnSelectSource(IDC_PCTC_LABEL1);
 			SetFocus(IDC_PCTC_COPY1);
 		}
 		break;
@@ -281,6 +278,28 @@ void PercentCodecDialogBox::OnClear()
 }
 
 
+void PercentCodecDialogBox::OnExecute()
+{
+	switch (CurrentEdit)
+	{
+	case IDC_PCTC_EDIT1:
+		if (OnEncode())
+		{
+			SetFocus(IDC_PCTC_COPY2);
+		}
+		break;
+	case IDC_PCTC_EDIT2:
+		if (OnDecode())
+		{
+			SetFocus(IDC_PCTC_COPY1);
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+
 void PercentCodecDialogBox::OnSettingChanged(UINT uId)
 {
 	if (ApplyToInputCodePage(uId))
@@ -298,12 +317,10 @@ void PercentCodecDialogBox::OnSelectSource(int id)
 {
 	CheckButton(IDC_PCTC_LABEL1, id == IDC_PCTC_LABEL1 ? BST_CHECKED : BST_UNCHECKED);
 	SetReadOnlyEdit(IDC_PCTC_EDIT1, id == IDC_PCTC_LABEL1 ? FALSE : TRUE);
-	EnableWindow(IDC_PCTC_COPY1, id == IDC_PCTC_LABEL1);
 	EnableWindow(IDC_PCTC_USE_PLUS, id == IDC_PCTC_LABEL1);
 	EnableWindow(IDC_PCTC_ENCODE, id == IDC_PCTC_LABEL1);
 	CheckButton(IDC_PCTC_LABEL2, id == IDC_PCTC_LABEL2 ? BST_CHECKED : BST_UNCHECKED);
 	SetReadOnlyEdit(IDC_PCTC_EDIT2, id == IDC_PCTC_LABEL2 ? FALSE : TRUE);
-	EnableWindow(IDC_PCTC_COPY2, id == IDC_PCTC_LABEL2);
 	EnableWindow(IDC_PCTC_DECODE, id == IDC_PCTC_LABEL2);
 	if (m_bEncodingError)
 	{
@@ -315,6 +332,10 @@ void PercentCodecDialogBox::OnSelectSource(int id)
 		m_bDecodingError = false;
 		SetText(IDC_PCTC_STATUS2, L"");
 	}
+	m_menuEdit
+		.Modify(
+			IDM_EDIT_EXECUTE, 0,
+			IDM_EDIT_EXECUTE, ResourceString(id == IDC_PCTC_LABEL1 ? IDS_MENU_ENCODE : IDS_MENU_DECODE));
 }
 
 
@@ -387,22 +408,7 @@ bool PercentCodecDialogBox::OnDecode()
 
 UINT PercentCodecDialogBox::GetCodePage()
 {
-	int index = GetComboBoxSelection(IDC_PCTC_ENCODING);
-	UINT length = GetListBoxTextLength(IDC_PCTC_ENCODING, index);
-	if (length < 16)
-	{
-		length = 16;
-	}
-	Buffer<WCHAR> buf(length + 1);
-	GetListBoxText(IDC_PCTC_ENCODING, index, buf, LABEL_UTF8);
-	if (!wcscmp(buf, LABEL_CP932))
-	{
-		return 932;
-	}
-	else
-	{
-		return CP_UTF8;
-	}
+	return GetComboBoxSelection(IDC_PCTC_ENCODING, CP_UTF8);
 }
 
 

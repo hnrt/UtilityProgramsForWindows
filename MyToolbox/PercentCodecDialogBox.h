@@ -26,6 +26,7 @@ namespace hnrt
 		virtual void OnSelectAll();
 		virtual void OnCopyAll();
 		virtual void OnClear();
+		virtual void OnExecute();
 		virtual void OnSettingChanged(UINT);
 
 	private:

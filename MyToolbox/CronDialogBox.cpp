@@ -340,9 +340,14 @@ void CronDialogBox::OnTabSelectionChanged()
 {
 	MyDialogBox::OnTabSelectionChanged();
 	m_menuEdit
-		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY);
+		.RemoveAll()
+		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
+		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE);
 	m_menuView
 		.Enable(IDM_VIEW_CRON, MF_DISABLED);
+	m_menuSettings
+		.RemoveAll()
+		.Add(ResourceString(IDS_MENU_USESECOND), IDM_SETTINGS_USESECOND, m_cron.SecondEnabled ? MF_CHECKED : MF_UNCHECKED);
 	SetTimer(hwnd, CRON_TIMER1SEC, 1000, NULL);
 }
 
@@ -671,7 +676,6 @@ void CronDialogBox::OnSourceSelection(int id)
 {
 	BOOL bExpression = id == IDC_CRON_EXPR_RADIO;
 	EnableWindow(IDC_CRON_EXPR_EDIT, bExpression);
-	EnableWindow(IDC_CRON_PASTE_BUTTON, bExpression);
 	BOOL bIndividual = id == IDC_CRON_INDI_RADIO;
 	EnableWindow(IDC_CRON_YEAR_ALL_RADIO, bIndividual);
 	EnableWindow(IDC_CRON_YEAR_EXPR_RADIO, bIndividual);
@@ -713,6 +717,10 @@ void CronDialogBox::OnSecondChanged()
 	m_bFormat = CRON_FORMAT_ALL;
 	Format();
 	Parse();
+	m_menuSettings
+		.Modify(
+			IDM_SETTINGS_USESECOND, m_cron.SecondEnabled ? MF_CHECKED : MF_UNCHECKED,
+			IDM_SETTINGS_USESECOND, ResourceString(IDS_MENU_USESECOND));
 }
 
 
@@ -746,6 +754,12 @@ void CronDialogBox::OnCopy()
 
 void CronDialogBox::OnPaste()
 {
+	if (GetButtonState(IDC_CRON_EXPR_RADIO) == BST_UNCHECKED)
+	{
+		CheckButton(IDC_CRON_EXPR_RADIO);
+		UncheckButton(IDC_CRON_INDI_RADIO);
+		OnSourceSelection(IDC_CRON_EXPR_RADIO);
+	}
 	RefPtr<ClipboardText> pText;
 	if (Clipboard::Paste(hwnd, pText))
 	{
@@ -754,6 +768,30 @@ void CronDialogBox::OnPaste()
 	else
 	{
 		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+	}
+}
+
+
+void CronDialogBox::OnSettingChanged(UINT uId)
+{
+	switch (uId)
+	{
+	case IDM_SETTINGS_USESECOND:
+		switch (GetButtonState(IDC_CRON_SECOND_CHECK))
+		{
+		case BST_CHECKED:
+			UncheckButton(IDC_CRON_SECOND_CHECK);
+			break;
+		case BST_UNCHECKED:
+			CheckButton(IDC_CRON_SECOND_CHECK);
+			break;
+		default:
+			return;
+		}
+		OnSecondChanged();
+		break;
+	default:
+		break;
 	}
 }
 
