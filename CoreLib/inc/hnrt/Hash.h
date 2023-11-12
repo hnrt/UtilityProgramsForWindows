@@ -16,7 +16,6 @@ namespace hnrt
 		~Hash();
 		void operator =(const Hash& src);
 		void Close();
-		void Compute(DataFeeder& rDataFeeder);
 		const BYTE* get_Value() const;
 		DWORD get_ValueLength() const;
 		PCWSTR get_Text() const;
@@ -26,6 +25,8 @@ namespace hnrt
 		__declspec(property(get = get_Text)) PCWSTR Text;
 
 	protected:
+
+		void Compute(DataFeeder& rDataFeeder);
 
 		PCWSTR m_pszAlgId;
 		BCryptAlgHandle m_hAlg;

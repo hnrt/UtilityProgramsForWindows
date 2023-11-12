@@ -5,6 +5,7 @@
 #include "hnrt/Exception.h"
 #include "hnrt/ResourceString.h"
 #include "MyToolbox.h"
+#include "resource.h"
 
 
 #pragma comment(lib, "Ole32")

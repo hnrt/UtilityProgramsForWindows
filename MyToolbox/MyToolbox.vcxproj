@@ -164,6 +164,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AboutBox.h" />
+    <ClInclude Include="ClipDialogBox.h" />
     <ClInclude Include="Cron.h" />
     <ClInclude Include="CronDialogBox.h" />
     <ClInclude Include="CronElement.h" />
@@ -176,6 +177,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="GuidDialogBox.h" />
     <ClInclude Include="HashDialogBox.h" />
+    <ClInclude Include="MyClipboardObserver.h" />
     <ClInclude Include="MyDialogBox.h" />
     <ClInclude Include="MyFileDataFeeder.h" />
     <ClInclude Include="MyTabControl.h" />
@@ -188,6 +190,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AboutBox.cpp" />
+    <ClCompile Include="ClipDialogBox.cpp" />
     <ClCompile Include="Cron.cpp" />
     <ClCompile Include="CronDialogBox.cpp" />
     <ClCompile Include="CronEvaluation.cpp" />
@@ -197,6 +200,7 @@
     <ClCompile Include="CronValueEvaluation.cpp" />
     <ClCompile Include="GuidDialogBox.cpp" />
     <ClCompile Include="HashDialogBox.cpp" />
+    <ClCompile Include="MyClipboardObserver.cpp" />
     <ClCompile Include="MyDialogBox.cpp" />
     <ClCompile Include="MyFileDataFeeder.cpp" />
     <ClCompile Include="MyTabControl.cpp" />

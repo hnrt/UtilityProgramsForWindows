@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
-#include "framework.h"
 #include "MyToolbox.h"
+#include "resource.h"
 #include "hnrt/Debug.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/Menu.h"
@@ -29,6 +29,8 @@ MyToolbox::MyToolbox()
     , m_guidTab()
     , m_pctcTab()
     , m_cronTab()
+    , m_ntoaTab()
+    , m_clipTab()
 {
     INITCOMMONCONTROLSEX iccx = { sizeof(iccx), ICC_TAB_CLASSES };
     InitCommonControlsEx(&iccx);
@@ -105,6 +107,7 @@ void MyToolbox::CreateChildren()
     m_tabs.Add(ResourceString(IDS_TAB_PCTC), &m_pctcTab);
     m_tabs.Add(ResourceString(IDS_TAB_CRON), &m_cronTab);
     m_tabs.Add(ResourceString(IDS_TAB_NTOA), &m_ntoaTab);
+    m_tabs.Add(ResourceString(IDS_TAB_CLIP), &m_clipTab);
     for (int index = 0; index < m_tabs.ItemCount; index++)
     {
         m_tabs[index].Open(m_tabs);
@@ -203,6 +206,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         break;
     case IDM_VIEW_NTOA:
         m_tabs.CurrentItem = m_ntoaTab.Id;
+        break;
+    case IDM_VIEW_CLIP:
+        m_tabs.CurrentItem = m_clipTab.Id;
         break;
     case IDM_SETTINGS_IN_AUTO:
     case IDM_SETTINGS_IN_UTF8:

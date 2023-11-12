@@ -2,9 +2,36 @@
 #include "hnrt/Clipboard.h"
 #include "hnrt/Buffer.h"
 #include <exception>
+#include <list>
 
 
 using namespace hnrt;
+
+
+typedef std::list<RefPtr<ClipboardObserver>> ClipboardObserverList;
+
+
+static ClipboardObserverList observers;
+
+
+static void NotifyOfCopy(HWND hwnd, PCWSTR psz)
+{
+	for (ClipboardObserverList::iterator iter = observers.begin(); iter != observers.end(); iter++)
+	{
+		RefPtr<ClipboardObserver>& pObserver = *iter;
+		pObserver->Copy(hwnd, psz);
+	}
+}
+
+
+static void NotifyOfPaste(HWND hwnd, PCWSTR psz)
+{
+	for (ClipboardObserverList::iterator iter = observers.begin(); iter != observers.end(); iter++)
+	{
+		RefPtr<ClipboardObserver>& pObserver = *iter;
+		pObserver->Paste(hwnd, psz);
+	}
+}
 
 
 bool Clipboard::Copy(HWND hwnd, const WCHAR* pText, size_t cch)
@@ -26,8 +53,16 @@ bool Clipboard::Copy(HWND hwnd, const WCHAR* pText, size_t cch)
 	}
 	memcpy_s(pDst, cb, pText, cch * sizeof(WCHAR));
 	pDst[cch] = L'\0';
+	try
+	{
+		NotifyOfCopy(hwnd, pDst);
+	}
+	catch (...)
+	{
+	}
 	GlobalUnlock(hMem);
 	bool bRet = false;
+	DWORD dwError = ERROR_SUCCESS;
 	if (OpenClipboard(hwnd))
 	{
 		if (EmptyClipboard())
@@ -36,8 +71,20 @@ bool Clipboard::Copy(HWND hwnd, const WCHAR* pText, size_t cch)
 			{
 				bRet = true;
 			}
+			else
+			{
+				dwError = GetLastError();
+			}
+		}
+		else
+		{
+			dwError = GetLastError();
 		}
 		CloseClipboard();
+		if (!bRet)
+		{
+			SetLastError(dwError);
+		}
 	}
 	return bRet;
 }
@@ -61,7 +108,7 @@ bool Clipboard::Copy(HWND hwnd, HWND hwndDialog, int idControl)
 bool Clipboard::Paste(HWND hwnd, RefPtr<ClipboardText>& pText)
 {
 	bool bRet = false;
-	Buffer<WCHAR> buf(260);
+	DWORD dwError = ERROR_SUCCESS;
 	if (OpenClipboard(hwnd))
 	{
 		if (IsClipboardFormatAvailable(CF_UNICODETEXT))
@@ -75,12 +122,56 @@ bool Clipboard::Paste(HWND hwnd, RefPtr<ClipboardText>& pText)
 					pText = RefPtr<ClipboardText>(new ClipboardText(pSrc));
 					bRet = true;
 					GlobalUnlock(hMem);
+					try
+					{
+						NotifyOfPaste(hwnd, pText->Ptr);
+					}
+					catch (...)
+					{
+					}
+				}
+				else
+				{
+					dwError = GetLastError();
 				}
 			}
+			else
+			{
+				dwError = GetLastError();
+			}
+		}
+		else
+		{
+			dwError = GetLastError();
 		}
 		CloseClipboard();
+		if (!bRet)
+		{
+			SetLastError(dwError);
+		}
 	}
 	return bRet;
+}
+
+
+void Clipboard::Register(RefPtr<ClipboardObserver>& pObserver)
+{
+	observers.push_back(pObserver);
+}
+
+
+bool Clipboard::Unregister(RefPtr<ClipboardObserver>& pObserver)
+{
+	for (ClipboardObserverList::iterator iter = observers.begin(); iter != observers.end(); iter++)
+	{
+		RefPtr<ClipboardObserver>& pNext = *iter;
+		if (pNext.Ptr == pObserver.Ptr)
+		{
+			observers.erase(iter);
+			return true;
+		}
+	}
+	return false;
 }
 
 

@@ -2,14 +2,14 @@
 
 
 #include "hnrt/WindowApp.h"
-#include "resource.h"
 #include "AboutBox.h"
 #include "MyTabControl.h"
 #include "HashDialogBox.h"
 #include "GuidDialogBox.h"
 #include "PercentCodecDialogBox.h"
-#include "NativeToAsciiDialogBox.h"
 #include "CronDialogBox.h"
+#include "NativeToAsciiDialogBox.h"
+#include "ClipDialogBox.h"
 
 
 namespace hnrt
@@ -43,5 +43,6 @@ namespace hnrt
 		PercentCodecDialogBox m_pctcTab;
 		CronDialogBox m_cronTab;
 		NativeToAsciiDialogBox m_ntoaTab;
+		ClipDialogBox m_clipTab;
 	};
 }
