@@ -1,7 +1,8 @@
 #pragma once
 
 
-#include <Windows.h>
+#include "hnrt/String.h"
+#include "hnrt/WindowsHandle.h"
 
 
 namespace hnrt
@@ -12,7 +13,7 @@ namespace hnrt
 
         FileWriter(PCWSTR pszPath = nullptr, DWORD dwCreationDisposition = CREATE_ALWAYS);
         FileWriter(const FileWriter&) = delete;
-        virtual ~FileWriter();
+        virtual ~FileWriter() = default;
         FileWriter& operator =(const FileWriter&) = delete;
         void Open(DWORD dwCreationDisposition = CREATE_ALWAYS);
         void Write(LPCVOID, SIZE_T);
@@ -26,14 +27,25 @@ namespace hnrt
 
     protected:
 
-        PCWSTR m_pszPath;
-        HANDLE m_h;
+        String m_Path;
+        WindowsHandle m_h;
         UINT64 m_count;
     };
 
+    inline void FileWriter::Close()
+    {
+        m_h = INVALID_HANDLE_VALUE;
+        m_count = 0;
+    }
+
     inline PCWSTR FileWriter::get_Path() const
     {
-        return m_pszPath;
+        return m_Path;
+    }
+
+    inline void FileWriter::set_Path(PCWSTR pszPath)
+    {
+        m_Path = pszPath;
     }
 
     inline UINT64 FileWriter::get_ByteCount() const

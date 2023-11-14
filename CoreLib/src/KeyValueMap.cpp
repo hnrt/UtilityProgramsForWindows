@@ -46,21 +46,21 @@ KeyValueMap& KeyValueMap::Clear()
 
 KeyValueMap& KeyValueMap::Add(PCWSTR pszKey, PCWSTR pszValue)
 {
-    Base::insert(Entry(pszKey, pszValue));
+    Base::insert(Entry(String(pszKey), String(pszValue)));
     return *this;
 }
 
 
 KeyValueMap& KeyValueMap::Remove(PCWSTR pszKey)
 {
-    Base::erase(pszKey);
+    Base::erase(String(pszKey));
     return *this;
 }
 
 
 PCWSTR KeyValueMap::GetValue(PCWSTR pszKey) const
 {
-    ConstIterator iter = Base::find(pszKey);
+    ConstIterator iter = Base::find(String(pszKey));
     return iter != Base::end() ? iter->second : nullptr;
 }
 

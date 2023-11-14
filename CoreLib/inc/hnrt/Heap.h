@@ -11,18 +11,6 @@ namespace hnrt
     void* Realloc(void* ptr, size_t nbytes);
     void* Calloc(size_t count, size_t nbytes);
 
-    PSTR Clone(PCSTR psz);
-    PSTR* Clone(PSTR* ppsz, size_t count, size_t size = 0);
-    PSTR* Resize(PSTR* ppsz, size_t size);
-    void Free(PSTR* ppsz);
-    DWORD ArraySize(PSTR* ppsz);
-
-    PWSTR Clone(PCWSTR psz);
-    PWSTR* Clone(PWSTR* ppsz, size_t count, size_t size = 0);
-    PWSTR* Resize(PWSTR* ppsz, size_t size);
-    void Free(PWSTR* ppsz);
-    DWORD ArraySize(PWSTR* ppsz);
-
     template<typename T>
     T* Allocate(size_t count)
     {
@@ -52,4 +40,30 @@ namespace hnrt
     {
         free(Detach<T>(ptr));
     }
+
+    PSTR Clone(PCSTR psz);
+    PSTR Clone(PCSTR psz, size_t cb);
+    PSTR* Clone(PSTR* ppsz, size_t count, size_t size = 0);
+    PSTR* Resize(PSTR* ppsz, size_t size);
+    void Free(PSTR* ppsz);
+    DWORD ArraySize(PSTR* ppsz);
+    PSTR Format(PCSTR pszFormat, ...);
+    PSTR VaFormat(PCSTR pszFormat, va_list argList);
+    PSTR Concat(PCSTR psz1, PCSTR psz2);
+    PSTR Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3);
+    PSTR Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4);
+    PSTR Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4, PCSTR psz5);
+
+    PWSTR Clone(PCWSTR psz);
+    PWSTR Clone(PCWSTR psz, size_t cch);
+    PWSTR* Clone(PWSTR* ppsz, size_t count, size_t size = 0);
+    PWSTR* Resize(PWSTR* ppsz, size_t size);
+    void Free(PWSTR* ppsz);
+    DWORD ArraySize(PWSTR* ppsz);
+    PWSTR Format(PCWSTR pszFormat, ...);
+    PWSTR VaFormat(PCWSTR pszFormat, va_list argList);
+    PWSTR Concat(PCWSTR psz1, PCWSTR psz2);
+    PWSTR Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3);
+    PWSTR Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4);
+    PWSTR Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5);
 }

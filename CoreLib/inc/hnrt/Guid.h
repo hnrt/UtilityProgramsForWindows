@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <Windows.h>
+#include "hnrt/String.h"
 
 
 #define GUID_TOSTRING_BRACE     (0UL<<0)
@@ -20,6 +20,6 @@ namespace hnrt
         ~Guid() = default;
         Guid& operator =(const Guid& rhs) = default;
         Guid& Initialize();
-        PCWSTR ToString(DWORD dwFlags = GUID_TOSTRING_BRACE | GUID_TOSTRING_UPPERCASE);
+        String ToString(DWORD dwFlags = GUID_TOSTRING_BRACE | GUID_TOSTRING_UPPERCASE);
     };
 }

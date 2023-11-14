@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include "hnrt/String.h"
 #include "hnrt/DoubleNullTerminatedStringArray.h"
 
 
@@ -35,18 +36,18 @@ namespace hnrt
 
         friend class Service;
 
-        PCWSTR m_pszName;
-        PCWSTR m_pszDisplayName;
-        PCWSTR m_pszDescription;
+        String m_Name;
+        String m_DisplayName;
+        String m_Description;
         DWORD m_dwDesiredAccess;
         DWORD m_dwServiceType;
         DWORD m_dwStartType;
         DWORD m_dwErrorControl;
-        PCWSTR m_pszBinaryPathName;
-        PCWSTR m_pszLoadOrderGroup;
+        String m_BinaryPathName;
+        String m_LoadOrderGroup;
         DoubleNullTerminatedStringArray m_dependencies;
-        PCWSTR m_pszServiceStartName;
-        PCWSTR m_pszPassword;
+        String m_ServiceStartName;
+        String m_Password;
     };
 
     class Service
@@ -87,7 +88,7 @@ namespace hnrt
     private:
 
         SC_HANDLE m_h;
-        PCWSTR m_pszName;
+        String m_Name;
         SERVICE_STATUS m_status;
     };
 

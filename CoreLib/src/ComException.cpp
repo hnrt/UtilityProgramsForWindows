@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "hnrt/ComException.h"
-#include "hnrt/String.h"
 
 
 using namespace hnrt;
@@ -19,7 +18,7 @@ ComException::ComException(HRESULT hr, PCWSTR pszFormat, ...)
 {
     va_list argList;
     va_start(argList, pszFormat);
-    m_pszMessage = String::VaFormat(pszFormat, argList);
+    m_Message = String(pszFormat, argList);
     va_end(argList);
 }
 

@@ -16,35 +16,35 @@ using namespace hnrt;
 
 
 ServiceConfiguration::ServiceConfiguration()
-    : m_pszName(NULL)
-    , m_pszDisplayName(NULL)
-    , m_pszDescription(NULL)
+    : m_Name()
+    , m_DisplayName()
+    , m_Description()
     , m_dwDesiredAccess(GENERIC_ALL)
     , m_dwServiceType(SERVICE_WIN32_OWN_PROCESS)
     , m_dwStartType(SERVICE_AUTO_START)
     , m_dwErrorControl(SERVICE_ERROR_CRITICAL)
-    , m_pszBinaryPathName(NULL)
-    , m_pszLoadOrderGroup(NULL)
+    , m_BinaryPathName()
+    , m_LoadOrderGroup()
     , m_dependencies()
-    , m_pszServiceStartName(NULL)
-    , m_pszPassword(L"")
+    , m_ServiceStartName()
+    , m_Password(L"")
 {
 }
 
 
 ServiceConfiguration::ServiceConfiguration(const ServiceConfiguration& src)
-    : m_pszName(NULL)
-    , m_pszDisplayName(NULL)
-    , m_pszDescription(NULL)
+    : m_Name()
+    , m_DisplayName()
+    , m_Description()
     , m_dwDesiredAccess(GENERIC_ALL)
     , m_dwServiceType(SERVICE_WIN32_OWN_PROCESS)
     , m_dwStartType(SERVICE_AUTO_START)
     , m_dwErrorControl(SERVICE_ERROR_CRITICAL)
-    , m_pszBinaryPathName(NULL)
-    , m_pszLoadOrderGroup(NULL)
+    , m_BinaryPathName()
+    , m_LoadOrderGroup()
     , m_dependencies()
-    , m_pszServiceStartName(NULL)
-    , m_pszPassword(L"")
+    , m_ServiceStartName()
+    , m_Password(L"")
 {
     operator =(src);
 }
@@ -52,39 +52,39 @@ ServiceConfiguration::ServiceConfiguration(const ServiceConfiguration& src)
 
 ServiceConfiguration& ServiceConfiguration::operator =(const ServiceConfiguration& src)
 {
-    m_pszName = src.m_pszName;
-    m_pszDisplayName = src.m_pszDisplayName;
-    m_pszDescription = src.m_pszDescription;
+    m_Name = src.m_Name;
+    m_DisplayName = src.m_DisplayName;
+    m_Description = src.m_Description;
     m_dwDesiredAccess = src.m_dwDesiredAccess;
     m_dwServiceType = src.m_dwServiceType;
     m_dwStartType = src.m_dwStartType;
     m_dwErrorControl = src.m_dwErrorControl;
-    m_pszBinaryPathName = src.m_pszBinaryPathName;
-    m_pszLoadOrderGroup = src.m_pszLoadOrderGroup;
+    m_BinaryPathName = src.m_BinaryPathName;
+    m_LoadOrderGroup = src.m_LoadOrderGroup;
     m_dependencies = src.m_dependencies;
-    m_pszServiceStartName = src.m_pszServiceStartName;
-    m_pszPassword = src.m_pszPassword;
+    m_ServiceStartName = src.m_ServiceStartName;
+    m_Password = src.m_Password;
     return *this;
 }
 
 
 ServiceConfiguration& ServiceConfiguration::SetName(PCWSTR psz)
 {
-    m_pszName = String::Copy(psz);
+    m_Name = psz;
     return *this;
 }
 
 
 ServiceConfiguration& ServiceConfiguration::SetDisplayName(PCWSTR psz)
 {
-    m_pszDisplayName = String::Copy(psz);
+    m_DisplayName = psz;
     return *this;
 }
 
 
 ServiceConfiguration& ServiceConfiguration::SetDescription(PCWSTR psz)
 {
-    m_pszDescription = String::Copy(psz);
+    m_Description = psz;
     return *this;
 }
 
@@ -94,11 +94,11 @@ ServiceConfiguration& ServiceConfiguration::SetDescription(UINT uId)
     WCHAR szPath[MAX_PATH];
     if (GetModuleFileNameW(NULL, szPath, MAX_PATH))
     {
-        m_pszDescription = String::Format(L"@%s,-%u", szPath, uId);
+        m_Description = String::Format2(L"@%s,-%u", szPath, uId);
     }
     else
     {
-        m_pszDescription = String::Copy(ResourceString(uId));
+        m_Description = ResourceString(uId).Ptr;
     }
     return *this;
 }
@@ -145,11 +145,11 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath)
     }
     if (wcschr(pszPath, L' '))
     {
-        m_pszBinaryPathName = String::Format(L"\"%s\"", pszPath);
+        m_BinaryPathName = String::Format2(L"\"%s\"", pszPath);
     }
     else
     {
-        m_pszBinaryPathName = String::Copy(pszPath);
+        m_BinaryPathName = pszPath;
     }
     return *this;
 }
@@ -160,11 +160,11 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PC
     SetBinaryPathName(pszPath);
     if (wcschr(pszArg1, L' '))
     {
-        m_pszBinaryPathName = String::Format(L"%s \"%s\"", m_pszBinaryPathName, pszArg1);
+        m_BinaryPathName = String::Format2(L"%s \"%s\"", m_BinaryPathName.Str, pszArg1);
     }
     else
     {
-        m_pszBinaryPathName = String::Format(L"%s %s", m_pszBinaryPathName, pszArg1);
+        m_BinaryPathName = String::Format2(L"%s %s", m_BinaryPathName.Str, pszArg1);
     }
     return *this;
 }
@@ -175,11 +175,11 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PC
     SetBinaryPathName(pszPath, pszArg1);
     if (wcschr(pszArg2, L' '))
     {
-        m_pszBinaryPathName = String::Format(L"%s \"%s\"", m_pszBinaryPathName, pszArg2);
+        m_BinaryPathName = String::Format2(L"%s \"%s\"", m_BinaryPathName.Str, pszArg2);
     }
     else
     {
-        m_pszBinaryPathName = String::Format(L"%s %s", m_pszBinaryPathName, pszArg2);
+        m_BinaryPathName = String::Format2(L"%s %s", m_BinaryPathName.Str, pszArg2);
     }
     return *this;
 }
@@ -190,11 +190,11 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PC
     SetBinaryPathName(pszPath, pszArg1, pszArg2);
     if (wcschr(pszArg3, L' '))
     {
-        m_pszBinaryPathName = String::Format(L"%s \"%s\"", m_pszBinaryPathName, pszArg3);
+        m_BinaryPathName = String::Format2(L"%s \"%s\"", m_BinaryPathName.Str, pszArg3);
     }
     else
     {
-        m_pszBinaryPathName = String::Format(L"%s %s", m_pszBinaryPathName, pszArg3);
+        m_BinaryPathName = String::Format2(L"%s %s", m_BinaryPathName.Str, pszArg3);
     }
     return *this;
 }
@@ -202,7 +202,7 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PC
 
 ServiceConfiguration& ServiceConfiguration::SetLoadOrderGroup(PCWSTR psz)
 {
-    m_pszLoadOrderGroup = String::Copy(psz);
+    m_LoadOrderGroup = psz;
     return *this;
 }
 
@@ -216,14 +216,14 @@ ServiceConfiguration& ServiceConfiguration::AddDependency(PCWSTR psz)
 
 ServiceConfiguration& ServiceConfiguration::SetServiceStartName(PCWSTR psz)
 {
-    m_pszServiceStartName = String::Copy(psz);
+    m_ServiceStartName = psz;
     return *this;
 }
 
 
 ServiceConfiguration& ServiceConfiguration::SetPassword(PCWSTR psz)
 {
-    m_pszPassword = String::Copy(psz);
+    m_Password = psz;
     return *this;
 }
 
@@ -237,7 +237,7 @@ ServiceConfiguration& ServiceConfiguration::SetPassword(PCWSTR psz)
 
 Service::Service()
     : m_h(NULL)
-    , m_pszName(NULL)
+    , m_Name()
     , m_status()
 {
     memset(&m_status, 0, sizeof(m_status));
@@ -256,9 +256,9 @@ void Service::Create(SC_HANDLE hSCM, ServiceConfiguration& config)
 
     PCWSTR pszBinaryPathName;
     WCHAR szFileName[MAX_PATH + 2] = { 0 };
-    if (config.m_pszBinaryPathName)
+    if (config.m_BinaryPathName)
     {
-        pszBinaryPathName = config.m_pszBinaryPathName;
+        pszBinaryPathName = config.m_BinaryPathName;
     }
     else
     {
@@ -281,32 +281,32 @@ void Service::Create(SC_HANDLE hSCM, ServiceConfiguration& config)
     }
 
     m_h = CreateServiceW(hSCM,
-        config.m_pszName,
-        config.m_pszDisplayName,
+        config.m_Name,
+        config.m_DisplayName,
         config.m_dwDesiredAccess,
         config.m_dwServiceType,
         config.m_dwStartType,
         config.m_dwErrorControl,
         pszBinaryPathName,
-        config.m_pszLoadOrderGroup,
+        config.m_LoadOrderGroup,
         NULL,
         config.m_dependencies,
-        config.m_pszServiceStartName,
-        config.m_pszPassword);
+        config.m_ServiceStartName,
+        config.m_Password);
     if (!m_h)
     {
-        throw Win32Exception(GetLastError(), L"Failed to create service \"%s\".", config.m_pszName);
+        throw Win32Exception(GetLastError(), L"Failed to create service \"%s\".", config.m_Name.Str);
     }
 
-    m_pszName = config.m_pszName;
+    m_Name = config.m_Name;
 
-    if (config.m_pszDescription)
+    if (config.m_Description)
     {
         SERVICE_DESCRIPTIONW sd = { 0 };
-        sd.lpDescription = const_cast<PWSTR>(config.m_pszDescription);
+        sd.lpDescription = const_cast<PWSTR>(config.m_Description.Str);
         if (!ChangeServiceConfig2W(m_h, SERVICE_CONFIG_DESCRIPTION, &sd))
         {
-            throw Win32Exception(GetLastError(), L"Failed to set description of service \"%s\".", config.m_pszName);
+            throw Win32Exception(GetLastError(), L"Failed to set description of service \"%s\".", config.m_Name.Str);
         }
     }
 }
@@ -322,7 +322,7 @@ void Service::Open(SC_HANDLE hSCM, PCWSTR pszName, DWORD dwDesiredAccess)
         throw Win32Exception(GetLastError(), L"Failed to open service \"%s\".", pszName);
     }
 
-    m_pszName = String::Copy(pszName);
+    m_Name = pszName;
 }
 
 
@@ -332,7 +332,7 @@ void Service::Close()
     {
         CloseServiceHandle(m_h);
         m_h = NULL;
-        m_pszName = NULL;
+        m_Name = NULL;
         memset(&m_status, 0, sizeof(m_status));
     }
 }
@@ -342,7 +342,7 @@ DWORD Service::QueryStatus()
 {
     if (!QueryServiceStatus(m_h, &m_status))
     {
-        throw Win32Exception(GetLastError(), L"Failed to query status of service \"%s\".", m_pszName);
+        throw Win32Exception(GetLastError(), L"Failed to query status of service \"%s\".", m_Name.Str);
     }
     return m_status.dwCurrentState;
 }
@@ -352,7 +352,7 @@ void Service::Start(DWORD dwNumServiceArgs, PCWSTR* pServiceArgVectors)
 {
     if (!StartServiceW(m_h, dwNumServiceArgs, pServiceArgVectors))
     {
-        throw Win32Exception(GetLastError(), L"Failed to start service \"%s\".", m_pszName);
+        throw Win32Exception(GetLastError(), L"Failed to start service \"%s\".", m_Name.Str);
     }
 }
 
@@ -361,7 +361,7 @@ void Service::Stop()
 {
     if (!ControlService(m_h, SERVICE_CONTROL_STOP, &m_status))
     {
-        throw Win32Exception(GetLastError(), L"Failed to stop service \"%s\".", m_pszName);
+        throw Win32Exception(GetLastError(), L"Failed to stop service \"%s\".", m_Name.Str);
     }
 }
 
@@ -370,7 +370,7 @@ void Service::Pause()
 {
     if (!ControlService(m_h, SERVICE_CONTROL_PAUSE, &m_status))
     {
-        throw Win32Exception(GetLastError(), L"Failed to pause service \"%s\".", m_pszName);
+        throw Win32Exception(GetLastError(), L"Failed to pause service \"%s\".", m_Name.Str);
     }
 }
 
@@ -379,7 +379,7 @@ void Service::Resume()
 {
     if (!ControlService(m_h, SERVICE_CONTROL_CONTINUE, &m_status))
     {
-        throw Win32Exception(GetLastError(), L"Failed to resume service \"%s\".", m_pszName);
+        throw Win32Exception(GetLastError(), L"Failed to resume service \"%s\".", m_Name.Str);
     }
 }
 
@@ -388,7 +388,7 @@ void Service::Interrogate()
 {
     if (!ControlService(m_h, SERVICE_CONTROL_INTERROGATE, &m_status))
     {
-        throw Win32Exception(GetLastError(), L"Failed to interrogate service \"%s\".", m_pszName);
+        throw Win32Exception(GetLastError(), L"Failed to interrogate service \"%s\".", m_Name.Str);
     }
 }
 
@@ -397,7 +397,7 @@ void Service::Delete()
 {
     if (!DeleteService(m_h))
     {
-        throw Win32Exception(GetLastError(), L"Failed to delete service \"%s\".", m_pszName);
+        throw Win32Exception(GetLastError(), L"Failed to delete service \"%s\".", m_Name.Str);
     }
 }
 

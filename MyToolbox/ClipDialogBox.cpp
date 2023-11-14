@@ -11,11 +11,14 @@
 #include "hnrt/FileWriter.h"
 #include "hnrt/FileMapper.h"
 #include "hnrt/Buffer.h"
-#include "hnrt/Hash.h"
 #include "hnrt/ByteDataFeeder.h"
+#include "hnrt/Unicode.h"
 
 
 using namespace hnrt;
+
+
+static const WCHAR Separator = LINE_SEPARATOR;
 
 
 ClipDialogBox::ClipDialogBox()
@@ -23,7 +26,9 @@ ClipDialogBox::ClipDialogBox()
 	, m_pCO(RefPtr<ClipboardObserver>(new MyClipboardObserver(*this)))
 	, m_pszDirectoryPath(Path::Combine(Path::GetKnownFolder(FOLDERID_LocalAppData), L"hnrt", L"MyToolbox", L"clippings"))
 	, m_mapHash()
-	, m_pszFilePath(nullptr)
+	, m_pszFilePath()
+	, m_pszHash()
+	, m_bChanged(false)
 	, m_bProcessing(false)
 {
 	Clipboard::Register(m_pCO);
@@ -107,6 +112,23 @@ INT_PTR ClipDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		break;
+	case IDC_CLIP_HEADER_EDIT:
+		switch (idNotif)
+		{
+		case EN_CHANGE:
+			m_bChanged = true;
+			break;
+		case EN_KILLFOCUS:
+			if (m_bChanged)
+			{
+				m_bChanged = false;
+				WriteBackToFile();
+			}
+			break;
+		default:
+			break;
+		}
+		break;
 	case IDC_CLIP_COPY_BUTTON:
 		OnCopy();
 		break;
@@ -148,9 +170,8 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 	}
 	if (!Path::ValidateDirectory(m_pszDirectoryPath))
 	{
-		WCHAR szMessage[MAX_PATH * 2] = { 0 };
-		swprintf_s(szMessage, L"%s\n%s", m_pszDirectoryPath, ErrorMessage::Get(GetLastError()));
-		MessageBoxW(hwnd, szMessage, ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
+		String message = FormatString(L"%s\n%s", m_pszDirectoryPath.Ptr, ErrorMessage::Get(GetLastError()));
+		MessageBoxW(hwnd, message, ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
 		return;
 	}
 	size_t cch = wcslen(psz);
@@ -158,7 +179,7 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 	MD5Hash hash(bdf);
 	SYSTEMTIME t = { 0 };
 	GetLocalTime(&t);
-	PCWSTR pszName = String::Format(L"%04d%02d%02d_%02d%02d%02d_%s", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond, hash.Text);
+	PCWSTR pszName = String::Format(L"%04d%02d%02d_%02d%02d%02d", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 	try
 	{
 		bool bSelect = false;
@@ -167,23 +188,24 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 		{
 			if (!Path::IsFile(Path::Combine(m_pszDirectoryPath, pszName)))
 			{
-				static const WCHAR LineBreak[2] = { L'\r', L'\n' };
 				FileWriter body(Path::Combine(m_pszDirectoryPath, pszName), CREATE_NEW);
-				body.Write(LineBreak, 2 * sizeof(WCHAR));
+				body.Write(&Separator, sizeof(WCHAR));
+				body.Write(hash.Text, wcslen(hash.Text) * sizeof(WCHAR));
+				body.Write(&Separator, sizeof(WCHAR));
 				body.Write(psz, cch * sizeof(WCHAR));
 				body.Close();
 			}
 		}
 		else
 		{
-			PCWSTR pszOldName = iter->second;
+			String pszOldName = iter->second;
 			if (!MoveFileW(Path::Combine(m_pszDirectoryPath, pszOldName), Path::Combine(m_pszDirectoryPath, pszName)))
 			{
 				DWORD dwError = GetLastError();
 				throw Win32Exception(dwError, L"Failed to rename %s to %s.", pszOldName, pszName);
 			}
 			m_mapHash.erase(iter);
-			LRESULT index = SendMessage(IDC_CLIP_FILENAME_LIST, LB_FINDSTRING, -1, reinterpret_cast<LPARAM>(pszOldName));
+			LRESULT index = SendMessage(IDC_CLIP_FILENAME_LIST, LB_FINDSTRING, -1, reinterpret_cast<LPARAM>(pszOldName.Ptr));
 			if (index != LB_ERR)
 			{
 				if (SendMessage(IDC_CLIP_FILENAME_LIST, LB_GETSEL, index, 0) > 0)
@@ -230,22 +252,33 @@ void ClipDialogBox::OnSelectionChange()
 	}
 	try
 	{
+		if (m_bChanged)
+		{
+			m_bChanged = false;
+			WriteBackToFile();
+		}
 		m_pszFilePath = Path::Combine(m_pszDirectoryPath, name.Ptr);
 		FileMapper file(m_pszFilePath);
 		Buffer<WCHAR> buf(file.Len / sizeof(WCHAR) + 1);
 		memcpy_s(buf, buf.Len * sizeof(WCHAR), file.Ptr, file.Len);
 		buf[buf.Len - 1] = L'\0';
 		file.Close();
-		PWCHAR pContent = wcschr(buf, L'\r');
-		if (!pContent || pContent[1] != L'\n')
+		PWSTR pszHash = wcschr(buf, Separator);
+		if (!pszHash)
+		{
+			throw Exception(L"Looks broken!");
+		}
+		*pszHash++ = L'\0';
+		PWSTR pContent = wcschr(pszHash, Separator);
+		if (!pContent)
 		{
 			throw Exception(L"Looks broken!");
 		}
 		*pContent++ = L'\0';
-		*pContent++ = L'\0';
 		SetText(IDC_CLIP_HEADER_EDIT, buf);
 		SetReadOnlyEdit(IDC_CLIP_HEADER_EDIT, FALSE);
-		SetText(IDC_CLIP_BODY_EDIT, pContent ? pContent : L"");
+		m_pszHash = pszHash;
+		SetText(IDC_CLIP_BODY_EDIT, pContent);
 		EnableWindow(IDC_CLIP_COPY_BUTTON);
 		EnableWindow(IDC_CLIP_DELETE_BUTTON);
 		m_menuEdit
@@ -272,4 +305,33 @@ void ClipDialogBox::OnSelectionChange()
 	m_menuEdit
 		.Enable(IDM_EDIT_COPY, MF_DISABLED)
 		.Enable(IDS_MENU_DELETE, MF_DISABLED);
+}
+
+
+void ClipDialogBox::WriteBackToFile()
+{
+	try
+	{
+		size_t cchHeader = GetTextLength(IDC_CLIP_HEADER_EDIT);
+		Buffer<WCHAR> header(cchHeader + 1);
+		GetText(IDC_CLIP_HEADER_EDIT, header, header.Len);
+		for (PWCHAR pCur = header; (pCur = wcschr(pCur, Separator)) != nullptr ; pCur++)
+		{
+			*pCur = L' ';
+		}
+		size_t cchBody = GetTextLength(IDC_CLIP_BODY_EDIT);
+		Buffer<WCHAR> body(cchBody + 1);
+		GetText(IDC_CLIP_BODY_EDIT, body, body.Len);
+		FileWriter file(m_pszFilePath, CREATE_ALWAYS);
+		file.Write(header, cchHeader * sizeof(WCHAR));
+		file.Write(&Separator, sizeof(WCHAR));
+		file.Write(m_pszHash, m_pszHash.Len * sizeof(WCHAR));
+		file.Write(&Separator, sizeof(WCHAR));
+		file.Write(body, cchBody * sizeof(WCHAR));
+	}
+	catch (Win32Exception e)
+	{
+		String message = FormatString(L"%s\n%s", m_pszFilePath.Ptr, ErrorMessage::Get(GetLastError()));
+		MessageBoxW(hwnd, message, ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
+	}
 }

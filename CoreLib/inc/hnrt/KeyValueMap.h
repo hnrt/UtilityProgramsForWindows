@@ -9,12 +9,12 @@
 namespace hnrt
 {
     class KeyValueMap
-        : protected std::map<PCWSTR, PCWSTR, StringLessThan>
+        : protected std::map<String, String>
     {
     public:
 
-        typedef std::map<PCWSTR, PCWSTR, StringLessThan> Base;
-        typedef std::pair<PCWSTR, PCWSTR> Entry;
+        typedef std::map<String, String> Base;
+        typedef std::pair<String, String> Entry;
         typedef Base::const_iterator ConstIterator;
         typedef Base::iterator Iterator;
 

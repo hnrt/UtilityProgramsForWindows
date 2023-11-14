@@ -95,6 +95,7 @@ namespace hnrt
             m_dwSize = 0;
             m_dwCount = 0;
         }
+        return *this;
     }
 
     template<typename T>
@@ -136,7 +137,8 @@ namespace hnrt
     {
         if (m_dwCount + 1 > m_dwSize)
         {
-            Resize(m_dwSize < 16 ? 32 : m_dwSize < 65536 ? (m_dwSize * 2) : 65536);
+            DWORD dwSize = m_dwSize < 16 ? 32 : m_dwSize < 65536 ? (m_dwSize * 2) : (m_dwSize + 65536);
+            Resize(dwSize);
         }
         new (&m_pBase[m_dwCount++]) T(src);
         return m_pBase[m_dwCount - 1];

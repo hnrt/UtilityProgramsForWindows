@@ -385,7 +385,7 @@ void VmIpAddressFinder::FindAddresses(KeyValueMap& nameAddressMap)
         }
         StringCollection addresses;
         addresses.Split(guestIntrinsicExchangeItems.NetworkAddressIPv4, L';');
-        for (size_t index = 0; index < addresses.Count; index++)
+        for (DWORD index = 0; index < addresses.Count; index++)
         {
             PCWSTR pszAddr = addresses[index];
             if (adapterAddresses.FindSameSubnetIPv4(pszAddr))

@@ -1,8 +1,7 @@
 #include "pch.h"
-#include <combaseapi.h>
 #include "hnrt/Guid.h"
 #include "hnrt/ComException.h"
-#include "hnrt/String.h"
+#include <combaseapi.h>
 
 
 using namespace hnrt;
@@ -25,7 +24,7 @@ Guid& Guid::Initialize()
 }
 
 
-PCWSTR Guid::ToString(DWORD dwFlags)
+String Guid::ToString(DWORD dwFlags)
 {
     OLECHAR buf[256] = { 0 };
     if (!StringFromGUID2(*this, buf, 256))
@@ -60,5 +59,5 @@ PCWSTR Guid::ToString(DWORD dwFlags)
             *pCur = towlower(*pCur);
         }
     }
-    return String::Copy(pStart, pEnd - pStart);
+    return String(pStart, pEnd - pStart);
 }

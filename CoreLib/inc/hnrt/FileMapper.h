@@ -1,7 +1,8 @@
 #pragma once
 
 
-#include <Windows.h>
+#include "hnrt/String.h"
+#include "hnrt/WindowsHandle.h"
 
 
 namespace hnrt
@@ -27,16 +28,21 @@ namespace hnrt
 
     protected:
 
-        PCWSTR m_pszPath;
-        HANDLE m_hFile;
-        HANDLE m_hFileMapping;
+        String m_Path;
+        WindowsHandle m_hFile;
+        WindowsHandle m_hFileMapping;
         LPVOID m_ptr;
         UINT64 m_len;
     };
 
     inline PCWSTR FileMapper::get_Path() const
     {
-        return m_pszPath;
+        return m_Path;
+    }
+
+    inline void FileMapper::set_Path(PCWSTR pszPath)
+    {
+        m_Path = pszPath;
     }
 
     inline LPCVOID FileMapper::get_Ptr() const

@@ -1,10 +1,9 @@
 #include "pch.h"
-#include <ctype.h>
 #include "hnrt/Path.h"
-#include "hnrt/String.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/ComException.h"
 #include "hnrt/WindowsHandle.h"
+#include <ctype.h>
 
 
 using namespace hnrt;
@@ -19,32 +18,32 @@ const WCHAR Path::DirectorySeparatorChar = DIRECTORY_SEPARATOR_CHAR;
 PCWSTR Path::DirectorySeparator = L"\\";
 
 
-PCWSTR Path::GetFileName(PCWSTR psz)
+String Path::GetFileName(PCWSTR psz)
 {
     PCWSTR pLastSeparator = wcsrchr(psz, DIRECTORY_SEPARATOR_CHAR);
     PCWSTR pszFileName = pLastSeparator ? pLastSeparator + 1 : psz;
-    return String::Copy(pszFileName);
+    return String(pszFileName);
 }
 
 
-PCWSTR Path::GetFileNameWithoutExtension(PCWSTR psz)
+String Path::GetFileNameWithoutExtension(PCWSTR psz)
 {
     PCWSTR pLastSeparator = wcsrchr(psz, DIRECTORY_SEPARATOR_CHAR);
     PCWSTR pszFileName = pLastSeparator ? pLastSeparator + 1 : psz;
     PCWSTR pExtension = wcsrchr(pszFileName, EXTENSION_LEADER_CHAR);
     size_t cch = (pExtension ? pExtension : wcsrchr(pszFileName, L'\0')) - pszFileName;
-    return String::Copy(pszFileName, cch);
+    return String(pszFileName, cch);
 }
 
 
-PCWSTR Path::GetExtension(PCWSTR psz)
+String Path::GetExtension(PCWSTR psz)
 {
     PCWSTR pszExtension = wcsrchr(wcschr(psz, DIRECTORY_SEPARATOR_CHAR) ? wcsrchr(psz, DIRECTORY_SEPARATOR_CHAR) + 1 : psz, EXTENSION_LEADER_CHAR);
-    return String::Copy(pszExtension ? pszExtension : L"");
+    return String(pszExtension);
 }
 
 
-PCWSTR Path::GetDirectoryName(PCWSTR psz, bool bEndsWithSeparator)
+String Path::GetDirectoryName(PCWSTR psz, bool bEndsWithSeparator)
 {
     PCWSTR p1;
     PCWSTR p2;
@@ -63,7 +62,7 @@ PCWSTR Path::GetDirectoryName(PCWSTR psz, bool bEndsWithSeparator)
         p = wcschr(p + 2, DIRECTORY_SEPARATOR_CHAR);
         if (!p)
         {
-            return String::Format(bEndsWithSeparator ? L"%s\\" : L"%s", psz);
+            return String::Format2(bEndsWithSeparator ? L"%s\\" : L"%s", psz);
         }
         p1 = p;
         p2 = wcschr(p + 1, DIRECTORY_SEPARATOR_CHAR);
@@ -82,7 +81,7 @@ PCWSTR Path::GetDirectoryName(PCWSTR psz, bool bEndsWithSeparator)
     }
     else if (psz[0] == L'.' && (psz[1] == L'\0' || (psz[1] == DIRECTORY_SEPARATOR_CHAR && psz[2] == L'\0')))
     {
-        return String::Copy(bEndsWithSeparator ? L"..\\" : L"..");
+        return String::Format2(bEndsWithSeparator ? L"..\\" : L"..");
     }
     else
     {
@@ -98,11 +97,11 @@ PCWSTR Path::GetDirectoryName(PCWSTR psz, bool bEndsWithSeparator)
         p1 = p2;
         p2 = wcschr(p2 + 1, DIRECTORY_SEPARATOR_CHAR);
     }
-    return p1 ? String::Copy(psz, p1 + (bEndsWithSeparator ? 1 : 0) - psz) : String::Copy(bEndsWithSeparator ? L".\\" : L".");
+    return p1 ? String(psz, p1 + (bEndsWithSeparator ? 1 : 0) - psz) : String(bEndsWithSeparator ? L".\\" : L".");
 }
 
 
-PCWSTR Path::Combine(PCWSTR psz1, PCWSTR psz2, size_t cch2)
+String Path::Combine(PCWSTR psz1, PCWSTR psz2, size_t cch2)
 {
     if (!psz1 || !*psz1)
     {
@@ -119,11 +118,11 @@ PCWSTR Path::Combine(PCWSTR psz1, PCWSTR psz2, size_t cch2)
     StringBuffer buf(MAX_PATH);
     buf.AppendFormat(L"%s", psz1);
     buf.AppendFormat(buf[buf.Len - 1] == DIRECTORY_SEPARATOR_CHAR ? L"%.*s" : L"\\%.*s", static_cast<int>(cch2), psz2);
-    return String::Copy(buf);
+    return String(buf);
 }
 
 
-PCWSTR Path::Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, size_t cch3)
+String Path::Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, size_t cch3)
 {
     if (!psz1 || !*psz1)
     {
@@ -145,11 +144,11 @@ PCWSTR Path::Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, size_t cch3)
     buf.AppendFormat(L"%s", psz1);
     buf.AppendFormat(buf[buf.Len - 1] == DIRECTORY_SEPARATOR_CHAR ? L"%s" : L"\\%s", psz2);
     buf.AppendFormat(buf[buf.Len - 1] == DIRECTORY_SEPARATOR_CHAR ? L"%.*s" : L"\\%.*s", static_cast<int>(cch3), psz3);
-    return String::Copy(buf);
+    return String(buf);
 }
 
 
-PCWSTR Path::Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, size_t cch4)
+String Path::Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, size_t cch4)
 {
     if (!psz1 || !*psz1)
     {
@@ -176,11 +175,11 @@ PCWSTR Path::Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, size_t 
     buf.AppendFormat(buf[buf.Len - 1] == DIRECTORY_SEPARATOR_CHAR ? L"%s" : L"\\%s", psz2);
     buf.AppendFormat(buf[buf.Len - 1] == DIRECTORY_SEPARATOR_CHAR ? L"%s" : L"\\%s", psz3);
     buf.AppendFormat(buf[buf.Len - 1] == DIRECTORY_SEPARATOR_CHAR ? L"%.*s" : L"\\%.*s", static_cast<int>(cch4), psz4);
-    return String::Copy(buf);
+    return String(buf);
 }
 
 
-PCWSTR Path::Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5, size_t cch5)
+String Path::Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5, size_t cch5)
 {
     if (!psz1 || !*psz1)
     {
@@ -212,19 +211,19 @@ PCWSTR Path::Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR 
     buf.AppendFormat(buf[buf.Len - 1] == DIRECTORY_SEPARATOR_CHAR ? L"%s" : L"\\%s", psz3);
     buf.AppendFormat(buf[buf.Len - 1] == DIRECTORY_SEPARATOR_CHAR ? L"%s" : L"\\%s", psz4);
     buf.AppendFormat(buf[buf.Len - 1] == DIRECTORY_SEPARATOR_CHAR ? L"%.*s" : L"\\%.*s", static_cast<int>(cch5), psz5);
-    return String::Copy(buf);
+    return String(buf);
 }
 
 
-PCWSTR Path::GetKnownFolder(const KNOWNFOLDERID& rid, DWORD dwFlags)
+String Path::GetKnownFolder(const KNOWNFOLDERID& rid, DWORD dwFlags)
 {
     PWSTR psz;
     HRESULT hr = SHGetKnownFolderPath(rid, dwFlags, NULL, &psz);
     if (hr == S_OK)
     {
-        PCWSTR psz2 = String::Copy(psz);
+        String s(psz);
         CoTaskMemFree(psz);
-        return psz2;
+        return s;
     }
     else
     {
@@ -335,7 +334,7 @@ bool Path::IsAbsolute(PCWSTR psz)
 
 INT64 Path::GetSize(PCWSTR psz)
 {
-    LARGE_INTEGER size;
+    LARGE_INTEGER size = { 0 };
     size.QuadPart = -1LL;
     WindowsHandle h = CreateFileW(psz, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (h != INVALID_HANDLE_VALUE)

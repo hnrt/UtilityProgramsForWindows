@@ -28,7 +28,7 @@ namespace hnrt
 
     protected:
 
-        PCWSTR m_pszFileName;
+        String m_FileName;
         HMODULE m_hModule;
     };
 }

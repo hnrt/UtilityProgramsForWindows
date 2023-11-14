@@ -1,7 +1,6 @@
 #include "pch.h"
-#include "hnrt/String.h"
-#include "hnrt/Win32Exception.h"
 #include "hnrt/ResourceReader.h"
+#include "hnrt/Win32Exception.h"
 
 
 using namespace hnrt;
@@ -17,10 +16,9 @@ ResourceReader::~ResourceReader()
 
 
 ResourceReader::ResourceReader()
-    : m_pszFileName(nullptr)
+    : m_FileName()
     , m_hModule(nullptr)
 {
-
 }
 
 
@@ -30,8 +28,8 @@ bool ResourceReader::Load(PCWSTR pszFileName)
     {
         FreeLibrary(m_hModule);
     }
-    m_pszFileName = String::Copy(pszFileName);
-    m_hModule = LoadLibraryExW(m_pszFileName, NULL, LOAD_LIBRARY_AS_DATAFILE);
+    m_FileName = pszFileName;
+    m_hModule = LoadLibraryExW(m_FileName, NULL, LOAD_LIBRARY_AS_DATAFILE);
     return m_hModule ? true : false;
 }
 

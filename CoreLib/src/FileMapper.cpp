@@ -1,22 +1,21 @@
 #include "pch.h"
 #include "hnrt/FileMapper.h"
-#include "hnrt/String.h"
 #include "hnrt/Win32Exception.h"
+#include <Intrin.h>
 
 
 using namespace hnrt;
 
 
 FileMapper::FileMapper(PCWSTR pszPath)
-    : m_pszPath(NULL)
-    , m_hFile(INVALID_HANDLE_VALUE)
-    , m_hFileMapping(NULL)
+    : m_Path(pszPath)
+    , m_hFile()
+    , m_hFileMapping()
     , m_ptr(NULL)
     , m_len(0ULL)
 {
-    if (pszPath)
+    if (m_Path.Ptr)
     {
-        m_pszPath = String::Copy(pszPath);
         Open();
     }
 }
@@ -31,23 +30,22 @@ FileMapper::~FileMapper()
 void FileMapper::Open()
 {
     Close();
-    if (!m_pszPath)
+    if (!m_Path.Ptr)
     {
         throw Win32Exception(ERROR_INVALID_DATA, L"Failed to open a file due to no path specified.");
     }
-    m_hFile = CreateFileW(m_pszPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    m_hFile = CreateFileW(m_Path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (m_hFile == INVALID_HANDLE_VALUE)
     {
         DWORD dwError = GetLastError();
-        throw Win32Exception(dwError, L"Failed to open \"%s\".", m_pszPath);
+        throw Win32Exception(dwError, L"Failed to open \"%s\".", m_Path.Str);
     }
-    LARGE_INTEGER size;
+    LARGE_INTEGER size = { 0 };
     size.QuadPart = -1LL;
     if (!GetFileSizeEx(m_hFile, &size))
     {
         DWORD dwError = GetLastError();
-        Close();
-        throw Win32Exception(dwError, L"Failed to get size of \"%s\".", m_pszPath);
+        throw Win32Exception(dwError, L"Failed to get size of \"%s\".", m_Path.Str);
     }
     if (size.QuadPart <= 0LL)
     {
@@ -57,15 +55,13 @@ void FileMapper::Open()
     if (!m_hFileMapping)
     {
         DWORD dwError = GetLastError();
-        Close();
-        throw Win32Exception(dwError, L"Failed to create a mapping to \"%s\".", m_pszPath);
+        throw Win32Exception(dwError, L"Failed to create a mapping to \"%s\".", m_Path.Str);
     }
     m_ptr = MapViewOfFile(m_hFileMapping, FILE_MAP_READ, 0, 0, 0);
     if (!m_ptr)
     {
         DWORD dwError = GetLastError();
-        Close();
-        throw Win32Exception(dwError, L"Failed to map a view of \"%s\".", m_pszPath);
+        throw Win32Exception(dwError, L"Failed to map a view of \"%s\".", m_Path.Str);
     }
     m_len = size.QuadPart;
 }
@@ -73,26 +69,12 @@ void FileMapper::Open()
 
 void FileMapper::Close()
 {
-    if (m_ptr)
+    PVOID ptr = _InterlockedExchangePointer(&m_ptr, NULL);
+    if (ptr)
     {
-        UnmapViewOfFile(m_ptr);
-        m_ptr = NULL;
-        m_len = 0ULL;
+        UnmapViewOfFile(ptr);
     }
-    if (m_hFileMapping)
-    {
-        CloseHandle(m_hFileMapping);
-        m_hFileMapping = NULL;
-    }
-    if (m_hFile != INVALID_HANDLE_VALUE)
-    {
-        CloseHandle(m_hFile);
-        m_hFile = INVALID_HANDLE_VALUE;
-    }
-}
-
-
-void FileMapper::set_Path(PCWSTR pszPath)
-{
-    m_pszPath = pszPath ? String::Copy(pszPath) : nullptr;
+    m_len = 0ULL;
+    m_hFileMapping = NULL;
+    m_hFile = INVALID_HANDLE_VALUE;
 }

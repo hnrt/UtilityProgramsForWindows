@@ -19,7 +19,7 @@ Win32Exception::Win32Exception(unsigned long error, PCWSTR pszFormat, ...)
 {
     va_list argList;
     va_start(argList, pszFormat);
-    m_pszMessage = String::VaFormat(pszFormat, argList);
+    m_Message = String(pszFormat, argList);
     va_end(argList);
 }
 

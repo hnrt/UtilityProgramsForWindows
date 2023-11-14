@@ -134,7 +134,7 @@ bool UiAutomationInternal::get_HasName() const
 }
 
 
-PCWSTR UiAutomationInternal::get_Name() const
+String UiAutomationInternal::get_Name() const
 {
     if (m_pAccessible)
     {
@@ -147,7 +147,7 @@ PCWSTR UiAutomationInternal::get_Name() const
         {
             if (bstr)
             {
-                return String::Copy(bstr);
+                return String(bstr);
             }
             else
             {
@@ -155,7 +155,7 @@ PCWSTR UiAutomationInternal::get_Name() const
             }
         }
     }
-    return nullptr;
+    return String();
 }
 
 
@@ -184,11 +184,11 @@ DWORD UiAutomationInternal::get_Role() const
 }
 
 
-PCWSTR UiAutomation::GetRoleName(DWORD dwRole)
+String UiAutomation::GetRoleName(DWORD dwRole)
 {
     switch (dwRole)
     {
-    case (DWORD)-1: return L"ROLE_UNDEFINED";
+    case (DWORD)-1: return String(L"ROLE_UNDEFINED");
 #define ROLETEXT(x) case x: return L#x
         ROLETEXT(ROLE_SYSTEM_TITLEBAR);
         ROLETEXT(ROLE_SYSTEM_MENUBAR);
@@ -256,12 +256,12 @@ PCWSTR UiAutomation::GetRoleName(DWORD dwRole)
         ROLETEXT(ROLE_SYSTEM_OUTLINEBUTTON);
 #undef ROLETEXT
     default:
-        return String::Format(L"ROLE_%ld", dwRole);
+        return String::Format2(L"ROLE_%ld", dwRole);
     }
 }
 
 
-PCWSTR UiAutomationInternal::get_Value() const
+String UiAutomationInternal::get_Value() const
 {
     if (m_pAccessible)
     {
@@ -274,7 +274,7 @@ PCWSTR UiAutomationInternal::get_Value() const
         {
             if (bstr)
             {
-                return String::Copy(bstr);
+                return String(bstr);
             }
             else
             {
@@ -282,7 +282,7 @@ PCWSTR UiAutomationInternal::get_Value() const
             }
         }
     }
-    return nullptr;
+    return String();
 }
 
 
@@ -298,7 +298,7 @@ void UiAutomationInternal::put_Value(PCWSTR psz)
 }
 
 
-PCWSTR UiAutomationInternal::get_DefaultAction() const
+String UiAutomationInternal::get_DefaultAction() const
 {
     if (m_pAccessible)
     {
@@ -311,7 +311,7 @@ PCWSTR UiAutomationInternal::get_DefaultAction() const
         {
             if (bstr)
             {
-                return String::Copy(bstr);
+                return String(bstr);
             }
             else
             {
@@ -319,7 +319,7 @@ PCWSTR UiAutomationInternal::get_DefaultAction() const
             }
         }
     }
-    return nullptr;
+    return String();
 }
 
 
@@ -330,7 +330,6 @@ bool UiAutomationInternal::DoDefaultAction() const
         CComVariant varSelf;
         varSelf.vt = VT_I4;
         varSelf.lVal = CHILDID_SELF;
-        CComBSTR bstr;
         m_hr = m_pAccessible->accDoDefaultAction(varSelf);
         return m_hr == S_OK;
     }

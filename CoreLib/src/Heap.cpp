@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include "hnrt/Heap.h"
 #include "hnrt/Debug.h"
+#include "hnrt/Exception.h"
 
 
 void* hnrt::Malloc(size_t nbytes)
@@ -50,6 +51,15 @@ PSTR hnrt::Clone(PCSTR psz)
     {
         throw std::bad_alloc();
     }
+    return psz2;
+}
+
+
+PSTR hnrt::Clone(PCSTR psz, size_t cb)
+{
+    PSTR psz2 = reinterpret_cast<PSTR>(Malloc(cb + 1));
+    memcpy_s(psz2, cb, psz, cb);
+    psz2[cb] = '\0';
     return psz2;
 }
 
@@ -148,6 +158,96 @@ DWORD hnrt::ArraySize(PSTR* ppsz)
 }
 
 
+PSTR hnrt::Format(PCSTR pszFormat, ...)
+{
+    va_list argList;
+    va_start(argList, pszFormat);
+    PSTR psz = VaFormat(pszFormat, argList);
+    va_end(argList);
+    return psz;
+}
+
+
+PSTR hnrt::VaFormat(PCSTR pszFormat, va_list argList)
+{
+    va_list argList2;
+    va_copy(argList2, argList);
+    LONG_PTR cb = static_cast<LONG_PTR>(_vscprintf(pszFormat, argList));
+    va_end(argList2);
+    if (cb < 0)
+    {
+        throw Exception(L"VaFormat(PCSTR) failed.");
+    }
+    PSTR psz = reinterpret_cast<PSTR>(Malloc(++cb));
+    _vsnprintf_s(psz, cb, _TRUNCATE, pszFormat, argList);
+    return psz;
+}
+
+
+PSTR hnrt::Concat(PCSTR psz1, PCSTR psz2)
+{
+    size_t cb1 = strlen(psz1);
+    size_t cb2 = strlen(psz2);
+    PSTR psz = reinterpret_cast<PSTR>(Malloc(cb1 + cb2 + 1));
+    PSTR p = psz;
+    memcpy_s(p, cb1, psz1, cb1); p += cb1;
+    memcpy_s(p, cb2, psz2, cb2); p += cb2;
+    *p = '\0';
+    return psz;
+}
+
+
+PSTR hnrt::Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3)
+{
+    size_t cb1 = strlen(psz1);
+    size_t cb2 = strlen(psz2);
+    size_t cb3 = strlen(psz3);
+    PSTR psz = reinterpret_cast<PSTR>(Malloc(cb1 + cb2 + cb3 + 1));
+    PSTR p = psz;
+    memcpy_s(p, cb1, psz1, cb1); p += cb1;
+    memcpy_s(p, cb2, psz2, cb2); p += cb2;
+    memcpy_s(p, cb3, psz3, cb3); p += cb3;
+    *p = '\0';
+    return psz;
+}
+
+
+PSTR hnrt::Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4)
+{
+    size_t cb1 = strlen(psz1);
+    size_t cb2 = strlen(psz2);
+    size_t cb3 = strlen(psz3);
+    size_t cb4 = strlen(psz4);
+    PSTR psz = reinterpret_cast<PSTR>(Malloc(cb1 + cb2 + cb3 + cb4 + 1));
+    PSTR p = psz;
+    memcpy_s(p, cb1, psz1, cb1); p += cb1;
+    memcpy_s(p, cb2, psz2, cb2); p += cb2;
+    memcpy_s(p, cb3, psz3, cb3); p += cb3;
+    memcpy_s(p, cb4, psz4, cb4); p += cb4;
+    *p = '\0';
+    return psz;
+}
+
+
+PSTR hnrt::Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4, PCSTR psz5)
+{
+    size_t cb1 = strlen(psz1);
+    size_t cb2 = strlen(psz2);
+    size_t cb3 = strlen(psz3);
+    size_t cb4 = strlen(psz4);
+    size_t cb5 = strlen(psz5);
+    PSTR psz = reinterpret_cast<PSTR>(Malloc(cb1 + cb2 + cb3 + cb4 + cb5 + 1));
+    PSTR p = psz;
+    memcpy_s(p, cb1, psz1, cb1); p += cb1;
+    memcpy_s(p, cb2, psz2, cb2); p += cb2;
+    memcpy_s(p, cb3, psz3, cb3); p += cb3;
+    memcpy_s(p, cb4, psz4, cb4); p += cb4;
+    memcpy_s(p, cb5, psz5, cb5); p += cb5;
+    *p = '\0';
+    return psz;
+}
+
+
 PWSTR hnrt::Clone(PCWSTR psz)
 {
     PWSTR psz2 = _wcsdup(psz);
@@ -155,6 +255,15 @@ PWSTR hnrt::Clone(PCWSTR psz)
     {
         throw std::bad_alloc();
     }
+    return psz2;
+}
+
+
+PWSTR hnrt::Clone(PCWSTR psz, size_t cch)
+{
+    PWSTR psz2 = reinterpret_cast<PWSTR>(Malloc((cch + 1) * sizeof(WCHAR)));
+    wmemcpy_s(psz2, cch, psz, cch);
+    psz2[cch] = L'\0';
     return psz2;
 }
 
@@ -250,4 +359,94 @@ void hnrt::Free(PWSTR* ppsz)
 DWORD hnrt::ArraySize(PWSTR* ppsz)
 {
     return ppsz ? static_cast<DWORD>(reinterpret_cast<size_t*>(ppsz)[-1]) : 0;
+}
+
+
+PWSTR hnrt::Format(PCWSTR pszFormat, ...)
+{
+    va_list argList;
+    va_start(argList, pszFormat);
+    PWSTR psz = VaFormat(pszFormat, argList);
+    va_end(argList);
+    return psz;
+}
+
+
+PWSTR hnrt::VaFormat(PCWSTR pszFormat, va_list argList)
+{
+    va_list argList2;
+    va_copy(argList2, argList);
+    LONG_PTR cch = static_cast<LONG_PTR>(_vscwprintf(pszFormat, argList));
+    va_end(argList2);
+    if (cch < 0)
+    {
+        throw Exception(L"VaFormat(PCWSTR) failed.");
+    }
+    PWSTR psz = reinterpret_cast<PWSTR>(Malloc(++cch * sizeof(WCHAR)));
+    _vsnwprintf_s(psz, cch, _TRUNCATE, pszFormat, argList);
+    return psz;
+}
+
+
+PWSTR hnrt::Concat(PCWSTR psz1, PCWSTR psz2)
+{
+    size_t cch1 = wcslen(psz1);
+    size_t cch2 = wcslen(psz2);
+    PWSTR psz = reinterpret_cast<PWSTR>(Malloc(cch1 + cch2 + 1));
+    PWSTR p = psz;
+    wmemcpy_s(p, cch1, psz1, cch1); p += cch1;
+    wmemcpy_s(p, cch2, psz2, cch2); p += cch2;
+    *p = '\0';
+    return psz;
+}
+
+
+PWSTR hnrt::Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3)
+{
+    size_t cch1 = wcslen(psz1);
+    size_t cch2 = wcslen(psz2);
+    size_t cch3 = wcslen(psz3);
+    PWSTR psz = reinterpret_cast<PWSTR>(Malloc(cch1 + cch2 + cch3 + 1));
+    PWSTR p = psz;
+    wmemcpy_s(p, cch1, psz1, cch1); p += cch1;
+    wmemcpy_s(p, cch2, psz2, cch2); p += cch2;
+    wmemcpy_s(p, cch3, psz3, cch3); p += cch3;
+    *p = '\0';
+    return psz;
+}
+
+
+PWSTR hnrt::Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4)
+{
+    size_t cch1 = wcslen(psz1);
+    size_t cch2 = wcslen(psz2);
+    size_t cch3 = wcslen(psz3);
+    size_t cch4 = wcslen(psz4);
+    PWSTR psz = reinterpret_cast<PWSTR>(Malloc(cch1 + cch2 + cch3 + cch4 + 1));
+    PWSTR p = psz;
+    wmemcpy_s(p, cch1, psz1, cch1); p += cch1;
+    wmemcpy_s(p, cch2, psz2, cch2); p += cch2;
+    wmemcpy_s(p, cch3, psz3, cch3); p += cch3;
+    wmemcpy_s(p, cch4, psz4, cch4); p += cch4;
+    *p = '\0';
+    return psz;
+}
+
+
+PWSTR hnrt::Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5)
+{
+    size_t cch1 = wcslen(psz1);
+    size_t cch2 = wcslen(psz2);
+    size_t cch3 = wcslen(psz3);
+    size_t cch4 = wcslen(psz4);
+    size_t cch5 = wcslen(psz5);
+    PWSTR psz = reinterpret_cast<PWSTR>(Malloc(cch1 + cch2 + cch3 + cch4 + cch5 + 1));
+    PWSTR p = psz;
+    wmemcpy_s(p, cch1, psz1, cch1); p += cch1;
+    wmemcpy_s(p, cch2, psz2, cch2); p += cch2;
+    wmemcpy_s(p, cch3, psz3, cch3); p += cch3;
+    wmemcpy_s(p, cch4, psz4, cch4); p += cch4;
+    wmemcpy_s(p, cch5, psz5, cch5); p += cch5;
+    *p = '\0';
+    return psz;
 }

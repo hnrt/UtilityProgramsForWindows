@@ -9,131 +9,56 @@ using namespace hnrt;
 
 
 StringCollection::StringCollection()
-    : m_pArray(nullptr)
-    , m_Capacity(0)
-    , m_Count(0)
+    : Array<String>()
 {
 }
 
 
 StringCollection::StringCollection(const StringCollection& src)
-    : m_pArray(nullptr)
-    , m_Capacity(0)
-    , m_Count(0)
+    : Array<String>(src)
 {
-    if (src.m_pArray)
-    {
-        m_pArray = ZeroAllocate<PCWSTR>(src.m_Capacity);
-        m_Capacity = src.m_Capacity;
-        memcpy_s(m_pArray, m_Capacity * sizeof(PCWSTR), src.m_pArray, src.m_Count * sizeof(PCWSTR));
-        m_Count = src.m_Count;
-    }
-}
-
-
-StringCollection::~StringCollection()
-{
-    free(m_pArray);
 }
 
 
 StringCollection& StringCollection::operator =(const StringCollection& src)
 {
-    if (src.m_pArray)
-    {
-        m_pArray = Allocate(m_pArray, src.m_Capacity);
-        m_Capacity = src.m_Capacity;
-        memcpy_s(m_pArray, m_Capacity * sizeof(PCWSTR), src.m_pArray, src.m_Count * sizeof(PCWSTR));
-        m_Count = src.m_Count;
-        memset(m_pArray + m_Count, 0, (m_Capacity - m_Count) * sizeof(PCWSTR));
-    }
-    else
-    {
-        Deallocate(m_pArray);
-        m_Capacity = 0;
-        m_Count = 0;
-    }
+    Array<String>::operator =(src);
     return *this;
-
-}
-
-
-size_t StringCollection::get_Capacity() const
-{
-    return m_Capacity;
-}
-
-
-void StringCollection::set_Capacity(size_t value)
-{
-    if (value != m_Capacity)
-    {
-        if (value >= m_Count)
-        {
-            if (value)
-            {
-                m_pArray = Allocate(m_pArray, value);
-                if (value > m_Capacity)
-                {
-                    memset(m_pArray + m_Capacity, 0, (value - m_Capacity) * sizeof(PCWSTR));
-                }
-                m_Capacity = value;
-            }
-            else
-            {
-                Deallocate(m_pArray);
-                m_Capacity = 0;
-            }
-        }
-    }
-}
-
-
-size_t StringCollection::get_Count() const
-{
-    return m_Count;
-}
-
-
-PCWSTR StringCollection::operator [](size_t index) const
-{
-    if (m_Count <= index)
-    {
-        throw Exception(L"StringCollection::operator []: Index out of range.");
-    }
-    return m_pArray[index];
 }
 
 
 StringCollection& StringCollection::Clear()
 {
-    m_Count = 0;
+    Resize(0);
+    return *this;
+}
+
+
+StringCollection& StringCollection::Add(PCWSTR psz)
+{
+    Array<String>::operator +=(String(psz));
     return *this;
 }
 
 
 StringCollection& StringCollection::Add(PCWSTR psz, size_t cch)
 {
-    if (m_Count + 1 > m_Capacity)
-    {
-        set_Capacity(m_Capacity + (m_Capacity < 16 ? 16 : m_Capacity < 65536 ? m_Capacity : 65536));
-    }
-    m_pArray[m_Count++] = String::Copy(psz, cch);
+    Array<String>::operator +=(String(psz, cch));
     return *this;
 }
 
 
-StringCollection& StringCollection::RemoveAt(size_t index)
+StringCollection& StringCollection::RemoveAt(DWORD dwIndex)
 {
-    if (index < m_Count)
+    if (dwIndex < m_dwCount)
     {
-        m_Count--;
-        while (index < m_Count)
+        m_dwCount--;
+        while (dwIndex < m_dwCount)
         {
-            m_pArray[index] = m_pArray[index + 1];
-            index++;
+            m_pBase[dwIndex] = m_pBase[dwIndex + 1];
+            dwIndex++;
         }
-        m_pArray[index] = nullptr;
+        m_pBase[m_dwCount].~String();
     }
     return *this;
 }

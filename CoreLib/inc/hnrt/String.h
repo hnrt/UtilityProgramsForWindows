@@ -7,8 +7,46 @@
 
 namespace hnrt
 {
+    class RefStr;
+
     class String
     {
+    public:
+
+        static String Format2(PCWSTR pszFormat, ...);
+
+        String();
+        String(PCWSTR);
+        String(PCWSTR, size_t);
+        String(PCWSTR, va_list);
+        String(PCWSTR, PCWSTR);
+        String(PCWSTR, PCWSTR, PCWSTR);
+        String(PCWSTR, PCWSTR, PCWSTR, PCWSTR);
+        String(PCWSTR, PCWSTR, PCWSTR, PCWSTR, PCWSTR);
+        String(const String&);
+        ~String();
+        String& operator =(const String&);
+        bool operator ==(const String&) const;
+        bool operator !=(const String&) const;
+        bool operator <(const String&) const;
+        bool operator <=(const String&) const;
+        bool operator >(const String&) const;
+        bool operator >=(const String&) const;
+        String operator +(const String&) const;
+        String& operator +=(const String&);
+        operator PCWSTR() const;
+        PCWSTR get_ptr() const;
+        PCWSTR get_str() const;
+        size_t get_len() const;
+
+        __declspec(property(get = get_ptr)) PCWSTR Ptr;
+        __declspec(property(get = get_str)) PCWSTR Str;
+        __declspec(property(get = get_len)) size_t Len;
+
+    private:
+
+        RefStr* m_ptr;
+
     public:
 
         static PCWSTR Copy(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
@@ -32,9 +70,9 @@ namespace hnrt
 
         static PCWSTR ToUcs(PCSTR psz, size_t cch = static_cast<size_t>(-1));
         static PCSTR ToAcp(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
-
-        String() = delete;
     };
+
+    String FormatString(PCWSTR pszFormat, ...);
 
     class StringLessThan
     {

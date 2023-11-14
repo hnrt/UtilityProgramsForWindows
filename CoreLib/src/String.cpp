@@ -1,12 +1,196 @@
 #include "pch.h"
 #include "hnrt/String.h"
+#include "hnrt/RefStr.h"
+#include "hnrt/Interlocked.h"
+#include "hnrt/Heap.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/StringStore.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Buffer.h"
+#include <exception>
 
 
 using namespace hnrt;
+
+
+String String::Format2(PCWSTR pszFormat, ...)
+{
+    va_list argList;
+    va_start(argList, pszFormat);
+    String s(pszFormat, argList);
+    va_end(argList);
+    return s;
+}
+
+
+String::String()
+    : m_ptr(nullptr)
+{
+}
+
+
+String::String(PCWSTR psz)
+    : m_ptr(new RefStr(psz))
+{
+}
+
+
+String::String(PCWSTR psz, size_t cch)
+    : m_ptr(new RefStr(psz, cch))
+{
+}
+
+
+String::String(PCWSTR pszFormat, va_list argList)
+    : m_ptr(new RefStr(pszFormat, argList))
+{
+}
+
+
+String::String(PCWSTR psz1, PCWSTR psz2)
+    : m_ptr(new RefStr(psz1, psz2))
+{
+}
+
+
+String::String(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3)
+    : m_ptr(new RefStr(psz1, psz2, psz3))
+{
+}
+
+
+String::String(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4)
+    : m_ptr(new RefStr(psz1, psz2, psz3, psz4))
+{
+}
+
+
+String::String(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5)
+    : m_ptr(new RefStr(psz1, psz2, psz3, psz4, psz5))
+{
+}
+
+
+String::String(const String& other)
+    : m_ptr(other.m_ptr)
+{
+    if (m_ptr)
+    {
+        m_ptr->AddRef();
+    }
+}
+
+
+String::~String()
+{
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, nullptr);
+    if (ptr)
+    {
+        ptr->Release();
+    }
+}
+
+
+String& String::operator =(const String& other)
+{
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, other.m_ptr);
+    if (m_ptr)
+    {
+        m_ptr->AddRef();
+    }
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
+bool String::operator ==(const String& other) const
+{
+    return wcscmp(Str, other.Str) == 0;
+}
+
+
+bool String::operator !=(const String& other) const
+{
+    return wcscmp(Str, other.Str) != 0;
+}
+
+
+bool String::operator <(const String& other) const
+{
+    return wcscmp(Str, other.Str) < 0;
+}
+
+
+bool String::operator <=(const String& other) const
+{
+    return wcscmp(Str, other.Str) <= 0;
+}
+
+
+bool String::operator >(const String& other) const
+{
+    return wcscmp(Str, other.Str) > 0;
+}
+
+
+bool String::operator >=(const String& other) const
+{
+    return wcscmp(Str, other.Str) >= 0;
+}
+
+
+String String::operator +(const String& other) const
+{
+    return String(Str, other.Str);
+}
+
+
+String& String::operator +=(const String& other)
+{
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Str, other.Str));
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
+String::operator PCWSTR() const
+{
+    return get_str();
+}
+
+
+PCWSTR String::get_ptr() const
+{
+    return m_ptr ? m_ptr->Ptr : nullptr;
+}
+
+
+PCWSTR String::get_str() const
+{
+    return m_ptr ? m_ptr->Str : L"";
+}
+
+
+size_t String::get_len() const
+{
+    return m_ptr ? m_ptr->Len : 0;
+}
+
+
+String hnrt::FormatString(PCWSTR pszFormat, ...)
+{
+    va_list argList;
+    va_start(argList, pszFormat);
+    String s(pszFormat, argList);
+    va_end(argList);
+    return s;
+}
 
 
 PCWSTR String::Copy(PCWSTR psz, size_t cch)

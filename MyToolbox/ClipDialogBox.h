@@ -3,14 +3,15 @@
 
 #include "MyDialogBox.h"
 #include "MyClipboardObserver.h"
+#include "hnrt/Hash.h"
 #include "hnrt/String.h"
 #include <map>
 
 
 namespace hnrt
 {
-	typedef std::map<PCWSTR, PCWSTR, StringLessThan> ClipMap;
-	typedef std::pair<PCWSTR, PCWSTR> ClipEntry;
+	typedef std::map<String, String> ClipMap;
+	typedef std::pair<String, String> ClipEntry;
 
 	class ClipDialogBox
 		: public MyDialogBox
@@ -35,11 +36,14 @@ namespace hnrt
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		void OnSelectionChange();
+		void WriteBackToFile();
 
 		RefPtr<ClipboardObserver> m_pCO;
-		PCWSTR m_pszDirectoryPath;
+		String m_pszDirectoryPath;
 		ClipMap m_mapHash;
-		PCWSTR m_pszFilePath;
+		String m_pszFilePath;
+		String m_pszHash;
+		bool m_bChanged;
 		bool m_bProcessing;
 	};
 }

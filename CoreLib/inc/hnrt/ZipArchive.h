@@ -2,6 +2,7 @@
 
 
 #include "hnrt/ZipArchiveEntry.h"
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -13,7 +14,7 @@ namespace hnrt
         ~ZipArchive();
         ZipArchive(const ZipArchive&);
         ZipArchive& operator =(const ZipArchive&);
-        PCWSTR get_FileName() const { return m_pszFileName; }
+        PCWSTR get_FileName() const { return m_FileName; }
         void ForEach(IZipForEachCallback&);
 
         __declspec(property(get = get_FileName)) PCWSTR FileName;
@@ -24,7 +25,7 @@ namespace hnrt
 
         ZipArchive(PCWSTR, Folder*);
 
-        PCWSTR m_pszFileName;
+        String m_FileName;
         Folder* m_pFolder;
     };
 }

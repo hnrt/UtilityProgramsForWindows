@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include "hnrt/String.h"
+
+
 namespace hnrt
 {
     class Exception
@@ -18,11 +21,11 @@ namespace hnrt
 
     protected:
 
-        PCWSTR m_pszMessage;
+        String m_Message;
     };
 
     inline PCWSTR Exception::get_Message() const
     {
-        return m_pszMessage ? m_pszMessage : L"";
+        return m_Message;
     }
 }

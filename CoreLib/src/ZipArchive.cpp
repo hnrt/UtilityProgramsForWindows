@@ -14,14 +14,14 @@ ZipArchive::~ZipArchive()
 
 
 ZipArchive::ZipArchive(PCWSTR pszFileName, Folder* pFolder)
-    : m_pszFileName(String::Copy(pszFileName))
+    : m_FileName(pszFileName)
     , m_pFolder(pFolder)
 {
 }
 
 
 ZipArchive::ZipArchive(const ZipArchive& src)
-    : m_pszFileName(src.m_pszFileName)
+    : m_FileName(src.m_FileName)
     , m_pFolder(src.m_pFolder)
 {
     m_pFolder->AddRef();
@@ -30,7 +30,7 @@ ZipArchive::ZipArchive(const ZipArchive& src)
 
 ZipArchive& ZipArchive::operator =(const ZipArchive& src)
 {
-    m_pszFileName = src.m_pszFileName;
+    m_FileName = src.m_FileName;
     if (m_pFolder)
     {
         m_pFolder->Release();

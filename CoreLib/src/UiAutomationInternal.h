@@ -19,11 +19,11 @@ namespace hnrt
         virtual bool get_IsValid() const override;
         virtual RefPtr<UiAutomation> HitTest(POINT pt) override;
         virtual bool get_HasName() const override;
-        virtual PCWSTR get_Name() const override;
+        virtual String get_Name() const override;
         virtual DWORD get_Role() const override;
-        virtual PCWSTR get_Value() const override;
+        virtual String get_Value() const override;
         virtual void put_Value(PCWSTR psz) override;
-        virtual PCWSTR get_DefaultAction() const override;
+        virtual String get_DefaultAction() const override;
         virtual bool DoDefaultAction() const override;
         virtual bool Locate(RECT& rect) const override;
         virtual bool Match(PCWSTR pszName, DWORD dwRole) const override;
