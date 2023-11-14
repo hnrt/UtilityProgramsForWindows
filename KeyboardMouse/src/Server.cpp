@@ -27,7 +27,7 @@ void Server::MapSharedBlock(SharedMemory<ServerBlock>& sm, PCWSTR psz)
 Server::Server(HMODULE hModule, PCWSTR pszGuid)
     : ComLibrary(COINIT_APARTMENTTHREADED)
     , m_hModule(hModule)
-    , m_pszGuid(String::Copy(pszGuid))
+    , m_Guid(pszGuid)
     , m_pServerBlock()
     , m_hExitEvent(CreateEventW(NULL, TRUE, FALSE, NULL))
     , m_hClientProcess()
@@ -64,7 +64,7 @@ void Server::Run()
 
 void Server::Initialize()
 {
-    MapSharedBlock(m_pServerBlock, m_pszGuid);
+    MapSharedBlock(m_pServerBlock, m_Guid);
 
     RegisterClient(m_pServerBlock->dwClientProcessId);
 }

@@ -4,6 +4,7 @@
 #include "hnrt/ComLibrary.h"
 #include "hnrt/SharedMemory.h"
 #include "hnrt/WindowsHandle.h"
+#include "hnrt/String.h"
 #include "ServerBlock.h"
 #include "ServerWindow.h"
 
@@ -44,7 +45,7 @@ namespace hnrt
         bool CanChangeByToggleKeySequence();
 
         HMODULE m_hModule;
-        PCWSTR m_pszGuid;
+        String m_Guid;
         SharedMemory<ServerBlock> m_pServerBlock;
         WindowsHandle m_hExitEvent;
         WindowsHandle m_hClientProcess;

@@ -419,12 +419,12 @@ void HostsUpdateService::Log(PCWSTR pszFormat, ...)
 	va_start(ap1, pszFormat);
 	va_copy(ap2, ap1);
 	int cch = _vscwprintf(pszFormat, ap1);
-	Buffer<WCHAR> wbuf(cch + 1);
+	Buffer<WCHAR> wbuf(static_cast<size_t>(cch) + 1);
 	_vsnwprintf_s(wbuf, wbuf.Len, _TRUNCATE, pszFormat, ap2);
 	va_end(ap2);
 	va_end(ap1);
 	int cb2 = WideCharToMultiByte(CP_UTF8, 0, wbuf, cch, NULL, 0, NULL, NULL);
-	Buffer<CHAR> buf(32 + cb2);
+	Buffer<CHAR> buf(32 + static_cast<size_t>(cb2));
 	int cb1 = _snprintf_s(buf, buf.Len, _TRUNCATE, "%04d-%02d-%02dT%02d:%02d:%02d.%03d ", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond, t.wMilliseconds);
 	WideCharToMultiByte(CP_UTF8, 0, wbuf, cch, buf + cb1, cb2, NULL, NULL);
 	int cb = cb1 + cb2;
@@ -552,7 +552,7 @@ void HostsUpdateService::ReadRegistry()
 				reinterpret_cast<LPBYTE>(szValue)[dwValueLen + 0] = 0;
 				reinterpret_cast<LPBYTE>(szValue)[dwValueLen + 1] = 0;
 				DBGPUT(L"Mappings[%lu] \"%s\"=\"%s\"", dwIndex, szName, szValue);
-				m_Mappings.Add(String::Copy(szName), String::Copy(szValue));
+				m_Mappings.Add(String(szName), String(szValue));
 			}
 		}
 	}
