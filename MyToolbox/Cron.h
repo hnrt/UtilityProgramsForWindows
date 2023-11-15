@@ -2,6 +2,7 @@
 
 
 #include "CronValue.h"
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -27,7 +28,7 @@ namespace hnrt
 		void ParseMonth(PCWSTR);
 		void ParseDayOfWeek(PCWSTR);
 		void ParseYear(PCWSTR);
-		PCWSTR ToString() const;
+		String ToString() const;
 		bool GetNextTime(int, SYSTEMTIME&);
 		const CronValue& GetSecond() const;
 		const CronValue& GetMinute() const;

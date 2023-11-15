@@ -76,7 +76,7 @@ namespace hnrt
         static bool ExamineHosts(Hosts& hosts, KeyValueMap& nameAddressMap);
         static void RecreateHostsData(const Hosts& hosts, const KeyValueMap& nameAddressMap, Buffer<char>& hostsData);
 
-        static PCWSTR GetServiceCommandPath();
+        static String GetServiceCommandPath();
         static VOID WINAPI ServiceMain(DWORD dwArgc, PWSTR* pszArgv);
         static DWORD WINAPI HandlerEx(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData, LPVOID lpContext);
         void ServiceMain(Args& args);

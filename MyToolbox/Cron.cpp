@@ -102,7 +102,7 @@ void Cron::ParseYear(PCWSTR psz)
 }
 
 
-PCWSTR Cron::ToString() const
+String Cron::ToString() const
 {
 	StringBuffer buf(260);
 	if (m_bSecond && m_pSecond)
@@ -133,7 +133,7 @@ PCWSTR Cron::ToString() const
 	{
 		buf.AppendFormat(L" %s", m_pYear->ToString());
 	}
-	return String::Trim(buf);
+	return String(TRIM, buf);
 }
 
 

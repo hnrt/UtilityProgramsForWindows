@@ -111,7 +111,7 @@ GuestIntrinsicExchangeItems::GuestIntrinsicExchangeItems(const KeyValueMap& exch
     }
     for (long i = 0; i < count; i++)
     {
-        PCWSTR pszXml = exchangeComponentMap.GetValue(String::Format(L"GuestIntrinsicExchangeItems[%ld]", i));
+        PCWSTR pszXml = exchangeComponentMap.GetValue(String(SPRINTF, L"GuestIntrinsicExchangeItems[%ld]", i));
         if (!pszXml)
         {
             continue;

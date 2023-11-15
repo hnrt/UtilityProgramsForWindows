@@ -3,6 +3,7 @@
 
 #include "hnrt/RefObj.h"
 #include "hnrt/Heap.h"
+#include "hnrt/Exception.h"
 
 
 namespace hnrt
@@ -20,6 +21,10 @@ namespace hnrt
         RefStr(PCWSTR, PCWSTR, PCWSTR);
         RefStr(PCWSTR, PCWSTR, PCWSTR, PCWSTR);
         RefStr(PCWSTR, PCWSTR, PCWSTR, PCWSTR, PCWSTR);
+        RefStr(PCSTR);
+        RefStr(PCSTR, size_t);
+        RefStr(UINT, PCSTR);
+        RefStr(UINT, PCSTR, size_t);
         RefStr(const RefStr&) = delete;
         virtual ~RefStr();
         void operator =(const RefStr&) = delete;
@@ -81,6 +86,30 @@ namespace hnrt
     inline RefStr::RefStr(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5)
         : RefObj()
         , m_psz(Concat(psz1, psz2, psz3, psz4, psz5))
+    {
+    }
+
+    inline RefStr::RefStr(PCSTR psz)
+        : RefObj()
+        , m_psz(ToUcs(psz))
+    {
+    }
+
+    inline RefStr::RefStr(PCSTR psz, size_t cb)
+        : RefObj()
+        , m_psz(ToUcs(psz, cb))
+    {
+    }
+
+    inline RefStr::RefStr(UINT cp, PCSTR psz)
+        : RefObj()
+        , m_psz(ToUcs(cp, psz))
+    {
+    }
+
+    inline RefStr::RefStr(UINT cp, PCSTR psz, size_t cb)
+        : RefObj()
+        , m_psz(ToUcs(cp, psz, cb))
     {
     }
 

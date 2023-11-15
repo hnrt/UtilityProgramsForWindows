@@ -264,11 +264,11 @@ void HashDialogBox::OnCalculate()
         static const WCHAR szReadFile[] = L"ReadFile";
         if (!wcsncmp(e.Message, szCreateFile, wcslen(szCreateFile)))
         {
-            MessageBox(hwnd, String::Format(ResourceString(IDS_OPENFILE_FAILURE), ErrorMessage::Get(e.Error)), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+            MessageBox(hwnd, String(SPRINTF, ResourceString(IDS_OPENFILE_FAILURE), ErrorMessage::Get(e.Error)), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
         }
         else if (!wcsncmp(e.Message, szReadFile, wcslen(szReadFile)))
         {
-            MessageBox(hwnd, String::Format(ResourceString(IDS_READFILE_FAILURE), ErrorMessage::Get(e.Error)), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+            MessageBox(hwnd, String(SPRINTF, ResourceString(IDS_READFILE_FAILURE), ErrorMessage::Get(e.Error)), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
         }
         else
         {

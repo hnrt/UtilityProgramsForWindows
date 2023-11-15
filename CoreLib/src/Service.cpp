@@ -332,7 +332,7 @@ void Service::Close()
     {
         CloseServiceHandle(m_h);
         m_h = NULL;
-        m_Name = NULL;
+        m_Name = String();
         memset(&m_status, 0, sizeof(m_status));
     }
 }

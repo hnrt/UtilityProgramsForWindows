@@ -22,25 +22,25 @@ RefPtr<InputManager> InputManager::Create(PCWSTR pszAppDir, PCWSTR pszInstallDir
     InputManager* km = new InputManager();
     HKL hkl = GetKeyboardLayout(GetCurrentThreadId());
     UINT id = static_cast<UINT>(reinterpret_cast<UINT_PTR>(hkl) & 0xFFFF);
-    PCWSTR pszFileName = Path::Combine(pszAppDir, String::Format(FILENAME, id));
-    if (!Path::Exists(pszFileName))
+    String strFileName = Path::Combine(pszAppDir, String(SPRINTF, FILENAME, id));
+    if (!Path::Exists(strFileName))
     {
-        pszFileName = Path::Combine(pszInstallDir, String::Format(FILENAME, id));
-        if (!Path::Exists(pszFileName))
+        strFileName = Path::Combine(pszInstallDir, String(SPRINTF, FILENAME, id));
+        if (!Path::Exists(strFileName))
         {
             id = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-            pszFileName = Path::Combine(pszAppDir, String::Format(FILENAME, id));
-            if (!Path::Exists(pszFileName))
+            strFileName = Path::Combine(pszAppDir, String(SPRINTF, FILENAME, id));
+            if (!Path::Exists(strFileName))
             {
-                pszFileName = Path::Combine(pszInstallDir, String::Format(FILENAME, id));
-                if (!Path::Exists(pszFileName))
+                strFileName = Path::Combine(pszInstallDir, String(SPRINTF, FILENAME, id));
+                if (!Path::Exists(strFileName))
                 {
                     throw Exception(ResourceString(IDS_KEYSTROKE_MANAGER_UNAVAILABLE));
                 }
             }
         }
     }
-    km->LoadKeyboardLayoutFile(pszFileName);
+    km->LoadKeyboardLayoutFile(strFileName);
     return RefPtr<InputManager>(km);
 }
 

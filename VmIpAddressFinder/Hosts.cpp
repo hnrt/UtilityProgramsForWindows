@@ -1,7 +1,8 @@
 #include <ctype.h>
 #include <stdexcept>
 #include "Hosts.h"
-#include "hnrt/StringStore.h"
+#include "hnrt/Heap.h"
+#include "hnrt/Interlocked.h"
 
 
 using namespace hnrt;
@@ -99,7 +100,7 @@ HostsNode* Hosts::get_Root() const
 HostsNode* Hosts::Read()
 {
     HostsNode* pNode;
-    char text[512];
+    char text[512] = { 0 };
     char* p = text;
     char* q = text + sizeof(text) - 1;
     if (m_c == -1)
@@ -225,10 +226,22 @@ int Hosts::ReadChar()
 
 HostsNode::HostsNode(HostsNodeType type, const char* psz)
     : m_type(type)
-    , m_psz(StringStore::Get(psz))
+    , m_psz(psz ? Clone(psz) : nullptr)
     , m_pNext(nullptr)
     , m_pHost(nullptr)
 {
+}
+
+
+HostsNode::~HostsNode()
+{
+    free(m_psz);
+}
+
+
+void HostsNode::SetText(PCWSTR psz)
+{
+    free(Interlocked<char*>::ExchangePointer(&m_psz, ToAcp(psz)));
 }
 
 
@@ -241,12 +254,6 @@ HostsNodeType HostsNode::get_Type() const
 const char* HostsNode::get_Text() const
 {
     return m_psz;
-}
-
-
-void HostsNode::set_Text(const char* psz)
-{
-    m_psz = StringStore::Get(psz);
 }
 
 

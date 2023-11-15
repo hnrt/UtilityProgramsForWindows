@@ -19,21 +19,21 @@ static FILE* s_pErrStream = stderr;
 void VmIpAddressFinder::OpenStream()
 {
     DBGFNC(L"VmIpAddressFinder::OpenStream");
-    PCWSTR pszPath = Path::Combine(Path::GetKnownFolder(FOLDERID_PublicDocuments), String::Format(L"%s.log", Instance().m_pszName));
-    DBGPUT(L"Path=%s", pszPath);
+    String strPath = Path::Combine(Path::GetKnownFolder(FOLDERID_PublicDocuments), String(SPRINTF, L"%s.log", Instance().m_pszName));
+    DBGPUT(L"Path=%s", strPath.Str);
     int fd = -1;
-    errno_t err = _wsopen_s(&fd, pszPath, _O_WRONLY | _O_CREAT | _O_APPEND | _O_U8TEXT, _SH_DENYWR, _S_IREAD | _S_IWRITE);
+    errno_t err = _wsopen_s(&fd, strPath, _O_WRONLY | _O_CREAT | _O_APPEND | _O_U8TEXT, _SH_DENYWR, _S_IREAD | _S_IWRITE);
     if (err)
     {
         DBGPUT(L"Failed to open: %u", err);
-        throw Exception(L"Failed to open \"%s\": %u", pszPath, err);
+        throw Exception(L"Failed to open \"%s\": %u", strPath.Str, err);
     }
     FILE* fp = _wfdopen(fd, L"a,ccs=UTF-8");
     if (!fp)
     {
         DBGPUT(L"Failed to open with file descriptor: %u", err);
         _close(fd);
-        throw Exception(L"Failed to open \"%s\".", pszPath);
+        throw Exception(L"Failed to open \"%s\".", strPath.Str);
     }
     s_pOutStream = fp;
     s_pErrStream = fp;

@@ -2,6 +2,7 @@
 
 
 #include <Msi.h>
+#include "hnrt/String.h"
 #include "hnrt/IMsiColumnCollection.h"
 #include "MsiColumn.h"
 
@@ -32,7 +33,7 @@ namespace hnrt
 
         long m_count;
         MsiColumn* m_columns;
-        PCWSTR m_pszPrimaryKey;
+        String m_PrimaryKey;
         long m_keyList[32];
         long m_keyCount;
         long m_next;

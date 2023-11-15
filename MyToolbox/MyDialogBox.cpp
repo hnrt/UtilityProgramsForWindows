@@ -533,7 +533,7 @@ void MyDialogBox::LoadTextFromFile(int id, PWSTR psz, DWORD dwLen)
 	ofn.hwndOwner = hwnd;
 	ofn.lpstrFile = psz ? psz : szPath;
 	ofn.nMaxFile = psz ? dwLen : MAX_PATH;
-	ofn.lpstrTitle = String::Format(ResourceString(IDS_LOADTEXTFROMFILE));
+	ofn.lpstrTitle = String::Copy(ResourceString(IDS_LOADTEXTFROMFILE));
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 	if (!GetOpenFileNameW(&ofn))
 	{
@@ -651,7 +651,7 @@ void MyDialogBox::SaveTextAsFile(int id, PWSTR psz, DWORD dwLen)
 	ofn.hwndOwner = hwnd;
 	ofn.lpstrFile = psz ? psz : szPath;
 	ofn.nMaxFile = psz ? dwLen : MAX_PATH;
-	ofn.lpstrTitle = String::Format(ResourceString(IDS_SAVETEXTASFILE));
+	ofn.lpstrTitle = String::Copy(ResourceString(IDS_SAVETEXTASFILE));
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
 	if (!GetSaveFileNameW(&ofn))
 	{
@@ -693,17 +693,17 @@ void MyDialogBox::SaveTextAsFile(int id, PWSTR psz, DWORD dwLen)
 			else
 			{
 				DWORD dwError = GetLastError();
-				PCWSTR pszMessage = String::Format(L"%s\n%s",
+				String Message(SPRINTF, L"%s\n%s",
 					ResourceString(IDS_MSG_TEXT_ENCODING_CONVERSION_ERROR).Ptr,
 					ErrorMessage::Get(dwError));
-				MessageBoxW(hwnd, pszMessage, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+				MessageBoxW(hwnd, Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 			}
 		}
 	}
 	catch (Win32Exception e)
 	{
-		PCWSTR pszMessage = String::Format(L"%s\n%s", e.Message, ErrorMessage::Get(e.Error));
-		MessageBoxW(hwnd, pszMessage, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+		String Message(SPRINTF, L"%s\n%s", e.Message, ErrorMessage::Get(e.Error));
+		MessageBoxW(hwnd, Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 	}
 	catch (Exception e)
 	{

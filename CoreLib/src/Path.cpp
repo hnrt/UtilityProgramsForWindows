@@ -52,12 +52,12 @@ String Path::GetDirectoryName(PCWSTR psz, bool bEndsWithSeparator)
         // UNC ?
         if (!psz[2] || psz[2] == DIRECTORY_SEPARATOR_CHAR)
         {
-            return nullptr;
+            return String::Empty;
         }
         PCWSTR p = wcschr(psz + 3, DIRECTORY_SEPARATOR_CHAR);
         if (!p || !p[1] || p[1] == DIRECTORY_SEPARATOR_CHAR)
         {
-            return nullptr;
+            return String::Empty;
         }
         p = wcschr(p + 2, DIRECTORY_SEPARATOR_CHAR);
         if (!p)

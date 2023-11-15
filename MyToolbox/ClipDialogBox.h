@@ -41,8 +41,8 @@ namespace hnrt
 		RefPtr<ClipboardObserver> m_pCO;
 		String m_pszDirectoryPath;
 		ClipMap m_mapHash;
-		String m_pszFilePath;
-		String m_pszHash;
+		String m_FilePath;
+		String m_Hash;
 		bool m_bChanged;
 		bool m_bProcessing;
 	};

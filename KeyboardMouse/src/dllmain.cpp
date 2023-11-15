@@ -340,7 +340,7 @@ extern "C" void CALLBACK RunServer(HWND hwnd, HINSTANCE hinst, LPSTR lpszCmdLine
     DBGPUT(L"CmdLine=\"%hs\"", lpszCmdLine);
     try
     {
-        g_pServer = new Server(g_hModule, String::Trim(String::ToUcs(lpszCmdLine)));
+        g_pServer = new Server(g_hModule, String(TRIM, String(lpszCmdLine)));
         g_pServer->Run();
     }
     catch (ComException ex)

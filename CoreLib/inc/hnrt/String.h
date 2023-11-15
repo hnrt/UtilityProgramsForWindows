@@ -9,9 +9,19 @@ namespace hnrt
 {
     class RefStr;
 
+    enum StringOptions
+    {
+        SPRINTF = 1,
+        TRIM,
+        TRIM_HEAD,
+        TRIM_TAIL
+    };
+
     class String
     {
     public:
+
+        static const String Empty;
 
         static String Format2(PCWSTR pszFormat, ...);
 
@@ -19,10 +29,15 @@ namespace hnrt
         String(PCWSTR);
         String(PCWSTR, size_t);
         String(PCWSTR, va_list);
+        String(StringOptions, PCWSTR, ...);
         String(PCWSTR, PCWSTR);
         String(PCWSTR, PCWSTR, PCWSTR);
         String(PCWSTR, PCWSTR, PCWSTR, PCWSTR);
         String(PCWSTR, PCWSTR, PCWSTR, PCWSTR, PCWSTR);
+        String(PCSTR);
+        String(PCSTR, size_t);
+        String(UINT, PCSTR);
+        String(UINT, PCSTR, size_t);
         String(const String&);
         ~String();
         String& operator =(const String&);
@@ -35,6 +50,7 @@ namespace hnrt
         String operator +(const String&) const;
         String& operator +=(const String&);
         operator PCWSTR() const;
+        operator bool() const;
         PCWSTR get_ptr() const;
         PCWSTR get_str() const;
         size_t get_len() const;
@@ -51,13 +67,13 @@ namespace hnrt
 
         static PCWSTR Copy(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
         static PCWSTR Append(PCWSTR psz1, PCWSTR psz2, size_t cch2 = static_cast<size_t>(-1));
-        static PCWSTR Format(PCWSTR pszFormat, ...);
-        static PCWSTR VaFormat(PCWSTR pszFormat, va_list argList);
-        static PCWSTR AppendFormat(PCWSTR psz, PCWSTR pszFormat, ...);
-        static PCWSTR VaAppendFormat(PCWSTR psz, PCWSTR pszFormat, va_list argList);
-        static PCWSTR Trim(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
-        static PCWSTR TrimHead(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
-        static PCWSTR TrimTail(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
+        //static PCWSTR Format(PCWSTR pszFormat, ...);
+        //static PCWSTR VaFormat(PCWSTR pszFormat, va_list argList);
+        //static PCWSTR AppendFormat(PCWSTR psz, PCWSTR pszFormat, ...);
+        //static PCWSTR VaAppendFormat(PCWSTR psz, PCWSTR pszFormat, va_list argList);
+        //static PCWSTR Trim(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
+        //static PCWSTR TrimHead(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
+        //static PCWSTR TrimTail(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
         static int Compare(PCWSTR psz1, PCWSTR psz2, size_t cch2 = static_cast<size_t>(-1));
         static int CaseCompare(PCWSTR psz1, PCWSTR psz2, size_t cch2 = static_cast<size_t>(-1));
         static int Compare(PCWSTR psz1, size_t cch1, PCWSTR psz2, size_t cch2 = static_cast<size_t>(-1));
@@ -67,12 +83,7 @@ namespace hnrt
         static int CaseCompare(PCSTR psz1, PCSTR psz2, size_t cch2 = static_cast<size_t>(-1));
         static int Compare(PCSTR psz1, size_t cch1, PCSTR psz2, size_t cch2 = static_cast<size_t>(-1));
         static int CaseCompare(PCSTR psz1, size_t cch1, PCSTR psz2, size_t cch2 = static_cast<size_t>(-1));
-
-        static PCWSTR ToUcs(PCSTR psz, size_t cch = static_cast<size_t>(-1));
-        static PCSTR ToAcp(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
     };
-
-    String FormatString(PCWSTR pszFormat, ...);
 
     class StringLessThan
     {
@@ -121,4 +132,29 @@ namespace hnrt
     {
         return String::CaseCompare(psz1, psz2) < 0;
     }
+
+    class AcpString
+    {
+    public:
+
+        AcpString();
+        AcpString(PCSTR);
+        AcpString(PCWSTR);
+        AcpString(const AcpString&);
+        ~AcpString();
+        AcpString& operator =(const AcpString&);
+        operator PCSTR() const;
+        operator bool() const;
+        PCSTR get_ptr() const;
+        PCSTR get_str() const;
+        size_t get_len() const;
+
+        __declspec(property(get = get_ptr)) PCSTR Ptr;
+        __declspec(property(get = get_str)) PCSTR Str;
+        __declspec(property(get = get_len)) size_t Len;
+
+    private:
+
+        PSTR m_psz;
+    };
 }

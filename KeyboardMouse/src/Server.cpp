@@ -16,7 +16,7 @@ using namespace hnrt;
 
 void Server::MapSharedBlock(SharedMemory<ServerBlock>& sm, PCWSTR psz)
 {
-    DWORD dwError = sm.Map(String::Format(L"Local\\SERVER_%s", psz));
+    DWORD dwError = sm.Map(String::Format2(L"Local\\SERVER_%s", psz));
     if (dwError)
     {
         throw Win32Exception(dwError, L"Failed to map the server block.");

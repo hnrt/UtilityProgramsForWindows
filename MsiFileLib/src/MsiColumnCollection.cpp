@@ -12,7 +12,7 @@ using namespace hnrt;
 MsiColumnCollection::MsiColumnCollection()
     : m_count(0)
     , m_columns(nullptr)
-    , m_pszPrimaryKey(nullptr)
+    , m_PrimaryKey()
     , m_keyList()
     , m_keyCount(0)
     , m_next(0)
@@ -23,7 +23,7 @@ MsiColumnCollection::MsiColumnCollection()
 MsiColumnCollection::MsiColumnCollection(MSIHANDLE hDatabase, PCWSTR pszTableName)
     : m_count(0)
     , m_columns(nullptr)
-    , m_pszPrimaryKey(nullptr)
+    , m_PrimaryKey()
     , m_keyList()
     , m_keyCount(0)
     , m_next(0)
@@ -34,13 +34,13 @@ MsiColumnCollection::MsiColumnCollection(MSIHANDLE hDatabase, PCWSTR pszTableNam
     {
         if (m_columns[colNo].Key)
         {
-            if (m_pszPrimaryKey)
+            if (m_PrimaryKey)
             {
-                m_pszPrimaryKey = String::AppendFormat(m_pszPrimaryKey, L";%s", m_columns[colNo].Name);
+                m_PrimaryKey += String(SPRINTF, L";%s", m_columns[colNo].Name);
             }
             else
             {
-                m_pszPrimaryKey = m_columns[colNo].Name;
+                m_PrimaryKey = m_columns[colNo].Name;
             }
             m_keyList[m_keyCount++] = colNo;
         }
@@ -66,7 +66,7 @@ long MsiColumnCollection::get_Count() const
 
 PCWSTR MsiColumnCollection::get_PrimaryKey() const
 { 
-    return m_pszPrimaryKey;
+    return m_PrimaryKey;
 }
 
 

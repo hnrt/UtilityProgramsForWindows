@@ -13,6 +13,9 @@
 using namespace hnrt;
 
 
+const String String::Empty = String();
+
+
 String String::Format2(PCWSTR pszFormat, ...)
 {
     va_list argList;
@@ -47,6 +50,90 @@ String::String(PCWSTR pszFormat, va_list argList)
 }
 
 
+String::String(StringOptions option, PCWSTR psz, ...)
+    : m_ptr(nullptr)
+{
+    switch (option)
+    {
+    case SPRINTF:
+    {
+        va_list argList;
+        va_start(argList, psz);
+        m_ptr = new RefStr(psz, argList);
+        va_end(argList);
+        break;
+    }
+    case TRIM:
+    case TRIM_HEAD:
+    case TRIM_TAIL:
+    {
+        const WCHAR* pCur = psz;
+        const WCHAR* pStart;
+        WCHAR c = *pCur++;
+        if (option == TRIM_TAIL)
+        {
+            pStart = pCur - 1;
+        }
+        else
+        {
+            while (iswspace(c))
+            {
+                c = *pCur++;
+            }
+            if (c)
+            {
+                pStart = pCur - 1;
+                if (option == TRIM_HEAD)
+                {
+                    m_ptr = new RefStr(pStart);
+                    break;
+                }
+                c = *pCur++;
+            }
+            else
+            {
+                m_ptr = new RefStr(L"");
+                break;
+            }
+        }
+        while (true)
+        {
+            if (iswspace(c))
+            {
+                const WCHAR* pEnd = pCur - 1;
+                c = *pCur++;
+                while (iswspace(c))
+                {
+                    c = *pCur++;
+                }
+                if (c)
+                {
+                    c = *pCur++;
+                }
+                else
+                {
+                    m_ptr = new RefStr(pStart, pEnd - pStart);
+                    break;
+                }
+            }
+            else if (c)
+            {
+                c = *pCur++;
+            }
+            else
+            {
+                m_ptr = new RefStr(pStart);
+                break;
+            }
+        }
+        break;
+    }
+    default:
+        throw Exception(L"String::ctor: Bad option.");
+    }
+}
+
+
 String::String(PCWSTR psz1, PCWSTR psz2)
     : m_ptr(new RefStr(psz1, psz2))
 {
@@ -67,6 +154,30 @@ String::String(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4)
 
 String::String(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5)
     : m_ptr(new RefStr(psz1, psz2, psz3, psz4, psz5))
+{
+}
+
+
+String::String(PCSTR psz)
+    : m_ptr(new RefStr(psz))
+{
+}
+
+
+String::String(PCSTR psz, size_t cb)
+    : m_ptr(new RefStr(psz, cb))
+{
+}
+
+
+String::String(UINT cp, PCSTR psz)
+    : m_ptr(new RefStr(cp, psz))
+{
+}
+
+
+String::String(UINT cp, PCSTR psz, size_t cb)
+    : m_ptr(new RefStr(cp, psz, cb))
 {
 }
 
@@ -165,6 +276,12 @@ String::operator PCWSTR() const
 }
 
 
+String::operator bool() const
+{
+    return get_ptr() != nullptr;
+}
+
+
 PCWSTR String::get_ptr() const
 {
     return m_ptr ? m_ptr->Ptr : nullptr;
@@ -182,7 +299,7 @@ size_t String::get_len() const
     return m_ptr ? m_ptr->Len : 0;
 }
 
-
+#if 0
 String hnrt::FormatString(PCWSTR pszFormat, ...)
 {
     va_list argList;
@@ -191,7 +308,7 @@ String hnrt::FormatString(PCWSTR pszFormat, ...)
     va_end(argList);
     return s;
 }
-
+#endif
 
 PCWSTR String::Copy(PCWSTR psz, size_t cch)
 {
@@ -245,7 +362,7 @@ PCWSTR String::Append(PCWSTR psz1, PCWSTR psz2, size_t cch2)
     }
 }
 
-
+#if 0
 PCWSTR String::Format(PCWSTR pszFormat, ...)
 {
     va_list argList;
@@ -411,7 +528,7 @@ PCWSTR String::TrimTail(PCWSTR psz, size_t cch)
         }
     }
 }
-
+#endif
 
 int String::Compare(PCWSTR psz1, PCWSTR psz2, size_t cch2)
 {
@@ -541,45 +658,68 @@ int String::CaseCompare(PCSTR psz1, size_t cch1, PCSTR psz2, size_t cch2)
 }
 
 
-PCWSTR String::ToUcs(PCSTR psz, size_t cch)
+AcpString::AcpString()
+    : m_psz(nullptr)
 {
-    if (!psz || !*psz || !cch)
-    {
-        return L"";
-    }
-    int m = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, psz, static_cast<int>(cch), NULL, 0);
-    if (!m)
-    {
-        throw Exception(L"String::ToUcs: Conversion failed.");
-    }
-    Buffer<WCHAR> buf(static_cast<size_t>(m) + 1);
-    int n = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, psz, static_cast<int>(cch), buf, m + 1);
-    if (m != n)
-    {
-        throw Exception(L"String::ToUcs: Conversion failed. Inconsistent results.");
-    }
-    buf[n] = L'\0';
-    return StringStore::Get(buf);
 }
 
 
-PCSTR String::ToAcp(PCWSTR psz, size_t cch)
+AcpString::AcpString(PCSTR psz)
+    : m_psz(Clone(psz))
 {
-    if (!psz || !*psz || !cch)
-    {
-        return "";
-    }
-    int m = WideCharToMultiByte(CP_ACP, 0, psz, static_cast<int>(cch), NULL, 0, NULL, NULL);
-    if (!m)
-    {
-        throw Exception(L"String::ToAcp: Conversion failed.");
-    }
-    Buffer<CHAR> buf(static_cast<size_t>(m) + 1);
-    int n = WideCharToMultiByte(CP_ACP, 0, psz, static_cast<int>(cch), buf, m + 1, NULL, NULL);
-    if (m != n)
-    {
-        throw Exception(L"String::ToAcp: Conversion failed. Inconsistent results.");
-    }
-    buf[n] = '\0';
-    return StringStore::Get(buf);
+}
+
+
+AcpString::AcpString(PCWSTR psz)
+    : m_psz(ToAcp(psz))
+{
+}
+
+
+AcpString::AcpString(const AcpString& other)
+    : m_psz(other.m_psz ? Clone(other.m_psz) : nullptr)
+{
+}
+
+
+AcpString::~AcpString()
+{
+    free(m_psz);
+}
+
+
+AcpString& AcpString::operator =(const AcpString& other)
+{
+    free(Interlocked<PSTR>::ExchangePointer(&m_psz, other.m_psz ? Clone(other.m_psz) : nullptr));
+    return *this;
+}
+
+
+AcpString::operator PCSTR() const
+{
+    return get_str();
+}
+
+
+AcpString::operator bool() const
+{
+    return get_ptr() != nullptr;
+}
+
+
+PCSTR AcpString::get_ptr() const
+{
+    return m_psz;
+}
+
+
+PCSTR AcpString::get_str() const
+{
+    return m_psz ? m_psz : "";
+}
+
+
+size_t AcpString::get_len() const
+{
+    return m_psz ? strlen(m_psz) : 0;
 }

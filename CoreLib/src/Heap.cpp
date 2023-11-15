@@ -248,6 +248,45 @@ PSTR hnrt::Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4, PCSTR psz5)
 }
 
 
+PSTR hnrt::ToAcp(PCWSTR psz)
+{
+    return ToAcp(CP_ACP, psz);
+}
+
+
+PSTR hnrt::ToAcp(PCWSTR psz, size_t cch)
+{
+    return ToAcp(CP_ACP, psz, cch);
+}
+
+
+PSTR hnrt::ToAcp(UINT cp, PCWSTR psz)
+{
+    int cb = WideCharToMultiByte(cp, 0, psz, -1, NULL, 0, NULL, NULL);
+    if (!cb)
+    {
+        throw Exception(L"ToAcp(%u) failed.", cp);
+    }
+    CHAR* pm = Allocate<CHAR>(cb);
+    WideCharToMultiByte(cp, 0, psz, -1, pm, cb, NULL, NULL);
+    return pm;
+}
+
+
+PSTR hnrt::ToAcp(UINT cp, PCWSTR psz, size_t cch)
+{
+    int cb = WideCharToMultiByte(cp, 0, psz, static_cast<int>(cch), NULL, 0, NULL, NULL);
+    if (!cb)
+    {
+        throw Exception(L"ToAcp(%u) failed.", cp);
+    }
+    CHAR* pm = Allocate<CHAR>(static_cast<size_t>(cb) + 1);
+    WideCharToMultiByte(cp, 0, psz, static_cast<int>(cch), pm, cb, NULL, NULL);
+    pm[cb] = '\0';
+    return pm;
+}
+
+
 PWSTR hnrt::Clone(PCWSTR psz)
 {
     PWSTR psz2 = _wcsdup(psz);
@@ -449,4 +488,43 @@ PWSTR hnrt::Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR ps
     wmemcpy_s(p, cch5, psz5, cch5); p += cch5;
     *p = '\0';
     return psz;
+}
+
+
+PWSTR hnrt::ToUcs(PCSTR psz)
+{
+    return ToUcs(CP_ACP, psz);
+}
+
+
+PWSTR hnrt::ToUcs(PCSTR psz, size_t cb)
+{
+    return ToUcs(CP_ACP, psz, cb);
+}
+
+
+PWSTR hnrt::ToUcs(UINT cp, PCSTR psz)
+{
+    int cch = MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, -1, NULL, 0);
+    if (!cch)
+    {
+        throw Exception(L"ToUcs(%u) failed.", cp);
+    }
+    WCHAR* pw = Allocate<WCHAR>(cch);
+    MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, -1, pw, cch);
+    return pw;
+}
+
+
+PWSTR hnrt::ToUcs(UINT cp, PCSTR psz, size_t cb)
+{
+    int cch = MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, static_cast<int>(cb), NULL, 0);
+    if (!cch)
+    {
+        throw Exception(L"ToUcs(%u) failed.", cp);
+    }
+    WCHAR* pw = Allocate<WCHAR>(static_cast<size_t>(cch) + 1);
+    MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, static_cast<int>(cb), pw, cch);
+    pw[cch] = L'\0';
+    return pw;
 }

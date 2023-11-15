@@ -86,15 +86,15 @@ void XmlDocument::Indent()
 }
 
 
-static PCWSTR GetIndentation(int level)
+static String GetIndentation(int level)
 {
-    PCWSTR psz = String::Format(L"\r\n");
+    String str(L"\r\n");
     while (level > 0)
     {
-        psz = String::Format(L"%s  ", psz);
+        str += L"  ";
         level--;
     }
-    return psz;
+    return str;
 }
 
 
@@ -106,7 +106,7 @@ void  XmlDocument::Indent(MSXML2::IXMLDOMNode* pParent, int level)
     {
         throw ComException(hr, L"Failed to get children.");
     }
-    PCWSTR pszSP = nullptr;
+    String strSP;
     while (true)
     {
         MSXML2::IXMLDOMNodePtr pChild;
@@ -130,15 +130,15 @@ void  XmlDocument::Indent(MSXML2::IXMLDOMNode* pParent, int level)
         }
         else if (type == MSXML2::DOMNodeType::NODE_ELEMENT)
         {
-            if (!pszSP)
+            if (!strSP)
             {
-                pszSP = GetIndentation(level);
+                strSP = GetIndentation(level);
             }
-            InsertTextNodeBefore(pszSP, pChild, pParent);
+            InsertTextNodeBefore(strSP, pChild, pParent);
             Indent(pChild, level + 1);
         }
     }
-    if (pszSP)
+    if (strSP)
     {
         AppendTextNode(GetIndentation(level - 1), pParent);
     }
@@ -412,12 +412,12 @@ void XmlDocument::SetText(MSXML2::IXMLDOMElement* pElement, PCWSTR pszFormat, ..
 {
     va_list argList;
     va_start(argList, pszFormat);
-    HRESULT hr = pElement->put_text(CComBSTR(String::VaFormat(pszFormat, argList)));
+    HRESULT hr = pElement->put_text(CComBSTR(String(pszFormat, argList).Str));
+    va_end(argList);
     if (FAILED(hr))
     {
         throw ComException(hr, L"Failed to set text.");
     }
-    va_end(argList);
 }
 
 

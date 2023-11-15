@@ -268,8 +268,8 @@ void VmIpAddressFinder::UpdateHosts()
     KeyValueMap nameAddressMap;
     FindAddresses(nameAddressMap);
 
-    PCWSTR pszHostsPath = Path::Combine(Path::GetKnownFolder(FOLDERID_System), L"drivers", L"etc", L"hosts");
-    FileMapper hostsMapper(pszHostsPath);
+    String HostsPath = Path::Combine(Path::GetKnownFolder(FOLDERID_System), L"drivers", L"etc", L"hosts");
+    FileMapper hostsMapper(HostsPath);
     Hosts hosts(hostsMapper.Ptr, static_cast<size_t>(hostsMapper.Len));
     hostsMapper.Close();
 
@@ -280,31 +280,31 @@ void VmIpAddressFinder::UpdateHosts()
         Buffer<char> hostsData;
         RecreateHostsData(hosts, nameAddressMap, hostsData);
 
-        PCWSTR pszHostsPath2 = String::Format(L"%s.new", pszHostsPath);
-        FileWriter hostsFile2(pszHostsPath2);
+        String HostsPath2 = String::Format2(L"%s.new", HostsPath.Str);
+        FileWriter hostsFile2(HostsPath2);
         hostsFile2.Write(hostsData.Ptr, hostsData.Len);
         hostsFile2.Close();
 
         SYSTEMTIME t;
         GetLocalTime(&t);
-        PCWSTR pszHostsPath3 = String::Format(L"%s.%u%02u%02uT%02u%02u%02u", pszHostsPath, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
+        String HostsPath3 = String::Format2(L"%s.%u%02u%02uT%02u%02u%02u", HostsPath.Str, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 
-        if (!MoveFileW(pszHostsPath, pszHostsPath3))
+        if (!MoveFileW(HostsPath, HostsPath3))
         {
             DWORD dwError = GetLastError();
-            throw Win32Exception(dwError, L"Failed to rename \"%s\" to \"%s\".", Path::GetFileName(pszHostsPath), Path::GetFileName(pszHostsPath3));
+            throw Win32Exception(dwError, L"Failed to rename \"%s\" to \"%s\".", Path::GetFileName(HostsPath).Str, Path::GetFileName(HostsPath3).Str);
         }
-        if (!MoveFileW(pszHostsPath2, pszHostsPath))
+        if (!MoveFileW(HostsPath2, HostsPath))
         {
             DWORD dwError = GetLastError();
-            throw Win32Exception(dwError, L"Failed to rename \"%s\" to \"%s\".", Path::GetFileName(pszHostsPath2), Path::GetFileName(pszHostsPath));
+            throw Win32Exception(dwError, L"Failed to rename \"%s\" to \"%s\".", Path::GetFileName(HostsPath2).Str, Path::GetFileName(HostsPath).Str);
         }
 
-        Put(L"%s: Updated. (Backup: %s)", pszHostsPath, Path::GetFileName(pszHostsPath3));
+        Put(L"%s: Updated. (Backup: %s)", HostsPath.Str, Path::GetFileName(HostsPath3).Str);
     }
     else
     {
-        Put(L"%s: No need to update.", pszHostsPath);
+        Put(L"%s: No need to update.", HostsPath.Str);
     }
 }
 
@@ -480,30 +480,30 @@ void VmIpAddressFinder::EnumClassObject(IWbemClassObject* pClass, long lEnumFlag
             switch (varItem.vt)
             {
             case VT_NULL:
-                pMap->Add(String::Copy(strName), nullptr);
+                pMap->Add(strName, nullptr);
                 break;
 
             case VT_I4:
-                pMap->Add(String::Copy(strName), String::Format(L"%ld", varItem.lVal));
+                pMap->Add(strName, String::Format2(L"%ld", varItem.lVal));
                 break;
 
             case VT_BOOL:
                 if (varItem.boolVal == -1)
                 {
-                    pMap->Add(String::Copy(strName), L"TRUE");
+                    pMap->Add(strName, L"TRUE");
                 }
                 else if (varItem.boolVal == 0)
                 {
-                    pMap->Add(String::Copy(strName), L"FALSE");
+                    pMap->Add(strName, L"FALSE");
                 }
                 else
                 {
-                    pMap->Add(String::Copy(strName), String::Format(L"%d", varItem.boolVal));
+                    pMap->Add(strName, String::Format2(L"%d", varItem.boolVal));
                 }
                 break;
 
             case VT_BSTR:
-                pMap->Add(String::Copy(strName), String::Format(L"%s", varItem.bstrVal));
+                pMap->Add(strName, String::Format2(L"%s", varItem.bstrVal));
                 break;
 
             case (VT_ARRAY | VT_I4):
@@ -512,18 +512,18 @@ void VmIpAddressFinder::EnumClassObject(IWbemClassObject* pClass, long lEnumFlag
                 SAFEARRAY* parray = varItem.parray;
                 if (parray->cDims == 1 && parray->rgsabound[0].lLbound == 0L)
                 {
-                    pMap->Add(String::Format(L"%s.Count", strName), String::Format(L"%lu", parray->rgsabound[0].cElements));
+                    pMap->Add(String::Format2(L"%s.Count", strName), String::Format2(L"%lu", parray->rgsabound[0].cElements));
                     for (ULONG i = 0; i < parray->rgsabound[0].cElements; i++)
                     {
-                        PCWSTR key = String::Format(L"%s[%lu]", strName, i);
-                        PCWSTR value;
+                        String key = String::Format2(L"%s[%lu]", strName, i);
+                        String value;
                         switch ((varItem.vt & ~VT_ARRAY))
                         {
                         case VT_I4:
-                            value = String::Format(L"%ld", reinterpret_cast<LONG*>(parray->pvData)[i]);
+                            value = String::Format2(L"%ld", reinterpret_cast<LONG*>(parray->pvData)[i]);
                             break;
                         case VT_BSTR:
-                            value = String::Format(L"%s", reinterpret_cast<BSTR*>(parray->pvData)[i]);
+                            value = String::Format2(L"%s", reinterpret_cast<BSTR*>(parray->pvData)[i]);
                             break;
                         default:
                             throw Exception(L"VmIpAddressFinder::EnumClassObject: Unexpected.");
@@ -534,23 +534,23 @@ void VmIpAddressFinder::EnumClassObject(IWbemClassObject* pClass, long lEnumFlag
                 else if (parray->cDims == 2 && parray->rgsabound[0].lLbound == 0L)
                 {
                     pMap->Add(
-                        String::Format(L"%s.Count", strName),
-                        String::Format(L"%lu,%lu",
+                        String::Format2(L"%s.Count", strName),
+                        String::Format2(L"%lu,%lu",
                             parray->rgsabound[0].cElements,
                             parray->rgsabound[1].cElements));
                     for (ULONG i = 0; i < parray->rgsabound[0].cElements; i++)
                     {
                         for (ULONG j = 0; i < parray->rgsabound[1].cElements; i++)
                         {
-                            PCWSTR key = String::Format(L"%s[%lu][%lu]", strName, i, j);
-                            PCWSTR value;
+                            String key = String::Format2(L"%s[%lu][%lu]", strName, i, j);
+                            String value;
                             switch ((varItem.vt & ~VT_ARRAY))
                             {
                             case VT_I4:
-                                value = String::Format(L"%ld", reinterpret_cast<LONG**>(parray->pvData)[i][j]);
+                                value = String::Format2(L"%ld", reinterpret_cast<LONG**>(parray->pvData)[i][j]);
                                 break;
                             case VT_BSTR:
-                                value = String::Format(L"%s", reinterpret_cast<BSTR**>(parray->pvData)[i][j]);
+                                value = String::Format2(L"%s", reinterpret_cast<BSTR**>(parray->pvData)[i][j]);
                                 break;
                             default:
                                 throw Exception(L"VmIpAddressFinder::EnumClassObject: Unexpected.");
@@ -576,7 +576,7 @@ void VmIpAddressFinder::EnumClassObject(IWbemClassObject* pClass, long lEnumFlag
 
             default:
                 Put(L"#%s (type=%u)", strName, varItem.vt);
-                pMap->Add(String::Copy(strName), String::Format(L"?(type=%u)", varItem.vt));
+                pMap->Add(strName, String::Format2(L"?(type=%u)", varItem.vt));
                 break;
             }
         }
@@ -642,21 +642,21 @@ bool VmIpAddressFinder::ExamineHosts(Hosts& hosts, KeyValueMap& nameAddressMap)
         HostsNode* pHostNode = pAddrNode->Host;
         while (pHostNode)
         {
-            PCWSTR pszKey = String::ToUcs(pHostNode->Text);
-            PCWSTR pszValue = nameAddressMap.GetValue(pszKey);
-            if (pszValue)
+            String Key(pHostNode->Text);
+            String Value = nameAddressMap.GetValue(Key);
+            if (Value.Ptr)
             {
-                if (!String::Compare(pszValue, String::ToUcs(pAddrNode->Text)))
+                if (!String::Compare(Value, String(pAddrNode->Text)))
                 {
                     // Address not changed -- Do nothing
                 }
                 else
                 {
                     // Address changed -- Overwrite it with the new one.
-                    pAddrNode->Text = String::ToAcp(pszValue);
+                    pAddrNode->SetText(Value);
                     bChanged = true;
                 }
-                nameAddressMap.Remove(pszKey);
+                nameAddressMap.Remove(Key);
             }
             pHostNode = pHostNode->Host;
         }

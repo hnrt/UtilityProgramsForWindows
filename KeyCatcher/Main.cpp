@@ -33,7 +33,7 @@ int WINAPI wWinMain(
             if (!wcscmp(*a, L"-h") || !wcscmp(*a, L"-?"))
             {
 
-                MessageBoxW(NULL, String::Format(ResourceString(IDS_FMT_USAGE), app.Name), ResourceString(IDS_CAPTION), MB_OK | MB_ICONINFORMATION);
+                MessageBoxW(NULL, String::Format2(ResourceString(IDS_FMT_USAGE), app.Name), ResourceString(IDS_CAPTION), MB_OK | MB_ICONINFORMATION);
                 return EXIT_SUCCESS;
             }
             else if (!app.FileName)
