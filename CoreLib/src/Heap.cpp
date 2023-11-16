@@ -415,7 +415,7 @@ PWSTR hnrt::VaFormat(PCWSTR pszFormat, va_list argList)
 {
     va_list argList2;
     va_copy(argList2, argList);
-    LONG_PTR cch = static_cast<LONG_PTR>(_vscwprintf(pszFormat, argList));
+    LONG_PTR cch = static_cast<LONG_PTR>(_vscwprintf(pszFormat, argList2));
     va_end(argList2);
     if (cch < 0)
     {
@@ -435,7 +435,7 @@ PWSTR hnrt::Concat(PCWSTR psz1, PCWSTR psz2)
     PWSTR p = psz;
     wmemcpy_s(p, cch1, psz1, cch1); p += cch1;
     wmemcpy_s(p, cch2, psz2, cch2); p += cch2;
-    *p = '\0';
+    *p = L'\0';
     return psz;
 }
 
@@ -450,7 +450,7 @@ PWSTR hnrt::Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3)
     wmemcpy_s(p, cch1, psz1, cch1); p += cch1;
     wmemcpy_s(p, cch2, psz2, cch2); p += cch2;
     wmemcpy_s(p, cch3, psz3, cch3); p += cch3;
-    *p = '\0';
+    *p = L'\0';
     return psz;
 }
 
@@ -467,7 +467,7 @@ PWSTR hnrt::Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4)
     wmemcpy_s(p, cch2, psz2, cch2); p += cch2;
     wmemcpy_s(p, cch3, psz3, cch3); p += cch3;
     wmemcpy_s(p, cch4, psz4, cch4); p += cch4;
-    *p = '\0';
+    *p = L'\0';
     return psz;
 }
 
@@ -486,7 +486,7 @@ PWSTR hnrt::Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR ps
     wmemcpy_s(p, cch3, psz3, cch3); p += cch3;
     wmemcpy_s(p, cch4, psz4, cch4); p += cch4;
     wmemcpy_s(p, cch5, psz5, cch5); p += cch5;
-    *p = '\0';
+    *p = L'\0';
     return psz;
 }
 

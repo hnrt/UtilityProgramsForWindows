@@ -15,6 +15,7 @@ namespace hnrt
         StringBuffer(const StringBuffer&) = delete;
         ~StringBuffer();
         void operator =(const StringBuffer&) = delete;
+        StringBuffer& operator +=(PCWSTR psz);
         PWCHAR get_Ptr() const;
         size_t get_Cap() const;
         size_t get_Len() const;
@@ -25,6 +26,8 @@ namespace hnrt
         PWCHAR operator &();
         PWCHAR Resize(size_t capacity);
         PWCHAR Detach();
+        StringBuffer& Append(PCWSTR psz);
+        StringBuffer& Append(PCWSTR psz, size_t cch);
         StringBuffer& AppendFormat(PCWSTR pszFormat, ...);
         StringBuffer& VaAppendFormat(PCWSTR pszFormat, va_list argList);
 
@@ -38,6 +41,11 @@ namespace hnrt
         size_t m_cap;
         size_t m_len;
     };
+
+    inline StringBuffer& StringBuffer::operator +=(PCWSTR psz)
+    {
+        return Append(psz);
+    }
 
     inline PWCHAR StringBuffer::get_Ptr() const
     {

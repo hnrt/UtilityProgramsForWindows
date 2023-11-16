@@ -19,7 +19,7 @@ UINT Agent::GetCommandMessage()
 
 void Agent::MapSharedBlock(SharedMemory<AgentBlock>& sm, DWORD dw)
 {
-    DWORD dwError = sm.Map(String::Format2(L"Local\\AGENT_F3ACC1F6-5624-4FA9-9742-20F9B24BAF54_%08ld", dw));
+    DWORD dwError = sm.Map(String(PRINTF, L"Local\\AGENT_F3ACC1F6-5624-4FA9-9742-20F9B24BAF54_%08ld", dw));
     if (dwError)
     {
         throw Win32Exception(dwError, L"Failed to map the agent block.");

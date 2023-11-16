@@ -155,7 +155,7 @@ String UiAutomationInternal::get_Name() const
             }
         }
     }
-    return String();
+    return String::Empty;
 }
 
 
@@ -189,7 +189,7 @@ String UiAutomation::GetRoleName(DWORD dwRole)
     switch (dwRole)
     {
     case (DWORD)-1: return String(L"ROLE_UNDEFINED");
-#define ROLETEXT(x) case x: return L#x
+#define ROLETEXT(x) case x: return String(L#x)
         ROLETEXT(ROLE_SYSTEM_TITLEBAR);
         ROLETEXT(ROLE_SYSTEM_MENUBAR);
         ROLETEXT(ROLE_SYSTEM_SCROLLBAR);
@@ -256,7 +256,7 @@ String UiAutomation::GetRoleName(DWORD dwRole)
         ROLETEXT(ROLE_SYSTEM_OUTLINEBUTTON);
 #undef ROLETEXT
     default:
-        return String::Format2(L"ROLE_%ld", dwRole);
+        return String(PRINTF, L"ROLE_%ld", dwRole);
     }
 }
 
@@ -282,7 +282,7 @@ String UiAutomationInternal::get_Value() const
             }
         }
     }
-    return String();
+    return String::Empty;
 }
 
 
@@ -319,7 +319,7 @@ String UiAutomationInternal::get_DefaultAction() const
             }
         }
     }
-    return String();
+    return String::Empty;
 }
 
 
@@ -367,8 +367,7 @@ bool UiAutomationInternal::Match(PCWSTR pszName, DWORD dwRole) const
         {
             if (pszName)
             {
-                PCWSTR pszMyName = Name;
-                if (pszMyName && !String::Compare(pszMyName, pszName))
+                if (!String::Compare(Name, pszName))
                 {
                     return true;
                 }

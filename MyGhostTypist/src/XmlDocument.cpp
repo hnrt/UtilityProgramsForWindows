@@ -412,7 +412,7 @@ void XmlDocument::SetText(MSXML2::IXMLDOMElement* pElement, PCWSTR pszFormat, ..
 {
     va_list argList;
     va_start(argList, pszFormat);
-    HRESULT hr = pElement->put_text(CComBSTR(String(pszFormat, argList).Str));
+    HRESULT hr = pElement->put_text(CComBSTR(String(pszFormat, argList).Ptr));
     va_end(argList);
     if (FAILED(hr))
     {

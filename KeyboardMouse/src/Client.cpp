@@ -179,7 +179,7 @@ bool Client::BuildCommandLine(int bitness, PWCHAR pCommandLine)
     }
 
     WCHAR szRundll[MAX_PATH];
-    _snwprintf_s(szRundll, MAX_PATH, _TRUNCATE, L"%s\\System32\\rundll32.exe", Path::GetKnownFolder(FOLDERID_Windows).Str);
+    _snwprintf_s(szRundll, MAX_PATH, _TRUNCATE, L"%s\\System32\\rundll32.exe", Path::GetKnownFolder(FOLDERID_Windows).Ptr);
 
     _snwprintf_s(pCommandLine, MAX_PATH * 2, _TRUNCATE, L"%s %s,RunServer %s", szRundll, szShortPath, m_pszGuid);
 

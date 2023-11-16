@@ -11,12 +11,12 @@ FileWriter::FileWriter(PCWSTR pszPath, DWORD dwCreationDisposition)
     , m_h()
     , m_count(0)
 {
-    if (m_Path.Ptr)
+    if (m_Path)
     {
         m_h = CreateFileW(pszPath, GENERIC_WRITE, 0, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
         if (m_h == INVALID_HANDLE_VALUE)
         {
-            throw Win32Exception(GetLastError(), L"Failed to open \"%s\".", m_Path.Str);
+            throw Win32Exception(GetLastError(), L"Failed to open \"%s\".", m_Path.Ptr);
         }
     }
 }
@@ -32,7 +32,7 @@ void FileWriter::Open(DWORD dwCreationDisposition)
     m_count = 0;
     if (m_h == INVALID_HANDLE_VALUE)
     {
-        throw Win32Exception(GetLastError(), L"Failed to open \"%s\".", m_Path.Str);
+        throw Win32Exception(GetLastError(), L"Failed to open \"%s\".", m_Path.Ptr);
     }
 }
 
@@ -52,7 +52,7 @@ void FileWriter::Write(LPCVOID pData, SIZE_T cbLen)
         else
         {
             m_count += pCur - pStart;
-            throw Win32Exception(GetLastError(), L"Failed to write to \"%s\".", m_Path.Str);
+            throw Win32Exception(GetLastError(), L"Failed to write to \"%s\".", m_Path.Ptr);
         }
     }
     m_count += pCur - pStart;

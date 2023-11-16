@@ -62,7 +62,7 @@ String Path::GetDirectoryName(PCWSTR psz, bool bEndsWithSeparator)
         p = wcschr(p + 2, DIRECTORY_SEPARATOR_CHAR);
         if (!p)
         {
-            return String::Format2(bEndsWithSeparator ? L"%s\\" : L"%s", psz);
+            return String(PRINTF, bEndsWithSeparator ? L"%s\\" : L"%s", psz);
         }
         p1 = p;
         p2 = wcschr(p + 1, DIRECTORY_SEPARATOR_CHAR);
@@ -81,7 +81,7 @@ String Path::GetDirectoryName(PCWSTR psz, bool bEndsWithSeparator)
     }
     else if (psz[0] == L'.' && (psz[1] == L'\0' || (psz[1] == DIRECTORY_SEPARATOR_CHAR && psz[2] == L'\0')))
     {
-        return String::Format2(bEndsWithSeparator ? L"..\\" : L"..");
+        return String(bEndsWithSeparator ? L"..\\" : L"..");
     }
     else
     {

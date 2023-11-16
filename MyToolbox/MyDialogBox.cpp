@@ -693,7 +693,7 @@ void MyDialogBox::SaveTextAsFile(int id, PWSTR psz, DWORD dwLen)
 			else
 			{
 				DWORD dwError = GetLastError();
-				String Message(SPRINTF, L"%s\n%s",
+				String Message(PRINTF, L"%s\n%s",
 					ResourceString(IDS_MSG_TEXT_ENCODING_CONVERSION_ERROR).Ptr,
 					ErrorMessage::Get(dwError));
 				MessageBoxW(hwnd, Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
@@ -702,7 +702,7 @@ void MyDialogBox::SaveTextAsFile(int id, PWSTR psz, DWORD dwLen)
 	}
 	catch (Win32Exception e)
 	{
-		String Message(SPRINTF, L"%s\n%s", e.Message, ErrorMessage::Get(e.Error));
+		String Message(PRINTF, L"%s\n%s", e.Message, ErrorMessage::Get(e.Error));
 		MessageBoxW(hwnd, Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 	}
 	catch (Exception e)

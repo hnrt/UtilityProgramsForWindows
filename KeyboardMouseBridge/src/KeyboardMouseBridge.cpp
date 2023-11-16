@@ -11,7 +11,7 @@ using namespace hnrt;
 
 
 KeyboardMouseBridge::KeyboardMouseBridge()
-    : m_hmod(LoadLibraryW(String(SPRINTF, L"KeyboardMouse%d", WindowsPlatform::ProcessBitness())))
+    : m_hmod(LoadLibraryW(String(PRINTF, L"KeyboardMouse%d", WindowsPlatform::ProcessBitness())))
     , m_pfnStartServer(nullptr)
     , m_pfnStopServer(nullptr)
     , m_pfnGetBlockInputState(nullptr)

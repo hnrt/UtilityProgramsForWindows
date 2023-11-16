@@ -3,6 +3,7 @@
 
 #include "hnrt/RefObj.h"
 #include "hnrt/Heap.h"
+#include "hnrt/StringBuffer.h"
 #include "hnrt/Exception.h"
 
 
@@ -25,15 +26,14 @@ namespace hnrt
         RefStr(PCSTR, size_t);
         RefStr(UINT, PCSTR);
         RefStr(UINT, PCSTR, size_t);
+        RefStr(StringBuffer&);
         RefStr(const RefStr&) = delete;
         virtual ~RefStr();
         void operator =(const RefStr&) = delete;
         PCWSTR get_ptr() const;
-        PCWSTR get_str() const;
         size_t get_len() const;
 
         __declspec(property(get = get_ptr)) PCWSTR Ptr;
-        __declspec(property(get = get_str)) PCWSTR Str;
         __declspec(property(get = get_len)) size_t Len;
 
     private:
@@ -49,13 +49,13 @@ namespace hnrt
 
     inline RefStr::RefStr(PCWSTR psz)
         : RefObj()
-        , m_psz(psz ? Clone(psz) : nullptr)
+        , m_psz(Clone(psz))
     {
     }
 
     inline RefStr::RefStr(PCWSTR psz, size_t cch)
         : RefObj()
-        , m_psz(psz ? Clone(psz, cch) : nullptr)
+        , m_psz(Clone(psz, cch))
     {
     }
 
@@ -113,17 +113,18 @@ namespace hnrt
     {
     }
 
+    inline RefStr::RefStr(StringBuffer& buf)
+        : RefObj()
+        , m_psz(buf.Detach())
+    {
+    }
+
     inline RefStr::~RefStr()
     {
         free(m_psz);
     }
 
     inline PCWSTR RefStr::get_ptr() const
-    {
-        return m_psz;
-    }
-
-    inline PCWSTR RefStr::get_str() const
     {
         return m_psz ? m_psz : L"";
     }

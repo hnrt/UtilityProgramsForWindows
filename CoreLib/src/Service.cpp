@@ -94,7 +94,7 @@ ServiceConfiguration& ServiceConfiguration::SetDescription(UINT uId)
     WCHAR szPath[MAX_PATH];
     if (GetModuleFileNameW(NULL, szPath, MAX_PATH))
     {
-        m_Description = String::Format2(L"@%s,-%u", szPath, uId);
+        m_Description = String(PRINTF, L"@%s,-%u", szPath, uId);
     }
     else
     {
@@ -145,7 +145,7 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath)
     }
     if (wcschr(pszPath, L' '))
     {
-        m_BinaryPathName = String::Format2(L"\"%s\"", pszPath);
+        m_BinaryPathName = String(PRINTF, L"\"%s\"", pszPath);
     }
     else
     {
@@ -160,11 +160,11 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PC
     SetBinaryPathName(pszPath);
     if (wcschr(pszArg1, L' '))
     {
-        m_BinaryPathName = String::Format2(L"%s \"%s\"", m_BinaryPathName.Str, pszArg1);
+        m_BinaryPathName = String(PRINTF, L"%s \"%s\"", m_BinaryPathName.Ptr, pszArg1);
     }
     else
     {
-        m_BinaryPathName = String::Format2(L"%s %s", m_BinaryPathName.Str, pszArg1);
+        m_BinaryPathName = String(PRINTF, L"%s %s", m_BinaryPathName.Ptr, pszArg1);
     }
     return *this;
 }
@@ -175,11 +175,11 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PC
     SetBinaryPathName(pszPath, pszArg1);
     if (wcschr(pszArg2, L' '))
     {
-        m_BinaryPathName = String::Format2(L"%s \"%s\"", m_BinaryPathName.Str, pszArg2);
+        m_BinaryPathName = String(PRINTF, L"%s \"%s\"", m_BinaryPathName.Ptr, pszArg2);
     }
     else
     {
-        m_BinaryPathName = String::Format2(L"%s %s", m_BinaryPathName.Str, pszArg2);
+        m_BinaryPathName = String(PRINTF, L"%s %s", m_BinaryPathName.Ptr, pszArg2);
     }
     return *this;
 }
@@ -190,11 +190,11 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PC
     SetBinaryPathName(pszPath, pszArg1, pszArg2);
     if (wcschr(pszArg3, L' '))
     {
-        m_BinaryPathName = String::Format2(L"%s \"%s\"", m_BinaryPathName.Str, pszArg3);
+        m_BinaryPathName = String(PRINTF, L"%s \"%s\"", m_BinaryPathName.Ptr, pszArg3);
     }
     else
     {
-        m_BinaryPathName = String::Format2(L"%s %s", m_BinaryPathName.Str, pszArg3);
+        m_BinaryPathName = String(PRINTF, L"%s %s", m_BinaryPathName.Ptr, pszArg3);
     }
     return *this;
 }
@@ -295,7 +295,7 @@ void Service::Create(SC_HANDLE hSCM, ServiceConfiguration& config)
         config.m_Password);
     if (!m_h)
     {
-        throw Win32Exception(GetLastError(), L"Failed to create service \"%s\".", config.m_Name.Str);
+        throw Win32Exception(GetLastError(), L"Failed to create service \"%s\".", config.m_Name.Ptr);
     }
 
     m_Name = config.m_Name;
@@ -303,10 +303,10 @@ void Service::Create(SC_HANDLE hSCM, ServiceConfiguration& config)
     if (config.m_Description)
     {
         SERVICE_DESCRIPTIONW sd = { 0 };
-        sd.lpDescription = const_cast<PWSTR>(config.m_Description.Str);
+        sd.lpDescription = const_cast<PWSTR>(config.m_Description.Ptr);
         if (!ChangeServiceConfig2W(m_h, SERVICE_CONFIG_DESCRIPTION, &sd))
         {
-            throw Win32Exception(GetLastError(), L"Failed to set description of service \"%s\".", config.m_Name.Str);
+            throw Win32Exception(GetLastError(), L"Failed to set description of service \"%s\".", config.m_Name.Ptr);
         }
     }
 }
@@ -342,7 +342,7 @@ DWORD Service::QueryStatus()
 {
     if (!QueryServiceStatus(m_h, &m_status))
     {
-        throw Win32Exception(GetLastError(), L"Failed to query status of service \"%s\".", m_Name.Str);
+        throw Win32Exception(GetLastError(), L"Failed to query status of service \"%s\".", m_Name.Ptr);
     }
     return m_status.dwCurrentState;
 }
@@ -352,7 +352,7 @@ void Service::Start(DWORD dwNumServiceArgs, PCWSTR* pServiceArgVectors)
 {
     if (!StartServiceW(m_h, dwNumServiceArgs, pServiceArgVectors))
     {
-        throw Win32Exception(GetLastError(), L"Failed to start service \"%s\".", m_Name.Str);
+        throw Win32Exception(GetLastError(), L"Failed to start service \"%s\".", m_Name.Ptr);
     }
 }
 
@@ -361,7 +361,7 @@ void Service::Stop()
 {
     if (!ControlService(m_h, SERVICE_CONTROL_STOP, &m_status))
     {
-        throw Win32Exception(GetLastError(), L"Failed to stop service \"%s\".", m_Name.Str);
+        throw Win32Exception(GetLastError(), L"Failed to stop service \"%s\".", m_Name.Ptr);
     }
 }
 
@@ -370,7 +370,7 @@ void Service::Pause()
 {
     if (!ControlService(m_h, SERVICE_CONTROL_PAUSE, &m_status))
     {
-        throw Win32Exception(GetLastError(), L"Failed to pause service \"%s\".", m_Name.Str);
+        throw Win32Exception(GetLastError(), L"Failed to pause service \"%s\".", m_Name.Ptr);
     }
 }
 
@@ -379,7 +379,7 @@ void Service::Resume()
 {
     if (!ControlService(m_h, SERVICE_CONTROL_CONTINUE, &m_status))
     {
-        throw Win32Exception(GetLastError(), L"Failed to resume service \"%s\".", m_Name.Str);
+        throw Win32Exception(GetLastError(), L"Failed to resume service \"%s\".", m_Name.Ptr);
     }
 }
 
@@ -388,7 +388,7 @@ void Service::Interrogate()
 {
     if (!ControlService(m_h, SERVICE_CONTROL_INTERROGATE, &m_status))
     {
-        throw Win32Exception(GetLastError(), L"Failed to interrogate service \"%s\".", m_Name.Str);
+        throw Win32Exception(GetLastError(), L"Failed to interrogate service \"%s\".", m_Name.Ptr);
     }
 }
 
@@ -397,7 +397,7 @@ void Service::Delete()
 {
     if (!DeleteService(m_h))
     {
-        throw Win32Exception(GetLastError(), L"Failed to delete service \"%s\".", m_Name.Str);
+        throw Win32Exception(GetLastError(), L"Failed to delete service \"%s\".", m_Name.Ptr);
     }
 }
 

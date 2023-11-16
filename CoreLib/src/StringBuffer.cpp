@@ -63,6 +63,13 @@ PWCHAR StringBuffer::Resize(size_t capacity)
     else if (m_len >= capacity)
     {
         m_len = capacity - 1;
+        if (IS_LOW_SURROGATE(m_ptr[m_len]))
+        {
+            if (m_len)
+            {
+                m_len--;
+            }
+        }
         m_ptr[m_len] = L'\0';
     }
     m_cap = capacity;
@@ -74,6 +81,37 @@ PWCHAR StringBuffer::Detach()
 {
     m_cap = 0;
     return ::Detach(m_ptr);
+}
+
+
+StringBuffer& StringBuffer::Append(PCWSTR psz)
+{
+    size_t cch = wcslen(psz);
+    if (m_len + cch + 1 > m_cap)
+    {
+        size_t capacity = m_len + cch + MAX_PATH;
+        m_ptr = Allocate(m_ptr, capacity);
+        m_cap = capacity;
+    }
+    wmemcpy_s(m_ptr + m_len, m_cap - m_len, psz, cch + 1);
+    m_len += cch;
+    return *this;
+}
+
+
+StringBuffer& StringBuffer::Append(PCWSTR psz, size_t cch)
+{
+    if (m_len + cch + 1 > m_cap)
+    {
+        size_t capacity = m_len + cch + MAX_PATH;
+        m_ptr = Allocate(m_ptr, capacity);
+        m_cap = capacity;
+    }
+    wmemcpy_s(m_ptr + m_len, m_cap - m_len, psz, cch);
+    m_len += cch;
+    m_ptr[m_len] = L'\0';
+    return *this;
+
 }
 
 
@@ -91,7 +129,7 @@ StringBuffer& StringBuffer::VaAppendFormat(PCWSTR pszFormat, va_list argList)
 {
     va_list argList2;
     va_copy(argList2, argList);
-    int cch = _vscwprintf(pszFormat, argList);
+    int cch = _vscwprintf(pszFormat, argList2);
     va_end(argList2);
     if (cch < 0)
     {

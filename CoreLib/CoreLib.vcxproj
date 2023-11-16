@@ -221,6 +221,7 @@
     <ClInclude Include="inc\hnrt\NumberText.h" />
     <ClInclude Include="inc\hnrt\PasswordHolder.h" />
     <ClInclude Include="inc\hnrt\Path.h" />
+    <ClInclude Include="inc\hnrt\RefMbs.h" />
     <ClInclude Include="inc\hnrt\RefObj.h" />
     <ClInclude Include="inc\hnrt\RefStr.h" />
     <ClInclude Include="inc\hnrt\RegistryKey.h" />

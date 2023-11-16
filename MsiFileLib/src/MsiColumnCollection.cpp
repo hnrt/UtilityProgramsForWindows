@@ -36,7 +36,7 @@ MsiColumnCollection::MsiColumnCollection(MSIHANDLE hDatabase, PCWSTR pszTableNam
         {
             if (m_PrimaryKey)
             {
-                m_PrimaryKey += String(SPRINTF, L";%s", m_columns[colNo].Name);
+                m_PrimaryKey += String(PRINTF, L";%s", m_columns[colNo].Name);
             }
             else
             {

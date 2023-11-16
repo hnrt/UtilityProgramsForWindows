@@ -7,23 +7,24 @@
 
 namespace hnrt
 {
-    class RefStr;
+    class StringBuffer;
 
     enum StringOptions
     {
-        SPRINTF = 1,
+        PRINTF = 1,
+        CONCAT,
+        UPPERCASE,
+        LOWERCASE,
         TRIM,
         TRIM_HEAD,
         TRIM_TAIL
     };
 
+    class RefStr;
+
     class String
     {
     public:
-
-        static const String Empty;
-
-        static String Format2(PCWSTR pszFormat, ...);
 
         String();
         String(PCWSTR);
@@ -38,6 +39,7 @@ namespace hnrt
         String(PCSTR, size_t);
         String(UINT, PCSTR);
         String(UINT, PCSTR, size_t);
+        String(StringBuffer&);
         String(const String&);
         ~String();
         String& operator =(const String&);
@@ -52,28 +54,23 @@ namespace hnrt
         operator PCWSTR() const;
         operator bool() const;
         PCWSTR get_ptr() const;
-        PCWSTR get_str() const;
         size_t get_len() const;
 
         __declspec(property(get = get_ptr)) PCWSTR Ptr;
-        __declspec(property(get = get_str)) PCWSTR Str;
         __declspec(property(get = get_len)) size_t Len;
 
     private:
 
+        String(RefStr*);
+
         RefStr* m_ptr;
+
+        friend class CaseString;
 
     public:
 
-        static PCWSTR Copy(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
-        static PCWSTR Append(PCWSTR psz1, PCWSTR psz2, size_t cch2 = static_cast<size_t>(-1));
-        //static PCWSTR Format(PCWSTR pszFormat, ...);
-        //static PCWSTR VaFormat(PCWSTR pszFormat, va_list argList);
-        //static PCWSTR AppendFormat(PCWSTR psz, PCWSTR pszFormat, ...);
-        //static PCWSTR VaAppendFormat(PCWSTR psz, PCWSTR pszFormat, va_list argList);
-        //static PCWSTR Trim(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
-        //static PCWSTR TrimHead(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
-        //static PCWSTR TrimTail(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
+        static const String Empty;
+
         static int Compare(PCWSTR psz1, PCWSTR psz2, size_t cch2 = static_cast<size_t>(-1));
         static int CaseCompare(PCWSTR psz1, PCWSTR psz2, size_t cch2 = static_cast<size_t>(-1));
         static int Compare(PCWSTR psz1, size_t cch1, PCWSTR psz2, size_t cch2 = static_cast<size_t>(-1));
@@ -83,6 +80,118 @@ namespace hnrt
         static int CaseCompare(PCSTR psz1, PCSTR psz2, size_t cch2 = static_cast<size_t>(-1));
         static int Compare(PCSTR psz1, size_t cch1, PCSTR psz2, size_t cch2 = static_cast<size_t>(-1));
         static int CaseCompare(PCSTR psz1, size_t cch1, PCSTR psz2, size_t cch2 = static_cast<size_t>(-1));
+
+        static PCWSTR Copy(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
+    };
+
+    class CaseString
+    {
+    public:
+
+        CaseString();
+        CaseString(PCWSTR);
+        CaseString(PCWSTR, size_t);
+        CaseString(const String&);
+        CaseString(const CaseString&);
+        ~CaseString();
+        String ToString() const;
+        CaseString& operator =(const String&);
+        CaseString& operator =(const CaseString&);
+        bool operator ==(const CaseString&) const;
+        bool operator !=(const CaseString&) const;
+        bool operator <(const CaseString&) const;
+        bool operator <=(const CaseString&) const;
+        bool operator >(const CaseString&) const;
+        bool operator >=(const CaseString&) const;
+        CaseString operator +(const CaseString&) const;
+        CaseString& operator +=(const CaseString&);
+        operator PCWSTR() const;
+        operator bool() const;
+        PCWSTR get_ptr() const;
+        size_t get_len() const;
+
+        __declspec(property(get = get_ptr)) PCWSTR Ptr;
+        __declspec(property(get = get_len)) size_t Len;
+
+    private:
+
+        CaseString(RefStr*);
+
+        RefStr* m_ptr;
+    };
+
+    class RefMbs;
+
+    class AcpString
+    {
+    public:
+
+        AcpString();
+        AcpString(PCSTR);
+        AcpString(PCSTR, size_t);
+        AcpString(PCWSTR);
+        AcpString(PCWSTR, size_t);
+        AcpString(const AcpString&);
+        ~AcpString();
+        AcpString& operator =(const AcpString&);
+        bool operator ==(const AcpString&) const;
+        bool operator !=(const AcpString&) const;
+        bool operator <(const AcpString&) const;
+        bool operator <=(const AcpString&) const;
+        bool operator >(const AcpString&) const;
+        bool operator >=(const AcpString&) const;
+        AcpString operator +(const AcpString&) const;
+        AcpString& operator +=(const AcpString&);
+        operator PCSTR() const;
+        operator bool() const;
+        String ToString() const;
+        PCSTR get_ptr() const;
+        size_t get_len() const;
+
+        __declspec(property(get = get_ptr)) PCSTR Ptr;
+        __declspec(property(get = get_len)) size_t Len;
+
+    private:
+
+        AcpString(RefMbs*);
+
+        RefMbs* m_ptr;
+    };
+
+    class UTF8
+    {
+    public:
+
+        UTF8();
+        UTF8(PCSTR);
+        UTF8(PCSTR, size_t);
+        UTF8(PCWSTR);
+        UTF8(PCWSTR, size_t);
+        UTF8(const UTF8&);
+        ~UTF8();
+        UTF8& operator =(const UTF8&);
+        bool operator ==(const UTF8&) const;
+        bool operator !=(const UTF8&) const;
+        bool operator <(const UTF8&) const;
+        bool operator <=(const UTF8&) const;
+        bool operator >(const UTF8&) const;
+        bool operator >=(const UTF8&) const;
+        UTF8 operator +(const UTF8&) const;
+        UTF8& operator +=(const UTF8&);
+        operator PCSTR() const;
+        operator bool() const;
+        String ToString() const;
+        PCSTR get_ptr() const;
+        size_t get_len() const;
+
+        __declspec(property(get = get_ptr)) PCSTR Ptr;
+        __declspec(property(get = get_len)) size_t Len;
+
+    private:
+
+        UTF8(RefMbs*);
+
+        RefMbs* m_ptr;
     };
 
     class StringLessThan
@@ -132,29 +241,4 @@ namespace hnrt
     {
         return String::CaseCompare(psz1, psz2) < 0;
     }
-
-    class AcpString
-    {
-    public:
-
-        AcpString();
-        AcpString(PCSTR);
-        AcpString(PCWSTR);
-        AcpString(const AcpString&);
-        ~AcpString();
-        AcpString& operator =(const AcpString&);
-        operator PCSTR() const;
-        operator bool() const;
-        PCSTR get_ptr() const;
-        PCSTR get_str() const;
-        size_t get_len() const;
-
-        __declspec(property(get = get_ptr)) PCSTR Ptr;
-        __declspec(property(get = get_str)) PCSTR Str;
-        __declspec(property(get = get_len)) size_t Len;
-
-    private:
-
-        PSTR m_psz;
-    };
 }

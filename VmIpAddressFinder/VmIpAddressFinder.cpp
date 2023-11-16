@@ -280,31 +280,31 @@ void VmIpAddressFinder::UpdateHosts()
         Buffer<char> hostsData;
         RecreateHostsData(hosts, nameAddressMap, hostsData);
 
-        String HostsPath2 = String::Format2(L"%s.new", HostsPath.Str);
+        String HostsPath2 = String(PRINTF, L"%s.new", HostsPath.Ptr);
         FileWriter hostsFile2(HostsPath2);
         hostsFile2.Write(hostsData.Ptr, hostsData.Len);
         hostsFile2.Close();
 
         SYSTEMTIME t;
         GetLocalTime(&t);
-        String HostsPath3 = String::Format2(L"%s.%u%02u%02uT%02u%02u%02u", HostsPath.Str, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
+        String HostsPath3 = String(PRINTF, L"%s.%u%02u%02uT%02u%02u%02u", HostsPath.Ptr, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 
         if (!MoveFileW(HostsPath, HostsPath3))
         {
             DWORD dwError = GetLastError();
-            throw Win32Exception(dwError, L"Failed to rename \"%s\" to \"%s\".", Path::GetFileName(HostsPath).Str, Path::GetFileName(HostsPath3).Str);
+            throw Win32Exception(dwError, L"Failed to rename \"%s\" to \"%s\".", Path::GetFileName(HostsPath).Ptr, Path::GetFileName(HostsPath3).Ptr);
         }
         if (!MoveFileW(HostsPath2, HostsPath))
         {
             DWORD dwError = GetLastError();
-            throw Win32Exception(dwError, L"Failed to rename \"%s\" to \"%s\".", Path::GetFileName(HostsPath2).Str, Path::GetFileName(HostsPath).Str);
+            throw Win32Exception(dwError, L"Failed to rename \"%s\" to \"%s\".", Path::GetFileName(HostsPath2).Ptr, Path::GetFileName(HostsPath).Ptr);
         }
 
-        Put(L"%s: Updated. (Backup: %s)", HostsPath.Str, Path::GetFileName(HostsPath3).Str);
+        Put(L"%s: Updated. (Backup: %s)", HostsPath.Ptr, Path::GetFileName(HostsPath3).Ptr);
     }
     else
     {
-        Put(L"%s: No need to update.", HostsPath.Str);
+        Put(L"%s: No need to update.", HostsPath.Ptr);
     }
 }
 
@@ -484,7 +484,7 @@ void VmIpAddressFinder::EnumClassObject(IWbemClassObject* pClass, long lEnumFlag
                 break;
 
             case VT_I4:
-                pMap->Add(strName, String::Format2(L"%ld", varItem.lVal));
+                pMap->Add(strName, String(PRINTF, L"%ld", varItem.lVal));
                 break;
 
             case VT_BOOL:
@@ -498,12 +498,12 @@ void VmIpAddressFinder::EnumClassObject(IWbemClassObject* pClass, long lEnumFlag
                 }
                 else
                 {
-                    pMap->Add(strName, String::Format2(L"%d", varItem.boolVal));
+                    pMap->Add(strName, String(PRINTF, L"%d", varItem.boolVal));
                 }
                 break;
 
             case VT_BSTR:
-                pMap->Add(strName, String::Format2(L"%s", varItem.bstrVal));
+                pMap->Add(strName, String(PRINTF, L"%s", varItem.bstrVal));
                 break;
 
             case (VT_ARRAY | VT_I4):
@@ -512,18 +512,18 @@ void VmIpAddressFinder::EnumClassObject(IWbemClassObject* pClass, long lEnumFlag
                 SAFEARRAY* parray = varItem.parray;
                 if (parray->cDims == 1 && parray->rgsabound[0].lLbound == 0L)
                 {
-                    pMap->Add(String::Format2(L"%s.Count", strName), String::Format2(L"%lu", parray->rgsabound[0].cElements));
+                    pMap->Add(String(PRINTF, L"%s.Count", strName), String(PRINTF, L"%lu", parray->rgsabound[0].cElements));
                     for (ULONG i = 0; i < parray->rgsabound[0].cElements; i++)
                     {
-                        String key = String::Format2(L"%s[%lu]", strName, i);
+                        String key = String(PRINTF, L"%s[%lu]", strName, i);
                         String value;
                         switch ((varItem.vt & ~VT_ARRAY))
                         {
                         case VT_I4:
-                            value = String::Format2(L"%ld", reinterpret_cast<LONG*>(parray->pvData)[i]);
+                            value = String(PRINTF, L"%ld", reinterpret_cast<LONG*>(parray->pvData)[i]);
                             break;
                         case VT_BSTR:
-                            value = String::Format2(L"%s", reinterpret_cast<BSTR*>(parray->pvData)[i]);
+                            value = String(PRINTF, L"%s", reinterpret_cast<BSTR*>(parray->pvData)[i]);
                             break;
                         default:
                             throw Exception(L"VmIpAddressFinder::EnumClassObject: Unexpected.");
@@ -534,23 +534,23 @@ void VmIpAddressFinder::EnumClassObject(IWbemClassObject* pClass, long lEnumFlag
                 else if (parray->cDims == 2 && parray->rgsabound[0].lLbound == 0L)
                 {
                     pMap->Add(
-                        String::Format2(L"%s.Count", strName),
-                        String::Format2(L"%lu,%lu",
+                        String(PRINTF, L"%s.Count", strName),
+                        String(PRINTF, L"%lu,%lu",
                             parray->rgsabound[0].cElements,
                             parray->rgsabound[1].cElements));
                     for (ULONG i = 0; i < parray->rgsabound[0].cElements; i++)
                     {
                         for (ULONG j = 0; i < parray->rgsabound[1].cElements; i++)
                         {
-                            String key = String::Format2(L"%s[%lu][%lu]", strName, i, j);
+                            String key = String(PRINTF, L"%s[%lu][%lu]", strName, i, j);
                             String value;
                             switch ((varItem.vt & ~VT_ARRAY))
                             {
                             case VT_I4:
-                                value = String::Format2(L"%ld", reinterpret_cast<LONG**>(parray->pvData)[i][j]);
+                                value = String(PRINTF, L"%ld", reinterpret_cast<LONG**>(parray->pvData)[i][j]);
                                 break;
                             case VT_BSTR:
-                                value = String::Format2(L"%s", reinterpret_cast<BSTR**>(parray->pvData)[i][j]);
+                                value = String(PRINTF, L"%s", reinterpret_cast<BSTR**>(parray->pvData)[i][j]);
                                 break;
                             default:
                                 throw Exception(L"VmIpAddressFinder::EnumClassObject: Unexpected.");
@@ -576,7 +576,7 @@ void VmIpAddressFinder::EnumClassObject(IWbemClassObject* pClass, long lEnumFlag
 
             default:
                 Put(L"#%s (type=%u)", strName, varItem.vt);
-                pMap->Add(strName, String::Format2(L"?(type=%u)", varItem.vt));
+                pMap->Add(strName, String(PRINTF, L"?(type=%u)", varItem.vt));
                 break;
             }
         }

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hnrt/String.h"
 #include "hnrt/RefStr.h"
+#include "hnrt/RefMbs.h"
 #include "hnrt/Interlocked.h"
 #include "hnrt/Heap.h"
 #include "hnrt/StringBuffer.h"
@@ -13,17 +14,14 @@
 using namespace hnrt;
 
 
+//////////////////////////////////////////////////////////////////////
+//
+//   S T R I N G   C L A S S
+//
+//////////////////////////////////////////////////////////////////////
+
+
 const String String::Empty = String();
-
-
-String String::Format2(PCWSTR pszFormat, ...)
-{
-    va_list argList;
-    va_start(argList, pszFormat);
-    String s(pszFormat, argList);
-    va_end(argList);
-    return s;
-}
 
 
 String::String()
@@ -33,13 +31,13 @@ String::String()
 
 
 String::String(PCWSTR psz)
-    : m_ptr(new RefStr(psz))
+    : m_ptr(psz ? new RefStr(psz) : nullptr)
 {
 }
 
 
 String::String(PCWSTR psz, size_t cch)
-    : m_ptr(new RefStr(psz, cch))
+    : m_ptr(psz ? new RefStr(psz, cch) : nullptr)
 {
 }
 
@@ -55,12 +53,40 @@ String::String(StringOptions option, PCWSTR psz, ...)
 {
     switch (option)
     {
-    case SPRINTF:
+    case PRINTF:
     {
         va_list argList;
         va_start(argList, psz);
         m_ptr = new RefStr(psz, argList);
         va_end(argList);
+        break;
+    }
+    case CONCAT:
+    {
+        StringBuffer buf(MAX_PATH);
+        va_list argList;
+        va_start(argList, psz);
+        while (psz)
+        {
+            buf += psz;
+            psz = va_arg(argList, PCWSTR);
+        }
+        va_end(argList);
+        m_ptr = new RefStr(buf);
+        break;
+    }
+    case UPPERCASE:
+    {
+        StringBuffer buf(wcslen(psz) + 1);
+        _wcsupr_s(buf.Append(psz), buf.Cap);
+        m_ptr = new RefStr(buf);
+        break;
+    }
+    case LOWERCASE:
+    {
+        StringBuffer buf(wcslen(psz) + 1);
+        _wcslwr_s(buf.Append(psz), buf.Cap);
+        m_ptr = new RefStr(buf);
         break;
     }
     case TRIM:
@@ -159,25 +185,37 @@ String::String(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5)
 
 
 String::String(PCSTR psz)
-    : m_ptr(new RefStr(psz))
+    : m_ptr(psz ? new RefStr(psz) : nullptr)
 {
 }
 
 
 String::String(PCSTR psz, size_t cb)
-    : m_ptr(new RefStr(psz, cb))
+    : m_ptr(psz ? new RefStr(psz, cb) : nullptr)
 {
 }
 
 
 String::String(UINT cp, PCSTR psz)
-    : m_ptr(new RefStr(cp, psz))
+    : m_ptr(psz ? new RefStr(cp, psz) : nullptr)
 {
 }
 
 
 String::String(UINT cp, PCSTR psz, size_t cb)
-    : m_ptr(new RefStr(cp, psz, cb))
+    : m_ptr(psz ? new RefStr(cp, psz, cb) : nullptr)
+{
+}
+
+
+String::String(StringBuffer& buf)
+    : m_ptr(new RefStr(buf))
+{
+}
+
+
+String::String(RefStr* ptr)
+    : m_ptr(ptr)
 {
 }
 
@@ -219,49 +257,49 @@ String& String::operator =(const String& other)
 
 bool String::operator ==(const String& other) const
 {
-    return wcscmp(Str, other.Str) == 0;
+    return Compare(*this, other) == 0;
 }
 
 
 bool String::operator !=(const String& other) const
 {
-    return wcscmp(Str, other.Str) != 0;
+    return Compare(*this, other) != 0;
 }
 
 
 bool String::operator <(const String& other) const
 {
-    return wcscmp(Str, other.Str) < 0;
+    return Compare(*this, other) < 0;
 }
 
 
 bool String::operator <=(const String& other) const
 {
-    return wcscmp(Str, other.Str) <= 0;
+    return Compare(*this, other) <= 0;
 }
 
 
 bool String::operator >(const String& other) const
 {
-    return wcscmp(Str, other.Str) > 0;
+    return Compare(*this, other) > 0;
 }
 
 
 bool String::operator >=(const String& other) const
 {
-    return wcscmp(Str, other.Str) >= 0;
+    return Compare(*this, other) >= 0;
 }
 
 
 String String::operator +(const String& other) const
 {
-    return String(Str, other.Str);
+    return String(Ptr, other.Ptr);
 }
 
 
 String& String::operator +=(const String& other)
 {
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Str, other.Str));
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, other.Ptr));
     if (ptr)
     {
         ptr->Release();
@@ -272,25 +310,19 @@ String& String::operator +=(const String& other)
 
 String::operator PCWSTR() const
 {
-    return get_str();
+    return Ptr;
 }
 
 
 String::operator bool() const
 {
-    return get_ptr() != nullptr;
+    return m_ptr != nullptr;
 }
 
 
 PCWSTR String::get_ptr() const
 {
-    return m_ptr ? m_ptr->Ptr : nullptr;
-}
-
-
-PCWSTR String::get_str() const
-{
-    return m_ptr ? m_ptr->Str : L"";
+    return m_ptr ? m_ptr->Ptr : L"";
 }
 
 
@@ -299,236 +331,6 @@ size_t String::get_len() const
     return m_ptr ? m_ptr->Len : 0;
 }
 
-#if 0
-String hnrt::FormatString(PCWSTR pszFormat, ...)
-{
-    va_list argList;
-    va_start(argList, pszFormat);
-    String s(pszFormat, argList);
-    va_end(argList);
-    return s;
-}
-#endif
-
-PCWSTR String::Copy(PCWSTR psz, size_t cch)
-{
-    if (!psz)
-    {
-        return L"";
-    }
-    else if (cch == static_cast<size_t>(-1))
-    {
-        return StringStore::Get(psz);
-    }
-    else if (cch < MAX_PATH)
-    {
-        WCHAR buf[MAX_PATH];
-        wcsncpy_s(buf, psz, cch);
-        return StringStore::Get(buf);
-    }
-    else
-    {
-        StringBuffer buf(cch + 1);
-        wcsncpy_s(buf, buf.Cap, psz, cch);
-        return StringStore::Set(buf);
-    }
-}
-
-
-PCWSTR String::Append(PCWSTR psz1, PCWSTR psz2, size_t cch2)
-{
-    if (!psz1)
-    {
-        return Copy(psz2, cch2);
-    }
-    size_t cch1 = wcslen(psz1);
-    if (cch2 == static_cast<size_t>(-1))
-    {
-        cch2 = wcslen(psz2);
-    }
-    if (cch1 + cch2 < MAX_PATH)
-    {
-        WCHAR buf[MAX_PATH];
-        wcsncpy_s(buf, psz1, cch1);
-        wcsncpy_s(buf + cch1, _countof(buf) - cch1, psz2, cch2);
-        return StringStore::Get(buf);
-    }
-    else
-    {
-        StringBuffer buf(cch1 + cch2 + 1);
-        wcsncpy_s(buf, buf.Cap, psz1, cch1);
-        wcsncpy_s(buf + cch1, buf.Cap - cch1, psz2, cch2);
-        return StringStore::Set(buf);
-    }
-}
-
-#if 0
-PCWSTR String::Format(PCWSTR pszFormat, ...)
-{
-    va_list argList;
-    va_start(argList, pszFormat);
-    PCWSTR psz = VaFormat(pszFormat, argList);
-    va_end(argList);
-    return psz;
-}
-
-
-PCWSTR String::VaFormat(PCWSTR pszFormat, va_list argList)
-{
-    va_list argList2;
-    va_copy(argList2, argList);
-    int cch = _vscwprintf(pszFormat, argList);
-    va_end(argList2);
-    if (cch < 0)
-    {
-        throw Exception(L"String::VaFormat failed.");
-    }
-    else if (cch < MAX_PATH)
-    {
-        WCHAR buf[MAX_PATH];
-        _vsnwprintf_s(buf, _TRUNCATE, pszFormat, argList);
-        return StringStore::Get(buf);
-    }
-    else
-    {
-        StringBuffer buf(static_cast<size_t>(cch) + 1);
-        _vsnwprintf_s(buf, buf.Cap, _TRUNCATE, pszFormat, argList);
-        return StringStore::Set(buf);
-    }
-}
-
-
-PCWSTR String::AppendFormat(PCWSTR psz, PCWSTR pszFormat, ...)
-{
-    va_list argList;
-    va_start(argList, pszFormat);
-    psz = VaAppendFormat(psz, pszFormat, argList);
-    va_end(argList);
-    return psz;
-}
-
-
-PCWSTR String::VaAppendFormat(PCWSTR psz, PCWSTR pszFormat, va_list argList)
-{
-    size_t cch1 = wcslen(psz);
-    va_list argList2;
-    va_copy(argList2, argList);
-    int cch2 = _vscwprintf(pszFormat, argList);
-    va_end(argList2);
-    if (cch2 < 0)
-    {
-        throw Exception(L"String::VaAppendFormat failed.");
-    }
-    else if (cch1 + cch2 < MAX_PATH)
-    {
-        WCHAR buf[MAX_PATH];
-        wcsncpy_s(buf, psz, cch1);
-        _vsnwprintf_s(buf + cch1, _countof(buf) - cch1, _TRUNCATE, pszFormat, argList);
-        return StringStore::Get(buf);
-    }
-    else
-    {
-        StringBuffer buf(cch1 + cch2 + 1);
-        wcsncpy_s(buf, buf.Cap, psz, cch1);
-        _vsnwprintf_s(buf + cch1, buf.Cap - cch1, _TRUNCATE, pszFormat, argList);
-        return StringStore::Set(buf);
-    }
-}
-
-
-PCWSTR String::Trim(PCWSTR psz, size_t cch)
-{
-    if (!psz)
-    {
-        return L"";
-    }
-    else if (cch == static_cast<size_t>(-1))
-    {
-        cch = wcslen(psz);
-    }
-    PCWSTR pszEnd = psz + cch;
-    while (true)
-    {
-        if (psz == pszEnd)
-        {
-            return L"";
-        }
-        else if (iswspace(psz[0]))
-        {
-            psz++;
-        }
-        else
-        {
-            // Found the first non-space character.
-            break;
-        }
-    }
-    // Repetitions will end at the non-space character.
-    do
-    {
-        pszEnd--;
-    }
-    while (iswspace(pszEnd[0]));
-    return Copy(psz, pszEnd + 1 - psz);
-}
-
-
-PCWSTR String::TrimHead(PCWSTR psz, size_t cch)
-{
-    if (!psz)
-    {
-        return L"";
-    }
-    else if (cch == static_cast<size_t>(-1))
-    {
-        cch = wcslen(psz);
-    }
-    PCWSTR pszEnd = psz + cch;
-    while (true)
-    {
-        if (psz == pszEnd)
-        {
-            return L"";
-        }
-        else if (iswspace(psz[0]))
-        {
-            psz++;
-        }
-        else
-        {
-            // Found the first non-space character.
-            return Copy(psz, pszEnd - psz);
-        }
-    }
-}
-
-
-PCWSTR String::TrimTail(PCWSTR psz, size_t cch)
-{
-    if (!psz)
-    {
-        return L"";
-    }
-    else if (cch == static_cast<size_t>(-1))
-    {
-        cch = wcslen(psz);
-    }
-    PCWSTR pszEnd = psz + cch;
-    while (true)
-    {
-        if (psz == pszEnd)
-        {
-            return L"";
-        }
-        pszEnd--;
-        if (!iswspace(pszEnd[0]))
-        {
-            // Found the last non-space character.
-            return Copy(psz, pszEnd + 1 - psz);
-        }
-    }
-}
-#endif
 
 int String::Compare(PCWSTR psz1, PCWSTR psz2, size_t cch2)
 {
@@ -658,68 +460,526 @@ int String::CaseCompare(PCSTR psz1, size_t cch1, PCSTR psz2, size_t cch2)
 }
 
 
+PCWSTR String::Copy(PCWSTR psz, size_t cch)
+{
+    if (!psz)
+    {
+        return L"";
+    }
+    else if (cch == static_cast<size_t>(-1))
+    {
+        return StringStore::Get(psz);
+    }
+    else if (cch < MAX_PATH)
+    {
+        WCHAR buf[MAX_PATH];
+        wcsncpy_s(buf, psz, cch);
+        return StringStore::Get(buf);
+    }
+    else
+    {
+        StringBuffer buf(cch + 1);
+        wcsncpy_s(buf, buf.Cap, psz, cch);
+        return StringStore::Set(buf);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////
+//
+//   C A S E S T R I N G   C L A S S
+//
+//////////////////////////////////////////////////////////////////////
+
+
+CaseString::CaseString()
+    : m_ptr(nullptr)
+{
+}
+
+
+CaseString::CaseString(PCWSTR psz)
+    : m_ptr(psz ? new RefStr(Clone(psz)) : nullptr)
+{
+}
+
+
+CaseString::CaseString(PCWSTR psz, size_t cb)
+    : m_ptr(psz ? new RefStr(Clone(psz, cb)) : nullptr)
+{
+}
+
+
+CaseString::CaseString(RefStr* ptr)
+    : m_ptr(ptr)
+{
+}
+
+
+CaseString::CaseString(const String& other)
+    : m_ptr(other.m_ptr)
+{
+    if (m_ptr)
+    {
+        m_ptr->AddRef();
+    }
+}
+
+
+CaseString::CaseString(const CaseString& other)
+    : m_ptr(other.m_ptr)
+{
+    if (m_ptr)
+    {
+        m_ptr->AddRef();
+    }
+}
+
+
+CaseString::~CaseString()
+{
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, nullptr);
+    if (ptr)
+    {
+        ptr->Release();
+    }
+}
+
+
+String CaseString::ToString() const
+{
+    if (m_ptr)
+    {
+        m_ptr->AddRef();
+    }
+    return String(m_ptr);
+}
+
+
+CaseString& CaseString::operator =(const String& other)
+{
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, other.m_ptr);
+    if (m_ptr)
+    {
+        m_ptr->AddRef();
+    }
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
+CaseString& CaseString::operator =(const CaseString& other)
+{
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, other.m_ptr);
+    if (m_ptr)
+    {
+        m_ptr->AddRef();
+    }
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
+bool CaseString::operator ==(const CaseString& other) const
+{
+    return String::CaseCompare(*this, other) == 0;
+}
+
+
+bool CaseString::operator !=(const CaseString& other) const
+{
+    return String::CaseCompare(*this, other) != 0;
+}
+
+
+bool CaseString::operator <(const CaseString& other) const
+{
+    return String::CaseCompare(*this, other) < 0;
+}
+
+
+bool CaseString::operator <=(const CaseString& other) const
+{
+    return String::CaseCompare(*this, other) <= 0;
+}
+
+
+bool CaseString::operator >(const CaseString& other) const
+{
+    return String::CaseCompare(*this, other) > 0;
+}
+
+
+bool CaseString::operator >=(const CaseString& other) const
+{
+    return String::CaseCompare(*this, other) >= 0;
+}
+
+
+CaseString CaseString::operator +(const CaseString& other) const
+{
+    return CaseString(new RefStr(Ptr, other.Ptr));
+}
+
+
+CaseString& CaseString::operator +=(const CaseString& other)
+{
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, other.Ptr));
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
+CaseString::operator PCWSTR() const
+{
+    return Ptr;
+}
+
+
+CaseString::operator bool() const
+{
+    return m_ptr != nullptr;
+}
+
+
+PCWSTR CaseString::get_ptr() const
+{
+    return m_ptr ? m_ptr->Ptr : L"";
+}
+
+
+size_t CaseString::get_len() const
+{
+    return m_ptr ? m_ptr->Len : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+//
+//   A C P S T R I N G   C L A S S
+//
+//////////////////////////////////////////////////////////////////////
+
+
 AcpString::AcpString()
-    : m_psz(nullptr)
+    : m_ptr(nullptr)
 {
 }
 
 
 AcpString::AcpString(PCSTR psz)
-    : m_psz(Clone(psz))
+    : m_ptr(psz ? new RefMbs(Clone(psz)) : nullptr)
+{
+}
+
+
+AcpString::AcpString(PCSTR psz, size_t cb)
+    : m_ptr(psz ? new RefMbs(Clone(psz, cb)) : nullptr)
 {
 }
 
 
 AcpString::AcpString(PCWSTR psz)
-    : m_psz(ToAcp(psz))
+    : m_ptr(psz ? new RefMbs(ToAcp(psz)) : nullptr)
+{
+}
+
+
+AcpString::AcpString(PCWSTR psz, size_t cb)
+    : m_ptr(psz ? new RefMbs(ToAcp(psz, cb)) : nullptr)
+{
+}
+
+
+AcpString::AcpString(RefMbs* ptr)
+    : m_ptr(ptr)
 {
 }
 
 
 AcpString::AcpString(const AcpString& other)
-    : m_psz(other.m_psz ? Clone(other.m_psz) : nullptr)
+    : m_ptr(other.m_ptr)
 {
+    if (m_ptr)
+    {
+        m_ptr->AddRef();
+    }
 }
 
 
 AcpString::~AcpString()
 {
-    free(m_psz);
+    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, nullptr);
+    if (ptr)
+    {
+        ptr->Release();
+    }
 }
 
 
 AcpString& AcpString::operator =(const AcpString& other)
 {
-    free(Interlocked<PSTR>::ExchangePointer(&m_psz, other.m_psz ? Clone(other.m_psz) : nullptr));
+    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, other.m_ptr);
+    if (m_ptr)
+    {
+        m_ptr->AddRef();
+    }
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
+bool AcpString::operator ==(const AcpString& other) const
+{
+    return String::Compare(*this, other) == 0;
+}
+
+
+bool AcpString::operator !=(const AcpString& other) const
+{
+    return String::Compare(*this, other) != 0;
+}
+
+
+bool AcpString::operator <(const AcpString& other) const
+{
+    return String::Compare(*this, other) < 0;
+}
+
+
+bool AcpString::operator <=(const AcpString& other) const
+{
+    return String::Compare(*this, other) <= 0;
+}
+
+
+bool AcpString::operator >(const AcpString& other) const
+{
+    return String::Compare(*this, other) > 0;
+}
+
+
+bool AcpString::operator >=(const AcpString& other) const
+{
+    return String::Compare(*this, other) >= 0;
+}
+
+
+AcpString AcpString::operator +(const AcpString& other) const
+{
+    return AcpString(new RefMbs(Ptr, other.Ptr));
+}
+
+
+AcpString& AcpString::operator +=(const AcpString& other)
+{
+    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(Ptr, other.Ptr));
+    if (ptr)
+    {
+        ptr->Release();
+    }
     return *this;
 }
 
 
 AcpString::operator PCSTR() const
 {
-    return get_str();
+    return get_ptr();
 }
 
 
 AcpString::operator bool() const
 {
-    return get_ptr() != nullptr;
+    return m_ptr != nullptr;
+}
+
+
+String AcpString::ToString() const
+{
+    return String(*this);
 }
 
 
 PCSTR AcpString::get_ptr() const
 {
-    return m_psz;
-}
-
-
-PCSTR AcpString::get_str() const
-{
-    return m_psz ? m_psz : "";
+    return m_ptr ? m_ptr->Ptr : "";
 }
 
 
 size_t AcpString::get_len() const
 {
-    return m_psz ? strlen(m_psz) : 0;
+    return m_ptr ? m_ptr->Len : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+//
+//   U T F 8   C L A S S
+//
+//////////////////////////////////////////////////////////////////////
+
+
+UTF8::UTF8()
+    : m_ptr(nullptr)
+{
+}
+
+
+UTF8::UTF8(PCSTR psz)
+    : m_ptr(psz ? new RefMbs(Clone(psz)) : nullptr)
+{
+}
+
+
+UTF8::UTF8(PCSTR psz, size_t cb)
+    : m_ptr(psz ? new RefMbs(Clone(psz, cb)) : nullptr)
+{
+}
+
+
+UTF8::UTF8(PCWSTR psz)
+    : m_ptr(psz ? new RefMbs(ToAcp(CP_UTF8, psz)) : nullptr)
+{
+}
+
+
+UTF8::UTF8(PCWSTR psz, size_t cb)
+    : m_ptr(psz ? new RefMbs(ToAcp(CP_UTF8, psz, cb)) : nullptr)
+{
+}
+
+
+UTF8::UTF8(RefMbs* ptr)
+    : m_ptr(ptr)
+{
+}
+
+
+UTF8::UTF8(const UTF8& other)
+    : m_ptr(other.m_ptr)
+{
+    if (m_ptr)
+    {
+        m_ptr->AddRef();
+    }
+}
+
+
+UTF8::~UTF8()
+{
+    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, nullptr);
+    if (ptr)
+    {
+        ptr->Release();
+    }
+}
+
+
+UTF8& UTF8::operator =(const UTF8& other)
+{
+    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, other.m_ptr);
+    if (m_ptr)
+    {
+        m_ptr->AddRef();
+    }
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
+bool UTF8::operator ==(const UTF8& other) const
+{
+    return strcmp(*this, other) == 0;
+}
+
+
+bool UTF8::operator !=(const UTF8& other) const
+{
+    return strcmp(*this, other) != 0;
+}
+
+
+bool UTF8::operator <(const UTF8& other) const
+{
+    return strcmp(*this, other) < 0;
+}
+
+
+bool UTF8::operator <=(const UTF8& other) const
+{
+    return strcmp(*this, other) <= 0;
+}
+
+
+bool UTF8::operator >(const UTF8& other) const
+{
+    return strcmp(*this, other) > 0;
+}
+
+
+bool UTF8::operator >=(const UTF8& other) const
+{
+    return strcmp(*this, other) >= 0;
+}
+
+
+UTF8 UTF8::operator +(const UTF8& other) const
+{
+    return UTF8(new RefMbs(Ptr, other.Ptr));
+}
+
+
+UTF8& UTF8::operator +=(const UTF8& other)
+{
+    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(Ptr, other.Ptr));
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
+UTF8::operator PCSTR() const
+{
+    return Ptr;
+}
+
+
+UTF8::operator bool() const
+{
+    return m_ptr != nullptr;
+}
+
+
+String UTF8::ToString() const
+{
+    return String(CP_UTF8, *this);
+}
+
+
+PCSTR UTF8::get_ptr() const
+{
+    return m_ptr ? m_ptr->Ptr : "";
+}
+
+
+size_t UTF8::get_len() const
+{
+    return m_ptr ? m_ptr->Len : 0;
 }

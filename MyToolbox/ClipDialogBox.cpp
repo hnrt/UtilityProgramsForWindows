@@ -170,7 +170,7 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 	}
 	if (!Path::ValidateDirectory(m_pszDirectoryPath))
 	{
-		String message(SPRINTF, L"%s\n%s", m_pszDirectoryPath.Ptr, ErrorMessage::Get(GetLastError()));
+		String message(PRINTF, L"%s\n%s", m_pszDirectoryPath.Ptr, ErrorMessage::Get(GetLastError()));
 		MessageBoxW(hwnd, message, ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
 		return;
 	}
@@ -179,7 +179,7 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 	MD5Hash hash(bdf);
 	SYSTEMTIME t = { 0 };
 	GetLocalTime(&t);
-	String name(SPRINTF, L"%04d%02d%02d_%02d%02d%02d", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
+	String name(PRINTF, L"%04d%02d%02d_%02d%02d%02d", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 	try
 	{
 		bool bSelect = false;
@@ -202,10 +202,10 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 			if (!MoveFileW(Path::Combine(m_pszDirectoryPath, oldName), Path::Combine(m_pszDirectoryPath, name)))
 			{
 				DWORD dwError = GetLastError();
-				throw Win32Exception(dwError, L"Failed to rename %s to %s.", oldName.Str, name.Str);
+				throw Win32Exception(dwError, L"Failed to rename %s to %s.", oldName.Ptr, name.Ptr);
 			}
 			m_mapHash.erase(iter);
-			LRESULT index = SendMessage(IDC_CLIP_FILENAME_LIST, LB_FINDSTRING, -1, reinterpret_cast<LPARAM>(oldName.Str));
+			LRESULT index = SendMessage(IDC_CLIP_FILENAME_LIST, LB_FINDSTRING, -1, reinterpret_cast<LPARAM>(oldName.Ptr));
 			if (index != LB_ERR)
 			{
 				if (SendMessage(IDC_CLIP_FILENAME_LIST, LB_GETSEL, index, 0) > 0)
@@ -217,7 +217,7 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 			}
 		}
 		m_mapHash.insert(ClipEntry(String::Copy(hash.Text), name));
-		SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(name.Str));
+		SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(name.Ptr));
 		if (bSelect)
 		{
 			SendMessage(IDC_CLIP_FILENAME_LIST, LB_SETCURSEL, 0, 0);
@@ -325,13 +325,13 @@ void ClipDialogBox::WriteBackToFile()
 		FileWriter file(m_FilePath, CREATE_ALWAYS);
 		file.Write(header, cchHeader * sizeof(WCHAR));
 		file.Write(&Separator, sizeof(WCHAR));
-		file.Write(m_Hash.Str, m_Hash.Len * sizeof(WCHAR));
+		file.Write(m_Hash.Ptr, m_Hash.Len * sizeof(WCHAR));
 		file.Write(&Separator, sizeof(WCHAR));
 		file.Write(body, cchBody * sizeof(WCHAR));
 	}
 	catch (Win32Exception e)
 	{
-		String message(SPRINTF, L"%s\n%s", m_FilePath.Str, ErrorMessage::Get(GetLastError()));
+		String message(PRINTF, L"%s\n%s", m_FilePath.Ptr, ErrorMessage::Get(GetLastError()));
 		MessageBoxW(hwnd, message, ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
 	}
 }
