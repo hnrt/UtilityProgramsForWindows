@@ -252,6 +252,18 @@
     <ClInclude Include="inc\hnrt\RefMbs.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="inc\hnrt\StringOptions.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\hnrt\StringCaseInsensitive.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\hnrt\StringAcp.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\hnrt\StringUTF8.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pch.cpp">
@@ -420,6 +432,15 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\UnicodeEscape.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringCaseInsensitive.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringAcp.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringUTF8.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

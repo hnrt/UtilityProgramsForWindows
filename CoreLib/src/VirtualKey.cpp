@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hnrt/VirtualKey.h"
 #include "hnrt/String.h"
+#include "hnrt/StringCaseInsensitive.h"
 #include <map>
 
 

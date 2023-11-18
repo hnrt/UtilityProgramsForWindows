@@ -3,6 +3,7 @@
 
 #include <set>
 #include "hnrt/String.h"
+#include "hnrt/StringAcp.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/SpinLock.h"
 
@@ -10,7 +11,7 @@
 namespace hnrt
 {
     typedef std::set<PCWSTR, StringLessThan> UcsStringSet;
-    typedef std::set<PCSTR, AcpStringLessThan> AcpStringSet;
+    typedef std::set<PCSTR, StringAcpLessThan> AcpStringSet;
 
     class StringStoreInternal
     {
