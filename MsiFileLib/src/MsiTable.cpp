@@ -14,7 +14,7 @@ using namespace hnrt;
 MsiTable::MsiTable(PCWSTR pszName, MsiDatabase& database)
     : IMsiTable()
     , m_refs(1)
-    , m_pszName(String::Copy(pszName))
+    , m_szName(pszName)
     , m_database(database)
     , m_columns(database, pszName)
     , m_rows()
@@ -60,7 +60,7 @@ void MsiTable::Load()
     {
         query.AppendFormat(L",`%s`", m_columns[colNo].Name);
     }
-    query.AppendFormat(L" FROM `%s`", m_pszName);
+    query.AppendFormat(L" FROM `%s`", m_szName);
     PMSIHANDLE phView;
     UINT rc = MsiDatabaseOpenViewW(m_database, query, &phView);
     if (rc)
@@ -106,7 +106,7 @@ IMsiRow* MsiTable::NewRow()
 
 PCWSTR MsiTable::get_Name() const
 {
-    return m_pszName;
+    return m_szName;
 }
 
 

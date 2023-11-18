@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include "hnrt/String.h"
 #include "hnrt/IMsiColumn.h"
 
 
@@ -26,13 +27,13 @@ namespace hnrt
 
     private:
 
-        PCWSTR m_pszName;
+        String m_szName;
         MsiColumnDataType m_type;
         bool m_bKey;
         bool m_bNullable;
-        PCWSTR m_pszKeyTable;
-        PCWSTR m_pszKeyColumn;
-        PCWSTR m_pszSet;
-        PCWSTR m_pszDescription;
+        String m_szKeyTable;
+        String m_szKeyColumn;
+        String m_szSet;
+        String m_szDescription;
     };
 }

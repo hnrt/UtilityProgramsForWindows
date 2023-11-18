@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hnrt/String.h"
+#include "hnrt/StringCaseInsensitive.h"
 #include "hnrt/Debug.h"
 
 namespace hnrt
@@ -28,8 +28,8 @@ namespace hnrt
 
 	inline int TextLocator::Compare(const WCHAR* pContent, PCWSTR pszValue)
 	{
-		DBGPUT(L"String::CaseCompare(\"%.*s\",\"%s\")=%d", Len, pContent + Start, pszValue, String::CaseCompare(pContent + Start, Len, pszValue));
-		return String::CaseCompare(pContent + Start, Len, pszValue);
+		DBGPUT(L"StringCase::Compare(\"%.*s\",\"%s\")=%d", Len, pContent + Start, pszValue, StringCase::Compare(pContent + Start, Len, pszValue, -1));
+		return StringCase::Compare(pContent + Start, Len, pszValue, -1);
 	}
 
 	inline int TextLocator::get_Len() const

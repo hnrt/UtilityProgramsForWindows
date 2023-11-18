@@ -1,6 +1,6 @@
 #include "pch.h"
 #include <map>
-#include "hnrt/String.h"
+#include "hnrt/StringCaseInsensitive.h"
 #include "hnrt/SpinLock.h"
 #include "hnrt/MsiColumnDataTypeExtensions.h"
 #include "hnrt/Exception.h"
@@ -9,8 +9,8 @@
 using namespace hnrt;
 
 
-typedef std::map<PCWSTR, MsiColumnDataType, StringCaseLessThan> MsiColumnDataTypeMap;
-typedef std::pair<PCWSTR, MsiColumnDataType> MsiColumnDataTypeMapEntry;
+typedef std::map<StringCase, MsiColumnDataType> MsiColumnDataTypeMap;
+typedef std::pair<StringCase, MsiColumnDataType> MsiColumnDataTypeMapEntry;
 
 
 static SpinLock::Type s_TypeMapLock = SPIN_LOCK_INITIALIZER;
@@ -19,7 +19,7 @@ static MsiColumnDataTypeMap s_TypeMap;
 
 static void InitTypeMap()
 {
-#define ADDTYPE(x) s_TypeMap.insert(MsiColumnDataTypeMapEntry(String::Copy(L#x),MsiColumnDataType::x))
+#define ADDTYPE(x) s_TypeMap.insert(MsiColumnDataTypeMapEntry(StringCase(L#x),MsiColumnDataType::x))
     ADDTYPE(Text);
     ADDTYPE(UpperCase);
     ADDTYPE(LowerCase);

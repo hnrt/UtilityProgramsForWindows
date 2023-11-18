@@ -1,11 +1,14 @@
 #pragma once
 
 
+#include "hnrt/String.h"
+
+
 namespace hnrt
 {
     struct ICabinetExtractCallbacks
     {
-        virtual PCWSTR CabinetExtractGetPath(PCWSTR pszFile) = 0;
+        virtual String CabinetExtractGetPath(PCWSTR pszFile) = 0;
         virtual void CabinetExtractOnStart(PCWSTR pszFile, PCWSTR pszPath) = 0;
         virtual bool CabinetExtractOnEnd(PCWSTR pszFile, PCWSTR pszPath) = 0;
         virtual bool CabinetExtractOnError(PCWSTR pszFile, PCWSTR pszPath, unsigned long error) = 0;

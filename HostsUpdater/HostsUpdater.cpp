@@ -1,5 +1,5 @@
 ﻿#include "HostsUpdateService.h"
-#include "hnrt/String.h"
+#include "hnrt/StringCaseInsensitive.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/ResourceString.h"
@@ -56,7 +56,7 @@ static void ParseCommandLine(wchar_t** ppCur, wchar_t** ppEnd, int& command)
 				while (ppCur < ppEnd)
 				{
 					wchar_t* psz = *ppCur++;
-					if (!String::CaseCompare(psz, L"-readonly"))
+					if (!StringCase::Compare(psz, L"-readonly"))
 					{
 						HostsUpdateService::GetInstance()->SetReadOnly();
 					}

@@ -10,14 +10,14 @@ using namespace hnrt;
 
 MsiColumn::MsiColumn(PCWSTR pszColumn, bool bKey, PCWSTR pszNullable, PCWSTR pszMinValue, PCWSTR pszMaxValue, PCWSTR pszKeyTable, PCWSTR pszKeyColumn, PCWSTR pszCategory, PCWSTR pszSet, PCWSTR pszDescription)
     : IMsiColumn()
-    , m_pszName(pszColumn)
+    , m_szName(pszColumn)
     , m_type(MsiColumnDataType::Text)
     , m_bKey(bKey)
     , m_bNullable(*pszNullable == L'Y')
-    , m_pszKeyTable(pszKeyTable)
-    , m_pszKeyColumn(pszKeyColumn)
-    , m_pszSet(pszSet)
-    , m_pszDescription(pszDescription)
+    , m_szKeyTable(pszKeyTable)
+    , m_szKeyColumn(pszKeyColumn)
+    , m_szSet(pszSet)
+    , m_szDescription(pszDescription)
 {
     if (pszMinValue)
     {
@@ -64,21 +64,21 @@ MsiColumn::MsiColumn(PCWSTR pszColumn, bool bKey, PCWSTR pszNullable, PCWSTR psz
 
 MsiColumn::MsiColumn(const MsiColumn& src)
     : IMsiColumn()
-    , m_pszName(src.m_pszName)
+    , m_szName(src.m_szName)
     , m_type(src.m_type)
     , m_bKey(src.m_bKey)
     , m_bNullable(src.m_bNullable)
-    , m_pszKeyTable(src.m_pszKeyTable)
-    , m_pszKeyColumn(src.m_pszKeyColumn)
-    , m_pszSet(src.m_pszSet)
-    , m_pszDescription(src.m_pszDescription)
+    , m_szKeyTable(src.m_szKeyTable)
+    , m_szKeyColumn(src.m_szKeyColumn)
+    , m_szSet(src.m_szSet)
+    , m_szDescription(src.m_szDescription)
 {
 }
 
 
 PCWSTR MsiColumn::get_Name() const
 {
-    return m_pszName;
+    return m_szName;
 }
 
 
@@ -102,23 +102,23 @@ bool MsiColumn::get_Nullable() const
 
 PCWSTR MsiColumn::get_KeyTable() const
 {
-    return m_pszKeyTable;
+    return m_szKeyTable;
 }
 
 
 PCWSTR MsiColumn::get_KeyColumn() const
 {
-    return m_pszKeyColumn;
+    return m_szKeyColumn;
 }
 
 
 PCWSTR MsiColumn::get_Set() const
 {
-    return m_pszSet;
+    return m_szSet;
 }
 
 
 PCWSTR MsiColumn::get_Description() const
 {
-    return m_pszDescription;
+    return m_szDescription;
 }

@@ -3,6 +3,7 @@
 #include "hnrt/RefStr.h"
 #include "hnrt/Interlocked.h"
 #include "hnrt/StringStore.h"
+#include "hnrt/Exception.h"
 
 
 using namespace hnrt;
@@ -294,6 +295,46 @@ String& String::operator =(const String& other)
 }
 
 
+String& String::operator =(PCWSTR psz)
+{
+    if (m_ptr && m_ptr->RefCnt == 1)
+    {
+
+    }
+    else
+    {
+        RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, psz ? new RefStr(psz) : nullptr);
+        if (ptr)
+        {
+            ptr->Release();
+        }
+    }
+    return *this;
+}
+
+
+String& String::operator +=(const String& other)
+{
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, other.Ptr));
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
+String& String::operator +=(PCWSTR psz)
+{
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, psz));
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
 bool String::operator ==(const String& other) const
 {
     return Compare(*this, other) == 0;
@@ -333,17 +374,6 @@ bool String::operator >=(const String& other) const
 String String::operator +(const String& other) const
 {
     return String(Ptr, other.Ptr);
-}
-
-
-String& String::operator +=(const String& other)
-{
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, other.Ptr));
-    if (ptr)
-    {
-        ptr->Release();
-    }
-    return *this;
 }
 
 

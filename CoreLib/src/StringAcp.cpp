@@ -178,6 +178,6 @@ int StringAcp::CaseCompare(PCSTR psz1, INT_PTR cb1, PCSTR psz2, INT_PTR cb2)
     case CSTR_GREATER_THAN:
         return 1;
     default:
-        throw Exception(L"String::CaseCompare failed.");
+        throw Exception(L"StringAcp::CaseCompare failed.");
     }
 }

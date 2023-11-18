@@ -8,7 +8,7 @@
 using namespace hnrt;
 
 
-PCWSTR MsiUtils::GetString(MSIHANDLE hRecord, UINT uField)
+String MsiUtils::GetString(MSIHANDLE hRecord, UINT uField)
 {
     WCHAR tmp[1] = { 0 };
     DWORD cch = 0;
@@ -24,7 +24,7 @@ PCWSTR MsiUtils::GetString(MSIHANDLE hRecord, UINT uField)
     {
         throw MsiException(rc, L"Failed to get string from field#%u.", uField);
     }
-    return String::Copy(buf);
+    return String(buf);
 }
 
 

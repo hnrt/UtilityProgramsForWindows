@@ -30,18 +30,18 @@ namespace hnrt
         virtual void AddByFileName(IMsiFileRowCollection* pCollection, PCWSTR pszPattern);
         virtual void AddByFeature(IMsiFileRowCollection* pCollection, PCWSTR pszFeature);
         virtual void ExtractFiles(IMsiFileRowCollection* pCollection, PCWSTR pszOutputDirectory, bool bFlat, IMsiDatabaseExtractFilesCallback* pCallback);
-        virtual PCWSTR GetDirectoryPath(PCWSTR pszDirectory);
+        virtual String GetDirectoryPath(PCWSTR pszDirectory);
 
     private:
 
-        typedef std::map<PCWSTR, IMsiTable*, StringLessThan> TableMap;
-        typedef std::pair<PCWSTR, IMsiTable*> TableMapEntry;
+        typedef std::map<String, IMsiTable*> TableMap;
+        typedef std::pair<String, IMsiTable*> TableMapEntry;
 
-        typedef std::map<PCWSTR, PCWSTR, StringLessThan> ValueMap;
-        typedef std::pair<PCWSTR, PCWSTR> ValueMapEntry;
+        typedef std::map<String, String> ValueMap;
+        typedef std::pair<String, String> ValueMapEntry;
 
         long m_refs;
-        PCWSTR m_pszPath;
+        String m_szPath;
         PMSIHANDLE m_phDatabase;
         TableMap m_tables;
         ValueMap m_dirPaths;

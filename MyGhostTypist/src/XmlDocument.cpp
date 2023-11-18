@@ -1,6 +1,6 @@
 #include "XmlDocument.h"
 #include "hnrt/ComException.h"
-#include "hnrt/String.h"
+#include "hnrt/StringCaseInsensitive.h"
 
 
 using namespace hnrt;
@@ -342,12 +342,12 @@ bool XmlDocument::GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, bool&
     PCWSTR psz;
     if (GetAttribute(pNode, pszName, psz))
     {
-        if (!String::CaseCompare(psz, L"true") || !String::CaseCompare(psz, L"t"))
+        if (!StringCase::Compare(psz, L"true") || !StringCase::Compare(psz, L"t"))
         {
             bValue = true;
             return true;
         }
-        else if (!String::CaseCompare(psz, L"false") || !String::CaseCompare(psz, L"f"))
+        else if (!StringCase::Compare(psz, L"false") || !StringCase::Compare(psz, L"f"))
         {
             bValue = false;
             return true;

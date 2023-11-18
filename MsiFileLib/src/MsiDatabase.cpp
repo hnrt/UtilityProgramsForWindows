@@ -20,7 +20,7 @@ using namespace hnrt;
 MsiDatabase::MsiDatabase()
     : IMsiDatabase()
     , m_refs(1)
-    , m_pszPath(nullptr)
+    , m_szPath()
     , m_phDatabase()
     , m_dirPaths()
 {
@@ -58,19 +58,19 @@ long MsiDatabase::Release()
 
 PCWSTR MsiDatabase::get_Path() const
 {
-    return m_pszPath;
+    return m_szPath;
 }
 
 
 void MsiDatabase::set_Path(PCWSTR pszPath)
 {
-    m_pszPath = String::Copy(pszPath);
+    m_szPath = pszPath;
 }
 
 
 void MsiDatabase::Load()
 {
-    UINT rc = MsiOpenDatabaseW(m_pszPath, MSIDBOPEN_READONLY, &m_phDatabase);
+    UINT rc = MsiOpenDatabaseW(m_szPath, MSIDBOPEN_READONLY, &m_phDatabase);
     if (rc)
     {
         throw MsiException(rc, L"Failed to open.");
@@ -89,7 +89,7 @@ IMsiTable* MsiDatabase::GetTable(PCWSTR pszName)
     else
     {
         pTable = new MsiTable(pszName, *this);
-        m_tables.insert(TableMapEntry(String::Copy(pszName), pTable));
+        m_tables.insert(TableMapEntry(pszName, pTable));
     }
     pTable->AddRef();
     return pTable;
@@ -195,7 +195,7 @@ void MsiDatabase::ExtractFiles(IMsiFileRowCollection* pCollection, PCWSTR pszOut
                     }
                     else
                     {
-                        ExtractFromFile(Path::Combine(Path::GetDirectoryName(m_pThis->m_pszPath), pszCab));
+                        ExtractFromFile(Path::Combine(Path::GetDirectoryName(m_pThis->m_szPath), pszCab));
                     }
                 }
             }
@@ -248,16 +248,15 @@ void MsiDatabase::ExtractFiles(IMsiFileRowCollection* pCollection, PCWSTR pszOut
             }
         }
 
-        virtual PCWSTR CabinetExtractGetPath(PCWSTR pszFile)
+        virtual String CabinetExtractGetPath(PCWSTR pszFile)
         {
             long rowNo = m_pCollection->Find(pszFile);
             if (rowNo >= 0L)
             {
                 m_pCurrentRow = &m_pFileTable->Rows[rowNo];
-                PCWSTR pszPath = Path::Combine(GetOutputDirectory(), (*m_pCurrentRow)[L"FileName"].ToFilename()->LongName);
-                return pszPath;
+                return Path::Combine(GetOutputDirectory(), (*m_pCurrentRow)[L"FileName"].ToFilename()->LongName);
             }
-            return nullptr;
+            return String::Empty;
         }
 
         virtual void CabinetExtractOnStart(PCWSTR pszFile, PCWSTR pszPath)
@@ -321,20 +320,20 @@ void MsiDatabase::ExtractFiles(IMsiFileRowCollection* pCollection, PCWSTR pszOut
 }
 
 
-PCWSTR MsiDatabase::GetDirectoryPath(PCWSTR pszDirectory)
+String MsiDatabase::GetDirectoryPath(PCWSTR pszDirectory)
 {
-    std::map<PCWSTR, PCWSTR, StringLessThan>::const_iterator iter = m_dirPaths.find(pszDirectory);
+    std::map<String, String>::const_iterator iter = m_dirPaths.find(pszDirectory);
     if (iter != m_dirPaths.end())
     {
         return iter->second;
     }
     RefPtr<IMsiTable> pDirectoryTable = GetTable(L"Directory");
     pDirectoryTable->CreateIndex();
-    PCWSTR pszNext = pszDirectory;
-    PCWSTR pszPath = L".";
+    String next(pszDirectory);
+    String path(L".");
     while (true)
     {
-        long rowNo = pDirectoryTable->Find(L"Directory", pszNext);
+        long rowNo = pDirectoryTable->Find(L"Directory", next);
         if (rowNo < 0L)
         {
             break;
@@ -343,13 +342,13 @@ PCWSTR MsiDatabase::GetDirectoryPath(PCWSTR pszDirectory)
         const IMsiFilename& defaultDir = *row[L"DefaultDir"].ToFilename();
         if (Path::Compare(defaultDir.LongName, L"."))
         {
-            if (Path::Compare(pszPath, L"."))
+            if (Path::Compare(path, L"."))
             {
-                pszPath = Path::Combine(defaultDir.LongName, pszPath);
+                path = Path::Combine(defaultDir.LongName, path);
             }
             else
             {
-                pszPath = defaultDir.LongName;
+                path = defaultDir.LongName;
             }
         }
         const IMsiIdentifier& parentDir = *row[L"Directory_Parent"].ToIdentifier();
@@ -357,20 +356,20 @@ PCWSTR MsiDatabase::GetDirectoryPath(PCWSTR pszDirectory)
         {
             break;
         }
-        pszNext = parentDir.Text;
-        if (!String::Compare(pszNext, L"TARGETDIR"))
+        next = parentDir.Text;
+        if (!String::Compare(next, L"TARGETDIR"))
         {
-            if (Path::Compare(pszPath, L"."))
+            if (Path::Compare(path, L"."))
             {
-                pszPath = Path::Combine(L"TARGETDIR", pszPath);
+                path = Path::Combine(L"TARGETDIR", path);
             }
             else
             {
-                pszPath = L"TARGETDIR";
+                path = L"TARGETDIR";
             }
             break;
         }
     }
-    m_dirPaths.insert(ValueMapEntry(pszDirectory, pszPath));
-    return pszPath;
+    m_dirPaths.insert(ValueMapEntry(pszDirectory, path));
+    return path;
 }

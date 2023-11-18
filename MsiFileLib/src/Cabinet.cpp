@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Cabinet.h"
 #include <fcntl.h>
-#include "hnrt/String.h"
+#include "hnrt/StringAcp.h"
 #include "hnrt/Path.h"
 #include "hnrt/CabinetException.h"
 #include "hnrt/Heap.h"
@@ -31,10 +31,10 @@ Cabinet::Cabinet()
     , m_hfdi(nullptr)
     , m_pData(nullptr)
     , m_cbSize(0)
-    , m_pszInputPath(nullptr)
+    , m_InputPath()
     , m_pCallbacks(nullptr)
     , m_State(CabinetExtractionState::Idle)
-    , m_pszOutputPath(nullptr)
+    , m_OutputPath()
 {
     ZeroMemory(&m_erf, sizeof(m_erf));
     m_hfdi = FDICreate(Allocate, Free, Open, Read, Write, Close, Seek, cpu80386, &m_erf);
@@ -71,7 +71,7 @@ long Cabinet::Release()
 
 PCWSTR Cabinet::get_Path() const
 {
-    return m_pszInputPath;
+    return m_InputPath;
 }
 
 
@@ -79,7 +79,7 @@ void Cabinet::set_Path(PCWSTR pszPath)
 {
     m_pData = nullptr;
     m_cbSize = 0;
-    m_pszInputPath = String::Copy(pszPath);
+    m_InputPath = pszPath;
 }
 
 
@@ -87,7 +87,7 @@ void Cabinet::SetData(const void* pData, size_t cbSize)
 {
     m_pData = pData;
     m_cbSize = cbSize;
-    m_pszInputPath = s_szOnMemoryPseudoPath;
+    m_InputPath = s_szOnMemoryPseudoPath;
 }
 
 
@@ -111,11 +111,7 @@ void Cabinet::Extract(ICabinetExtractCallbacks& callbacks)
     }
     m_State = CabinetExtractionState::Pending;
     m_pCallbacks = &callbacks;
-    char szDirPath[MAX_PATH];
-    char szFileName[MAX_PATH];
-    strcpy_s(szDirPath, AcpString(Path::GetDirectoryName(m_pszInputPath, true)));
-    strcpy_s(szFileName, AcpString(Path::GetFileName(m_pszInputPath)));
-    BOOL bRet = FDICopy(m_hfdi, szFileName, szDirPath, 0, Notify, NULL, this);
+    BOOL bRet = FDICopy(m_hfdi, const_cast<LPSTR>(StringAcp(Path::GetFileName(m_InputPath)).Ptr), const_cast<LPSTR>(StringAcp(Path::GetDirectoryName(m_InputPath, true)).Ptr), 0, Notify, NULL, this);
     if (bRet)
     {
         if (m_State != CabinetExtractionState::Pending)
@@ -156,7 +152,7 @@ INT_PTR DIAMONDAPI Cabinet::Open(LPSTR pszFile, int oflag, int pmode)
 
     ICabinetStream* pStream;
 
-    if (!Path::Compare(pszFile, AcpString(s_szOnMemoryPseudoPath)))
+    if (!Path::Compare(pszFile, StringAcp(s_szOnMemoryPseudoPath)))
     {
         pStream = new CabinetMemoryStream(pThis->m_pData, pThis->m_cbSize);
     }
@@ -232,23 +228,23 @@ INT_PTR Cabinet::OnOpen(PCSTR pszFileAcp)
 {
     if (m_State == CabinetExtractionState::Pending)
     {
-        String strFile(pszFileAcp);
-        PCWSTR pszPath = m_pCallbacks->CabinetExtractGetPath(strFile);
-        if (pszPath)
+        String file(pszFileAcp);
+        String path = m_pCallbacks->CabinetExtractGetPath(file);
+        if (path)
         {
-            HANDLE h = CreateFileW(pszPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+            HANDLE h = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
             if (h != INVALID_HANDLE_VALUE)
             {
                 ICabinetStream* pStream = new CabinetFileStream(h);
                 m_State = CabinetExtractionState::Started;
-                m_pszOutputPath = pszPath;
-                m_pCallbacks->CabinetExtractOnStart(strFile, pszPath);
+                m_OutputPath = path;
+                m_pCallbacks->CabinetExtractOnStart(file, path);
                 return reinterpret_cast<INT_PTR>(pStream);
             }
             else
             {
                 m_State = CabinetExtractionState::OpenFailure;
-                bool bContinue = m_pCallbacks->CabinetExtractOnError(strFile, pszPath, GetLastError());
+                bool bContinue = m_pCallbacks->CabinetExtractOnError(file, path, GetLastError());
                 return bContinue ? 0 : -1; // 0=SKIP / -1=ABORT
             }
         }
@@ -271,7 +267,7 @@ INT_PTR Cabinet::OnClose(PCSTR pszFileAcp, INT_PTR hf)
         ICabinetStream* pStream = reinterpret_cast<ICabinetStream*>(hf);
         pStream->Close();
         m_State = CabinetExtractionState::Ended;
-        bool bContinue = m_pCallbacks->CabinetExtractOnEnd(String(pszFileAcp), m_pszOutputPath);
+        bool bContinue = m_pCallbacks->CabinetExtractOnEnd(String(pszFileAcp), m_OutputPath);
         m_State = CabinetExtractionState::Pending;
         return bContinue ? TRUE : -1; // TRUE=SUCCESS / -1=ABORT
     }

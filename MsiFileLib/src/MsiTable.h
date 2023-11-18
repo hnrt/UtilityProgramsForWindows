@@ -36,7 +36,7 @@ namespace hnrt
         typedef std::pair<PCWSTR, long> IndexEntry;
 
         long m_refs;
-        PCWSTR m_pszName;
+        String m_szName;
         MsiDatabase& m_database;
         MsiColumnCollection m_columns;
         MsiRowCollection m_rows;

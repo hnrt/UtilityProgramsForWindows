@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <fdi.h>
 #include "hnrt/ICabinet.h"
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -105,9 +106,9 @@ namespace hnrt
         ERF m_erf;
         const void* m_pData;
         size_t m_cbSize;
-        PCWSTR m_pszInputPath;
+        String m_InputPath;
         ICabinetExtractCallbacks* m_pCallbacks;
         CabinetExtractionState m_State;
-        PCWSTR m_pszOutputPath;
+        String m_OutputPath;
     };
 }

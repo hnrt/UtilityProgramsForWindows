@@ -58,8 +58,9 @@ PSTR hnrt::Clone(PCSTR psz)
 PSTR hnrt::Clone(PCSTR psz, size_t cb)
 {
     PSTR psz2 = reinterpret_cast<PSTR>(Malloc(cb + 1));
-    memcpy_s(psz2, cb, psz, cb);
-    psz2[cb] = '\0';
+    size_t len = strnlen(psz, cb);
+    memcpy_s(psz2, len, psz, len);
+    memset(psz2 + len, '\0', cb + 1 - len);
     return psz2;
 }
 
@@ -301,8 +302,9 @@ PWSTR hnrt::Clone(PCWSTR psz)
 PWSTR hnrt::Clone(PCWSTR psz, size_t cch)
 {
     PWSTR psz2 = reinterpret_cast<PWSTR>(Malloc((cch + 1) * sizeof(WCHAR)));
-    wmemcpy_s(psz2, cch, psz, cch);
-    psz2[cch] = L'\0';
+    size_t len = wcsnlen(psz, cch);
+    wmemcpy_s(psz2, len, psz, len);
+    wmemset(psz2 + len, L'\0', cch + 1 - len);
     return psz2;
 }
 

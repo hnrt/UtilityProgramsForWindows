@@ -34,7 +34,9 @@ namespace hnrt
         operator PCWSTR() const;
         operator bool() const;
         String& operator =(const String&);
+        String& operator =(PCWSTR);
         String& operator +=(const String&);
+        String& operator +=(PCWSTR);
         bool operator ==(const String&) const;
         bool operator !=(const String&) const;
         bool operator <(const String&) const;

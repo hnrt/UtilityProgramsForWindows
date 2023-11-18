@@ -33,7 +33,7 @@ namespace hnrt
 
         long m_count;
         MsiColumn* m_columns;
-        String m_PrimaryKey;
+        String m_szPrimaryKey;
         long m_keyList[32];
         long m_keyCount;
         long m_next;

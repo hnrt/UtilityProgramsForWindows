@@ -23,12 +23,12 @@ namespace hnrt
         MsiText(MSIHANDLE hRecord, UINT uField);
         MsiText(const MsiText&) = delete;
         virtual bool get_Null() const { return m_bNull; }
-        virtual PCWSTR get_Text() const { return m_pszText; }
+        virtual PCWSTR get_Text() const { return m_szText; }
 
     protected:
 
         bool m_bNull;
-        PCWSTR m_pszText;
+        String m_szText;
     };
 
     class MsiInteger
@@ -39,13 +39,13 @@ namespace hnrt
         MsiInteger(MSIHANDLE hRecord, UINT uField);
         MsiInteger(const MsiInteger&) = delete;
         virtual bool get_Null() const { return m_bNull; }
-        virtual PCWSTR get_Text() const { return m_pszText; }
+        virtual PCWSTR get_Text() const { return m_szText; }
         virtual long get_Value() const { return m_value; }
 
     protected:
 
         bool m_bNull;
-        PCWSTR m_pszText;
+        String m_szText;
         long m_value;
     };
 
@@ -57,13 +57,13 @@ namespace hnrt
         MsiDoubleInteger(MSIHANDLE hRecord, UINT uField);
         MsiDoubleInteger(const MsiDoubleInteger&) = delete;
         virtual bool get_Null() const { return m_bNull; }
-        virtual PCWSTR get_Text() const { return m_pszText; }
+        virtual PCWSTR get_Text() const { return m_szText; }
         virtual LONGLONG get_Value() const { return m_value; }
 
     protected:
 
         bool m_bNull;
-        PCWSTR m_pszText;
+        String m_szText;
         LONGLONG m_value;
     };
 
@@ -75,7 +75,7 @@ namespace hnrt
         MsiTime(MSIHANDLE hRecord, UINT uField);
         MsiTime(const MsiTime&) = delete;
         virtual bool get_Null() const { return m_bNull; }
-        virtual PCWSTR get_Text() const { return m_pszText; }
+        virtual PCWSTR get_Text() const { return m_szText; }
         virtual USHORT get_Hours() const { return (static_cast<USHORT>(m_value) >> 0) & 0x1F; }
         virtual USHORT get_Minutes() const { return (static_cast<USHORT>(m_value) >> 5) & 0x3F; }
         virtual USHORT get_Seconds() const { return ((static_cast<USHORT>(m_value) >> 11) & 0x1F) << 1; }
@@ -83,7 +83,7 @@ namespace hnrt
     protected:
 
         bool m_bNull;
-        PCWSTR m_pszText;
+        String m_szText;
         ULONG m_value;
     };
 
@@ -95,7 +95,7 @@ namespace hnrt
         MsiDate(MSIHANDLE hRecord, UINT uField);
         MsiDate(const MsiDate&) = delete;
         virtual bool get_Null() const { return m_bNull; }
-        virtual PCWSTR get_Text() const { return m_pszText; }
+        virtual PCWSTR get_Text() const { return m_szText; }
         virtual USHORT get_Year() const { return ((static_cast<USHORT>(m_value) >> 0) & 0x7F) + 1980; }
         virtual USHORT get_Month() const { return (static_cast<USHORT>(m_value) >> 7) & 0xF; }
         virtual USHORT get_Day() const { return (static_cast<USHORT>(m_value) >> 11) & 0x1F; }
@@ -103,7 +103,7 @@ namespace hnrt
     protected:
 
         bool m_bNull;
-        PCWSTR m_pszText;
+        String m_szText;
         ULONG m_value;
     };
 
@@ -115,16 +115,16 @@ namespace hnrt
         MsiFilename(MSIHANDLE hRecord, UINT uField);
         MsiFilename(const MsiFilename&) = delete;
         virtual bool get_Null() const { return m_bNull; }
-        virtual PCWSTR get_Text() const { return m_pszText; }
-        virtual PCWSTR get_ShortName() const { return m_pszShortName; }
-        virtual PCWSTR get_LongName() const { return m_pszLongName; }
+        virtual PCWSTR get_Text() const { return m_szText; }
+        virtual PCWSTR get_ShortName() const { return m_szShortName; }
+        virtual PCWSTR get_LongName() const { return m_szLongName; }
 
     protected:
 
         bool m_bNull;
-        PCWSTR m_pszText;
-        PCWSTR m_pszShortName;
-        PCWSTR m_pszLongName;
+        String m_szText;
+        String m_szShortName;
+        String m_szLongName;
     };
 
     class MsiPaths
@@ -136,14 +136,14 @@ namespace hnrt
         MsiPaths(MSIHANDLE hRecord, UINT uField);
         MsiPaths(const MsiPaths&) = delete;
         virtual bool get_Null() const { return m_bNull; }
-        virtual PCWSTR get_Text() const { return m_pszText; }
+        virtual PCWSTR get_Text() const { return m_szText; }
         virtual long get_Count() const { return static_cast<long>(m_Paths.Count); }
         virtual PCWSTR operator [](long index) const { return m_Paths[index]; }
 
     protected:
 
         bool m_bNull;
-        PCWSTR m_pszText;
+        String m_szText;
         StringCollection m_Paths;
     };
 
@@ -155,13 +155,13 @@ namespace hnrt
         MsiVersion(MSIHANDLE hRecord, UINT uField);
         MsiVersion(const MsiVersion&) = delete;
         virtual bool get_Null() const { return m_bNull; }
-        virtual PCWSTR get_Text() const { return m_pszText; }
+        virtual PCWSTR get_Text() const { return m_szText; }
         virtual long operator [](long index) const;
 
     protected:
 
         bool m_bNull;
-        PCWSTR m_pszText;
+        String m_szText;
         long m_values[4];
     };
 

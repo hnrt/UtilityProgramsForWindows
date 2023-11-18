@@ -67,7 +67,7 @@ IMsiData* MsiDataFactory::CreateData(MSIHANDLE hRecord, UINT uField, MsiColumnDa
 MsiText::MsiText(MSIHANDLE hRecord, UINT uField)
     : IMsiText()
     , m_bNull(MsiRecordIsNull(hRecord, uField) ? true : false)
-    , m_pszText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
+    , m_szText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
 {
 }
 
@@ -75,8 +75,8 @@ MsiText::MsiText(MSIHANDLE hRecord, UINT uField)
 MsiInteger::MsiInteger(MSIHANDLE hRecord, UINT uField)
     : IMsiInteger()
     , m_bNull(MsiRecordIsNull(hRecord, uField) ? true : false)
-    , m_pszText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
-    , m_value(m_bNull ? MSI_NULL_INTEGER : wcstol(m_pszText, nullptr, 10))
+    , m_szText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
+    , m_value(m_bNull ? MSI_NULL_INTEGER : wcstol(m_szText, nullptr, 10))
 {
 }
 
@@ -84,8 +84,8 @@ MsiInteger::MsiInteger(MSIHANDLE hRecord, UINT uField)
 MsiDoubleInteger::MsiDoubleInteger(MSIHANDLE hRecord, UINT uField)
     : IMsiDoubleInteger()
     , m_bNull(MsiRecordIsNull(hRecord, uField) ? true : false)
-    , m_pszText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
-    , m_value(m_bNull ? MSI_NULL_INTEGER : wcstoll(m_pszText, nullptr, 10))
+    , m_szText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
+    , m_value(m_bNull ? MSI_NULL_INTEGER : wcstoll(m_szText, nullptr, 10))
 {
 }
 
@@ -93,8 +93,8 @@ MsiDoubleInteger::MsiDoubleInteger(MSIHANDLE hRecord, UINT uField)
 MsiTime::MsiTime(MSIHANDLE hRecord, UINT uField)
     : IMsiTime()
     , m_bNull(MsiRecordIsNull(hRecord, uField) ? true : false)
-    , m_pszText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
-    , m_value(m_bNull ? MSI_NULL_INTEGER : wcstoul(m_pszText, nullptr, 10))
+    , m_szText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
+    , m_value(m_bNull ? MSI_NULL_INTEGER : wcstoul(m_szText, nullptr, 10))
 {
 }
 
@@ -102,8 +102,8 @@ MsiTime::MsiTime(MSIHANDLE hRecord, UINT uField)
 MsiDate::MsiDate(MSIHANDLE hRecord, UINT uField)
     : IMsiDate()
     , m_bNull(MsiRecordIsNull(hRecord, uField) ? true : false)
-    , m_pszText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
-    , m_value(m_bNull ? MSI_NULL_INTEGER : wcstoul(m_pszText, nullptr, 10))
+    , m_szText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
+    , m_value(m_bNull ? MSI_NULL_INTEGER : wcstoul(m_szText, nullptr, 10))
 {
 }
 
@@ -111,17 +111,17 @@ MsiDate::MsiDate(MSIHANDLE hRecord, UINT uField)
 MsiFilename::MsiFilename(MSIHANDLE hRecord, UINT uField)
     : IMsiFilename()
     , m_bNull(MsiRecordIsNull(hRecord, uField) ? true : false)
-    , m_pszText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
-    , m_pszShortName(m_pszText)
-    , m_pszLongName(m_pszText)
+    , m_szText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
+    , m_szShortName(m_szText)
+    , m_szLongName(m_szText)
 {
-    if (m_pszText)
+    if (m_szText)
     {
-        PCWSTR pSep = wcschr(m_pszText, L'|');
+        PCWSTR pSep = wcschr(m_szText, L'|');
         if (pSep)
         {
-            m_pszShortName = String::Copy(m_pszText, pSep - m_pszText);
-            m_pszLongName = String::Copy(pSep + 1);
+            m_szShortName = String(m_szText, pSep - m_szText.Ptr);
+            m_szLongName = String(pSep + 1);
         }
     }
 }
@@ -130,12 +130,12 @@ MsiFilename::MsiFilename(MSIHANDLE hRecord, UINT uField)
 MsiPaths::MsiPaths(MSIHANDLE hRecord, UINT uField)
     : IMsiPaths()
     , m_bNull(MsiRecordIsNull(hRecord, uField) ? true : false)
-    , m_pszText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
+    , m_szText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
     , m_Paths()
 {
-    if (m_pszText)
+    if (m_szText)
     {
-        m_Paths.Split(m_pszText, L';');
+        m_Paths.Split(m_szText, L';');
     }
 }
 
@@ -143,11 +143,11 @@ MsiPaths::MsiPaths(MSIHANDLE hRecord, UINT uField)
 MsiVersion::MsiVersion(MSIHANDLE hRecord, UINT uField)
     : IMsiVersion()
     , m_bNull(MsiRecordIsNull(hRecord, uField) ? true : false)
-    , m_pszText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
+    , m_szText(m_bNull ? nullptr : MsiUtils::GetString(hRecord, uField))
 {
-    if (m_pszText)
+    if (m_szText)
     {
-        PCWSTR pNext = m_pszText;
+        PCWSTR pNext = m_szText;
         PWCHAR pStop;
         m_values[0] = wcstol(pNext, &pStop, 10);
         if (*pStop != L'.')

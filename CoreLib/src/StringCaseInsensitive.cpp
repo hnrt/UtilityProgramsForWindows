@@ -2,7 +2,9 @@
 #include "hnrt/StringCaseInsensitive.h"
 #include "hnrt/RefStr.h"
 #include "hnrt/Interlocked.h"
+#include "hnrt/String.h"
 #include "hnrt/StringBuffer.h"
+#include "hnrt/Exception.h"
 
 
 using namespace hnrt;
