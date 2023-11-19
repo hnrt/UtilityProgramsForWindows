@@ -31,10 +31,17 @@ namespace hnrt
         String(UINT, PCSTR, size_t);
         String(StringBuffer&);
         ~String();
+        String& ZeroFill();
+        String& Assign(const String&);
+        String& Assign(PCWSTR);
+        String& Assign(StringBuffer&);
+        String& Append(const String&);
+        String& Append(PCWSTR);
         operator PCWSTR() const;
         operator bool() const;
         String& operator =(const String&);
         String& operator =(PCWSTR);
+        String& operator =(StringBuffer&);
         String& operator +=(const String&);
         String& operator +=(PCWSTR);
         bool operator ==(const String&) const;
@@ -77,6 +84,31 @@ namespace hnrt
     inline String::operator bool() const
     {
         return m_ptr != nullptr;
+    }
+
+    inline String& String::operator =(const String& other)
+    {
+        return Assign(other);
+    }
+
+    inline String& String::operator =(PCWSTR psz)
+    {
+        return Assign(psz);
+    }
+
+    inline String& String::operator =(StringBuffer& buf)
+    {
+        return Assign(buf);
+    }
+
+    inline String& String::operator +=(const String& other)
+    {
+        return Append(other);
+    }
+
+    inline String& String::operator +=(PCWSTR psz)
+    {
+        return Append(psz);
     }
 
     inline int String::Compare(PCWSTR psz1, PCWSTR psz2)

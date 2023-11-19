@@ -29,20 +29,20 @@ namespace hnrt
         void operator =(const Credentials&) = delete;
         RefPtr<Credentials> Clone() const;
         void ClearPlainText();
-        PCWSTR get_Username() const;
-        void set_Username(PCWSTR psz);
-        PCWSTR get_Password() const;
-        void set_Password(PCWSTR psz);
-        PCWSTR get_EncryptedPassword() const;
-        void set_EncryptedPassword(PCWSTR psz);
-        PCWSTR get_Key() const;
-        void set_Key(PCWSTR psz);
+        const String& get_Username() const;
+        void set_Username(const String& sz);
+        const String& get_Password() const;
+        void set_Password(const String& sz);
+        const String& get_EncryptedPassword() const;
+        void set_EncryptedPassword(const String& sz);
+        const String& get_Key() const;
+        void set_Key(const String& sz);
         void set_Callback(CredentialsCallback* pCallback);
 
-        __declspec(property(get = get_Username, put = set_Username)) PCWSTR Username;
-        __declspec(property(get = get_Password, put = set_Password)) PCWSTR Password;
-        __declspec(property(get = get_EncryptedPassword, put = set_EncryptedPassword)) PCWSTR EncryptedPassword;
-        __declspec(property(get = get_Key, put = set_Key)) PCWSTR Key;
+        __declspec(property(get = get_Username, put = set_Username)) const String& Username;
+        __declspec(property(get = get_Password, put = set_Password)) const String& Password;
+        __declspec(property(get = get_EncryptedPassword, put = set_EncryptedPassword)) const String& EncryptedPassword;
+        __declspec(property(get = get_Key, put = set_Key)) const String& Key;
         __declspec(property(put = set_Callback)) CredentialsCallback* Callback;
 
     private:
@@ -50,9 +50,9 @@ namespace hnrt
         Credentials();
         Credentials(const unsigned char key[SECRET_KEY_LENGTH], const unsigned char iv[SECRET_IV_LENGTH]);
 
-        PCWSTR m_pszUsername;
+        String m_szUsername;
         PasswordHolder m_Password;
-        PCWSTR m_pszKey;
+        String m_szKey;
         CredentialsCallback* m_pCallback;
     };
 
@@ -61,24 +61,24 @@ namespace hnrt
         m_Password.ClearPlainText();
     }
 
-    inline PCWSTR Credentials::get_Username() const
+    inline const String& Credentials::get_Username() const
     {
-        return m_pszUsername;
+        return m_szUsername;
     }
 
-    inline PCWSTR Credentials::get_Password() const
+    inline const String& Credentials::get_Password() const
     {
         return m_Password.PlainText;
     }
 
-    inline PCWSTR Credentials::get_EncryptedPassword() const
+    inline const String& Credentials::get_EncryptedPassword() const
     {
         return m_Password.Encrypted;
     }
 
-    inline PCWSTR Credentials::get_Key() const
+    inline const String& Credentials::get_Key() const
     {
-        return m_pszKey;
+        return m_szKey;
     }
 
     inline void Credentials::set_Callback(CredentialsCallback* pCallback)

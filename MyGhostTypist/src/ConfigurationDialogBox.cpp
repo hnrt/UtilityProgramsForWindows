@@ -2,7 +2,7 @@
 #include <windowsx.h>
 #include "Action.h"
 #include "hnrt/Debug.h"
-#include "hnrt/Buffer.h"
+#include "hnrt/StringBuffer.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/StringStore.h"
 #include "hnrt/String.h"
@@ -271,7 +271,7 @@ INT_PTR ConfigurationDialogBox::OnEditNotified(HWND hwnd, WORD wControlId, WORD 
     {
         HWND hwndEdit = GetDlgItem(hwnd, wControlId);
         LRESULT n = GetWindowTextLengthW(hwndEdit);
-        Buffer<WCHAR> buf(n + 1);
+        StringBuffer buf(n + 1);
         GetWindowTextW(hwndEdit, &buf, static_cast<int>(n + 1));
         switch (wControlId)
         {

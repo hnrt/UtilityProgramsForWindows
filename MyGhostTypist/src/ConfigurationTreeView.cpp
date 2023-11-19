@@ -479,20 +479,20 @@ void ConfigurationTreeView::RefreshCredentialsList()
 
 void ConfigurationTreeView::RefreshCredentials(ULONG index, HTREEITEM hItem)
 {
-    WCHAR szText[MAX_PATH] = { 0 };
-    TVITEM item = { 0 };
-    item.mask = TVIF_TEXT | TVIF_PARAM;
-    item.pszText = szText;
-    item.cchTextMax = _countof(szText);
-    item.hItem = hItem;
-    if (m_cc[index]->Key && m_cc[index]->Key[0])
+    StringBuffer szText(260);
+    if (m_cc[index]->Key.Len > 0)
     {
-        _snwprintf_s(szText, _TRUNCATE, L"%s [%s]", m_cc[index]->Username, m_cc[index]->Key);
+        szText.AppendFormat(L"%s [%s]", m_cc[index]->Username.Ptr, m_cc[index]->Key.Ptr);
     }
     else
     {
-        _snwprintf_s(szText, _TRUNCATE, L"%s", m_cc[index]->Username);
+        szText.Append(m_cc[index]->Username);
     }
+    TVITEM item = { 0 };
+    item.mask = TVIF_TEXT | TVIF_PARAM;
+    item.pszText = &szText;
+    item.cchTextMax = static_cast<int>(szText.Cap);
+    item.hItem = hItem;
     item.lParam = CTV_INDEX(CTV_CITEM_LEVEL1, CTV_CITEM_LEVEL2_MIN + static_cast<size_t>(index));
     SendMessageW(m_hwnd, TVM_SETITEM, 0, reinterpret_cast<LPARAM>(&item));
     m_cc[index]->Callback = this;
@@ -518,13 +518,12 @@ void ConfigurationTreeView::RefreshTarget(ULONG index, HTREEITEM hT)
     DBGFNC(L"ConfigurationTreeView::RefreshTarget");
     DBGPUT(L"index=%lu", index);
     RefPtr<Target> pTarget = m_tt[index];
-    WCHAR szText[MAX_PATH] = { 0 };
+    StringBuffer szText(MAX_PATH, pTarget->Name);
     TVITEM item = { 0 };
     item.mask = TVIF_TEXT | TVIF_PARAM;
-    item.pszText = szText;
-    item.cchTextMax = _countof(szText);
+    item.pszText = &szText;
+    item.cchTextMax = static_cast<int>(szText.Cap);
     item.hItem = hT;
-    _snwprintf_s(szText, _TRUNCATE, L"%s", pTarget->Name);
     item.lParam = CTV_INDEX(CTV_TNAME_LEVEL1, CTV_TNAME_LEVEL2_MIN + static_cast<size_t>(index));
     SendMessageW(m_hwnd, TVM_SETITEM, 0, reinterpret_cast<LPARAM>(&item));
     std::vector<HTREEITEM> hChildren;
@@ -545,17 +544,17 @@ void ConfigurationTreeView::RefreshTarget(ULONG index, HTREEITEM hT)
             tvins.hParent = hChildren[index2];
             tvins.hInsertAfter = TVI_LAST;
             tvins.item.mask = TVIF_TEXT | TVIF_PARAM;
-            tvins.item.pszText = szText;
-            tvins.item.cchTextMax = _countof(szText);
             auto pActionEx = dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr);
             for (auto iter = pActionEx->Begin; iter != pActionEx->End; iter++)
             {
-                _snwprintf_s(szText, _TRUNCATE, L"FindWindow class=\"%s\" text=\"%s\"", iter->first, iter->second);
+                szText.Format(L"FindWindow class=\"%s\" text=\"%s\"", iter->first.Ptr, iter->second.Ptr);
+                tvins.item.pszText = &szText;
+                tvins.item.cchTextMax = static_cast<int>(szText.Cap);
                 tvins.item.lParam = CTV_INDEX(CTV_AITEM_LEVEL1_MIN + static_cast<size_t>(index), CTV_AITEM_LEVEL2_MIN + static_cast<size_t>(index2));
                 DBGPUT(L"tvins.hParent=%p item.pszText=\"%s\" item.lParam=%zu", tvins.hParent, tvins.item.pszText, tvins.item.lParam);
                 tvins.hParent = reinterpret_cast<HTREEITEM>(SendMessageW(m_hwnd, TVM_INSERTITEM, 0, reinterpret_cast<LPARAM>(&tvins)));
             }
-            StringBuffer buf(80);
+            szText.Format(L"SetForegroundWindow class=\"%s\" text=\"%s\"", pActionEx->ClassName, pActionEx->WindowText);
             if (pActionEx->AccRole > 0)
             {
                 if (pActionEx->AccName)
@@ -567,57 +566,86 @@ void ConfigurationTreeView::RefreshTarget(ULONG index, HTREEITEM hT)
                     {
                         if (pEnd - pStart < Threshold)
                         {
-                            buf.AppendFormat(L" name=\"%.*s...\"", (int)(pEnd - pStart), pStart);
+                            szText.AppendFormat(L" name=\"%.*s...\"", (int)(pEnd - pStart), pStart);
                         }
                         else
                         {
-                            buf.AppendFormat(L" name=\"%.*s...\"", (int)(Threshold - 3), pStart);
+                            szText.AppendFormat(L" name=\"%.*s...\"", (int)(Threshold - 3), pStart);
                         }
                     }
                     else if (wcslen(pStart) < Threshold)
                     {
-                        buf.AppendFormat(L" name=\"%s\"", pStart);
+                        szText.AppendFormat(L" name=\"%s\"", pStart);
                     }
                     else
                     {
-                        buf.AppendFormat(L" name=\"%.*s...\"", (int)(Threshold - 3), pStart);
+                        szText.AppendFormat(L" name=\"%.*s...\"", (int)(Threshold - 3), pStart);
                     }
                 }
                 else
                 {
-                    buf.AppendFormat(L" name=null");
+                    szText.AppendFormat(L" name=null");
                 }
-                buf.AppendFormat(L" role=%s", UiAutomation::GetRoleName(pActionEx->AccRole));
+                szText.AppendFormat(L" role=%s", UiAutomation::GetRoleName(pActionEx->AccRole));
             }
-            _snwprintf_s(szText, _TRUNCATE, L"SetForegroundWindow class=\"%s\" text=\"%s\"%s", pActionEx->ClassName, pActionEx->WindowText, buf.Ptr);
+            item.pszText = &szText;
+            item.cchTextMax = static_cast<int>(szText.Cap);
             break;
         }
         case AC_TYPEKEY:
-            _snwprintf_s(szText, _TRUNCATE, L"Type %s", dynamic_cast<TypeKeyAction*>(pAction.Ptr)->Key);
+            szText.Format(L"Type %s", dynamic_cast<TypeKeyAction*>(pAction.Ptr)->Key);
+            item.pszText = &szText;
+            item.cchTextMax = static_cast<int>(szText.Cap);
             break;
         case AC_TYPEUNICODE:
-            _snwprintf_s(szText, _TRUNCATE, L"Type \"%s\"", dynamic_cast<TypeUnicodeAction*>(pAction.Ptr)->Text);
+            szText.Format(L"Type \"%s\"", dynamic_cast<TypeUnicodeAction*>(pAction.Ptr)->Text);
+            item.pszText = &szText;
+            item.cchTextMax = static_cast<int>(szText.Cap);
             break;
         case AC_TYPEUSERNAME:
         {
             PCWSTR psz = dynamic_cast<TypeUsernameAction*>(pAction.Ptr)->Name;
-            _snwprintf_s(szText, _TRUNCATE, psz && *psz ? L"TypeUsername [%s]" : L"TypeUsername", psz);
+            if (psz && *psz)
+            {
+                szText.Format(L"TypeUsername [%s]", psz);
+            }
+            else
+            {
+                szText = L"TypeUsername";
+            }
+            item.pszText = &szText;
+            item.cchTextMax = static_cast<int>(szText.Cap);
             break;
         }
         case AC_TYPEPASSWORD:
         {
             PCWSTR psz = dynamic_cast<TypePasswordAction*>(pAction.Ptr)->Name;
-            _snwprintf_s(szText, _TRUNCATE, psz && *psz ? L"TypePassword [%s]" : L"TypePassword", psz);
+            if (psz && *psz)
+            {
+                szText.Format(L"TypePassword [%s]", psz);
+            }
+            else
+            {
+                szText = L"TypePassword";
+            }
+            item.pszText = &szText;
+            item.cchTextMax = static_cast<int>(szText.Cap);
             break;
         }
         case AC_TYPEDELETESEQUENCE:
-            _snwprintf_s(szText, _TRUNCATE, L"TypeDeleteSequence");
+            szText = L"TypeDeleteSequence";
+            item.pszText = &szText;
+            item.cchTextMax = static_cast<int>(szText.Cap);
             break;
         case AC_LEFTCLICK:
-            _snwprintf_s(szText, _TRUNCATE, L"LeftClick");
+            szText = L"LeftClick";
+            item.pszText = &szText;
+            item.cchTextMax = static_cast<int>(szText.Cap);
             break;
         default:
-            _snwprintf_s(szText, _TRUNCATE, L"?");
+            szText = L"?";
+            item.pszText = &szText;
+            item.cchTextMax = static_cast<int>(szText.Cap);
             break;
         }
         item.hItem = hChildren[index2];

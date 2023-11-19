@@ -32,8 +32,8 @@ namespace hnrt
 
         void Load();
 
-        typedef std::map<PCWSTR, long, StringLessThan> Index;
-        typedef std::pair<PCWSTR, long> IndexEntry;
+        typedef std::map<String, long> Index;
+        typedef std::pair<String, long> IndexEntry;
 
         long m_refs;
         String m_szName;

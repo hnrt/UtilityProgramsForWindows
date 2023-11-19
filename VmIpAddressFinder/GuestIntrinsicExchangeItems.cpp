@@ -42,7 +42,7 @@ AttributeMap::AttributeMap(RefPtr<IXMLDOMNode>& pNode)
                 hr = pAttr->get_text(&strText);
                 if (hr == S_OK)
                 {
-                    KeyValueMap::Add(String::Copy(strName), String::Copy(strText));
+                    KeyValueMap::Add(String(strName), String(strText));
                     SysFreeString(strText);
                 }
                 SysFreeString(strName);
@@ -52,7 +52,7 @@ AttributeMap::AttributeMap(RefPtr<IXMLDOMNode>& pNode)
 }
 
 
-static PCWSTR GetNodeValue(RefPtr<IXMLDOMNode>& pNode)
+static String GetNodeValue(RefPtr<IXMLDOMNode>& pNode)
 {
     RefPtr<IXMLDOMNodeList> pChildren;
     HRESULT hr = pNode->get_childNodes(&pChildren);
@@ -74,19 +74,19 @@ static PCWSTR GetNodeValue(RefPtr<IXMLDOMNode>& pNode)
                     hr = pChild->get_text(&strText);
                     if (hr == S_OK)
                     {
-                        PCWSTR pszValue = String::Copy(strText);
+                        String szValue(strText);
                         SysFreeString(strText);
-                        return pszValue;
+                        return szValue;
                     }
                     else
                     {
-                        return nullptr;
+                        return String::Empty;
                     }
                 }
             }
         }
     }
-    return nullptr;
+    return String::Empty;
 }
 
 
@@ -128,8 +128,8 @@ GuestIntrinsicExchangeItems::GuestIntrinsicExchangeItems(const KeyValueMap& exch
         {
             continue;
         }
-        PCWSTR pszName = nullptr;
-        PCWSTR pszValue = nullptr;
+        String szName;
+        String szValue;
         while (true)
         {
             RefPtr<IXMLDOMNode> pProp;
@@ -146,15 +146,15 @@ GuestIntrinsicExchangeItems::GuestIntrinsicExchangeItems(const KeyValueMap& exch
             }
             if (!String::Compare(pszPropName, L"Name"))
             {
-                pszName = GetNodeValue(pProp);
+                szName = GetNodeValue(pProp);
             }
             else if (!String::Compare(pszPropName, L"Data"))
             {
-                pszValue = GetNodeValue(pProp);
+                szValue = GetNodeValue(pProp);
             }
-            if (pszName && pszValue)
+            if (szName && szValue)
             {
-                KeyValueMap::Add(pszName, pszValue);
+                KeyValueMap::Add(szName, szValue);
                 break;
             }
         }

@@ -217,7 +217,7 @@ int Ghost::Process()
         {
             PCWSTR pszName = dynamic_cast<TypeUsernameAction*>(pAction.Ptr)->Name;
             RefPtr<Credentials> pCredentials = pszName && *pszName ? m_pConfiguration->CredentialsList[pszName] : m_pConfiguration->CredentialsList.DefaultCredentials;
-            if (pCredentials && pCredentials->Username && pCredentials->Username[0])
+            if (pCredentials && pCredentials->Username.Len > 0)
             {
                 if ((pAction->Flags & AC_FLAG_AA))
                 {
@@ -233,7 +233,7 @@ int Ghost::Process()
                 }
                 else
                 {
-                    m_pInputManager->AddKeyboardInput(pCredentials->Username);
+                    m_pInputManager->AddKeyboardInput(pCredentials->Username.Ptr);
                     m_pInputManager->SendNext();
                 }
                 return GHOST_PROCESSED;
@@ -245,7 +245,7 @@ int Ghost::Process()
         {
             PCWSTR pszName = dynamic_cast<TypePasswordAction*>(pAction.Ptr)->Name;
             RefPtr<Credentials> pCredentials = pszName && *pszName ? m_pConfiguration->CredentialsList[pszName] : m_pConfiguration->CredentialsList.DefaultCredentials;
-            if (pCredentials && pCredentials->Password && pCredentials->Password[0])
+            if (pCredentials && pCredentials->Password.Len > 0)
             {
                 if ((pAction->Flags & AC_FLAG_AA))
                 {
@@ -262,7 +262,7 @@ int Ghost::Process()
                 }
                 else
                 {
-                    m_pInputManager->AddKeyboardInput(pCredentials->Password);
+                    m_pInputManager->AddKeyboardInput(pCredentials->Password.Ptr);
                     m_pInputManager->SendNext();
                 }
                 pCredentials->ClearPlainText();

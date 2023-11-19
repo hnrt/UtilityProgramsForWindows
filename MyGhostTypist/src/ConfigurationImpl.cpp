@@ -129,7 +129,7 @@ void ConfigurationImpl::LoadUI(MSXML2::IXMLDOMNode* pNode)
 
 void ConfigurationImpl::LoadFont(MSXML2::IXMLDOMNode* pNode)
 {
-    XmlDocument::GetAttribute(pNode, L"name", m_Window.pszFontName);
+    XmlDocument::GetAttribute(pNode, L"name", m_Window.szFontName);
     XmlDocument::GetAttribute(pNode, L"size", m_Window.FontSize);
 }
 
@@ -152,10 +152,10 @@ void ConfigurationImpl::LoadCredentialsList(MSXML2::IXMLDOMNode* pNode)
 void ConfigurationImpl::LoadCredentials(MSXML2::IXMLDOMNode* pNode)
 {
     m_CredentialsList.Append(Credentials::Create());
-    PCWSTR pszName;
-    if (XmlDocument::GetAttribute(pNode, L"name", pszName))
+    String szName;
+    if (XmlDocument::GetAttribute(pNode, L"name", szName))
     {
-        m_CredentialsList[m_CredentialsList.Count - 1]->Key = pszName;
+        m_CredentialsList[m_CredentialsList.Count - 1]->Key = szName;
     }
     XmlElementLoader()
         .Add(L"username", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadUsername))
@@ -174,20 +174,20 @@ void ConfigurationImpl::LoadUsername(MSXML2::IXMLDOMNode* pNode)
 void ConfigurationImpl::LoadPassword(MSXML2::IXMLDOMNode* pNode)
 {
     bool bEncrypted = false;
-    PCWSTR pszFormat;
-    if (XmlDocument::GetAttribute(pNode, L"format", pszFormat))
+    String szFormat;
+    if (XmlDocument::GetAttribute(pNode, L"format", szFormat))
     {
-        if (!wcscmp(pszFormat, L"plaintext"))
+        if (!String::Compare(szFormat, L"plaintext"))
         {
             bEncrypted = false;
         }
-        else if (!wcscmp(pszFormat, L"encrypted"))
+        else if (!String::Compare(szFormat, L"encrypted"))
         {
             bEncrypted = true;
         }
         else
         {
-            throw Exception(L"Invalid password format attribute value: %s", pszFormat);
+            throw Exception(L"Invalid password format attribute value: %s", szFormat.Ptr);
         }
     }
     PCWSTR pszValue = XmlDocument::GetText(pNode);
@@ -223,11 +223,11 @@ void ConfigurationImpl::LoadTargetList(MSXML2::IXMLDOMNode* pNode)
 
 void ConfigurationImpl::LoadTarget(MSXML2::IXMLDOMNode* pNode)
 {
-    PCWSTR pszName;
-    XmlDocument::GetAttribute(pNode, L"name", pszName);
+    String szName;
+    XmlDocument::GetAttribute(pNode, L"name", szName);
     bool bVisible = true;
     XmlDocument::GetAttribute(pNode, L"visible", bVisible);
-    m_pTarget = Target::Create(pszName, bVisible);
+    m_pTarget = Target::Create(szName, bVisible);
     m_TargetList.Append(m_pTarget);
     bool bBlockKeybd;
     if (XmlDocument::GetAttribute(pNode, L"block_keybd", bBlockKeybd))
@@ -261,27 +261,25 @@ void ConfigurationImpl::LoadTarget(MSXML2::IXMLDOMNode* pNode)
 
 void ConfigurationImpl::LoadFindWindowV0(MSXML2::IXMLDOMNode* pNode)
 {
-    PCWSTR pszClassName;
-    XmlDocument::GetAttribute(pNode, L"class", pszClassName);
-    PCWSTR pszWindowText;
-    XmlDocument::GetAttribute(pNode, L"text", pszWindowText);
+    String szClassName;
+    XmlDocument::GetAttribute(pNode, L"class", szClassName);
+    String szWindowText;
+    XmlDocument::GetAttribute(pNode, L"text", szWindowText);
     RefPtr<Action> pAction;
     static const WCHAR pszSeparator[] = { L"@@@###@@@" };
     static size_t cchSp = wcslen(pszSeparator);
-    PCWSTR pCnSp = wcsstr(pszClassName, pszSeparator);
-    PCWSTR pWtSp = wcsstr(pszWindowText, pszSeparator);
+    PCWSTR pCnSp = wcsstr(szClassName, pszSeparator);
+    PCWSTR pWtSp = wcsstr(szWindowText, pszSeparator);
     if (pCnSp && pWtSp)
     {
-        Buffer<WCHAR> szCn(pCnSp - pszClassName + 1);
-        Buffer<WCHAR> szWt(pWtSp - pszWindowText + 1);
-        wcsncpy_s(szCn, szCn.Len, pszClassName, szCn.Len - 1);
-        wcsncpy_s(szWt, szWt.Len, pszWindowText, szWt.Len - 1);
+        String szCn(szClassName, pCnSp - szClassName.Ptr);
+        String szWt(szWindowText, pWtSp - szWindowText.Ptr);
         pAction = Action::SetForegroundWindow(szCn, szWt);
         dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr)->Append(pCnSp + cchSp, pWtSp + cchSp);
     }
     else
     {
-        pAction = Action::SetForegroundWindow(pszClassName, pszWindowText);
+        pAction = Action::SetForegroundWindow(szClassName, szWindowText);
     }
     m_pTarget->Append(pAction);
     XmlElementLoader()
@@ -295,16 +293,16 @@ void ConfigurationImpl::LoadFindWindowV0(MSXML2::IXMLDOMNode* pNode)
 
 void ConfigurationImpl::LoadSetForegroundWindow(MSXML2::IXMLDOMNode* pNode)
 {
-    PCWSTR pszClassName;
-    XmlDocument::GetAttribute(pNode, L"class", pszClassName);
-    PCWSTR pszWindowText;
-    XmlDocument::GetAttribute(pNode, L"text", pszWindowText);
-    auto pAction = Action::SetForegroundWindow(pszClassName, pszWindowText);
+    String szClassName;
+    XmlDocument::GetAttribute(pNode, L"class", szClassName);
+    String szWindowText;
+    XmlDocument::GetAttribute(pNode, L"text", szWindowText);
+    auto pAction = Action::SetForegroundWindow(szClassName, szWindowText);
     m_pTarget->Append(pAction);
-    PCWSTR pszAccName;
-    if (XmlDocument::GetAttribute(pNode, L"accName", pszAccName))
+    String szAccName;
+    if (XmlDocument::GetAttribute(pNode, L"accName", szAccName))
     {
-        dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr)->SetActiveAccessibility(pszAccName);
+        dynamic_cast<SetForegroundWindowAction*>(pAction.Ptr)->SetActiveAccessibility(szAccName.Ptr);
     }
     LONG accRole;
     if (XmlDocument::GetAttribute(pNode, L"accRole", accRole))
@@ -319,11 +317,11 @@ void ConfigurationImpl::LoadSetForegroundWindow(MSXML2::IXMLDOMNode* pNode)
 
 void ConfigurationImpl::LoadFindWindow(MSXML2::IXMLDOMNode* pNode)
 {
-    PCWSTR pszClassName;
-    XmlDocument::GetAttribute(pNode, L"class", pszClassName);
-    PCWSTR pszWindowText;
-    XmlDocument::GetAttribute(pNode, L"text", pszWindowText);
-    dynamic_cast<SetForegroundWindowAction*>((*m_pTarget.Ptr)[m_pTarget->Count - 1].Ptr)->Append(pszClassName, pszWindowText);
+    String szClassName;
+    XmlDocument::GetAttribute(pNode, L"class", szClassName);
+    String szWindowText;
+    XmlDocument::GetAttribute(pNode, L"text", szWindowText);
+    dynamic_cast<SetForegroundWindowAction*>((*m_pTarget.Ptr)[m_pTarget->Count - 1].Ptr)->Append(szClassName, szWindowText);
     XmlElementLoader()
         .Add(L"FindWindow", new ConfigurationElementLoadAction(this, &ConfigurationImpl::LoadFindWindow))
         .Load(pNode);
@@ -332,12 +330,12 @@ void ConfigurationImpl::LoadFindWindow(MSXML2::IXMLDOMNode* pNode)
 
 void ConfigurationImpl::LoadTypeUsername(MSXML2::IXMLDOMNode* pNode)
 {
-    PCWSTR pszName;
-    if (!XmlDocument::GetAttribute(pNode, L"name", pszName))
+    String szName;
+    if (!XmlDocument::GetAttribute(pNode, L"name", szName))
     {
-        pszName = nullptr;
+        szName = nullptr;
     }
-    auto pAction = Action::TypeUsername(pszName);
+    auto pAction = Action::TypeUsername(szName);
     bool bAA;
     if (XmlDocument::GetAttribute(pNode, L"aa", bAA))
     {
@@ -352,12 +350,12 @@ void ConfigurationImpl::LoadTypeUsername(MSXML2::IXMLDOMNode* pNode)
 
 void ConfigurationImpl::LoadTypePassword(MSXML2::IXMLDOMNode* pNode)
 {
-    PCWSTR pszName;
-    if (!XmlDocument::GetAttribute(pNode, L"name", pszName))
+    String szName;
+    if (!XmlDocument::GetAttribute(pNode, L"name", szName))
     {
-        pszName = nullptr;
+        szName = nullptr;
     }
-    auto pAction = Action::TypePassword(pszName);
+    auto pAction = Action::TypePassword(szName);
     bool bAA;
     if (XmlDocument::GetAttribute(pNode, L"aa", bAA))
     {
@@ -379,10 +377,10 @@ void ConfigurationImpl::LoadTypeDeleteSequence(MSXML2::IXMLDOMNode* pNode)
 void ConfigurationImpl::LoadType(MSXML2::IXMLDOMNode* pNode)
 {
     RefPtr<Action> pAction;
-    PCWSTR pszKey;
-    if (XmlDocument::GetAttribute(pNode, L"key", pszKey))
+    String szKey;
+    if (XmlDocument::GetAttribute(pNode, L"key", szKey))
     {
-        pAction = Action::TypeKey(pszKey);
+        pAction = Action::TypeKey(szKey);
     }
     else
     {        
@@ -439,7 +437,7 @@ void ConfigurationImpl::BuildUI(XmlDocument& document, MSXML2::IXMLDOMElement* p
     XmlDocument::SetAttribute(pUI, L"width", m_Window.Width);
     XmlDocument::SetAttribute(pUI, L"padding", m_Window.Padding);
     MSXML2::IXMLDOMElementPtr pFont = document.AppendElement(L"font", pUI);
-    XmlDocument::SetAttribute(pFont, L"name", m_Window.pszFontName);
+    XmlDocument::SetAttribute(pFont, L"name", m_Window.szFontName.Ptr);
     XmlDocument::SetAttribute(pFont, L"size", m_Window.FontSize);
     MSXML2::IXMLDOMElementPtr pButton = document.AppendElement(L"button", pUI);
     XmlDocument::SetAttribute(pButton, L"height", m_Button.Height);
@@ -460,9 +458,9 @@ void ConfigurationImpl::BuildCredentialsList(XmlDocument& document, MSXML2::IXML
 void ConfigurationImpl::BuildCredentials(XmlDocument& document, MSXML2::IXMLDOMElement* pParent, ULONG index)
 {
     MSXML2::IXMLDOMElementPtr pC = document.AppendElement(L"credentials", pParent);
-    if (m_CredentialsList[index]->Key && m_CredentialsList[index]->Key[0])
+    if (m_CredentialsList[index]->Key.Len > 0)
     {
-        XmlDocument::SetAttribute(pC, L"name", m_CredentialsList[index]->Key);
+        XmlDocument::SetAttribute(pC, L"name", m_CredentialsList[index]->Key.Ptr);
     }
     MSXML2::IXMLDOMElementPtr pUN = document.AppendElement(L"username", pC);
     XmlDocument::SetText(pUN, m_CredentialsList[index]->Username);
@@ -488,7 +486,7 @@ void ConfigurationImpl::BuildTarget(XmlDocument& document, MSXML2::IXMLDOMElemen
 {
     m_pTarget = m_TargetList[index];
     MSXML2::IXMLDOMElementPtr pT = document.AppendElement(L"target", pParent);
-    XmlDocument::SetAttribute(pT, L"name", m_pTarget->Name);
+    XmlDocument::SetAttribute(pT, L"name", m_pTarget->Name.Ptr);
     XmlDocument::SetAttribute(pT, L"visible", m_pTarget->IsVisible);
     if (m_pTarget->BlockKeybd)
     {
@@ -520,8 +518,8 @@ void ConfigurationImpl::BuildTarget(XmlDocument& document, MSXML2::IXMLDOMElemen
             for (SetForegroundWindowAction::ConstIter iter = pActionX->Begin; iter != pActionX->End; iter++)
             {
                 pX = document.AppendElement(L"FindWindow", pX);
-                XmlDocument::SetAttribute(pX, L"class", iter->first);
-                XmlDocument::SetAttribute(pX, L"text", iter->second);
+                XmlDocument::SetAttribute(pX, L"class", iter->first.Ptr);
+                XmlDocument::SetAttribute(pX, L"text", iter->second.Ptr);
             }
             break;
         }

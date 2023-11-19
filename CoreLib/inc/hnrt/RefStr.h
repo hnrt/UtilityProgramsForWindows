@@ -26,6 +26,9 @@ namespace hnrt
         RefStr(UINT, PCSTR);
         RefStr(UINT, PCSTR, size_t);
         RefStr(StringBuffer&);
+        RefStr& ZeroFill();
+        RefStr& Assign(PCWSTR);
+        RefStr& Append(PCWSTR);
         virtual ~RefStr();
         void operator =(const RefStr&) = delete;
         PCWSTR get_ptr() const;
@@ -135,6 +138,42 @@ namespace hnrt
     inline RefStr::~RefStr()
     {
         free(m_psz);
+    }
+
+    inline RefStr& RefStr::ZeroFill()
+    {
+        if (m_psz && m_len)
+        {
+            wmemset(m_psz, L'\0', m_len);
+            m_len = 0;
+        }
+        return *this;
+    }
+
+    inline RefStr& RefStr::Assign(PCWSTR psz)
+    {
+        size_t cch = wcslen(psz);
+        if (m_psz && cch <= m_len)
+        {
+            wcscpy_s(m_psz, m_len + 1, psz);
+            m_len = cch;
+        }
+        else
+        {
+            m_psz = Allocate(m_psz, cch + 1);
+            wcscpy_s(m_psz, cch + 1, psz);
+            m_len = cch;
+        }
+        return *this;
+    }
+
+    inline RefStr& RefStr::Append(PCWSTR psz)
+    {
+        size_t cch = wcslen(psz);
+        m_psz = Allocate(m_psz, m_len + cch + 1);
+        wcscpy_s(m_psz + m_len, cch + 1, psz);
+        m_len += cch;
+        return *this;
     }
 
     inline PCWSTR RefStr::get_ptr() const

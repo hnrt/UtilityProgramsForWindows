@@ -139,12 +139,12 @@ long MsiTable::Find(PCWSTR pszColumnName, PCWSTR pszValue, long startRowNo) cons
     PCWSTR pSep = wcschr(pszColumnName, L';');
     if (pSep)
     {
-        long colNoList[32];
+        long colNoList[32] = { 0 };
         long keys = 0;
         PCWSTR pCur = pszColumnName;
         while (true)
         {
-            long colNo = m_columns.IndexOf(String::Copy(pCur, pSep - pCur));
+            long colNo = m_columns.IndexOf(String(pCur, pSep - pCur));
             if (colNo < 0)
             {
                 throw MsiException(ERROR_INVALID_PARAMETER, L"Invalid column name.");
@@ -154,7 +154,9 @@ long MsiTable::Find(PCWSTR pszColumnName, PCWSTR pszValue, long startRowNo) cons
                 throw MsiException(ERROR_INVALID_PARAMETER, L"Column is of binary.");
             }
             colNoList[keys++] = colNo;
+#pragma warning(disable:28182)
             if (!*pSep)
+#pragma warning(default:28182)
             {
                 break;
             }
@@ -240,7 +242,7 @@ void MsiTable::CreateIndex()
             {
                 buf.AppendFormat(L";%s", m_rows[rowNo][m_columns.GetKeyIndex(keyNo)].ToText()->Text);
             }
-            m_pIndex->insert(IndexEntry(String::Copy(&buf), rowNo));
+            m_pIndex->insert(IndexEntry(String(buf), rowNo));
         }
     }
 }

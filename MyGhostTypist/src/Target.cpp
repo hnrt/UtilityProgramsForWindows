@@ -12,8 +12,8 @@ RefPtr<Target> Target::Create(PCWSTR pszName, bool bIsVisible)
 }
 
 
-Target::Target(PCWSTR pszName, bool bIsVisible)
-    : m_pszName(String::Copy(pszName))
+Target::Target(const String& szName, bool bIsVisible)
+    : m_szName(szName)
     , m_bIsVisible(bIsVisible)
     , m_bBlockKeybd(false)
     , m_bBlockMouse(false)
@@ -23,9 +23,9 @@ Target::Target(PCWSTR pszName, bool bIsVisible)
 }
 
 
-void Target::set_Name(PCWSTR pszName)
+void Target::set_Name(const String& szName)
 {
-    m_pszName = String::Copy(pszName);
+    m_szName = szName;
     if (m_pCallback)
     {
         m_pCallback->OnTargetUpdate(*this);
@@ -65,7 +65,7 @@ void Target::set_BlockMouse(bool value)
 
 RefPtr<Target> Target::Clone() const
 {
-    Target* pCloned = new Target(m_pszName, m_bIsVisible);
+    Target* pCloned = new Target(m_szName, m_bIsVisible);
     pCloned->m_bBlockKeybd = m_bBlockKeybd;
     pCloned->m_bBlockMouse = m_bBlockMouse;
     for (auto iter = m_Actions.CBegin; iter != m_Actions.CEnd; iter++)

@@ -62,7 +62,7 @@ namespace hnrt
         MSXML2::IXMLDOMTextPtr InsertTextNodeBefore(PCWSTR pszData, MSXML2::IXMLDOMNode* pChild, MSXML2::IXMLDOMNode* pParent);
         MSXML2::IXMLDOMTextPtr AppendTextNode(PCWSTR pszData, MSXML2::IXMLDOMNode* pParent);
         static void AppendChild(MSXML2::IXMLDOMNode* pParent, MSXML2::IXMLDOMNode* pChild);
-        static bool GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, PCWSTR& pszValue);
+        static bool GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, String& szValue);
         static bool GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, long& lValue);
         static bool GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, RectangleMetrics& value);
         static bool GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, bool& bValue);
@@ -70,7 +70,7 @@ namespace hnrt
         static void SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName, long lValue);
         static void SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName, const RectangleMetrics& value);
         static void SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName, bool bValue);
-        static PCWSTR GetText(MSXML2::IXMLDOMNode* pNode);
+        static String GetText(MSXML2::IXMLDOMNode* pNode);
         static void SetText(MSXML2::IXMLDOMElement* pElement, PCWSTR pszFormat, ...);
         MSXML2::IXMLDOMElement* get_DocumentElement();
         __declspec(property(get = get_DocumentElement)) MSXML2::IXMLDOMElement* DocumentElement;

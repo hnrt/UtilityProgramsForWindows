@@ -9,7 +9,7 @@
 using namespace hnrt;
 
 
-void VmIpAddressFinder::InstallService()
+void VmIpAddressFinder::InstallService() const
 {
     DBGFNC(L"VmIpAddressFinder::InstallService");
 
@@ -19,7 +19,7 @@ void VmIpAddressFinder::InstallService()
     hScm.Open();
     hSvc.Create(hScm,
         ServiceConfiguration()
-        .SetName(m_pszServiceName)
+        .SetName(m_szServiceName)
         .SetDisplayName(L"VM IP Address Updater")
         .SetDescription(L"Collect VM address information and updates hosts file accordingly.")
         .SetDesiredAccess(GENERIC_ALL)
@@ -30,7 +30,7 @@ void VmIpAddressFinder::InstallService()
 }
 
 
-void VmIpAddressFinder::UninstallService()
+void VmIpAddressFinder::UninstallService() const
 {
     DBGFNC(L"VmIpAddressFinder::UninstallService");
 
@@ -38,12 +38,12 @@ void VmIpAddressFinder::UninstallService()
     Service hSvc;
 
     hScm.Open();
-    hSvc.Open(hScm, m_pszServiceName, SERVICE_ALL_ACCESS);
+    hSvc.Open(hScm, m_szServiceName, SERVICE_ALL_ACCESS);
     hSvc.Delete();
 }
 
 
-void VmIpAddressFinder::StartService()
+void VmIpAddressFinder::StartService() const
 {
     DBGFNC(L"VmIpAddressFinder::StartService");
 
@@ -51,12 +51,12 @@ void VmIpAddressFinder::StartService()
     Service hSvc;
 
     hScm.Open();
-    hSvc.Open(hScm, m_pszServiceName, SERVICE_ALL_ACCESS);
+    hSvc.Open(hScm, m_szServiceName, SERVICE_ALL_ACCESS);
     hSvc.Start();
 }
 
 
-void VmIpAddressFinder::StopService()
+void VmIpAddressFinder::StopService() const
 {
     DBGFNC(L"VmIpAddressFinder::StopService");
 
@@ -64,7 +64,7 @@ void VmIpAddressFinder::StopService()
     Service hSvc;
 
     hScm.Open();
-    hSvc.Open(hScm, m_pszServiceName, SERVICE_ALL_ACCESS);
+    hSvc.Open(hScm, m_szServiceName, SERVICE_ALL_ACCESS);
     hSvc.Stop();
 }
 
@@ -77,7 +77,7 @@ void VmIpAddressFinder::RunService()
 
     SERVICE_TABLE_ENTRYW table[] =
     {
-        { const_cast<LPWSTR>(m_pszServiceName), ServiceMain },
+        { const_cast<LPWSTR>(m_szServiceName.Ptr), ServiceMain },
         { NULL, NULL }
     };
 
@@ -145,7 +145,7 @@ void VmIpAddressFinder::ServiceMain(Args& args)
         throw Win32Exception(GetLastError(), L"Failed to create an event.");
     }
 
-    m_hServiceStatus = ::RegisterServiceCtrlHandlerExW(m_pszServiceName, HandlerEx, this);
+    m_hServiceStatus = ::RegisterServiceCtrlHandlerExW(m_szServiceName, HandlerEx, this);
     if (!m_hServiceStatus)
     {
         throw Win32Exception(GetLastError(), L"Failed to register service control handler.");

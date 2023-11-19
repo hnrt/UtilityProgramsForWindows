@@ -139,6 +139,32 @@ StringBuffer& StringBuffer::Assign(PCWSTR psz, INT_PTR cch)
 }
 
 
+StringBuffer& StringBuffer::Format(PCWSTR pszFormat, ...)
+{
+    if (m_ptr)
+    {
+        m_len = 0;
+        m_ptr[0] = L'\0';
+    }
+    va_list argList;
+    va_start(argList, pszFormat);
+    VaAppendFormat(pszFormat, argList);
+    va_end(argList);
+    return *this;
+}
+
+
+StringBuffer& StringBuffer::VaFormat(PCWSTR pszFormat, va_list argList)
+{
+    if (m_ptr)
+    {
+        m_len = 0;
+        m_ptr[0] = L'\0';
+    }
+    return VaAppendFormat(pszFormat, argList);
+}
+
+
 StringBuffer& StringBuffer::Append(const StringBuffer& other)
 {
     if (other.Len)

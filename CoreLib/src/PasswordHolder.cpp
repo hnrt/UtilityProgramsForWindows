@@ -10,40 +10,40 @@ using namespace hnrt;
 
 PasswordHolder::PasswordHolder(const unsigned char key[SECRET_KEY_LENGTH], const unsigned char iv[SECRET_IV_LENGTH])
     : m_pSecret(SecretFactory::Create(key, iv))
-    , m_PlainText()
-    , m_Encrypted()
+    , m_szPlainText()
+    , m_szEncrypted()
 {
 }
 
 
 PasswordHolder::~PasswordHolder()
 {
-    wmemset(m_PlainText.Ptr, 0, m_PlainText.Len);
-    wmemset(m_Encrypted.Ptr, 0, m_Encrypted.Len);
+    m_szPlainText.ZeroFill();
+    m_szEncrypted.ZeroFill();
 }
 
 
-PCWSTR PasswordHolder::get_Encrypted() const
+const String& PasswordHolder::get_Encrypted() const
 {
-    return m_Encrypted.Ptr;
+    return m_szEncrypted;
 }
 
 
-void PasswordHolder::set_Encrypted(PCWSTR psz)
+void PasswordHolder::set_Encrypted(const String& sz)
 {
-    m_Encrypted.Resize(wcslen(psz) + 1);
-    wcscpy_s(m_Encrypted.Ptr, m_Encrypted.Len, psz);
+    m_szEncrypted.ZeroFill();
+    m_szEncrypted = sz;
 }
 
 
-PCWSTR PasswordHolder::get_PlainText() const
+const String& PasswordHolder::get_PlainText() const
 {
-    if (!m_PlainText.Len)
+    if (!m_szPlainText.Len)
     {
-        if (m_Encrypted.Len)
+        if (m_szEncrypted.Len)
         {
             Base64Decoder dec;
-            if (!dec.Parse(m_Encrypted.Ptr))
+            if (!dec.Parse(m_szEncrypted))
             {
                 throw Exception(L"PasswordHolder failed base64 decoding.");
             }
@@ -54,40 +54,34 @@ PCWSTR PasswordHolder::get_PlainText() const
                 m_pSecret->ClearBuffer();
                 throw Win32Exception(GetLastError(), L"PasswordHolder failed text encoding conversion to UTF-16.");
             }
-            m_PlainText.Resize(cch);
-            MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<LPCCH>(m_pSecret->Ptr), -1, m_PlainText.Ptr, cch);
+            m_szPlainText = String(CP_UTF8, reinterpret_cast<LPCCH>(m_pSecret->Ptr));
             m_pSecret->ClearBuffer();
         }
     }
-    return m_PlainText.Ptr;
+    return m_szPlainText;
 }
 
 
-void PasswordHolder::set_PlainText(PCWSTR psz)
+void PasswordHolder::set_PlainText(const String& sz)
 {
     ClearPlainText();
-    int cb = WideCharToMultiByte(CP_UTF8, 0, psz, -1, NULL, 0, NULL, NULL);
+    int cb = WideCharToMultiByte(CP_UTF8, 0, sz, -1, NULL, 0, NULL, NULL);
     if (cb < 0)
     {
         throw Win32Exception(GetLastError(), L"PasswordHolder failed text encoding conversion to UTF-8.");
     }
     Buffer<char> tmp(cb);
-    WideCharToMultiByte(CP_UTF8, 0, psz, -1, tmp, cb, NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, sz, -1, tmp, cb, NULL, NULL);
     m_pSecret->Encrypt(tmp.Ptr, tmp.Len);
     memset(tmp.Ptr, 0, tmp.Len);
     Base64Encoder enc;
     enc.Append(m_pSecret->Ptr, m_pSecret->Len);
     enc.End();
-    m_Encrypted.Resize(enc.Len + 1);
-    wcscpy_s(m_Encrypted.Ptr, m_Encrypted.Len, enc.Ptr);
+    m_szEncrypted = enc.Ptr;
 }
 
 
 void PasswordHolder::ClearPlainText()
 {
-    if (m_PlainText.Len)
-    {
-        wmemset(m_PlainText.Ptr, 0, m_PlainText.Len);
-        m_PlainText.Resize(0);
-    }
+    m_szPlainText.ZeroFill();
 }

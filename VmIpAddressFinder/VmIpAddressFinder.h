@@ -53,11 +53,11 @@ namespace hnrt
         void Run();
         void PrintAddresses();
         void UpdateHosts();
-        void InstallService();
-        void UninstallService();
+        void InstallService() const;
+        void UninstallService() const;
         #undef StartService
-        void StartService();
-        void StopService();
+        void StartService() const;
+        void StopService() const;
         void RunService();
 
     private:
@@ -84,11 +84,11 @@ namespace hnrt
         void SetServiceStatus(DWORD dwState);
 
         Args m_args;
-        PCWSTR m_pszName;
+        String m_szName;
         long m_debugLevel;
         VmIpAddressFinderCommandType m_command;
         bool m_bSecurityInitialized;
-        PCWSTR m_pszServiceName;
+        String m_szServiceName;
         SERVICE_STATUS_HANDLE m_hServiceStatus;
         DWORD m_dwCurrentState;
         HANDLE m_hEvent;

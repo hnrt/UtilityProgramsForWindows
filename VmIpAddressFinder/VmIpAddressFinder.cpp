@@ -83,11 +83,11 @@ VmIpAddressFinder& VmIpAddressFinder::Instance()
 VmIpAddressFinder::VmIpAddressFinder(int argc, wchar_t* argv[])
     : ComLibrary(COINIT_MULTITHREADED)
     , m_args(argc, argv)
-    , m_pszName(Path::GetFileNameWithoutExtension(m_args.CommandPath))
+    , m_szName(Path::GetFileNameWithoutExtension(m_args.CommandPath))
     , m_debugLevel(0)
     , m_command(VmIpAddressFinderCommandType::None)
     , m_bSecurityInitialized(false)
-    , m_pszServiceName(L"VmIpAddressUpdater")
+    , m_szServiceName(L"VmIpAddressUpdater")
     , m_hServiceStatus(nullptr)
     , m_dwCurrentState(SERVICE_STOPPED)
     , m_hEvent(nullptr)
@@ -203,14 +203,14 @@ void VmIpAddressFinder::ParseCommandLine()
 void VmIpAddressFinder::Help()
 {
     Put(L"Usage:");
-    Put(L"  %s -print", m_pszName);
-    Put(L"  %s -update", m_pszName);
-    Put(L"  %s -install", m_pszName);
-    Put(L"  %s -uninstall", m_pszName);
-    Put(L"  %s -start", m_pszName);
-    Put(L"  %s -stop", m_pszName);
-    Put(L"  %s -debug", m_pszName);
-    Put(L"  %s -help", m_pszName);
+    Put(L"  %s -print", m_szName.Ptr);
+    Put(L"  %s -update", m_szName.Ptr);
+    Put(L"  %s -install", m_szName.Ptr);
+    Put(L"  %s -uninstall", m_szName.Ptr);
+    Put(L"  %s -start", m_szName.Ptr);
+    Put(L"  %s -stop", m_szName.Ptr);
+    Put(L"  %s -debug", m_szName.Ptr);
+    Put(L"  %s -help", m_szName.Ptr);
 }
 
 

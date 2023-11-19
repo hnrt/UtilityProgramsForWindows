@@ -128,7 +128,7 @@ namespace hnrt
 
     inline PCWSTR Configuration::get_FontName() const
     {
-        return m_Window.pszFontName;
+        return m_Window.szFontName;
     }
 
     inline long Configuration::get_FontSize() const

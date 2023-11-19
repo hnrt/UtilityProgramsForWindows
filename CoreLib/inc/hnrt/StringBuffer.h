@@ -23,6 +23,8 @@ namespace hnrt
         StringBuffer& Assign(const StringBuffer&);
         StringBuffer& Assign(const String&);
         StringBuffer& Assign(PCWSTR, INT_PTR = -1);
+        StringBuffer& Format(PCWSTR pszFormat, ...);
+        StringBuffer& VaFormat(PCWSTR pszFormat, va_list argList);
         StringBuffer& Append(const StringBuffer&);
         StringBuffer& Append(const String&);
         StringBuffer& Append(PCWSTR, INT_PTR = -1);

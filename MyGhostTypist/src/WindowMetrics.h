@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <string.h>
 #include "hnrt/WindowDesign.h"
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -12,7 +13,7 @@ namespace hnrt
     {
         LONG Width;
         RectangleMetrics Padding;
-        PCWSTR pszFontName;
+        String szFontName;
         LONG FontSize;
         WindowMetrics();
     };
@@ -20,7 +21,7 @@ namespace hnrt
     inline WindowMetrics::WindowMetrics()
         : Width(400)
         , Padding()
-        , pszFontName(L"Segoe UI")
+        , szFontName(L"Segoe UI")
         , FontSize(12)
     {
     }

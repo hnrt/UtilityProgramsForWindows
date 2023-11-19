@@ -201,22 +201,22 @@ void InputManager::LoadKeyboardLayoutFile(PCWSTR pszFileName)
             WCHAR c = *pEnd++;
             if (c == L'\0')
             {
-                PCWSTR psz = String::Copy(pStart, (pEnd - 1) - pStart);
-                VirtualKey vk(psz);
+                String sz(pStart, (pEnd - 1) - pStart);
+                VirtualKey vk(sz.Ptr);
                 m_map[iter->second] = vk.Value | flags;
                 break;
             }
             else if (c == L'+')
             {
-                PCWSTR psz = String::Copy(pStart, (pEnd - 1) - pStart);
-                VirtualKey vk(psz);
+                String sz(pStart, (pEnd - 1) - pStart);
+                VirtualKey vk(sz.Ptr);
                 if (vk.Value == VK_SHIFT)
                 {
                     flags |= IM_FLAG_SHIFT;
                 }
                 else
                 {
-                    throw Exception(L"%s: Invalid prefix: %s", pszFileName, psz);
+                    throw Exception(L"%s: Invalid prefix: %s", pszFileName, sz.Ptr);
                 }
                 pStart = pEnd;
             }

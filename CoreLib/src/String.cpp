@@ -280,7 +280,17 @@ String::~String()
 }
 
 
-String& String::operator =(const String& other)
+String& String::ZeroFill()
+{
+    if (m_ptr)
+    {
+        m_ptr->ZeroFill();
+    }
+    return *this;
+}
+
+
+String& String::Assign(const String& other)
 {
     RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, other.m_ptr);
     if (m_ptr)
@@ -295,15 +305,26 @@ String& String::operator =(const String& other)
 }
 
 
-String& String::operator =(PCWSTR psz)
+String& String::Assign(PCWSTR psz)
 {
-    if (m_ptr && m_ptr->RefCnt == 1)
+    if (psz)
     {
-
+        if (m_ptr && m_ptr->RefCnt == 1)
+        {
+            m_ptr->Assign(psz);
+        }
+        else
+        {
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(psz));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
     }
     else
     {
-        RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, psz ? new RefStr(psz) : nullptr);
+        RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, nullptr);
         if (ptr)
         {
             ptr->Release();
@@ -313,9 +334,9 @@ String& String::operator =(PCWSTR psz)
 }
 
 
-String& String::operator +=(const String& other)
+String& String::Assign(StringBuffer& buf)
 {
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, other.Ptr));
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, buf ? new RefStr(buf) : nullptr);
     if (ptr)
     {
         ptr->Release();
@@ -324,12 +345,36 @@ String& String::operator +=(const String& other)
 }
 
 
-String& String::operator +=(PCWSTR psz)
+String& String::Append(const String& other)
 {
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, psz));
-    if (ptr)
+    if (other.Len > 0)
     {
-        ptr->Release();
+        RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, other.Ptr));
+        if (ptr)
+        {
+            ptr->Release();
+        }
+    }
+    return *this;
+}
+
+
+String& String::Append(PCWSTR psz)
+{
+    if (psz && *psz)
+    {
+        if (m_ptr && m_ptr->RefCnt == 1)
+        {
+            m_ptr->Append(psz);
+        }
+        else
+        {
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, psz));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
     }
     return *this;
 }

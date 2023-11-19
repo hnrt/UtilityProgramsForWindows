@@ -230,7 +230,7 @@ void XmlDocument::AppendChild(MSXML2::IXMLDOMNode* pParent, MSXML2::IXMLDOMNode*
 }
 
 
-bool XmlDocument::GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, PCWSTR& pszValue)
+bool XmlDocument::GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, String& szValue)
 {
     MSXML2::IXMLDOMNamedNodeMapPtr pMap;
     HRESULT hr = pNode->get_attributes(&pMap);
@@ -250,7 +250,7 @@ bool XmlDocument::GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, PCWST
         }
         else if (varValue.vt == VT_BSTR)
         {
-            pszValue = String::Copy(varValue.bstrVal);
+            szValue = varValue.bstrVal;
             return true;
         }
         else
@@ -325,10 +325,10 @@ bool XmlDocument::GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, long&
 
 bool XmlDocument::GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, RectangleMetrics& value)
 {
-    PCWSTR psz;
-    if (GetAttribute(pNode, pszName, psz))
+    String sz;
+    if (GetAttribute(pNode, pszName, sz))
     {
-        return value.Parse(psz);
+        return value.Parse(sz);
     }
     else
     {
@@ -339,15 +339,15 @@ bool XmlDocument::GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, Recta
 
 bool XmlDocument::GetAttribute(MSXML2::IXMLDOMNode* pNode, PCWSTR pszName, bool& bValue)
 {
-    PCWSTR psz;
-    if (GetAttribute(pNode, pszName, psz))
+    String sz;
+    if (GetAttribute(pNode, pszName, sz))
     {
-        if (!StringCase::Compare(psz, L"true") || !StringCase::Compare(psz, L"t"))
+        if (!StringCase::Compare(sz, L"true") || !StringCase::Compare(sz, L"t"))
         {
             bValue = true;
             return true;
         }
-        else if (!StringCase::Compare(psz, L"false") || !StringCase::Compare(psz, L"f"))
+        else if (!StringCase::Compare(sz, L"false") || !StringCase::Compare(sz, L"f"))
         {
             bValue = false;
             return true;
@@ -376,17 +376,13 @@ void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName,
 
 void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName, long lValue)
 {
-    WCHAR szValue[MAX_PATH];
-    _snwprintf_s(szValue, _TRUNCATE, L"%ld", lValue);
-    SetAttribute(pElement, pszName, szValue);
+    SetAttribute(pElement, pszName, String(PRINTF, L"%ld", lValue).Ptr);
 }
 
 
 void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName, const RectangleMetrics& value)
 {
-    WCHAR szValue[MAX_PATH];
-    _snwprintf_s(szValue, _TRUNCATE, L"%ld,%ld,%ld,%ld", value.left, value.top, value.right, value.bottom);
-    SetAttribute(pElement, pszName, szValue);
+    SetAttribute(pElement, pszName, String(PRINTF, L"%ld,%ld,%ld,%ld", value.left, value.top, value.right, value.bottom).Ptr);
 }
 
 
@@ -396,7 +392,7 @@ void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName,
 }
 
 
-PCWSTR XmlDocument::GetText(MSXML2::IXMLDOMNode* pNode)
+String XmlDocument::GetText(MSXML2::IXMLDOMNode* pNode)
 {
     CComBSTR strValue;
     HRESULT hr = pNode->get_text(&strValue);
@@ -404,7 +400,7 @@ PCWSTR XmlDocument::GetText(MSXML2::IXMLDOMNode* pNode)
     {
         throw ComException(hr, L"Failed to get text.");
     }
-    return String::Copy(strValue);
+    return String(strValue);
 }
 
 

@@ -6,6 +6,7 @@
 #include "hnrt/Win32Exception.h"
 #include "hnrt/Debug.h"
 #include "hnrt/StringBuffer.h"
+#include "hnrt/Buffer.h"
 
 
 using namespace hnrt;
@@ -69,12 +70,12 @@ RefPtr<Credentials> Credentials::Create(LONG version)
         DBGPUT(L"UserName=%s DomainName=%s", szUserName, szDomainName.Ptr);
     }
 #endif
-    unsigned char key[SECRET_KEY_LENGTH];
+    unsigned char key[SECRET_KEY_LENGTH] = { 0 };
     for (ULONG index = 0; index < SECRET_KEY_LENGTH; index++)
     {
         key[index] = s_KEY[index] ^ sid[index % cbSid];
     }
-    unsigned char iv[SECRET_IV_LENGTH];
+    unsigned char iv[SECRET_IV_LENGTH] = { 0 };
     for (ULONG index = 0; index < SECRET_IV_LENGTH; index++)
     {
         iv[index] = s_IV[index] ^ sid[index % cbSid];
@@ -85,9 +86,9 @@ RefPtr<Credentials> Credentials::Create(LONG version)
 
 Credentials::Credentials(const unsigned char key[SECRET_KEY_LENGTH], const unsigned char iv[SECRET_IV_LENGTH])
     : RefObj()
-    , m_pszUsername(nullptr)
+    , m_szUsername()
     , m_Password(key, iv)
-    , m_pszKey(nullptr)
+    , m_szKey()
     , m_pCallback(nullptr)
 {
 }
@@ -103,9 +104,9 @@ RefPtr<Credentials> Credentials::Clone() const
 }
 
 
-void Credentials::set_Username(PCWSTR psz)
+void Credentials::set_Username(const String& sz)
 {
-    m_pszUsername = psz ? StringStore::Get(psz) : nullptr;
+    m_szUsername = sz;
     if (m_pCallback)
     {
         m_pCallback->OnCredentialsUpdate(*this);
@@ -113,9 +114,9 @@ void Credentials::set_Username(PCWSTR psz)
 }
 
 
-void Credentials::set_Password(PCWSTR psz)
+void Credentials::set_Password(const String& sz)
 {
-    m_Password.PlainText = psz;
+    m_Password.PlainText = sz;
     if (m_pCallback)
     {
         m_pCallback->OnCredentialsUpdate(*this);
@@ -123,9 +124,9 @@ void Credentials::set_Password(PCWSTR psz)
 }
 
 
-void Credentials::set_EncryptedPassword(PCWSTR psz)
+void Credentials::set_EncryptedPassword(const String& sz)
 {
-    m_Password.Encrypted = psz;
+    m_Password.Encrypted = sz;
     if (m_pCallback)
     {
         m_pCallback->OnCredentialsUpdate(*this);
@@ -133,9 +134,9 @@ void Credentials::set_EncryptedPassword(PCWSTR psz)
 }
 
 
-void Credentials::set_Key(PCWSTR psz)
+void Credentials::set_Key(const String& sz)
 {
-    m_pszKey = psz ? StringStore::Get(psz) : nullptr;
+    m_szKey = sz;
     if (m_pCallback)
     {
         m_pCallback->OnCredentialsUpdate(*this);

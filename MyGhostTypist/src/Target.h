@@ -35,8 +35,8 @@ namespace hnrt
         void Delete(ULONG index);
         void Insert(ULONG index, RefPtr<Action> pAction);
         void Move(ULONG from, ULONG to);
-        PCWSTR get_Name() const;
-        void set_Name(PCWSTR pszName);
+        const String& get_Name() const;
+        void set_Name(const String& szName);
         bool get_IsVisible() const;
         void set_IsVisible(bool value);
         bool get_BlockKeybd() const;
@@ -47,7 +47,7 @@ namespace hnrt
         ActionCollection::ConstIter get_Begin();
         ActionCollection::ConstIter get_End();
         void set_Callback(TargetCallback* pCallbak);
-        __declspec(property(get = get_Name, put = set_Name)) PCWSTR Name;
+        __declspec(property(get = get_Name, put = set_Name)) const String& Name;
         __declspec(property(get = get_IsVisible, put = set_IsVisible)) bool IsVisible;
         __declspec(property(get = get_BlockKeybd, put = set_BlockKeybd)) bool BlockKeybd;
         __declspec(property(get = get_BlockMouse, put = set_BlockMouse)) bool BlockMouse;
@@ -58,9 +58,9 @@ namespace hnrt
 
     protected:
 
-        Target(PCWSTR pszName = nullptr, bool bIsVisible = true);
+        Target(const String& szName, bool bIsVisible);
 
-        PCWSTR m_pszName;
+        String m_szName;
         bool m_bIsVisible;
         bool m_bBlockKeybd;
         bool m_bBlockMouse;
@@ -68,9 +68,9 @@ namespace hnrt
         TargetCallback* m_pCallback;
     };
 
-    inline PCWSTR Target::get_Name() const
+    inline const String& Target::get_Name() const
     {
-        return m_pszName;
+        return m_szName;
     }
 
     inline bool Target::get_IsVisible() const

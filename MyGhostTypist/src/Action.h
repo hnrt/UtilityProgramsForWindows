@@ -6,6 +6,7 @@
 #include <utility>
 #include "hnrt/RefObj.h"
 #include "hnrt/RefPtr.h"
+#include "hnrt/String.h"
 
 
 #define AC_UNKNOWN 0
@@ -95,8 +96,8 @@ namespace hnrt
     {
     public:
 
-        typedef std::vector<std::pair<PCWSTR, PCWSTR>>::const_iterator ConstIter;
-        typedef std::pair<PCWSTR, PCWSTR> Entry;
+        typedef std::vector<std::pair<String, String>>::const_iterator ConstIter;
+        typedef std::pair<String, String> Entry;
 
         SetForegroundWindowAction(PCWSTR pszClassName, PCWSTR pszWindowText);
         SetForegroundWindowAction(const SetForegroundWindowAction& src);
@@ -124,8 +125,8 @@ namespace hnrt
 
     protected:
 
-        std::vector<std::pair<PCWSTR, PCWSTR>> m_Stack;
-        PCWSTR m_pszAccName;
+        std::vector<std::pair<String, String>> m_Stack;
+        String m_szAccName;
         LONG m_AccRole;
     };
 
@@ -146,7 +147,7 @@ namespace hnrt
 
     inline PCWSTR SetForegroundWindowAction::get_AccName() const
     {
-        return m_pszAccName;
+        return m_szAccName;
     }
 
     inline LONG SetForegroundWindowAction::get_AccRole() const
@@ -169,7 +170,7 @@ namespace hnrt
 
     protected:
 
-        PCWSTR m_psz;
+        String m_sz;
     };
 
     inline RefPtr<Action> TypeKeyAction::Clone() const
@@ -179,7 +180,7 @@ namespace hnrt
 
     inline PCWSTR TypeKeyAction::get_Key() const
     {
-        return m_psz;
+        return m_sz;
     }
 
     class TypeUnicodeAction
@@ -197,7 +198,7 @@ namespace hnrt
 
     protected:
 
-        PCWSTR m_psz;
+        String m_sz;
     };
 
     inline RefPtr<Action> TypeUnicodeAction::Clone() const
@@ -207,7 +208,7 @@ namespace hnrt
 
     inline PCWSTR TypeUnicodeAction::get_Text() const
     {
-        return m_psz;
+        return m_sz;
     }
 
     class TypeUsernameAction
@@ -225,7 +226,7 @@ namespace hnrt
 
     protected:
 
-        PCWSTR m_psz;
+        String m_sz;
     };
 
     inline RefPtr<Action> TypeUsernameAction::Clone() const
@@ -235,7 +236,7 @@ namespace hnrt
 
     inline PCWSTR TypeUsernameAction::get_Name() const
     {
-        return m_psz;
+        return m_sz;
     }
 
     class TypePasswordAction
@@ -253,7 +254,7 @@ namespace hnrt
 
     protected:
 
-        PCWSTR m_psz;
+        String m_sz;
     };
 
     inline RefPtr<Action> TypePasswordAction::Clone() const
@@ -263,7 +264,7 @@ namespace hnrt
 
     inline PCWSTR TypePasswordAction::get_Name() const
     {
-        return m_psz;
+        return m_sz;
     }
 
     class TypeDeleteSequenceAction
