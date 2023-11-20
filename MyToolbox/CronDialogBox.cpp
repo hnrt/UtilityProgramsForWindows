@@ -672,7 +672,7 @@ INT_PTR CronDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 }
 
 
-void CronDialogBox::OnSourceSelection(int id)
+void CronDialogBox::OnSourceSelection(int id) const
 {
 	BOOL bExpression = id == IDC_CRON_EXPR_RADIO;
 	EnableWindow(IDC_CRON_EXPR_EDIT, bExpression);
@@ -955,13 +955,13 @@ void CronDialogBox::Format()
 }
 
 
-void CronDialogBox::ClearExpression()
+void CronDialogBox::ClearExpression() const
 {
 	SetText(IDC_CRON_EXPR_EDIT);
 }
 
 
-void CronDialogBox::AppendToExpression(PCWSTR psz)
+void CronDialogBox::AppendToExpression(PCWSTR psz) const
 {
 	size_t cch2 = wcslen(psz);
 	if (cch2)
@@ -1011,7 +1011,7 @@ void CronDialogBox::UpdateValueControls(const CronValue& value, int idAll, int i
 		CheckButton(idWeek, value.type == CRON_WEEKDAY ? BST_CHECKED : BST_UNCHECKED);
 	}
 	CheckButton(idExpr, value.type >= CRON_SINGLE ? BST_CHECKED : BST_UNCHECKED);
-	SetText(idEdit, value);
+	SetText(idEdit, value.ToString());
 	SetEvalText(idStatic, value);
 }
 
@@ -1036,7 +1036,7 @@ void CronDialogBox::SetEvalText(int id, const CronValue& value)
 }
 
 
-void CronDialogBox::ClearEvalStatics(int id)
+void CronDialogBox::ClearEvalStatics(int id) const
 {
 	SetText(IDC_CRON_EXPR_STATIC);
 	if (id)
@@ -1083,7 +1083,7 @@ void CronDialogBox::ShowSecondControls()
 }
 
 
-void CronDialogBox::InitializeDescriptionStatic()
+void CronDialogBox::InitializeDescriptionStatic() const
 {
 	StringBuffer desc(260);
 	desc.AppendFormat(L"Year: %d-%d ( , - * / )", CronValue::Min(CRON_YEAR), CronValue::Max(CRON_YEAR));

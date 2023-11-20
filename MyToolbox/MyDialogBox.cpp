@@ -4,7 +4,7 @@
 #include "resource.h"
 #include "hnrt/Menu.h"
 #include "hnrt/ResourceString.h"
-#include "hnrt/String.h"
+#include "hnrt/StringBuffer.h"
 #include "hnrt/FileMapper.h"
 #include "hnrt/FileWriter.h"
 #include "hnrt/Win32Exception.h"
@@ -119,33 +119,45 @@ static UINT GetOutputCodePageMenuCommand(UINT uCodePage, bool bBOM)
 
 static PCWSTR GetCodePageMenuString(UINT uCodePage, bool bBOM = false)
 {
-	switch (uCodePage)
+	static std::map<UINT, String> cpMap;
+	static const String defaultCodePage(ResourceString(IDS_MENU_UTF8));
+	if (!cpMap.size())
 	{
-	case CP_AUTODETECT: return String::Copy(ResourceString(IDS_MENU_AUTODETECT));
-	case CP_UTF8: return bBOM ? String::Copy(ResourceString(IDS_MENU_UTF8BOM)) : String::Copy(ResourceString(IDS_MENU_UTF8));
-	case CP_UTF16: return bBOM ? String::Copy(ResourceString(IDS_MENU_UTF16BOM)) : String::Copy(ResourceString(IDS_MENU_UTF16));
-	case 932: return String::Copy(ResourceString(IDS_MENU_CP932));
-	case 936: return String::Copy(ResourceString(IDS_MENU_CP936));
-	case 949: return String::Copy(ResourceString(IDS_MENU_CP949));
-	case 950: return String::Copy(ResourceString(IDS_MENU_CP950));
-	case 1250: return String::Copy(ResourceString(IDS_MENU_CP1250));
-	case 1251: return String::Copy(ResourceString(IDS_MENU_CP1251));
-	case 1252: return String::Copy(ResourceString(IDS_MENU_CP1252));
-	case 1253: return String::Copy(ResourceString(IDS_MENU_CP1253));
-	case 1254: return String::Copy(ResourceString(IDS_MENU_CP1254));
-	case 1255: return String::Copy(ResourceString(IDS_MENU_CP1255));
-	case 1256: return String::Copy(ResourceString(IDS_MENU_CP1256));
-	case 1257: return String::Copy(ResourceString(IDS_MENU_CP1257));
-	case 1258: return String::Copy(ResourceString(IDS_MENU_CP1258));
-	default: return String::Copy(ResourceString(IDS_MENU_UTF8));
+#define ADD(cp,id) cpMap.insert(std::pair<UINT, String>(cp, String(ResourceString(id))))
+		ADD(CP_AUTODETECT, IDS_MENU_AUTODETECT);
+		ADD(CP_UTF8, IDS_MENU_UTF8);
+		ADD(CP_UTF8 + 0x10000, IDS_MENU_UTF8BOM);
+		ADD(CP_UTF16, IDS_MENU_UTF16);
+		ADD(CP_UTF16 + 0x10000, IDS_MENU_UTF16BOM);
+		ADD(932, IDS_MENU_CP932);
+		ADD(936, IDS_MENU_CP936);
+		ADD(949, IDS_MENU_CP949);
+		ADD(950, IDS_MENU_CP950);
+		ADD(1250, IDS_MENU_CP1250);
+		ADD(1251, IDS_MENU_CP1251);
+		ADD(1252, IDS_MENU_CP1252);
+		ADD(1253, IDS_MENU_CP1253);
+		ADD(1254, IDS_MENU_CP1254);
+		ADD(1255, IDS_MENU_CP1255);
+		ADD(1256, IDS_MENU_CP1256);
+		ADD(1257, IDS_MENU_CP1257);
+		ADD(1258, IDS_MENU_CP1258);
+#undef ADD
 	}
+	if ((uCodePage == CP_UTF8 || uCodePage == CP_UTF16) && bBOM)
+	{
+		uCodePage += 0x10000;
+	}
+	std::map<UINT, String>::const_iterator iter = cpMap.find(uCodePage);
+	return (iter != cpMap.cend()) ? iter->second : defaultCodePage;
 }
 
 
 void MyDialogBox::AddInputCodePageSettingMenus()
 {
+	String szInputEncoding(ResourceString(IDS_MENU_IENCODING));
 	m_menuSettings
-		.Add(String::Copy(ResourceString(IDS_MENU_IENCODING)),
+		.Add(szInputEncoding,
 			Menu()
 			.Add(GetCodePageMenuString(CP_AUTODETECT), IDM_SETTINGS_IN_AUTO,
 				m_uInputCodePage == CP_AUTODETECT ? MF_CHECKED : MF_UNCHECKED)
@@ -184,8 +196,9 @@ void MyDialogBox::AddInputCodePageSettingMenus()
 
 void MyDialogBox::AddOutputCodePageSettingMenus()
 {
+	String szOutputEncoding(ResourceString(IDS_MENU_OENCODING));
 	m_menuSettings
-		.Add(String::Copy(ResourceString(IDS_MENU_OENCODING)),
+		.Add(szOutputEncoding,
 			Menu()
 			.Add(GetCodePageMenuString(CP_UTF8), IDM_SETTINGS_OUT_UTF8,
 				m_uOutputCodePage == CP_UTF8 && m_bOutputBOM == false ? MF_CHECKED : MF_UNCHECKED)
@@ -374,13 +387,19 @@ bool MyDialogBox::ApplyToOutputCodePage(UINT uId)
 
 void MyDialogBox::AddHashAlgorithmSettingMenus(UINT uId)
 {
+	String szAlgorithm(ResourceString(IDS_MENU_ALGORITHM));
+	String szMD5(ResourceString(IDS_MENU_MD5));
+	String szSHA1(ResourceString(IDS_MENU_SHA1));
+	String szSHA256(ResourceString(IDS_MENU_SHA256));
+	String szSHA384(ResourceString(IDS_MENU_SHA384));
+	String szSHA512(ResourceString(IDS_MENU_SHA512));
 	m_menuSettings
-		.Add(String::Copy(ResourceString(IDS_MENU_ALGORITHM)), Menu()
-			.Add(String::Copy(ResourceString(IDS_MENU_MD5)), IDM_SETTINGS_MD5, uId == IDM_SETTINGS_MD5 ? MF_CHECKED : MF_UNCHECKED)
-			.Add(String::Copy(ResourceString(IDS_MENU_SHA1)), IDM_SETTINGS_SHA1, uId == IDM_SETTINGS_SHA1 ? MF_CHECKED : MF_UNCHECKED)
-			.Add(String::Copy(ResourceString(IDS_MENU_SHA256)), IDM_SETTINGS_SHA256, uId == IDM_SETTINGS_SHA256 ? MF_CHECKED : MF_UNCHECKED)
-			.Add(String::Copy(ResourceString(IDS_MENU_SHA384)), IDM_SETTINGS_SHA384, uId == IDM_SETTINGS_SHA384 ? MF_CHECKED : MF_UNCHECKED)
-			.Add(String::Copy(ResourceString(IDS_MENU_SHA512)), IDM_SETTINGS_SHA512, uId == IDM_SETTINGS_SHA512 ? MF_CHECKED : MF_UNCHECKED));
+		.Add(szAlgorithm, Menu()
+			.Add(szMD5, IDM_SETTINGS_MD5, uId == IDM_SETTINGS_MD5 ? MF_CHECKED : MF_UNCHECKED)
+			.Add(szSHA1, IDM_SETTINGS_SHA1, uId == IDM_SETTINGS_SHA1 ? MF_CHECKED : MF_UNCHECKED)
+			.Add(szSHA256, IDM_SETTINGS_SHA256, uId == IDM_SETTINGS_SHA256 ? MF_CHECKED : MF_UNCHECKED)
+			.Add(szSHA384, IDM_SETTINGS_SHA384, uId == IDM_SETTINGS_SHA384 ? MF_CHECKED : MF_UNCHECKED)
+			.Add(szSHA512, IDM_SETTINGS_SHA512, uId == IDM_SETTINGS_SHA512 ? MF_CHECKED : MF_UNCHECKED));
 }
 
 
@@ -398,32 +417,41 @@ bool MyDialogBox::ApplyToHashAlgorithm(UINT uId, UINT& uValue, UINT uBase)
 	default:
 		return false;
 	}
-	m_menuSettings[String::Copy(ResourceString(IDS_MENU_ALGORITHM))]
+	String szAlgorithm(ResourceString(IDS_MENU_ALGORITHM));
+	String szMD5(ResourceString(IDS_MENU_MD5));
+	String szSHA1(ResourceString(IDS_MENU_SHA1));
+	String szSHA256(ResourceString(IDS_MENU_SHA256));
+	String szSHA384(ResourceString(IDS_MENU_SHA384));
+	String szSHA512(ResourceString(IDS_MENU_SHA512));
+	m_menuSettings[szAlgorithm.Ptr]
 		.Modify(
 			IDM_SETTINGS_MD5, uId == IDM_SETTINGS_MD5 ? MF_CHECKED : MF_UNCHECKED,
-			IDM_SETTINGS_MD5, String::Copy(ResourceString(IDS_MENU_MD5)))
+			IDM_SETTINGS_MD5, szMD5)
 		.Modify(
 			IDM_SETTINGS_SHA1, uId == IDM_SETTINGS_SHA1 ? MF_CHECKED : MF_UNCHECKED,
-			IDM_SETTINGS_SHA1, String::Copy(ResourceString(IDS_MENU_SHA1)))
+			IDM_SETTINGS_SHA1, szSHA1)
 		.Modify(
 			IDM_SETTINGS_SHA256, uId == IDM_SETTINGS_SHA256 ? MF_CHECKED : MF_UNCHECKED,
-			IDM_SETTINGS_SHA256, String::Copy(ResourceString(IDS_MENU_SHA256)))
+			IDM_SETTINGS_SHA256, szSHA256)
 		.Modify(
 			IDM_SETTINGS_SHA384, uId == IDM_SETTINGS_SHA384 ? MF_CHECKED : MF_UNCHECKED,
-			IDM_SETTINGS_SHA384, String::Copy(ResourceString(IDS_MENU_SHA384)))
+			IDM_SETTINGS_SHA384, szSHA384)
 		.Modify(
 			IDM_SETTINGS_SHA512, uId == IDM_SETTINGS_SHA512 ? MF_CHECKED : MF_UNCHECKED,
-			IDM_SETTINGS_SHA512, String::Copy(ResourceString(IDS_MENU_SHA512)));
+			IDM_SETTINGS_SHA512, szSHA512);
 	return true;
 }
 
 
 void MyDialogBox::AddLettercaseSettingMenus(UINT uId)
 {
+	String szFormat(ResourceString(IDS_MENU_FORMAT));
+	String szUppercase(ResourceString(IDS_MENU_UPPERCASE));
+	String szLowercase(ResourceString(IDS_MENU_LOWERCASE));
 	m_menuSettings
-		.Add(String::Copy(ResourceString(IDS_MENU_FORMAT)), Menu()
-			.Add(String::Copy(ResourceString(IDS_MENU_UPPERCASE)), IDM_SETTINGS_UPPERCASE, uId == IDM_SETTINGS_UPPERCASE ? MF_CHECKED : MF_UNCHECKED)
-			.Add(String::Copy(ResourceString(IDS_MENU_LOWERCASE)), IDM_SETTINGS_LOWERCASE, uId == IDM_SETTINGS_LOWERCASE ? MF_CHECKED : MF_UNCHECKED));
+		.Add(szFormat, Menu()
+			.Add(szUppercase, IDM_SETTINGS_UPPERCASE, uId == IDM_SETTINGS_UPPERCASE ? MF_CHECKED : MF_UNCHECKED)
+			.Add(szLowercase, IDM_SETTINGS_LOWERCASE, uId == IDM_SETTINGS_LOWERCASE ? MF_CHECKED : MF_UNCHECKED));
 }
 
 
@@ -438,13 +466,16 @@ bool MyDialogBox::ApplyToLettercase(UINT uId, UINT& uValue, UINT uBase)
 	default:
 		return false;
 	}
-	m_menuSettings[String::Copy(ResourceString(IDS_MENU_FORMAT))]
+	String szFormat(ResourceString(IDS_MENU_FORMAT));
+	String szUppercase(ResourceString(IDS_MENU_UPPERCASE));
+	String szLowercase(ResourceString(IDS_MENU_LOWERCASE));
+	m_menuSettings[szFormat.Ptr]
 		.Modify(
 			IDM_SETTINGS_UPPERCASE, uId == IDM_SETTINGS_UPPERCASE ? MF_CHECKED : MF_UNCHECKED,
-			IDM_SETTINGS_UPPERCASE, String::Copy(ResourceString(IDS_MENU_UPPERCASE)))
+			IDM_SETTINGS_UPPERCASE, szUppercase)
 		.Modify(
 			IDM_SETTINGS_LOWERCASE, uId == IDM_SETTINGS_LOWERCASE ? MF_CHECKED : MF_UNCHECKED,
-			IDM_SETTINGS_LOWERCASE, String::Copy(ResourceString(IDS_MENU_LOWERCASE)));
+			IDM_SETTINGS_LOWERCASE, szLowercase);
 	return true;
 }
 
@@ -525,28 +556,36 @@ static void TerminateNull(WCHAR* ptr, size_t len)
 }
 
 
-void MyDialogBox::LoadTextFromFile(int id, PWSTR psz, DWORD dwLen)
+void MyDialogBox::LoadTextFromFile(int id) const
 {
-	WCHAR szPath[MAX_PATH] = { 0 };
+	String szPath;
+	LoadTextFromFile(id, szPath);
+}
+
+
+void MyDialogBox::LoadTextFromFile(int id, String& szPath) const
+{
+	String szTitle(ResourceString(IDS_LOADTEXTFROMFILE));
+	StringBuffer szPath2(MAX_PATH, szPath);
 	OPENFILENAMEW ofn = { 0 };
 	ofn.lStructSize = sizeof(ofn);
 	ofn.hwndOwner = hwnd;
-	ofn.lpstrFile = psz ? psz : szPath;
-	ofn.nMaxFile = psz ? dwLen : MAX_PATH;
-	ofn.lpstrTitle = String::Copy(ResourceString(IDS_LOADTEXTFROMFILE));
+	ofn.lpstrFile = szPath2;
+	ofn.nMaxFile = static_cast<DWORD>(szPath2.Cap);
+	ofn.lpstrTitle = szTitle;
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 	if (!GetOpenFileNameW(&ofn))
 	{
 		return;
 	}
 	FileMapper fm(ofn.lpstrFile);
-	fm.Open();
 	if (fm.Len > INT_MAX - 1)
 	{
 		MessageBoxW(hwnd, ResourceString(IDS_MSG_TOO_LARGE_FILE), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 		return;
 	}
-	else if (!fm.Len)
+	szPath = szPath2;
+	if (!fm.Len)
 	{
 		SetText(id);
 		return;
@@ -643,15 +682,23 @@ void MyDialogBox::LoadTextFromFile(int id, PWSTR psz, DWORD dwLen)
 }
 
 
-void MyDialogBox::SaveTextAsFile(int id, PWSTR psz, DWORD dwLen)
+void MyDialogBox::SaveTextAsFile(int id) const
 {
-	WCHAR szPath[MAX_PATH] = { 0 };
+	String szPath;
+	SaveTextAsFile(id, szPath);
+}
+
+
+void MyDialogBox::SaveTextAsFile(int id, String& szPath) const
+{
+	String szTitle(ResourceString(IDS_SAVETEXTASFILE));
+	StringBuffer szPath2(MAX_PATH, szPath);
 	OPENFILENAMEW ofn = { 0 };
 	ofn.lStructSize = sizeof(ofn);
 	ofn.hwndOwner = hwnd;
-	ofn.lpstrFile = psz ? psz : szPath;
-	ofn.nMaxFile = psz ? dwLen : MAX_PATH;
-	ofn.lpstrTitle = String::Copy(ResourceString(IDS_SAVETEXTASFILE));
+	ofn.lpstrFile = szPath2;
+	ofn.nMaxFile = static_cast<DWORD>(szPath2.Cap);
+	ofn.lpstrTitle = szTitle;
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
 	if (!GetSaveFileNameW(&ofn))
 	{
@@ -693,17 +740,18 @@ void MyDialogBox::SaveTextAsFile(int id, PWSTR psz, DWORD dwLen)
 			else
 			{
 				DWORD dwError = GetLastError();
-				String Message(PRINTF, L"%s\n%s",
+				String szMessage(PRINTF, L"%s\n%s",
 					ResourceString(IDS_MSG_TEXT_ENCODING_CONVERSION_ERROR).Ptr,
 					ErrorMessage::Get(dwError));
-				MessageBoxW(hwnd, Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+				MessageBoxW(hwnd, szMessage, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 			}
 		}
+		szPath = szPath2;
 	}
 	catch (Win32Exception e)
 	{
-		String Message(PRINTF, L"%s\n%s", e.Message, ErrorMessage::Get(e.Error));
-		MessageBoxW(hwnd, Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+		String szMessage(PRINTF, L"%s\n%s", e.Message, ErrorMessage::Get(e.Error));
+		MessageBoxW(hwnd, szMessage, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 	}
 	catch (Exception e)
 	{
@@ -712,7 +760,7 @@ void MyDialogBox::SaveTextAsFile(int id, PWSTR psz, DWORD dwLen)
 }
 
 
-void MyDialogBox::InitializeCodePageComboBox(int id, int initialSelection)
+void MyDialogBox::InitializeCodePageComboBox(int id, int initialSelection) const
 {
 #define ADD(x,y) AddStringToComboBox(id,x,y)
 #define ADDCP(x) ADD(L"CP" L#x,x)
@@ -737,7 +785,7 @@ void MyDialogBox::InitializeCodePageComboBox(int id, int initialSelection)
 }
 
 
-void MyDialogBox::InitializeLineBreakComboBox(int id, int initialSelection)
+void MyDialogBox::InitializeLineBreakComboBox(int id, int initialSelection) const
 {
 	AddStringToComboBox(id, L"CRLF", 0x0d0a);
 	AddStringToComboBox(id, L"LF", 0x0a);
@@ -746,7 +794,7 @@ void MyDialogBox::InitializeLineBreakComboBox(int id, int initialSelection)
 
 
 // from UTC-12:00 (Baker Island/Howland Island) through UTC+14:00 (Kiribati)
-void MyDialogBox::InitializeOffsetComboBox(int id, int initialSelection)
+void MyDialogBox::InitializeOffsetComboBox(int id, int initialSelection) const
 {
 	static const struct {
 		PCWSTR psz;

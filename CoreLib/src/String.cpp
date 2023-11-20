@@ -42,13 +42,13 @@ String::String(RefStr* ptr)
 
 
 String::String(PCWSTR psz)
-    : m_ptr(psz ? new RefStr(psz) : nullptr)
+    : m_ptr(psz && *psz ? new RefStr(psz) : nullptr)
 {
 }
 
 
 String::String(PCWSTR psz, size_t cch)
-    : m_ptr(psz ? new RefStr(psz, cch) : nullptr)
+    : m_ptr(psz && cch ? new RefStr(psz, cch) : nullptr)
 {
 }
 
@@ -133,15 +133,15 @@ String::String(StringOptions option, PCWSTR psz, ...)
     }
     case UPPERCASE:
     {
-        StringBuffer buf(wcslen(psz) + 1);
-        _wcsupr_s(buf.Append(psz), buf.Cap);
+        StringBuffer buf(-1, psz);
+        _wcsupr_s(buf, buf.Cap);
         m_ptr = new RefStr(buf);
         break;
     }
     case LOWERCASE:
     {
-        StringBuffer buf(wcslen(psz) + 1);
-        _wcslwr_s(buf.Append(psz), buf.Cap);
+        StringBuffer buf(-1, psz);
+        _wcslwr_s(buf, buf.Cap);
         m_ptr = new RefStr(buf);
         break;
     }
@@ -241,31 +241,31 @@ String::String(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5)
 
 
 String::String(PCSTR psz)
-    : m_ptr(psz ? new RefStr(psz) : nullptr)
+    : m_ptr(psz && *psz ? new RefStr(psz) : nullptr)
 {
 }
 
 
 String::String(PCSTR psz, size_t cb)
-    : m_ptr(psz ? new RefStr(psz, cb) : nullptr)
+    : m_ptr(psz && cb ? new RefStr(psz, cb) : nullptr)
 {
 }
 
 
 String::String(UINT cp, PCSTR psz)
-    : m_ptr(psz ? new RefStr(cp, psz) : nullptr)
+    : m_ptr(psz && *psz ? new RefStr(cp, psz) : nullptr)
 {
 }
 
 
 String::String(UINT cp, PCSTR psz, size_t cb)
-    : m_ptr(psz ? new RefStr(cp, psz, cb) : nullptr)
+    : m_ptr(psz && cb ? new RefStr(cp, psz, cb) : nullptr)
 {
 }
 
 
 String::String(StringBuffer& buf)
-    : m_ptr(new RefStr(buf))
+    : m_ptr(buf.Len ? new RefStr(buf) : nullptr)
 {
 }
 
@@ -290,6 +290,58 @@ String& String::ZeroFill()
 }
 
 
+String& String::Uppercase()
+{
+    if (Len)
+    {
+        if (m_ptr->RefCnt == 1)
+        {
+            size_t size = m_ptr->Len + 1;
+            PWSTR psz = m_ptr->Exchange(nullptr);
+            _wcsupr_s(psz, size);
+            m_ptr->Exchange(psz);
+        }
+        else
+        {
+            StringBuffer buf(-1, Ptr);
+            _wcsupr_s(buf, buf.Cap);
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(buf));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
+    }
+    return *this;
+}
+
+
+String& String::Lowercase()
+{
+    if (Len)
+    {
+        if (m_ptr->RefCnt == 1)
+        {
+            size_t size = m_ptr->Len + 1;
+            PWSTR psz = m_ptr->Exchange(nullptr);
+            _wcslwr_s(psz, size);
+            m_ptr->Exchange(psz);
+        }
+        else
+        {
+            StringBuffer buf(-1, Ptr);
+            _wcslwr_s(buf, buf.Cap);
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(buf));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
+    }
+    return *this;
+}
+
+
 String& String::Assign(const String& other)
 {
     RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, other.m_ptr);
@@ -307,7 +359,7 @@ String& String::Assign(const String& other)
 
 String& String::Assign(PCWSTR psz)
 {
-    if (psz)
+    if (psz && *psz)
     {
         if (m_ptr && m_ptr->RefCnt == 1)
         {
@@ -334,9 +386,38 @@ String& String::Assign(PCWSTR psz)
 }
 
 
+String& String::Assign(PCWSTR psz, size_t cch)
+{
+    if (psz && cch)
+    {
+        if (m_ptr && m_ptr->RefCnt == 1)
+        {
+            m_ptr->Assign(psz, cch);
+        }
+        else
+        {
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(psz, cch));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
+    }
+    else
+    {
+        RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, nullptr);
+        if (ptr)
+        {
+            ptr->Release();
+        }
+    }
+    return *this;
+}
+
+
 String& String::Assign(StringBuffer& buf)
 {
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, buf ? new RefStr(buf) : nullptr);
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, buf.Len ? new RefStr(buf) : nullptr);
     if (ptr)
     {
         ptr->Release();
@@ -347,12 +428,19 @@ String& String::Assign(StringBuffer& buf)
 
 String& String::Append(const String& other)
 {
-    if (other.Len > 0)
+    if (other.Len)
     {
-        RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, other.Ptr));
-        if (ptr)
+        if (m_ptr && m_ptr->RefCnt == 1)
         {
-            ptr->Release();
+            m_ptr->Append(other.Ptr);
+        }
+        else
+        {
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, other.Ptr));
+            if (ptr)
+            {
+                ptr->Release();
+            }
         }
     }
     return *this;
@@ -375,6 +463,85 @@ String& String::Append(PCWSTR psz)
                 ptr->Release();
             }
         }
+    }
+    return *this;
+}
+
+
+String& String::Append(PCWSTR psz, size_t cch)
+{
+    if (psz && cch)
+    {
+        if (m_ptr && m_ptr->RefCnt == 1)
+        {
+            m_ptr->Append(psz, cch);
+        }
+        else
+        {
+            StringBuffer buf(Len + cch + 1, Ptr);
+            buf.Append(psz, cch);
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(buf));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
+    }
+    return *this;
+}
+
+
+String& String::Format(PCWSTR psz, ...)
+{
+    va_list argList;
+    va_start(argList, psz);
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(psz, argList));
+    va_end(argList);
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
+String& String::VaFormat(PCWSTR psz, va_list argList)
+{
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(psz, argList));
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
+String& String::AppendFormat(PCWSTR psz, ...)
+{
+    StringBuffer buf;
+    buf.Append(psz);
+    va_list argList;
+    va_start(argList, psz);
+    buf.VaAppendFormat(psz, argList);
+    va_end(argList);
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(buf));
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
+String& String::VaAppendFormat(PCWSTR psz, va_list argList)
+{
+    StringBuffer buf;
+    buf.Append(*this);
+    buf.VaAppendFormat(psz, argList);
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(buf));
+    if (ptr)
+    {
+        ptr->Release();
     }
     return *this;
 }

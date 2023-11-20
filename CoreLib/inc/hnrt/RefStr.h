@@ -3,6 +3,7 @@
 
 #include "hnrt/RefObj.h"
 #include "hnrt/Heap.h"
+#include "hnrt/Interlocked.h"
 #include "hnrt/StringBuffer.h"
 
 
@@ -26,9 +27,12 @@ namespace hnrt
         RefStr(UINT, PCSTR);
         RefStr(UINT, PCSTR, size_t);
         RefStr(StringBuffer&);
+        PWSTR Exchange(PWSTR);
         RefStr& ZeroFill();
         RefStr& Assign(PCWSTR);
+        RefStr& Assign(PCWSTR, size_t);
         RefStr& Append(PCWSTR);
+        RefStr& Append(PCWSTR, size_t);
         virtual ~RefStr();
         void operator =(const RefStr&) = delete;
         PCWSTR get_ptr() const;
@@ -140,6 +144,13 @@ namespace hnrt
         free(m_psz);
     }
 
+    inline PWSTR RefStr::Exchange(PWSTR psz)
+    {
+        psz = Interlocked<PWSTR>::ExchangePointer(&m_psz, psz);
+        m_len = m_psz ? wcslen(m_psz) : 0;
+        return psz;
+    }
+
     inline RefStr& RefStr::ZeroFill()
     {
         if (m_psz && m_len)
@@ -153,17 +164,24 @@ namespace hnrt
     inline RefStr& RefStr::Assign(PCWSTR psz)
     {
         size_t cch = wcslen(psz);
-        if (m_psz && cch <= m_len)
-        {
-            wcscpy_s(m_psz, m_len + 1, psz);
-            m_len = cch;
-        }
-        else
+        if (!m_psz || cch > m_len)
         {
             m_psz = Allocate(m_psz, cch + 1);
-            wcscpy_s(m_psz, cch + 1, psz);
-            m_len = cch;
         }
+        wmemcpy_s(m_psz, cch + 1, psz, cch + 1);
+        m_len = cch;
+        return *this;
+    }
+
+    inline RefStr& RefStr::Assign(PCWSTR psz, size_t cch)
+    {
+        if (!m_psz || cch > m_len)
+        {
+            m_psz = Allocate(m_psz, cch + 1);
+        }
+        wmemcpy_s(m_psz, cch, psz, cch);
+        m_len = cch;
+        m_psz[m_len] = L'\0';
         return *this;
     }
 
@@ -171,8 +189,17 @@ namespace hnrt
     {
         size_t cch = wcslen(psz);
         m_psz = Allocate(m_psz, m_len + cch + 1);
-        wcscpy_s(m_psz + m_len, cch + 1, psz);
+        wmemcpy_s(m_psz + m_len, cch + 1, psz, cch + 1);
         m_len += cch;
+        return *this;
+    }
+
+    inline RefStr& RefStr::Append(PCWSTR psz, size_t cch)
+    {
+        m_psz = Allocate(m_psz, m_len + cch + 1);
+        wmemcpy_s(m_psz + m_len, cch, psz, cch);
+        m_len += cch;
+        m_psz[m_len] = L'\0';
         return *this;
     }
 

@@ -31,20 +31,20 @@ namespace hnrt
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
-		void OnSourceSelection(int);
+		void OnSourceSelection(int) const;
 		void OnSecondChanged();
 		void OnOffsetChanged();
 		void Parse();
 		void Format();
-		void ClearExpression();
-		void AppendToExpression(PCWSTR);
+		void ClearExpression() const;
+		void AppendToExpression(PCWSTR) const;
 		void UpdateIndividualControls();
 		void UpdateValueControls(const CronValue& value, int idAll, int idAny, int idLast, int idWeek, int idExpr, int idEdit, int idStatic);
 		void SetEvalText(int, const CronValue&);
-		void ClearEvalStatics(int = 0);
+		void ClearEvalStatics(int = 0) const;
 		int GetEvalStatic(int);
 		void ShowSecondControls();
-		void InitializeDescriptionStatic();
+		void InitializeDescriptionStatic() const;
 
 		Cron m_cron;
 		int m_offset;

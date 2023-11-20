@@ -12,6 +12,7 @@ StringBuffer::StringBuffer(const StringBuffer& other)
     : m_ptr(other.m_cap ? Allocate<WCHAR>(other.m_cap) : nullptr)
     , m_cap(other.m_cap)
     , m_len(other.m_len)
+    , m_inc(1)
 {
     if (m_ptr)
     {
@@ -24,6 +25,7 @@ StringBuffer::StringBuffer(size_t capacity)
     : m_ptr(capacity ? Allocate<WCHAR>(capacity) : nullptr)
     , m_cap(capacity)
     , m_len(0)
+    , m_inc(capacity ? MAX_PATH : 1)
 {
     if (m_ptr)
     {
@@ -36,6 +38,7 @@ StringBuffer::StringBuffer(INT_PTR capacity, PCWSTR psz)
     : m_ptr(nullptr)
     , m_cap(0)
     , m_len(0)
+    , m_inc(capacity > 0 ? MAX_PATH : 1)
 {
     if (capacity > 0)
     {
@@ -66,6 +69,7 @@ StringBuffer::StringBuffer(const String& other)
     : m_ptr(Allocate<WCHAR>(other.Len + 1))
     , m_cap(other.Len + 1)
     , m_len(other.Len)
+    , m_inc(1)
 {
     wmemcpy_s(m_ptr, m_cap, other, other.Len + 1);
 }
@@ -275,7 +279,7 @@ void StringBuffer::CheckCapacity(size_t delta)
 {
     if (m_len + delta + 1 > m_cap)
     {
-        size_t capacity = m_len + delta + MAX_PATH;
+        size_t capacity = m_len + delta + m_inc;
         m_ptr = Allocate(m_ptr, capacity);
         m_cap = capacity;
     }

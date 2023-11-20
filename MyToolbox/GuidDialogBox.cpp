@@ -145,7 +145,7 @@ void GuidDialogBox::ChangeGuid()
     }
     else
     {
-        _snwprintf_s(m_szFormatted, _TRUNCATE, L"CoCreateGuid failed. (%08X)", (int)hRes);
+        m_szFormatted.Format(L"CoCreateGuid failed. (%08X)", (int)hRes);
         SetText(IDC_GUID_RESULT, m_szFormatted);
         DisableWindow(IDC_GUID_BUTTON_COPY);
     }
@@ -161,7 +161,7 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
     OLECHAR buf[64];
     if (!StringFromGUID2(m_guid, buf, _countof(buf)))
     {
-        _snwprintf_s(m_szFormatted, _TRUNCATE, L"StringFromGUID2 failed.");
+        m_szFormatted = L"StringFromGUID2 failed.";
         SetText(IDC_GUID_RESULT, m_szFormatted);
         DisableWindow(IDC_GUID_BUTTON_COPY);
         return;
@@ -170,8 +170,7 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
     switch (m_uCurrentlySelected)
     {
     case IDC_GUID_RADIO_LOWERCASE:
-        _wcslwr_s(buf);
-        _snwprintf_s(m_szFormatted, _TRUNCATE, L"%.36s", &buf[1]);
+        m_szFormatted.Assign(&buf[1], 36).Lowercase();
         break;
     case IDC_GUID_RADIO_IMPLEMENT:
         /*
@@ -179,7 +178,7 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
         * IMPLEMENT_OLECREATE(<<class>>, <<external_name>>,
         * 0xcc9cceef, 0x195a, 0x4539, 0x93, 0x78, 0xd0, 0x83, 0x81, 0x8a, 0x61, 0xc6);
         */
-        _snwprintf_s(m_szFormatted, _TRUNCATE,
+        m_szFormatted.Format(
             L"// %s\r\nIMPLEMENT_OLECREATE(<<class>>, <<external_name>>,\r\n0x%08lx, 0x%04x, 0x%04x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x);",
             buf, guid.Data1, guid.Data2, guid.Data3,
             guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
@@ -190,7 +189,7 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
         * DEFINE_GUID(<<name>>,
         * 0xcc9cceef, 0x195a, 0x4539, 0x93, 0x78, 0xd0, 0x83, 0x81, 0x8a, 0x61, 0xc6);
         */
-        _snwprintf_s(m_szFormatted, _TRUNCATE,
+        m_szFormatted.Format(
             L"// %s\r\nDEFINE_GUID(<<name>>,\r\n0x%08lx, 0x%04x, 0x%04x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x);",
             buf, guid.Data1, guid.Data2, guid.Data3,
             guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
@@ -201,7 +200,7 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
         * static const GUID <<name>> =
         * { 0xcc9cceef, 0x195a, 0x4539, { 0x93, 0x78, 0xd0, 0x83, 0x81, 0x8a, 0x61, 0xc6 } };
         */
-        _snwprintf_s(m_szFormatted, _TRUNCATE,
+        m_szFormatted.Format(
             L"// %s\r\nstatic const GUID <<name>> = \r\n{ 0x%08lx, 0x%04x, 0x%04x, { 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x } };",
             buf, guid.Data1, guid.Data2, guid.Data3,
             guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
@@ -210,23 +209,23 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
         /*
         * {CC9CCEEF-195A-4539-9378-D083818A61C6}
         */
-        _snwprintf_s(m_szFormatted, _TRUNCATE, L"%s", buf);
+        m_szFormatted = buf;
         break;
     case IDC_GUID_RADIO_SQUARE:
         /*
         * [Guid("CC9CCEEF-195A-4539-9378-D083818A61C6")]
         */
-        _snwprintf_s(m_szFormatted, _TRUNCATE, L"[Guid(\"%.36s\")]", &buf[1]);
+        m_szFormatted.Format(L"[Guid(\"%.36s\")]", & buf[1]);
         break;
     case IDC_GUID_RADIO_ANGLE:
         /*
         * <Guid("CC9CCEEF-195A-4539-9378-D083818A61C6")>
         */
-        _snwprintf_s(m_szFormatted, _TRUNCATE, L"<Guid(\"%.36s\")>", &buf[1]);
+        m_szFormatted.Format(L"<Guid(\"%.36s\")>", &buf[1]);
         break;
     case IDC_GUID_RADIO_UPPERCASE:
     default:
-        _snwprintf_s(m_szFormatted, _TRUNCATE, L"%.36s", &buf[1]);
+        m_szFormatted.Assign(&buf[1], 36);
         break;
     }
     SetText(IDC_GUID_RESULT, m_szFormatted);

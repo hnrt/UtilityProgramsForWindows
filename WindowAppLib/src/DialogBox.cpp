@@ -4,7 +4,6 @@
 #include "hnrt/WindowHandle.h"
 #include "hnrt/WindowDesign.h"
 #include "hnrt/Clipboard.h"
-#include "hnrt/String.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/Debug.h"
 #include <map>
@@ -119,6 +118,15 @@ PWCHAR DialogBox::GetText(int id, PWCHAR pBuf, size_t cch) const
 {
     SendMessage(id, WM_GETTEXT, cch, reinterpret_cast<LPARAM>(pBuf));
     return pBuf;
+}
+
+
+String DialogBox::GetText(int id) const
+{
+    LRESULT cch = SendMessage(id, WM_GETTEXTLENGTH);
+    Buffer<WCHAR> buf(cch + 1);
+    SendMessage(id, WM_GETTEXT, buf.Len, reinterpret_cast<LPARAM>(&buf));
+    return String(buf);
 }
 
 

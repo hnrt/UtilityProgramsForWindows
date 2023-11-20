@@ -14,7 +14,7 @@ FileMapper::FileMapper(PCWSTR pszPath)
     , m_ptr(NULL)
     , m_len(0ULL)
 {
-    if (m_Path.Ptr)
+    if (m_Path)
     {
         Open();
     }

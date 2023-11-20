@@ -39,21 +39,22 @@ namespace hnrt
 		void OnSelectSource(int);
 		bool OnEncode();
 		bool OnDecode();
-		UINT GetCodePage();
+		UINT GetCodePage() const;
 		void Encode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut, bool bUsePlus);
 		void Encode(WCHAR c, UINT uCodePage, PWCHAR& pOut, PWCHAR pOutBound, UINT offset);
 		void Decode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut);
 		UINT GetDecodedOffset(PCWSTR pszIn, UINT cbOut);
 
 		int get_CurrentEdit() const;
-		PWSTR get_CurrentPath();
+		String& get_CurrentPath() const;
+		void set_CurrentPath(const String&);
 
 		__declspec(property(get = get_CurrentEdit)) int CurrentEdit;
-		__declspec(property(get = get_CurrentPath)) PWSTR CurrentPath;
+		__declspec(property(get = get_CurrentPath, put = set_CurrentPath)) String& CurrentPath;
 
 		bool m_bEncodingError;
 		bool m_bDecodingError;
-		WCHAR m_szOriginalPath[MAX_PATH];
-		WCHAR m_szEncodedPath[MAX_PATH];
+		mutable String m_szOriginalPath;
+		mutable String m_szEncodedPath;
 	};
 }

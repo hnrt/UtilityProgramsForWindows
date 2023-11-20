@@ -3,6 +3,7 @@
 
 #include "MyDialogBox.h"
 #include "hnrt/Hash.h"
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -43,24 +44,24 @@ namespace hnrt
 		void OnUppercase();
 		void SwitchMenu();
 		void Calculate(DataFeeder& rDataFeeder);
-		bool CanCalculate();
-		bool HasResult();
+		bool CanCalculate() const;
+		bool HasResult() const;
 		void ClearResult();
-		void SetResultHeader();
-		void SetResultHeader(ULONGLONG nBytesIn);
-		void SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut);
+		void SetResultHeader() const;
+		void SetResultHeader(ULONGLONG nBytesIn) const;
+		void SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut) const;
 		void SetResult(PCWSTR psz = L"");
 		void SetResult(Hash& rHash);
 		void ResetResultCase();
 		void SetPath(PCWSTR psz = L"");
-		UINT GetCodePage();
-		UINT GetLineBreak();
+		UINT GetCodePage() const;
+		UINT GetLineBreak() const;
 		UINT ConvertToLF(PWCHAR pStart, UINT uLength);
 
 		Hash m_hash;
 		UINT m_uSource;
 		UINT m_uMethod;
 		UINT m_uLettercase;
-		WCHAR m_szTextPath[MAX_PATH];
+		String m_szTextPath;
 	};
 }

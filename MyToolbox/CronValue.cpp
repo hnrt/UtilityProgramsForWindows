@@ -23,7 +23,7 @@ static void AppendIntegerOrWord(int value, CronElement element, StringBuffer& bu
 		value -= CRON_WORD_DISPLACEMENT;
 		if (min <= value && value <= max)
 		{
-			buf.AppendFormat(L"%s", CronMonthWords[value - min]);
+			buf += CronMonthWords[value - min];
 		}
 		else
 		{
@@ -35,7 +35,7 @@ static void AppendIntegerOrWord(int value, CronElement element, StringBuffer& bu
 		value -= CRON_WORD_DISPLACEMENT;
 		if (min <= value && value <= max)
 		{
-			buf.AppendFormat(L"%s", CronDayOfWeekWords[value - min]);
+			buf += CronDayOfWeekWords[value - min];
 		}
 		else
 		{
@@ -133,7 +133,7 @@ void CronValue::Append(RefPtr<CronValue> pValue)
 }
 
 
-PCWSTR CronValue::ToString() const
+String CronValue::ToString() const
 {
 	StringBuffer buf(260);
 	for (const CronValue* pCur = this; pCur; pCur = pCur->next.Ptr)
@@ -197,7 +197,7 @@ PCWSTR CronValue::ToString() const
 			break;
 		}
 	}
-	return String::Copy(buf);
+	return String(buf);
 }
 
 

@@ -24,8 +24,8 @@
 #define REG_NAME_LETTERCASE L"Lettercase"
 
 
-#define UPPERCASE 1
-#define LOWERCASE 2
+#define UPPERCASE_LETTER 1
+#define LOWERCASE_LETTER 2
 
 
 using namespace hnrt;
@@ -54,14 +54,14 @@ void HashDialogBox::OnCreate()
     {
         source.GetDWORD(hKey, REG_NAME_SOURCE, 1);
         method.GetDWORD(hKey, REG_NAME_METHOD, 1);
-        lettercase.GetDWORD(hKey, REG_NAME_LETTERCASE, UPPERCASE);
+        lettercase.GetDWORD(hKey, REG_NAME_LETTERCASE, UPPERCASE_LETTER);
     }
     UINT uSource = source.Type == REG_DWORD ? ((DWORD)source == 2 ? IDC_HASH_TEXT : IDC_HASH_FILE) : IDC_HASH_FILE;
     UINT uMethod = method.Type == REG_DWORD ? (IDC_HASH_MD5 + ((DWORD)method - 1) % 5) : IDC_HASH_MD5;
-    m_uLettercase = lettercase.Type == REG_DWORD ? (DWORD)lettercase : UPPERCASE;
+    m_uLettercase = lettercase.Type == REG_DWORD ? (DWORD)lettercase : UPPERCASE_LETTER;
     CheckButton(uSource);
     CheckButton(uMethod);
-    CheckButton(IDC_HASH_UPPERCASE, m_uLettercase == UPPERCASE ? TRUE : FALSE);
+    CheckButton(IDC_HASH_UPPERCASE, m_uLettercase == UPPERCASE_LETTER ? TRUE : FALSE);
     SetPath();
     SetResult();
     InitializeCodePageComboBox(IDC_HASH_ENCODING);
@@ -292,7 +292,7 @@ void HashDialogBox::OnLoadFrom()
     }
     else if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
     {
-        LoadTextFromFile(IDC_HASH_CONTENT, m_szTextPath, MAX_PATH);
+        LoadTextFromFile(IDC_HASH_CONTENT, m_szTextPath);
     }
 }
 
@@ -301,7 +301,7 @@ void HashDialogBox::OnSaveAs()
 {
     if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
     {
-        SaveTextAsFile(IDC_HASH_CONTENT, m_szTextPath, MAX_PATH);
+        SaveTextAsFile(IDC_HASH_CONTENT, m_szTextPath);
     }
 }
 
@@ -330,7 +330,7 @@ void HashDialogBox::OnCopy()
     SIZE_T cch = wcslen(m_hash.Text);
     Buffer<WCHAR> buf(cch + 1);
     wcscpy_s(buf, buf.Len, m_hash.Text);
-    if (m_uLettercase == UPPERCASE)
+    if (m_uLettercase == UPPERCASE_LETTER)
     {
         _wcsupr_s(buf, buf.Len);
     }
@@ -369,7 +369,7 @@ void HashDialogBox::OnClear()
     if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
     {
         ClearEdit(IDC_HASH_CONTENT);
-        wmemset(m_szTextPath, L'\0', MAX_PATH);
+        m_szTextPath = String::Empty;
         ClearResult();
     }
 }
@@ -399,9 +399,9 @@ void HashDialogBox::OnSettingChanged(UINT uId)
         OnSelectMethod(uMethod);
         return;
     }
-    if (ApplyToLettercase(uId, m_uLettercase, UPPERCASE))
+    if (ApplyToLettercase(uId, m_uLettercase, UPPERCASE_LETTER))
     {
-        CheckButton(IDC_HASH_UPPERCASE, m_uLettercase == UPPERCASE ? TRUE : FALSE);
+        CheckButton(IDC_HASH_UPPERCASE, m_uLettercase == UPPERCASE_LETTER ? TRUE : FALSE);
         ResetResultCase();
         return;
     }
@@ -491,12 +491,12 @@ void HashDialogBox::OnUppercase()
     UINT value = GetButtonState(IDC_HASH_UPPERCASE);
     if (value == BST_CHECKED)
     {
-        ApplyToLettercase(IDM_SETTINGS_UPPERCASE, m_uLettercase, UPPERCASE);
+        ApplyToLettercase(IDM_SETTINGS_UPPERCASE, m_uLettercase, UPPERCASE_LETTER);
         ResetResultCase();
     }
     else if (value == BST_UNCHECKED)
     {
-        ApplyToLettercase(IDM_SETTINGS_LOWERCASE, m_uLettercase, UPPERCASE);
+        ApplyToLettercase(IDM_SETTINGS_LOWERCASE, m_uLettercase, UPPERCASE_LETTER);
         ResetResultCase();
     }
     else
@@ -570,7 +570,7 @@ void HashDialogBox::SwitchMenu()
         AddOutputCodePageSettingMenus();
     }
     AddHashAlgorithmSettingMenus(IDM_SETTINGS_MD5 + m_uMethod - IDC_HASH_MD5);
-    AddLettercaseSettingMenus(IDM_SETTINGS_UPPERCASE + m_uLettercase - UPPERCASE);
+    AddLettercaseSettingMenus(IDM_SETTINGS_UPPERCASE + m_uLettercase - UPPERCASE_LETTER);
 }
 
 
@@ -623,7 +623,7 @@ void HashDialogBox::SetPath(PCWSTR psz)
 }
 
 
-bool HashDialogBox::CanCalculate()
+bool HashDialogBox::CanCalculate() const
 {
     if (m_uSource == IDC_HASH_FILE)
     {
@@ -644,7 +644,7 @@ bool HashDialogBox::CanCalculate()
 }
 
 
-bool HashDialogBox::HasResult()
+bool HashDialogBox::HasResult() const
 {
     return GetTextLength(IDC_HASH_VALUE) > 0;
 }
@@ -659,26 +659,22 @@ void HashDialogBox::ClearResult()
 }
 
 
-void HashDialogBox::SetResultHeader()
+void HashDialogBox::SetResultHeader() const
 {
     SetText(IDC_HASH_RESULT, ResourceString(IDS_RESULT));
 }
 
 
-void HashDialogBox::SetResultHeader(ULONGLONG nBytesIn)
+void HashDialogBox::SetResultHeader(ULONGLONG nBytesIn) const
 {
-    WCHAR szBuf[260];
-    _snwprintf_s(szBuf, _TRUNCATE, ResourceString(IDS_RESULT_IN), NumberText(nBytesIn).Ptr);
-    SetText(IDC_HASH_RESULT, szBuf);
+    SetText(IDC_HASH_RESULT, String(PRINTF, ResourceString(IDS_RESULT_IN), NumberText(nBytesIn).Ptr));
 }
 
 
-void HashDialogBox::SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut)
+void HashDialogBox::SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut) const
 {
     ULONG nBitsOut = nBytesOut * 8;
-    WCHAR szBuf[260];
-    _snwprintf_s(szBuf, _TRUNCATE, ResourceString(IDS_RESULT_IN_OUT), NumberText(nBytesIn).Ptr, NumberText(nBytesOut).Ptr, NumberText(nBitsOut).Ptr);
-    SetText(IDC_HASH_RESULT, szBuf);
+    SetText(IDC_HASH_RESULT, String(PRINTF, ResourceString(IDS_RESULT_IN_OUT), NumberText(nBytesIn).Ptr, NumberText(nBytesOut).Ptr, NumberText(nBitsOut).Ptr));
 }
 
 
@@ -693,44 +689,41 @@ void HashDialogBox::SetResult(PCWSTR psz)
 void HashDialogBox::SetResult(Hash& rHash)
 {
     m_hash = rHash;
-    Buffer<WCHAR> buf(wcslen(m_hash.Text) + 1);
-    wcscpy_s(buf, buf.Len, m_hash.Text);
-    if (m_uLettercase == UPPERCASE)
+    String szValue = m_hash.Text;
+    if (m_uLettercase == UPPERCASE_LETTER)
     {
-        _wcsupr_s(buf, buf.Len);
+        szValue.Uppercase();
     }
     else
     {
-        _wcslwr_s(buf, buf.Len);
+        szValue.Lowercase();
     }
-    SetResult(buf);
+    SetResult(szValue);
 }
 
 
 void HashDialogBox::ResetResultCase()
 {
-    UINT length = GetTextLength(IDC_HASH_VALUE);
-    Buffer<WCHAR> buf(length + 1);
-    GetText(IDC_HASH_VALUE, buf, buf.Len);
-    if (m_uLettercase == UPPERCASE)
+    String szValue = GetText(IDC_HASH_VALUE);
+    if (m_uLettercase == UPPERCASE_LETTER)
     {
-        _wcsupr_s(buf, buf.Len);
+        szValue.Uppercase();
     }
     else
     {
-        _wcslwr_s(buf, buf.Len);
+        szValue.Lowercase();
     }
-    SetResult(buf);
+    SetResult(szValue);
 }
 
 
-UINT HashDialogBox::GetCodePage()
+UINT HashDialogBox::GetCodePage() const
 {
     return GetComboBoxSelection(IDC_HASH_ENCODING, CP_UTF8);
 }
 
 
-UINT HashDialogBox::GetLineBreak()
+UINT HashDialogBox::GetLineBreak() const
 {
     return GetComboBoxSelection(IDC_HASH_LINEBREAK, 0x0d0a);
 }

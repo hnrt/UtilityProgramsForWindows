@@ -14,7 +14,7 @@ namespace hnrt
     public:
 
         StringBuffer(const StringBuffer&);
-        StringBuffer(size_t);
+        StringBuffer(size_t = 0);
         StringBuffer(INT_PTR, PCWSTR);
         StringBuffer(const String&);
         ~StringBuffer();
@@ -56,6 +56,7 @@ namespace hnrt
         PWCHAR m_ptr;
         size_t m_cap;
         size_t m_len;
+        size_t m_inc;
     };
 
     inline StringBuffer::operator PCWSTR() const

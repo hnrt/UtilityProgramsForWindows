@@ -18,8 +18,8 @@ CronValueEvaluation::CronValueEvaluation(int* ptr, int len)
 	: RefObj()
 	, m_ptr(ptr)
 	, m_len(len)
-	, m_psz(nullptr)
 	, m_cur(0)
+	, m_sz()
 {
 }
 
@@ -27,7 +27,6 @@ CronValueEvaluation::CronValueEvaluation(int* ptr, int len)
 CronValueEvaluation::~CronValueEvaluation()
 {
 	delete[] m_ptr;
-	free(m_psz);
 }
 
 
@@ -47,13 +46,14 @@ int CronValueEvaluation::operator [](int index) const
 	}
 }
 
+
 PCWSTR CronValueEvaluation::ToString() const
 {
 	if (m_len <= 0)
 	{
 		return L"";
 	}
-	if (!m_psz)
+	if (!m_sz)
 	{
 		StringBuffer buf(260);
 		buf.AppendFormat(L"%d", m_ptr[0]);
@@ -61,9 +61,9 @@ PCWSTR CronValueEvaluation::ToString() const
 		{
 			buf.AppendFormat(L" %d", m_ptr[index]);
 		}
-		const_cast<CronValueEvaluation*>(this)->m_psz = buf.Detach();
+		m_sz = buf;
 	}
-	return m_psz;
+	return m_sz;
 }
 
 

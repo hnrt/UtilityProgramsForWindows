@@ -43,8 +43,8 @@ void NativeToAsciiDialogBox::OnCreate()
 		m_uInputCodePage = value.GetDWORD(hKey, REG_NAME_INPUT_CODEPAGE, CP_AUTODETECT);
 		m_uOutputCodePage = value.GetDWORD(hKey, REG_NAME_OUTPUT_CODEPAGE, CP_UTF8);
 		m_bOutputBOM = value.GetDWORD(hKey, REG_NAME_OUTPUT_BOM, 0) ? true : false;
-		wcscpy_s(m_szNativePath, value.GetSZ(hKey, REG_NAME_NATIVE_PATH, L""));
-		wcscpy_s(m_szAsciiPath, value.GetSZ(hKey, REG_NAME_ASCII_PATH, L""));
+		m_szNativePath = value.GetSZ(hKey, REG_NAME_NATIVE_PATH, L"");
+		m_szAsciiPath = value.GetSZ(hKey, REG_NAME_ASCII_PATH, L"");
 	}
 	m_menuView
 		.Add(ResourceString(IDS_MENU_NTOA), IDM_VIEW_NTOA);
@@ -164,13 +164,13 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 
 void NativeToAsciiDialogBox::OnLoadFrom()
 {
-	LoadTextFromFile(CurrentEdit, CurrentPath, MAX_PATH);
+	LoadTextFromFile(CurrentEdit, CurrentPath);
 }
 
 
 void NativeToAsciiDialogBox::OnSaveAs()
 {
-	SaveTextAsFile(CurrentEdit, CurrentPath, MAX_PATH);
+	SaveTextAsFile(CurrentEdit, CurrentPath);
 }
 
 
@@ -213,7 +213,7 @@ void NativeToAsciiDialogBox::OnCopyAll()
 void NativeToAsciiDialogBox::OnClear()
 {
 	ClearEdit(CurrentEdit);
-	wmemset(CurrentPath, L'\0', MAX_PATH);
+	CurrentPath = String::Empty;
 }
 
 
@@ -263,7 +263,7 @@ void NativeToAsciiDialogBox::OnSelectSource(int id)
 }
 
 
-void NativeToAsciiDialogBox::OnEncode()
+void NativeToAsciiDialogBox::OnEncode() const
 {
 	int cch = GetTextLength(IDC_NTOA_NATIVE_EDIT) + 1;
 	Buffer<WCHAR> bufNative(cch);
@@ -275,7 +275,7 @@ void NativeToAsciiDialogBox::OnEncode()
 }
 
 
-void NativeToAsciiDialogBox::OnDecode()
+void NativeToAsciiDialogBox::OnDecode() const
 {
 	int cch = GetTextLength(IDC_NTOA_ASCII_EDIT) + 1;
 	Buffer<WCHAR> bufAscii(cch);
@@ -304,7 +304,7 @@ int NativeToAsciiDialogBox::get_CurrentEdit() const
 }
 
 
-PWSTR NativeToAsciiDialogBox::get_CurrentPath()
+String& NativeToAsciiDialogBox::get_CurrentPath() const
 {
 	switch (CurrentEdit)
 	{
@@ -314,5 +314,21 @@ PWSTR NativeToAsciiDialogBox::get_CurrentPath()
 		return m_szAsciiPath;
 	default:
 		throw Exception(L"NativeToAsciiDialogBox::get_CurrentPath: Unexpected state.");
+	}
+}
+
+
+void NativeToAsciiDialogBox::set_CurrentPath(const String& value)
+{
+	switch (CurrentEdit)
+	{
+	case IDC_NTOA_NATIVE_EDIT:
+		m_szNativePath = value;
+		break;
+	case IDC_NTOA_ASCII_EDIT:
+		m_szAsciiPath = value;
+		break;
+	default:
+		throw Exception(L"NativeToAsciiDialogBox::set_CurrentPath: Unexpected state.");
 	}
 }

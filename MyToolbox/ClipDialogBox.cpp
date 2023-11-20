@@ -24,10 +24,10 @@ static const WCHAR Separator = LINE_SEPARATOR;
 ClipDialogBox::ClipDialogBox()
 	: MyDialogBox(IDD_CLIP)
 	, m_pCO(RefPtr<ClipboardObserver>(new MyClipboardObserver(*this)))
-	, m_pszDirectoryPath(Path::Combine(Path::GetKnownFolder(FOLDERID_LocalAppData), L"hnrt", L"MyToolbox", L"clippings"))
+	, m_szDirectoryPath(Path::Combine(Path::GetKnownFolder(FOLDERID_LocalAppData), L"hnrt", L"MyToolbox", L"clippings"))
 	, m_mapHash()
-	, m_FilePath()
-	, m_Hash()
+	, m_szFilePath()
+	, m_szHash()
 	, m_bChanged(false)
 	, m_bProcessing(false)
 {
@@ -88,8 +88,8 @@ void ClipDialogBox::OnTabSelectionChanged()
 	MyDialogBox::OnTabSelectionChanged();
 	m_menuEdit
 		.RemoveAll()
-		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY, m_FilePath ? MF_ENABLED : MF_DISABLED)
-		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE, m_FilePath ? MF_ENABLED : MF_DISABLED);
+		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY, m_szFilePath ? MF_ENABLED : MF_DISABLED)
+		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE, m_szFilePath ? MF_ENABLED : MF_DISABLED);
 	m_menuView
 		.Enable(IDM_VIEW_CLIP, MF_DISABLED);
 }
@@ -168,10 +168,10 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 	{
 		return;
 	}
-	if (!Path::ValidateDirectory(m_pszDirectoryPath))
+	if (!Path::ValidateDirectory(m_szDirectoryPath))
 	{
-		String message(PRINTF, L"%s\n%s", m_pszDirectoryPath.Ptr, ErrorMessage::Get(GetLastError()));
-		MessageBoxW(hwnd, message, ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
+		String szMessage(PRINTF, L"%s\n%s", m_szDirectoryPath.Ptr, ErrorMessage::Get(GetLastError()));
+		MessageBoxW(hwnd, szMessage, ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
 		return;
 	}
 	size_t cch = wcslen(psz);
@@ -179,16 +179,16 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 	MD5Hash hash(bdf);
 	SYSTEMTIME t = { 0 };
 	GetLocalTime(&t);
-	String name(PRINTF, L"%04d%02d%02d_%02d%02d%02d", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
+	String szName(PRINTF, L"%04d%02d%02d_%02d%02d%02d", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 	try
 	{
 		bool bSelect = false;
 		ClipMap::const_iterator iter = m_mapHash.find(hash.Text);
 		if (iter == m_mapHash.cend())
 		{
-			if (!Path::IsFile(Path::Combine(m_pszDirectoryPath, name)))
+			if (!Path::IsFile(Path::Combine(m_szDirectoryPath, szName)))
 			{
-				FileWriter body(Path::Combine(m_pszDirectoryPath, name), CREATE_NEW);
+				FileWriter body(Path::Combine(m_szDirectoryPath, szName), CREATE_NEW);
 				body.Write(&Separator, sizeof(WCHAR));
 				body.Write(hash.Text, wcslen(hash.Text) * sizeof(WCHAR));
 				body.Write(&Separator, sizeof(WCHAR));
@@ -198,26 +198,26 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 		}
 		else
 		{
-			String oldName = iter->second;
-			if (!MoveFileW(Path::Combine(m_pszDirectoryPath, oldName), Path::Combine(m_pszDirectoryPath, name)))
+			String szOldName = iter->second;
+			if (!MoveFileW(Path::Combine(m_szDirectoryPath, szOldName), Path::Combine(m_szDirectoryPath, szName)))
 			{
 				DWORD dwError = GetLastError();
-				throw Win32Exception(dwError, L"Failed to rename %s to %s.", oldName.Ptr, name.Ptr);
+				throw Win32Exception(dwError, L"Failed to rename %s to %s.", szOldName.Ptr, szName.Ptr);
 			}
 			m_mapHash.erase(iter);
-			LRESULT index = SendMessage(IDC_CLIP_FILENAME_LIST, LB_FINDSTRING, -1, reinterpret_cast<LPARAM>(oldName.Ptr));
+			LRESULT index = SendMessage(IDC_CLIP_FILENAME_LIST, LB_FINDSTRING, -1, reinterpret_cast<LPARAM>(szOldName.Ptr));
 			if (index != LB_ERR)
 			{
 				if (SendMessage(IDC_CLIP_FILENAME_LIST, LB_GETSEL, index, 0) > 0)
 				{
 					bSelect = true;
-					m_FilePath = Path::Combine(m_pszDirectoryPath, name);
+					m_szFilePath = Path::Combine(m_szDirectoryPath, szName);
 				}
 				SendMessage(IDC_CLIP_FILENAME_LIST, LB_DELETESTRING, index, 0);
 			}
 		}
-		m_mapHash.insert(ClipEntry(String::Copy(hash.Text), name));
-		SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(name.Ptr));
+		m_mapHash.insert(ClipEntry(hash.Text, szName));
+		SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(szName.Ptr));
 		if (bSelect)
 		{
 			SendMessage(IDC_CLIP_FILENAME_LIST, LB_SETCURSEL, 0, 0);
@@ -257,8 +257,8 @@ void ClipDialogBox::OnSelectionChange()
 			m_bChanged = false;
 			WriteBackToFile();
 		}
-		m_FilePath = Path::Combine(m_pszDirectoryPath, name.Ptr);
-		FileMapper file(m_FilePath);
+		m_szFilePath = Path::Combine(m_szDirectoryPath, name.Ptr);
+		FileMapper file(m_szFilePath);
 		Buffer<WCHAR> buf(file.Len / sizeof(WCHAR) + 1);
 		memcpy_s(buf, buf.Len * sizeof(WCHAR), file.Ptr, file.Len);
 		buf[buf.Len - 1] = L'\0';
@@ -277,7 +277,7 @@ void ClipDialogBox::OnSelectionChange()
 		*pContent++ = L'\0';
 		SetText(IDC_CLIP_HEADER_EDIT, buf);
 		SetReadOnlyEdit(IDC_CLIP_HEADER_EDIT, FALSE);
-		m_Hash = pszHash;
+		m_szHash = pszHash;
 		SetText(IDC_CLIP_BODY_EDIT, pContent);
 		EnableWindow(IDC_CLIP_COPY_BUTTON);
 		EnableWindow(IDC_CLIP_DELETE_BUTTON);
@@ -299,7 +299,7 @@ void ClipDialogBox::OnSelectionChange()
 		SetReadOnlyEdit(IDC_CLIP_HEADER_EDIT, TRUE);
 	}
 	SetText(IDC_CLIP_BODY_EDIT);
-	m_FilePath = String::Empty;
+	m_szFilePath = String::Empty;
 	DisableWindow(IDC_CLIP_COPY_BUTTON);
 	DisableWindow(IDC_CLIP_DELETE_BUTTON);
 	m_menuEdit
@@ -322,16 +322,16 @@ void ClipDialogBox::WriteBackToFile()
 		size_t cchBody = GetTextLength(IDC_CLIP_BODY_EDIT);
 		Buffer<WCHAR> body(cchBody + 1);
 		GetText(IDC_CLIP_BODY_EDIT, body, body.Len);
-		FileWriter file(m_FilePath, CREATE_ALWAYS);
+		FileWriter file(m_szFilePath, CREATE_ALWAYS);
 		file.Write(header, cchHeader * sizeof(WCHAR));
 		file.Write(&Separator, sizeof(WCHAR));
-		file.Write(m_Hash.Ptr, m_Hash.Len * sizeof(WCHAR));
+		file.Write(m_szHash.Ptr, m_szHash.Len * sizeof(WCHAR));
 		file.Write(&Separator, sizeof(WCHAR));
 		file.Write(body, cchBody * sizeof(WCHAR));
 	}
 	catch (Win32Exception e)
 	{
-		String message(PRINTF, L"%s\n%s", m_FilePath.Ptr, ErrorMessage::Get(GetLastError()));
+		String message(PRINTF, L"%s\n%s", m_szFilePath.Ptr, ErrorMessage::Get(GetLastError()));
 		MessageBoxW(hwnd, message, ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
 	}
 }

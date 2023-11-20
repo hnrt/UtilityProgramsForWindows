@@ -3,6 +3,7 @@
 
 #include "hnrt/RefObj.h"
 #include "hnrt/RefPtr.h"
+#include "hnrt/String.h"
 #include "CronElement.h"
 #include "CronValueEvaluation.h"
 
@@ -43,8 +44,7 @@ namespace hnrt
 		virtual ~CronValue();
 		void operator =(const CronValue&) = delete;
 		void Append(RefPtr<CronValue>);
-		operator PCWSTR() const;
-		PCWSTR ToString() const;
+		String ToString() const;
 		RefPtr<CronValueEvaluation> Evaluate(int offset = 0) const;
 		int Count(CronValueType type) const;
 
@@ -78,11 +78,6 @@ namespace hnrt
 	inline CronElement CronValue::get_element() const
 	{
 		return m_element;
-	}
-
-	inline CronValue::operator PCWSTR() const
-	{
-		return ToString();
 	}
 
 	class CronValueEmpty

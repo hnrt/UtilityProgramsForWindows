@@ -36,17 +36,18 @@ namespace hnrt
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		void OnSelectSource(int);
-		void OnEncode();
-		void OnDecode();
+		void OnEncode() const;
+		void OnDecode() const;
 
 		int get_CurrentEdit() const;
-		PWSTR get_CurrentPath();
+		String& get_CurrentPath() const;
+		void set_CurrentPath(const String&);
 
 		__declspec(property(get = get_CurrentEdit)) int CurrentEdit;
-		__declspec(property(get = get_CurrentPath)) PWSTR CurrentPath;
+		__declspec(property(get = get_CurrentPath, put = set_CurrentPath)) String& CurrentPath;
 
-		WCHAR m_szNativePath[MAX_PATH];
-		WCHAR m_szAsciiPath[MAX_PATH];
+		mutable String m_szNativePath;
+		mutable String m_szAsciiPath;
 	};
 }
 

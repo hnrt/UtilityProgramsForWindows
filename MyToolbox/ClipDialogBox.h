@@ -39,10 +39,10 @@ namespace hnrt
 		void WriteBackToFile();
 
 		RefPtr<ClipboardObserver> m_pCO;
-		String m_pszDirectoryPath;
+		String m_szDirectoryPath;
 		ClipMap m_mapHash;
-		String m_FilePath;
-		String m_Hash;
+		String m_szFilePath;
+		String m_szHash;
 		bool m_bChanged;
 		bool m_bProcessing;
 	};

@@ -3,6 +3,7 @@
 
 #include "hnrt/RefObj.h"
 #include "hnrt/RefPtr.h"
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -31,8 +32,8 @@ namespace hnrt
 
 		int* m_ptr;
 		int m_len;
-		PWSTR m_psz;
 		int m_cur;
+		mutable String m_sz;
 	};
 
 	inline CronValueEvaluation::operator PCWSTR() const

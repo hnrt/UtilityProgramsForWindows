@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include "hnrt/String.h"
 #include "MyDialogBox.h"
 
 
@@ -31,7 +32,7 @@ namespace hnrt
 		void ChangeGuid();
 
 		GUID m_guid;
-		WCHAR m_szFormatted[260];
+		String m_szFormatted;
 		UINT m_uCurrentlySelected;
 	};
 }

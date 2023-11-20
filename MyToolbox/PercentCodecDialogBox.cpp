@@ -45,8 +45,8 @@ void PercentCodecDialogBox::OnCreate()
 		m_uInputCodePage = value.GetDWORD(hKey, REG_NAME_INPUT_CODEPAGE, CP_AUTODETECT);
 		m_uOutputCodePage = value.GetDWORD(hKey, REG_NAME_OUTPUT_CODEPAGE, CP_UTF8);
 		m_bOutputBOM = value.GetDWORD(hKey, REG_NAME_OUTPUT_BOM, 0) ? true : false;
-		wcscpy_s(m_szOriginalPath, value.GetSZ(hKey, REG_NAME_ORIGINAL_PATH, L""));
-		wcscpy_s(m_szEncodedPath, value.GetSZ(hKey, REG_NAME_ENCODED_PATH, L""));
+		m_szOriginalPath = value.GetSZ(hKey, REG_NAME_ORIGINAL_PATH, L"");
+		m_szEncodedPath = value.GetSZ(hKey, REG_NAME_ENCODED_PATH, L"");
 	}
 	InitializeCodePageComboBox(IDC_PCTC_ENCODING);
 	RemoveValueFromComboBox(IDC_PCTC_ENCODING, CP_UTF16);
@@ -225,13 +225,13 @@ INT_PTR PercentCodecDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam
 
 void PercentCodecDialogBox::OnLoadFrom()
 {
-	LoadTextFromFile(CurrentEdit, CurrentPath, MAX_PATH);
+	LoadTextFromFile(CurrentEdit, CurrentPath);
 }
 
 
 void PercentCodecDialogBox::OnSaveAs()
 {
-	SaveTextAsFile(CurrentEdit, CurrentPath, MAX_PATH);
+	SaveTextAsFile(CurrentEdit, CurrentPath);
 }
 
 
@@ -274,7 +274,7 @@ void PercentCodecDialogBox::OnCopyAll()
 void PercentCodecDialogBox::OnClear()
 {
 	ClearEdit(CurrentEdit);
-	wmemset(CurrentPath, L'\0', MAX_PATH);
+	CurrentPath = String::Empty;
 }
 
 
@@ -406,7 +406,7 @@ bool PercentCodecDialogBox::OnDecode()
 }
 
 
-UINT PercentCodecDialogBox::GetCodePage()
+UINT PercentCodecDialogBox::GetCodePage() const
 {
 	return GetComboBoxSelection(IDC_PCTC_ENCODING, CP_UTF8);
 }
@@ -743,7 +743,7 @@ int PercentCodecDialogBox::get_CurrentEdit() const
 }
 
 
-PWSTR PercentCodecDialogBox::get_CurrentPath()
+String& PercentCodecDialogBox::get_CurrentPath() const
 {
 	switch (CurrentEdit)
 	{
@@ -753,5 +753,21 @@ PWSTR PercentCodecDialogBox::get_CurrentPath()
 		return m_szEncodedPath;
 	default:
 		throw Exception(L"PercentCodecDialogBox::get_CurrentPath: Unexpected state.");
+	}
+}
+
+
+void PercentCodecDialogBox::set_CurrentPath(const String& value)
+{
+	switch (CurrentEdit)
+	{
+	case IDC_PCTC_EDIT1:
+		m_szOriginalPath = value;
+		break;
+	case IDC_PCTC_EDIT2:
+		m_szEncodedPath = value;
+		break;
+	default:
+		throw Exception(L"PercentCodecDialogBox::set_CurrentPath: Unexpected state.");
 	}
 }

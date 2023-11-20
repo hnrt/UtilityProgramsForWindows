@@ -3,6 +3,7 @@
 
 #include "hnrt/DialogBox.h"
 #include "hnrt/Menu.h"
+#include "hnrt/String.h"
 
 
 #define CP_AUTODETECT 0
@@ -53,11 +54,13 @@ namespace hnrt
 		bool ApplyToHashAlgorithm(UINT, UINT&, UINT);
 		void AddLettercaseSettingMenus(UINT);
 		bool ApplyToLettercase(UINT, UINT&, UINT);
-		void LoadTextFromFile(int id, PWSTR psz = nullptr, DWORD dwLen = 0);
-		void SaveTextAsFile(int id, PWSTR psz = nullptr, DWORD dwLen = 0);
-		void InitializeCodePageComboBox(int id, int initialSelection = CP_UTF8);
-		void InitializeLineBreakComboBox(int id, int initialSelection = 0x0d0a);
-		void InitializeOffsetComboBox(int id, int initialSelection = 0);
+		void LoadTextFromFile(int id) const;
+		void LoadTextFromFile(int id, String& szPath) const;
+		void SaveTextAsFile(int id) const;
+		void SaveTextAsFile(int id, String& szPath) const;
+		void InitializeCodePageComboBox(int id, int initialSelection = CP_UTF8) const;
+		void InitializeLineBreakComboBox(int id, int initialSelection = 0x0d0a) const;
+		void InitializeOffsetComboBox(int id, int initialSelection = 0) const;
 
 	private:
 
