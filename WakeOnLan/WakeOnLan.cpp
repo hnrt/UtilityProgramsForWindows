@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
         int sent = sendto(sd, &packet, packet.Len, 0, &addr, addr.Len);
         if (sent == packet.Len)
         {
-            printf("MAGIC packet for %s (%d bytes) has been sent successfully.\n", mac.ToString(), packet.Len);
+            printf("MAGIC packet for %s (%d bytes) has been sent successfully.\n", mac.ToStringAcp().Ptr, packet.Len);
         }
         else
         {

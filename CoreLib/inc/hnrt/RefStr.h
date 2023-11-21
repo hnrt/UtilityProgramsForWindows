@@ -2,8 +2,8 @@
 
 
 #include "hnrt/RefObj.h"
+#include "hnrt/StringOptions.h"
 #include "hnrt/Heap.h"
-#include "hnrt/Interlocked.h"
 #include "hnrt/StringBuffer.h"
 
 
@@ -22,19 +22,15 @@ namespace hnrt
         RefStr(PCWSTR, PCWSTR, PCWSTR);
         RefStr(PCWSTR, PCWSTR, PCWSTR, PCWSTR);
         RefStr(PCWSTR, PCWSTR, PCWSTR, PCWSTR, PCWSTR);
-        RefStr(PCSTR);
-        RefStr(PCSTR, size_t);
-        RefStr(UINT, PCSTR);
-        RefStr(UINT, PCSTR, size_t);
+        RefStr(UINT, PCSTR, INT_PTR = -1);
         RefStr(StringBuffer&);
-        PWSTR Exchange(PWSTR);
-        RefStr& ZeroFill();
-        RefStr& Assign(PCWSTR);
-        RefStr& Assign(PCWSTR, size_t);
-        RefStr& Append(PCWSTR);
-        RefStr& Append(PCWSTR, size_t);
+        RefStr(StringOptions, ...);
         virtual ~RefStr();
         void operator =(const RefStr&) = delete;
+        PWSTR Exchange(PWSTR);
+        RefStr& ZeroFill();
+        RefStr& Assign(PCWSTR, INT_PTR = -1);
+        RefStr& Append(PCWSTR, INT_PTR = -1);
         PCWSTR get_ptr() const;
         size_t get_len() const;
 
@@ -45,12 +41,14 @@ namespace hnrt
 
         PWSTR m_psz;
         size_t m_len;
+        size_t m_cap;
     };
 
     inline RefStr::RefStr(PCWSTR psz)
         : RefObj()
         , m_psz(Clone(psz))
         , m_len(wcslen(m_psz))
+        , m_cap(m_len + 1)
     {
     }
 
@@ -58,6 +56,7 @@ namespace hnrt
         : RefObj()
         , m_psz(Clone(psz, cch))
         , m_len(wcslen(m_psz))
+        , m_cap(cch + 1)
     {
     }
 
@@ -65,6 +64,7 @@ namespace hnrt
         : RefObj()
         , m_psz(VaFormat(pszFormat, argList))
         , m_len(wcslen(m_psz))
+        , m_cap(m_len + 1)
     {
     }
 
@@ -72,6 +72,7 @@ namespace hnrt
         : RefObj()
         , m_psz(Concat(psz1, psz2))
         , m_len(wcslen(m_psz))
+        , m_cap(m_len + 1)
     {
     }
 
@@ -79,6 +80,7 @@ namespace hnrt
         : RefObj()
         , m_psz(Concat(psz1, psz2, psz3))
         , m_len(wcslen(m_psz))
+        , m_cap(m_len + 1)
     {
     }
 
@@ -86,6 +88,7 @@ namespace hnrt
         : RefObj()
         , m_psz(Concat(psz1, psz2, psz3, psz4))
         , m_len(wcslen(m_psz))
+        , m_cap(m_len + 1)
     {
     }
 
@@ -93,112 +96,173 @@ namespace hnrt
         : RefObj()
         , m_psz(Concat(psz1, psz2, psz3, psz4, psz5))
         , m_len(wcslen(m_psz))
+        , m_cap(m_len + 1)
     {
     }
 
-    inline RefStr::RefStr(PCSTR psz)
-        : RefObj()
-        , m_psz(ToUcs(psz))
-        , m_len(wcslen(m_psz))
-    {
-    }
-
-    inline RefStr::RefStr(PCSTR psz, size_t cb)
-        : RefObj()
-        , m_psz(ToUcs(psz, cb))
-        , m_len(wcslen(m_psz))
-    {
-    }
-
-    inline RefStr::RefStr(UINT cp, PCSTR psz)
-        : RefObj()
-        , m_psz(ToUcs(cp, psz))
-        , m_len(wcslen(m_psz))
-    {
-    }
-
-    inline RefStr::RefStr(UINT cp, PCSTR psz, size_t cb)
+    inline RefStr::RefStr(UINT cp, PCSTR psz, INT_PTR cb)
         : RefObj()
         , m_psz(ToUcs(cp, psz, cb))
         , m_len(wcslen(m_psz))
+        , m_cap(cb >= 0 ? cb + 1 : m_len + 1)
     {
     }
 
     inline RefStr::RefStr(StringBuffer& buf)
         : RefObj()
-        , m_psz(buf.Detach())
+        , m_psz(nullptr)
         , m_len(0)
+        , m_cap(0)
     {
-        if (m_psz)
+        m_cap = buf.Cap;
+        m_len = buf.Len;
+        m_psz = buf.Detach();
+    }
+
+    inline RefStr::RefStr(StringOptions option, ...)
+        : RefObj()
+        , m_psz(nullptr)
+        , m_len(0)
+        , m_cap(0)
+    {
+        va_list argList;
+        va_start(argList, option);
+        switch (option)
         {
+        case UPPERCASE:
+            m_psz = Clone(va_arg(argList, PCWSTR));
             m_len = wcslen(m_psz);
+            m_cap = m_len + 1;
+            _wcsupr_s(m_psz, m_cap);
+            break;
+        case LOWERCASE:
+            m_psz = Clone(va_arg(argList, PCWSTR));
+            m_len = wcslen(m_psz);
+            m_cap = m_len + 1;
+            _wcslwr_s(m_psz, m_cap);
+            break;
+        case IMMEDIATE:
+            m_psz = va_arg(argList, PWSTR);
+            m_len = wcslen(m_psz);
+            m_cap = m_len + 1;
+            break;
+        case STATIC:
+            m_psz = va_arg(argList, PWSTR);
+            m_len = wcslen(m_psz);
+            m_cap = 0; // indicates not to free m_psz
+            break;
+        default:
+            throw Exception(L"RefStr::ctor: Bad option.");
         }
-        else
-        {
-            m_psz = Clone(L"");
-        }
+        va_end(argList);
     }
 
     inline RefStr::~RefStr()
     {
-        free(m_psz);
+        if (m_cap)
+        {
+            Deallocate(m_psz);
+        }
     }
 
     inline PWSTR RefStr::Exchange(PWSTR psz)
     {
+        if (m_psz && !m_cap)
+        {
+            throw Exception(L"RefStr::Exchange: STATIC not allowed.");
+        }
         psz = Interlocked<PWSTR>::ExchangePointer(&m_psz, psz);
-        m_len = m_psz ? wcslen(m_psz) : 0;
+        if (m_psz)
+        {
+            m_len = wcslen(m_psz);
+            m_cap = m_len + 1;
+        }
+        else
+        {
+            m_len = 0;
+            m_cap = 0;
+        }
         return psz;
     }
 
     inline RefStr& RefStr::ZeroFill()
     {
-        if (m_psz && m_len)
+        if (m_psz)
         {
-            wmemset(m_psz, L'\0', m_len);
+            if (!m_cap)
+            {
+                throw Exception(L"RefStr::ZeroFill: STATIC not allowed.");
+            }
+            wmemset(m_psz, L'\0', m_cap);
             m_len = 0;
         }
         return *this;
     }
 
-    inline RefStr& RefStr::Assign(PCWSTR psz)
+    inline RefStr& RefStr::Assign(PCWSTR psz, INT_PTR cch)
     {
-        size_t cch = wcslen(psz);
-        if (!m_psz || cch > m_len)
+        size_t len;
+        if (cch > 0)
         {
-            m_psz = Allocate(m_psz, cch + 1);
+            len = wcsnlen(psz, cch);
         }
-        wmemcpy_s(m_psz, cch + 1, psz, cch + 1);
-        m_len = cch;
-        return *this;
-    }
-
-    inline RefStr& RefStr::Assign(PCWSTR psz, size_t cch)
-    {
-        if (!m_psz || cch > m_len)
+        else if (cch < 0)
         {
-            m_psz = Allocate(m_psz, cch + 1);
+            cch = len = wcslen(psz);
         }
-        wmemcpy_s(m_psz, cch, psz, cch);
-        m_len = cch;
+        else
+        {
+            len = 0;
+        }
+        size_t required = cch + 1;
+        if (m_cap < required)
+        {
+            m_psz = m_cap ? Allocate(m_psz, required) : Allocate<WCHAR>(required);
+            m_cap = required;
+        }
+        wmemcpy_s(m_psz, len, psz, len);
+        m_len = len;
         m_psz[m_len] = L'\0';
         return *this;
     }
 
-    inline RefStr& RefStr::Append(PCWSTR psz)
+    inline RefStr& RefStr::Append(PCWSTR psz, INT_PTR cch)
     {
-        size_t cch = wcslen(psz);
-        m_psz = Allocate(m_psz, m_len + cch + 1);
-        wmemcpy_s(m_psz + m_len, cch + 1, psz, cch + 1);
-        m_len += cch;
-        return *this;
-    }
-
-    inline RefStr& RefStr::Append(PCWSTR psz, size_t cch)
-    {
-        m_psz = Allocate(m_psz, m_len + cch + 1);
-        wmemcpy_s(m_psz + m_len, cch, psz, cch);
-        m_len += cch;
+        size_t len;
+        if (cch > 0)
+        {
+            len = wcsnlen(psz, cch);
+        }
+        else if (cch < 0)
+        {
+            cch = len = wcslen(psz);
+        }
+        else
+        {
+            return *this;
+        }
+        size_t required = m_len + cch + 1;
+        if (m_cap < required)
+        {
+            if (m_cap)
+            {
+                m_psz = Allocate(m_psz, required);
+            }
+            else if (m_psz)
+            {
+                // DO NOT FREE m_psz
+                PWSTR psz2 = Allocate<WCHAR>(required);
+                wmemcpy_s(psz2, m_len, m_psz, m_len);
+                m_psz = psz2;
+            }
+            else
+            {
+                m_psz = Allocate<WCHAR>(required);
+            }
+            m_cap = required;
+        }
+        wmemcpy_s(m_psz + m_len, cch, psz, len);
+        m_len += len;
         m_psz[m_len] = L'\0';
         return *this;
     }

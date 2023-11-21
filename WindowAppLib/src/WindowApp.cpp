@@ -40,12 +40,12 @@ void WindowApp::Close()
     if (hwnd)
     {
         DestroyWindow(hwnd);
-        UnregisterClassW(C.Name, C.Instance);
+        C.Unregister();
     }
 }
 
 
-void WindowApp::SetText(PCWSTR psz)
+void WindowApp::SetText(PCWSTR psz) const
 {
     SetWindowTextW(hwnd, psz);
 }

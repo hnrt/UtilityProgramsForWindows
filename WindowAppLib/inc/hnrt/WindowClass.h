@@ -6,14 +6,12 @@
 
 namespace hnrt
 {
-	class WindowClass
+	struct WindowClass
+		: public WNDCLASSEXW
 	{
-	public:
-
 		WindowClass(PCWSTR pszName);
-		WindowClass(const WindowClass&) = delete;
+		WindowClass(const WindowClass&) = default;
 		~WindowClass() = default;
-		void operator =(const WindowClass&) = delete;
 		WindowClass& SetStyle(UINT value);
 		WindowClass& SetWindowProcedure(WNDPROC value);
 		WindowClass& SetClassExtra(int value);
@@ -25,25 +23,6 @@ namespace hnrt
 		WindowClass& SetMenuName(UINT value);
 		WindowClass& SetSmallIcon(HICON value);
 		ATOM Register();
-
-		PCWSTR get_Name() const;
-		HINSTANCE get_Instance() const;
-
-		__declspec(property(get = get_Name)) PCWSTR Name;
-		__declspec(property(get = get_Instance)) HINSTANCE Instance;
-
-	protected:
-
-		WNDCLASSEXW m_wc;
+		BOOL Unregister();
 	};
-
-	inline PCWSTR WindowClass::get_Name() const
-	{
-		return m_wc.lpszClassName;
-	}
-
-	inline HINSTANCE WindowClass::get_Instance() const
-	{
-		return m_wc.hInstance;
-	}
 }

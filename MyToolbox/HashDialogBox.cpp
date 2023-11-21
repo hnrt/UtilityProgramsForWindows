@@ -327,18 +327,16 @@ void HashDialogBox::OnCopy()
     {
         return;
     }
-    SIZE_T cch = wcslen(m_hash.Text);
-    Buffer<WCHAR> buf(cch + 1);
-    wcscpy_s(buf, buf.Len, m_hash.Text);
+    String szHash = m_hash.Text;
     if (m_uLettercase == UPPERCASE_LETTER)
     {
-        _wcsupr_s(buf, buf.Len);
+        szHash.Uppercase();
     }
     else
     {
-        _wcslwr_s(buf, buf.Len);
+        szHash.Lowercase();
     }
-    if (!Clipboard::Copy(hwnd, buf, cch))
+    if (!Clipboard::Write(hwnd, szHash, szHash.Len))
     {
         MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
     }

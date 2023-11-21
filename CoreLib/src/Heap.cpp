@@ -249,40 +249,26 @@ PSTR hnrt::Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4, PCSTR psz5)
 }
 
 
-PSTR hnrt::ToAcp(PCWSTR psz)
-{
-    return ToAcp(CP_ACP, psz);
-}
-
-
-PSTR hnrt::ToAcp(PCWSTR psz, size_t cch)
+PSTR hnrt::ToAcp(PCWSTR psz, INT_PTR cch)
 {
     return ToAcp(CP_ACP, psz, cch);
 }
 
 
-PSTR hnrt::ToAcp(UINT cp, PCWSTR psz)
+PSTR hnrt::ToAcp(UINT cp, PCWSTR psz, INT_PTR cch)
 {
-    int cb = WideCharToMultiByte(cp, 0, psz, -1, NULL, 0, NULL, NULL);
-    if (!cb)
+    int len = cch > 0 ? static_cast<int>(wcsnlen(psz, cch)) : cch < 0 ? static_cast<int>(wcslen(psz)) : 0;
+    if (!len)
     {
-        throw Exception(L"ToAcp(%u) failed.", cp);
+        return Clone("");
     }
-    CHAR* pm = Allocate<CHAR>(cb);
-    WideCharToMultiByte(cp, 0, psz, -1, pm, cb, NULL, NULL);
-    return pm;
-}
-
-
-PSTR hnrt::ToAcp(UINT cp, PCWSTR psz, size_t cch)
-{
-    int cb = WideCharToMultiByte(cp, 0, psz, static_cast<int>(cch), NULL, 0, NULL, NULL);
+    int cb = WideCharToMultiByte(cp, 0, psz, len, NULL, 0, NULL, NULL);
     if (!cb)
     {
         throw Exception(L"ToAcp(%u) failed.", cp);
     }
     CHAR* pm = Allocate<CHAR>(static_cast<size_t>(cb) + 1);
-    WideCharToMultiByte(cp, 0, psz, static_cast<int>(cch), pm, cb, NULL, NULL);
+    WideCharToMultiByte(cp, 0, psz, len, pm, cb, NULL, NULL);
     pm[cb] = '\0';
     return pm;
 }
@@ -493,40 +479,26 @@ PWSTR hnrt::Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR ps
 }
 
 
-PWSTR hnrt::ToUcs(PCSTR psz)
-{
-    return ToUcs(CP_ACP, psz);
-}
-
-
-PWSTR hnrt::ToUcs(PCSTR psz, size_t cb)
+PWSTR hnrt::ToUcs(PCSTR psz, INT_PTR cb)
 {
     return ToUcs(CP_ACP, psz, cb);
 }
 
 
-PWSTR hnrt::ToUcs(UINT cp, PCSTR psz)
+PWSTR hnrt::ToUcs(UINT cp, PCSTR psz, INT_PTR cb)
 {
-    int cch = MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, -1, NULL, 0);
-    if (!cch)
+    int len = cb > 0 ? static_cast<int>(strnlen(psz, cb)) : cb < 0 ? static_cast<int>(strlen(psz)) : 0;
+    if (!len)
     {
-        throw Exception(L"ToUcs(%u) failed.", cp);
+        return Clone(L"");
     }
-    WCHAR* pw = Allocate<WCHAR>(cch);
-    MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, -1, pw, cch);
-    return pw;
-}
-
-
-PWSTR hnrt::ToUcs(UINT cp, PCSTR psz, size_t cb)
-{
-    int cch = MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, static_cast<int>(cb), NULL, 0);
+    int cch = MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, len, NULL, 0);
     if (!cch)
     {
         throw Exception(L"ToUcs(%u) failed.", cp);
     }
     WCHAR* pw = Allocate<WCHAR>(static_cast<size_t>(cch) + 1);
-    MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, static_cast<int>(cb), pw, cch);
+    MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, len, pw, cch);
     pw[cch] = L'\0';
     return pw;
 }

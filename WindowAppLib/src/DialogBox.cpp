@@ -175,7 +175,7 @@ void DialogBox::CutText(int id) const
     Buffer<WCHAR> buf(cch);
     GetText(id, buf, buf.Len);
     int cch2 = off3 - off2;
-    if (!Clipboard::Copy(hwnd, &buf[off2], cch2))
+    if (!Clipboard::Write(hwnd, &buf[off2], cch2))
     {
         MessageBoxW(hwnd, L"Unable to write text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
         return;
@@ -207,7 +207,7 @@ void DialogBox::CopyText(int id) const
     Buffer<WCHAR> buf(cch);
     GetText(id, buf, buf.Len);
     int cch2 = off3 - off2;
-    if (!Clipboard::Copy(hwnd, &buf[off2], cch2))
+    if (!Clipboard::Write(hwnd, &buf[off2], cch2))
     {
         MessageBoxW(hwnd, L"Unable to write text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
         return;
@@ -227,14 +227,13 @@ void DialogBox::PasteText(int id) const
     // |<----------- off4 ---------->|
     // |<--- off2 --->|<--- cch2 --->|<--- cch3 --->|
     //
-    RefPtr<ClipboardText> pText;
-    if (!Clipboard::Paste(hwnd, pText))
+    String szText = Clipboard::Read(hwnd);
+    if (!szText)
     {
         MessageBoxW(hwnd, L"Unable to read text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
         return;
     }
-    PCWSTR psz2 = *pText.Ptr;
-    int cch2 = static_cast<int>(wcslen(psz2));
+    int cch2 = static_cast<int>(szText.Len);
     int cch = GetTextLength(id) + 1;
     int off2 = 0;
     int off3 = 0;
@@ -250,7 +249,7 @@ void DialogBox::PasteText(int id) const
     int cch3 = cch - off3;
     int off4 = off2 + cch2;
     wmemmove_s(&buf[off4], cch3, &buf[off3], cch3);
-    wmemcpy_s(&buf[off2], cch2, psz2, cch2);
+    wmemcpy_s(&buf[off2], cch2, szText, cch2);
     SetText(id, buf);
     SetTextSelection(id, off4, off4);
     SetFocus(id);
@@ -303,7 +302,7 @@ void DialogBox::SelectAllText(int id) const
 
 void DialogBox::CopyAllText(int id) const
 {
-    if (!Clipboard::Copy(hwnd, hwnd, id))
+    if (!Clipboard::Write(hwnd, hwnd, id))
     {
         MessageBoxW(hwnd, L"Unable to write text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
     }

@@ -5,11 +5,10 @@
 using namespace hnrt;
 
 
-
 WindowPreferences::WindowPreferences(PCWSTR pszClassName)
 	: m_dwExStyle(0)
-	, m_pszClassName(pszClassName)
-	, m_pszWindowName(nullptr)
+	, m_szClassName(pszClassName)
+	, m_szWindowName()
 	, m_dwStyle(WS_OVERLAPPEDWINDOW)
 	, m_x(CW_USEDEFAULT)
 	, m_y(CW_USEDEFAULT)
@@ -30,7 +29,7 @@ WindowPreferences& WindowPreferences::SetExStyle(DWORD value)
 
 WindowPreferences& WindowPreferences::SetWindowName(PCWSTR value)
 {
-	m_pszWindowName = value;
+	m_szWindowName = value;
 	return *this;
 }
 

@@ -2,12 +2,12 @@
 
 
 #include <Windows.h>
+#include "hnrt/StringOptions.h"
 
 
 namespace hnrt
 {
     class RefMbs;
-    class String;
 
     class StringAcp
     {
@@ -17,6 +17,8 @@ namespace hnrt
         StringAcp(const StringAcp&);
         StringAcp(PCSTR);
         StringAcp(PCSTR, size_t);
+        StringAcp(PCSTR, va_list);
+        StringAcp(StringOptions, PCSTR, ...);
         StringAcp(PCWSTR);
         StringAcp(PCWSTR, size_t);
         ~StringAcp();
@@ -46,11 +48,11 @@ namespace hnrt
     public:
 
         static int Compare(PCSTR psz1, PCSTR psz2);
-        static int Compare(PCSTR psz1, PCSTR psz2, LONG_PTR cb2);
+        static int Compare(PCSTR psz1, PCSTR psz2, INT_PTR cb2);
         static int Compare(PCSTR psz1, INT_PTR cb1, PCSTR psz2, INT_PTR cb2);
 
         static int CaseCompare(PCSTR psz1, PCSTR psz2);
-        static int CaseCompare(PCSTR psz1, PCSTR psz2, LONG_PTR cb2);
+        static int CaseCompare(PCSTR psz1, PCSTR psz2, INT_PTR cb2);
         static int CaseCompare(PCSTR psz1, INT_PTR cb1, PCSTR psz2, INT_PTR cb2);
     };
 
@@ -69,7 +71,7 @@ namespace hnrt
         return Compare(psz1, -1, psz2, -1);
     }
 
-    inline int StringAcp::Compare(PCSTR psz1, PCSTR psz2, LONG_PTR cb2)
+    inline int StringAcp::Compare(PCSTR psz1, PCSTR psz2, INT_PTR cb2)
     {
         return Compare(psz1, -1, psz2, cb2);
     }
@@ -79,7 +81,7 @@ namespace hnrt
         return CaseCompare(psz1, -1, psz2, -1);
     }
 
-    inline int StringAcp::CaseCompare(PCSTR psz1, PCSTR psz2, LONG_PTR cb2)
+    inline int StringAcp::CaseCompare(PCSTR psz1, PCSTR psz2, INT_PTR cb2)
     {
         return CaseCompare(psz1, -1, psz2, cb2);
     }

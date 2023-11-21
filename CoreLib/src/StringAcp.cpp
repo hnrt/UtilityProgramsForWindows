@@ -38,25 +38,251 @@ StringAcp::StringAcp(RefMbs* ptr)
 
 
 StringAcp::StringAcp(PCSTR psz)
-    : m_ptr(psz ? new RefMbs(psz) : nullptr)
+    : m_ptr(psz && *psz ? new RefMbs(psz) : nullptr)
 {
 }
 
 
 StringAcp::StringAcp(PCSTR psz, size_t cb)
-    : m_ptr(psz ? new RefMbs(psz, cb) : nullptr)
+    : m_ptr(psz && cb ? new RefMbs(psz, cb) : nullptr)
 {
+}
+
+
+StringAcp::StringAcp(PCSTR psz, va_list argList)
+    : m_ptr(new RefMbs(psz, argList))
+{
+}
+
+
+StringAcp::StringAcp(StringOptions option, PCSTR psz, ...)
+    : m_ptr(nullptr)
+{
+    switch (option)
+    {
+    case PRINTF:
+    {
+        va_list argList;
+        va_start(argList, psz);
+        m_ptr = new RefMbs(psz, argList);
+        va_end(argList);
+        break;
+    }
+    case CONCAT:
+    {
+        size_t cb1 = strlen(psz);
+        size_t required = cb1;
+        PCSTR psz2;
+        va_list argList1;
+        va_start(argList1, psz);
+        while ((psz2 = va_arg(argList1, PCSTR)))
+        {
+            required += strlen(psz2);
+        }
+        va_end(argList1);
+        PSTR psz1 = Allocate<CHAR>(++required);
+        memcpy_s(psz1, cb1 + 1, psz, cb1 + 1);
+        va_list argList2;
+        va_start(argList2, psz);
+        while ((psz2 = va_arg(argList2, PCSTR)))
+        {
+            size_t cb2 = strlen(psz2);
+            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
+            cb1 += cb2;
+        }
+        va_end(argList2);
+        m_ptr = new RefMbs(IMMEDIATE, psz1);
+        break;
+    }
+    case CONCAT2:
+    case CONCAT3:
+    case CONCAT4:
+    case CONCAT5:
+    case CONCAT6:
+    case CONCAT7:
+    case CONCAT8:
+    case CONCAT9:
+    {
+        size_t cb1 = strlen(psz);
+        size_t required = cb1;
+        va_list argList1;
+        va_start(argList1, psz);
+        switch (option)
+        {
+        case CONCAT9:
+            required += strlen(va_arg(argList1, PCSTR));
+            //FALLTHROUGH
+        case CONCAT8:
+            required += strlen(va_arg(argList1, PCSTR));
+            //FALLTHROUGH
+        case CONCAT7:
+            required += strlen(va_arg(argList1, PCSTR));
+            //FALLTHROUGH
+        case CONCAT6:
+            required += strlen(va_arg(argList1, PCSTR));
+            //FALLTHROUGH
+        case CONCAT5:
+            required += strlen(va_arg(argList1, PCSTR));
+            //FALLTHROUGH
+        case CONCAT4:
+            required += strlen(va_arg(argList1, PCSTR));
+            //FALLTHROUGH
+        case CONCAT3:
+            required += strlen(va_arg(argList1, PCSTR));
+            //FALLTHROUGH
+        case CONCAT2:
+        default:
+            required += strlen(va_arg(argList1, PCSTR));
+            break;
+        }
+        va_end(argList1);
+        PSTR psz1 = Allocate<CHAR>(++required);
+        memcpy_s(psz1, cb1 + 1, psz, cb1 + 1);
+        PCSTR psz2;
+        size_t cb2;
+        va_list argList2;
+        va_start(argList2, psz);
+        switch (option)
+        {
+        case CONCAT9:
+            psz2 = va_arg(argList2, PCSTR);
+            cb2 = strlen(psz2);
+            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
+            cb1 += cb2;
+            //FALLTHROUGH
+        case CONCAT8:
+            psz2 = va_arg(argList2, PCSTR);
+            cb2 = strlen(psz2);
+            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
+            cb1 += cb2;
+            //FALLTHROUGH
+        case CONCAT7:
+            psz2 = va_arg(argList2, PCSTR);
+            cb2 = strlen(psz2);
+            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
+            cb1 += cb2;
+            //FALLTHROUGH
+        case CONCAT6:
+            psz2 = va_arg(argList2, PCSTR);
+            cb2 = strlen(psz2);
+            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
+            cb1 += cb2;
+            //FALLTHROUGH
+        case CONCAT5:
+            psz2 = va_arg(argList2, PCSTR);
+            cb2 = strlen(psz2);
+            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
+            cb1 += cb2;
+            //FALLTHROUGH
+        case CONCAT4:
+            psz2 = va_arg(argList2, PCSTR);
+            cb2 = strlen(psz2);
+            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
+            cb1 += cb2;
+            //FALLTHROUGH
+        case CONCAT3:
+            psz2 = va_arg(argList2, PCSTR);
+            cb2 = strlen(psz2);
+            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
+            cb1 += cb2;
+            //FALLTHROUGH
+        case CONCAT2:
+        default:
+            psz2 = va_arg(argList2, PCSTR);
+            cb2 = strlen(psz2);
+            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
+            cb1 += cb2;
+            break;
+        }
+        va_end(argList2);
+        m_ptr = new RefMbs(IMMEDIATE, psz1);
+        break;
+    }
+    case TRIM:
+    case TRIM_HEAD:
+    case TRIM_TAIL:
+    {
+        const CHAR* pCur = psz;
+        const CHAR* pStart;
+        CHAR c = *pCur++;
+        if (option == TRIM_TAIL)
+        {
+            pStart = pCur - 1;
+        }
+        else
+        {
+            while (isspace(c))
+            {
+                c = *pCur++;
+            }
+            if (c)
+            {
+                pStart = pCur - 1;
+                if (option == TRIM_HEAD)
+                {
+                    m_ptr = new RefMbs(pStart);
+                    break;
+                }
+                c = *pCur++;
+            }
+            else
+            {
+                m_ptr = new RefMbs("");
+                break;
+            }
+        }
+        while (true)
+        {
+            if (isspace(c))
+            {
+                const CHAR* pEnd = pCur - 1;
+                c = *pCur++;
+                while (isspace(c))
+                {
+                    c = *pCur++;
+                }
+                if (c)
+                {
+                    c = *pCur++;
+                }
+                else
+                {
+                    m_ptr = new RefMbs(pStart, pEnd - pStart);
+                    break;
+                }
+            }
+            else if (c)
+            {
+                c = *pCur++;
+            }
+            else
+            {
+                m_ptr = new RefMbs(pStart);
+                break;
+            }
+        }
+        break;
+    }
+    case UPPERCASE:
+    case LOWERCASE:
+    case IMMEDIATE:
+    case STATIC:
+        m_ptr = new RefMbs(option, psz);
+        break;
+    default:
+        throw Exception(L"StringAcp::ctor: Bad option.");
+    }
 }
 
 
 StringAcp::StringAcp(PCWSTR psz)
-    : m_ptr(psz ? new RefMbs(CP_ACP, psz) : nullptr)
+    : m_ptr(psz && *psz ? new RefMbs(CP_ACP, psz) : nullptr)
 {
 }
 
 
-StringAcp::StringAcp(PCWSTR psz, size_t cb)
-    : m_ptr(psz ? new RefMbs(CP_ACP, psz, cb) : nullptr)
+StringAcp::StringAcp(PCWSTR psz, size_t cch)
+    : m_ptr(psz && cch ? new RefMbs(CP_ACP, psz, cch) : nullptr)
 {
 }
 

@@ -22,7 +22,7 @@ namespace hnrt
 		void operator =(const WindowApp&) = delete;
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
 		virtual void Close();
-		void SetText(PCWSTR);
+		void SetText(PCWSTR) const;
 
 		HWND get_hwnd() const;
 		WindowClass& get_class();

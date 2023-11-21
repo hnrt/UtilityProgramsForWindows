@@ -131,20 +131,6 @@ String::String(StringOptions option, PCWSTR psz, ...)
         m_ptr = new RefStr(buf);
         break;
     }
-    case UPPERCASE:
-    {
-        StringBuffer buf(-1, psz);
-        _wcsupr_s(buf, buf.Cap);
-        m_ptr = new RefStr(buf);
-        break;
-    }
-    case LOWERCASE:
-    {
-        StringBuffer buf(-1, psz);
-        _wcslwr_s(buf, buf.Cap);
-        m_ptr = new RefStr(buf);
-        break;
-    }
     case TRIM:
     case TRIM_HEAD:
     case TRIM_TAIL:
@@ -210,6 +196,12 @@ String::String(StringOptions option, PCWSTR psz, ...)
         }
         break;
     }
+    case UPPERCASE:
+    case LOWERCASE:
+    case IMMEDIATE:
+    case STATIC:
+        m_ptr = new RefStr(option, psz);
+        break;
     default:
         throw Exception(L"String::ctor: Bad option.");
     }
@@ -241,13 +233,13 @@ String::String(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5)
 
 
 String::String(PCSTR psz)
-    : m_ptr(psz && *psz ? new RefStr(psz) : nullptr)
+    : m_ptr(psz && *psz ? new RefStr(CP_ACP, psz) : nullptr)
 {
 }
 
 
 String::String(PCSTR psz, size_t cb)
-    : m_ptr(psz && cb ? new RefStr(psz, cb) : nullptr)
+    : m_ptr(psz && cb ? new RefStr(CP_ACP, psz, cb) : nullptr)
 {
 }
 

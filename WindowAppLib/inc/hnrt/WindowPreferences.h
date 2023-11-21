@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <Windows.h>
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -24,8 +24,8 @@ namespace hnrt
 		WindowPreferences& SetParent(HWND value);
 		WindowPreferences& SetMenu(HMENU value);
 		DWORD get_ExStyle() const;
-		PCWSTR get_ClassName() const;
-		PCWSTR get_WindowName() const;
+		const String& get_ClassName() const;
+		const String& get_WindowName() const;
 		DWORD get_Style() const;
 		int get_X() const;
 		int get_Y() const;
@@ -35,8 +35,8 @@ namespace hnrt
 		HMENU get_Menu() const;
 
 		__declspec(property(get = get_ExStyle)) DWORD ExStyle;
-		__declspec(property(get = get_ClassName)) PCWSTR ClassName;
-		__declspec(property(get = get_WindowName)) PCWSTR WindowName;
+		__declspec(property(get = get_ClassName)) const String& ClassName;
+		__declspec(property(get = get_WindowName)) const String& WindowName;
 		__declspec(property(get = get_Style)) DWORD Style;
 		__declspec(property(get = get_X)) int X;
 		__declspec(property(get = get_Y)) int Y;
@@ -48,8 +48,8 @@ namespace hnrt
 	private:
 
 		DWORD m_dwExStyle;
-		PCWSTR m_pszClassName;
-		PCWSTR m_pszWindowName;
+		String m_szClassName;
+		String m_szWindowName;
 		DWORD m_dwStyle;
 		int m_x;
 		int m_y;
@@ -64,14 +64,14 @@ namespace hnrt
 		return m_dwExStyle;
 	}
 
-	inline PCWSTR WindowPreferences::get_ClassName() const
+	inline const String& WindowPreferences::get_ClassName() const
 	{
-		return m_pszClassName;
+		return m_szClassName;
 	}
 
-	inline PCWSTR WindowPreferences::get_WindowName() const
+	inline const String& WindowPreferences::get_WindowName() const
 	{
-		return m_pszWindowName;
+		return m_szWindowName;
 	}
 
 	inline DWORD WindowPreferences::get_Style() const

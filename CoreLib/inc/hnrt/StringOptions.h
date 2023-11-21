@@ -19,6 +19,8 @@ namespace hnrt
         LOWERCASE,
         TRIM,
         TRIM_HEAD,
-        TRIM_TAIL
+        TRIM_TAIL,
+        IMMEDIATE,
+        STATIC
     };
 }

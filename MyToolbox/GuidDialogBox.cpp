@@ -123,7 +123,7 @@ INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 
 void GuidDialogBox::OnCopy()
 {
-    if (!Clipboard::Copy(hwnd, m_szFormatted))
+    if (!Clipboard::Write(hwnd, m_szFormatted))
     {
         MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
     }

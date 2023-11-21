@@ -149,7 +149,7 @@ void ClipDialogBox::OnCopy()
 	int cchSize = cch + 1;
 	Buffer<WCHAR> content(cchSize);
 	GetText(IDC_CLIP_BODY_EDIT, content, content.Len);
-	if (!Clipboard::Copy(hwnd, content, cch))
+	if (!Clipboard::Write(hwnd, content, cch))
 	{
 		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
 	}

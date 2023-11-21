@@ -745,7 +745,7 @@ void CronDialogBox::OnOffsetChanged()
 
 void CronDialogBox::OnCopy()
 {
-	if (!Clipboard::Copy(hwnd, hwnd, IDC_CRON_EXPR_EDIT))
+	if (!Clipboard::Write(hwnd, hwnd, IDC_CRON_EXPR_EDIT))
 	{
 		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 	}
@@ -760,10 +760,10 @@ void CronDialogBox::OnPaste()
 		UncheckButton(IDC_CRON_INDI_RADIO);
 		OnSourceSelection(IDC_CRON_EXPR_RADIO);
 	}
-	RefPtr<ClipboardText> pText;
-	if (Clipboard::Paste(hwnd, pText))
+	String szText = Clipboard::Read(hwnd);
+	if (szText)
 	{
-		SetText(IDC_CRON_EXPR_EDIT, pText->Ptr);
+		SetText(IDC_CRON_EXPR_EDIT, szText);
 	}
 	else
 	{

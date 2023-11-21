@@ -6,85 +6,90 @@ using namespace hnrt;
 
 
 WindowClass::WindowClass(PCWSTR pszName)
-	: m_wc()
+	: WNDCLASSEXW()
 {
-    ZeroMemory(&m_wc, sizeof(m_wc));
-    m_wc.cbSize = sizeof(m_wc);
-    m_wc.lpszClassName = pszName;
+    cbSize = sizeof(WNDCLASSEXW);
+    lpszClassName = pszName;
 }
 
 
 WindowClass& WindowClass::SetStyle(UINT value)
 {
-    m_wc.style = value;
+    style = value;
     return *this;
 }
 
 
 WindowClass& WindowClass::SetWindowProcedure(WNDPROC value)
 {
-    m_wc.lpfnWndProc = value;
+    lpfnWndProc = value;
     return *this;
 }
 
 
 WindowClass& WindowClass::SetClassExtra(int value)
 {
-    m_wc.cbClsExtra = value;
+    cbClsExtra = value;
     return *this;
 }
 
 
 WindowClass& WindowClass::SetWindowExtra(int value)
 {
-    m_wc.cbWndExtra = value;
+    cbWndExtra = value;
     return *this;
 }
 
 
 WindowClass& WindowClass::SetInstance(HINSTANCE value)
 {
-    m_wc.hInstance = value;
+    hInstance = value;
     return *this;
 }
 
 
 WindowClass& WindowClass::SetIcon(HICON value)
 {
-    m_wc.hIcon = value;
+    hIcon = value;
     return *this;
 }
 
 
 WindowClass& WindowClass::SetCursor(HCURSOR value)
 {
-    m_wc.hCursor = value;
+    hCursor = value;
     return *this;
 }
 
 
 WindowClass& WindowClass::SetBackground(int value)
 {
-    m_wc.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(value));
+    hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(value));
     return *this;
 }
 
 
 WindowClass& WindowClass::SetMenuName(UINT value)
 {
-    m_wc.lpszMenuName = MAKEINTRESOURCEW(value);
+    lpszMenuName = MAKEINTRESOURCEW(value);
     return *this;
 }
 
 
 WindowClass& WindowClass::SetSmallIcon(HICON value)
 {
-    m_wc.hIconSm = value;
+    hIconSm = value;
     return *this;
 }
 
 
 ATOM WindowClass::Register()
 {
-    return RegisterClassExW(&m_wc);
+    return RegisterClassExW(this);
+}
+
+
+BOOL WindowClass::Unregister()
+{
+    return UnregisterClassW(lpszClassName, hInstance);
 }

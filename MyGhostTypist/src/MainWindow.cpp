@@ -272,7 +272,7 @@ void MainWindow::RecreateButtons(HWND hwnd)
         for (ULONG index = 0; index < m_pCfg->TargetList.Count; index++)
         {
             RefPtr<Target> pTarget = m_pCfg->TargetList[index];
-            m_Buttons.Add(C.Instance, hwnd, BUTTONID_BASE + index, pTarget->Name, m_hFont, pTarget->IsVisible);
+            m_Buttons.Add(C.hInstance, hwnd, BUTTONID_BASE + index, pTarget->Name, m_hFont, pTarget->IsVisible);
         }
     }
     m_PreferredHeight = -1;
@@ -281,7 +281,7 @@ void MainWindow::RecreateButtons(HWND hwnd)
 
 void MainWindow::CopyToClipboard(HWND hwnd, PCWSTR psz)
 {
-    if (!Clipboard::Copy(hwnd, psz))
+    if (!Clipboard::Write(hwnd, psz))
     {
         MessageBoxW(hwnd, ResourceString(IDS_COPY_FAILURE), ResourceString(IDS_CAPTION), MB_OK | MB_ICONERROR);
         return;
@@ -394,7 +394,7 @@ void MainWindow::CheckButtonStatus()
 
 void MainWindow::Configure(HWND hwnd)
 {
-    ConfigurationDialogBox cd(C.Instance);
+    ConfigurationDialogBox cd(C.hInstance);
     for (size_t index = 0; index < m_pCfg->CredentialsList.Count; index++)
     {
         cd.CredentialsList.Append(m_pCfg->CredentialsList[index]->Clone());

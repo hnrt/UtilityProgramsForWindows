@@ -53,10 +53,8 @@ namespace hnrt
     PSTR Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3);
     PSTR Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4);
     PSTR Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4, PCSTR psz5);
-    PSTR ToAcp(PCWSTR psz);
-    PSTR ToAcp(PCWSTR psz, size_t cch);
-    PSTR ToAcp(UINT cp, PCWSTR psz);
-    PSTR ToAcp(UINT cp, PCWSTR psz, size_t cch);
+    PSTR ToAcp(PCWSTR psz, INT_PTR cch = -1);
+    PSTR ToAcp(UINT cp, PCWSTR psz, INT_PTR cch = -1);
 
     PWSTR Clone(PCWSTR psz);
     PWSTR Clone(PCWSTR psz, size_t cch);
@@ -70,8 +68,6 @@ namespace hnrt
     PWSTR Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3);
     PWSTR Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4);
     PWSTR Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5);
-    PWSTR ToUcs(PCSTR psz);
-    PWSTR ToUcs(PCSTR psz, size_t cb);
-    PWSTR ToUcs(UINT cp, PCSTR psz);
-    PWSTR ToUcs(UINT cp, PCSTR psz, size_t cb);
+    PWSTR ToUcs(PCSTR psz, INT_PTR cb = -1);
+    PWSTR ToUcs(UINT cp, PCSTR psz, INT_PTR cb = -1);
 }

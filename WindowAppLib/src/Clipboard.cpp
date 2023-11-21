@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "hnrt/Clipboard.h"
 #include "hnrt/Buffer.h"
-#include <exception>
 #include <list>
 
 
@@ -34,9 +33,9 @@ static void NotifyOfPaste(HWND hwnd, PCWSTR psz)
 }
 
 
-bool Clipboard::Copy(HWND hwnd, const WCHAR* pText, size_t cch)
+bool Clipboard::Write(HWND hwnd, const WCHAR* pText, INT_PTR cch)
 {
-	if (cch == static_cast<size_t>(-1))
+	if (cch < 0)
 	{
 		cch = wcslen(pText);
 	}
@@ -90,24 +89,24 @@ bool Clipboard::Copy(HWND hwnd, const WCHAR* pText, size_t cch)
 }
 
 
-bool Clipboard::Copy(HWND hwnd, HWND hwndText)
+bool Clipboard::Write(HWND hwnd, HWND hwndText)
 {
-	int cch = GetWindowTextLengthW(hwndText);
-	Buffer<WCHAR> buf(cch + 1);
-	cch = GetWindowTextW(hwndText, buf, cch + 1);
-	return Copy(hwnd, buf, cch);
+	int cch = GetWindowTextLengthW(hwndText) + 1;
+	Buffer<WCHAR> buf(cch);
+	cch = GetWindowTextW(hwndText, buf, cch);
+	return Write(hwnd, buf, cch);
 }
 
 
-bool Clipboard::Copy(HWND hwnd, HWND hwndDialog, int idControl)
+bool Clipboard::Write(HWND hwnd, HWND hwndDialog, int idControl)
 {
-	return Copy(hwnd, GetDlgItem(hwndDialog, idControl));
+	return Write(hwnd, GetDlgItem(hwndDialog, idControl));
 }
 
 
-bool Clipboard::Paste(HWND hwnd, RefPtr<ClipboardText>& pText)
+String Clipboard::Read(HWND hwnd)
 {
-	bool bRet = false;
+	String szReturn;
 	DWORD dwError = ERROR_SUCCESS;
 	if (OpenClipboard(hwnd))
 	{
@@ -119,12 +118,11 @@ bool Clipboard::Paste(HWND hwnd, RefPtr<ClipboardText>& pText)
 				PWCHAR pSrc = reinterpret_cast<PWCHAR>(GlobalLock(hMem));
 				if (pSrc)
 				{
-					pText = RefPtr<ClipboardText>(new ClipboardText(pSrc));
-					bRet = true;
+					szReturn = pSrc;
 					GlobalUnlock(hMem);
 					try
 					{
-						NotifyOfPaste(hwnd, pText->Ptr);
+						NotifyOfPaste(hwnd, szReturn);
 					}
 					catch (...)
 					{
@@ -145,12 +143,12 @@ bool Clipboard::Paste(HWND hwnd, RefPtr<ClipboardText>& pText)
 			dwError = GetLastError();
 		}
 		CloseClipboard();
-		if (!bRet)
+		if (!szReturn)
 		{
 			SetLastError(dwError);
 		}
 	}
-	return bRet;
+	return szReturn;
 }
 
 
@@ -172,21 +170,4 @@ bool Clipboard::Unregister(RefPtr<ClipboardObserver>& pObserver)
 		}
 	}
 	return false;
-}
-
-
-ClipboardText::ClipboardText(PCWSTR psz)
-	: RefObj()
-	, m_psz(_wcsdup(psz))
-{
-	if (!m_psz)
-	{
-		throw std::bad_alloc();
-	}
-}
-
-
-ClipboardText::~ClipboardText()
-{
-	free(m_psz);
 }

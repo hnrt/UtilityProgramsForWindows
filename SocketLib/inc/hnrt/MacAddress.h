@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include "hnrt/StringAcp.h"
+
+
 namespace hnrt
 {
     class MacAddress
@@ -12,7 +15,7 @@ namespace hnrt
         ~MacAddress() = default;
         MacAddress& operator =(const MacAddress& src);
         const char* operator &() const;
-        const char* ToString() const;
+        StringAcp ToStringAcp() const;
         bool Parse(const char* psz);
 
     private:
