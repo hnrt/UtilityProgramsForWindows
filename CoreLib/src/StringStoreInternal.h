@@ -10,8 +10,8 @@
 
 namespace hnrt
 {
-    typedef std::set<PCWSTR, StringLessThan> UcsStringSet;
-    typedef std::set<PCSTR, StringAcpLessThan> AcpStringSet;
+    typedef std::set<String> UcsStringSet;
+    typedef std::set<StringAcp> AcpStringSet;
 
     class StringStoreInternal
     {
@@ -24,9 +24,6 @@ namespace hnrt
         void operator =(const StringStoreInternal&) = delete;
         PCWSTR Get(PCWSTR psz);
         PCSTR Get(PCSTR psz);
-        PCWSTR Set(PWSTR psz);
-        PCSTR Set(PSTR psz);
-        PCWSTR Set(StringBuffer& buf);
 
     private:
 

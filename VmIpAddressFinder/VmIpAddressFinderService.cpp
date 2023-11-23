@@ -1,5 +1,6 @@
 #include "VmIpAddressFinder.h"
 #include "hnrt/Service.h"
+#include "hnrt/StringStore.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/ComException.h"
 #include "hnrt/ErrorMessage.h"
@@ -279,7 +280,7 @@ static PCWSTR GetStateText(DWORD dwState)
         dwState == SERVICE_STOP_PENDING ? L"SERVICE_STOP_PENDING" :
         dwState == SERVICE_PAUSE_PENDING ? L"SERVICE_PAUSE_PENDING" :
         dwState == SERVICE_CONTINUE_PENDING ? L"SERVICE_CONTINUE_PENDING" :
-        String::Copy(String(PRINTF, L"%lu", dwState));
+        StringStore::Get(String(PRINTF, L"%lu", dwState));
 }
 
 

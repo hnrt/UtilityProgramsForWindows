@@ -2,7 +2,6 @@
 #include "hnrt/String.h"
 #include "hnrt/RefStr.h"
 #include "hnrt/Interlocked.h"
-#include "hnrt/StringStore.h"
 #include "hnrt/Exception.h"
 
 
@@ -605,30 +604,5 @@ int String::Compare(PCWSTR psz1, INT_PTR cch1, PCWSTR psz2, INT_PTR cch2)
         return 1;
     default:
         throw Exception(L"String::Compare failed.");
-    }
-}
-
-
-PCWSTR String::Copy(PCWSTR psz, size_t cch)
-{
-    if (!psz)
-    {
-        return L"";
-    }
-    else if (cch == static_cast<size_t>(-1))
-    {
-        return StringStore::Get(psz);
-    }
-    else if (cch < MAX_PATH)
-    {
-        WCHAR buf[MAX_PATH];
-        wcsncpy_s(buf, psz, cch);
-        return StringStore::Get(buf);
-    }
-    else
-    {
-        StringBuffer buf(cch + 1);
-        wcsncpy_s(buf, buf.Cap, psz, cch);
-        return StringStore::Set(buf);
     }
 }

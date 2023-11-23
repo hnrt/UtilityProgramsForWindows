@@ -41,6 +41,14 @@ ClipDialogBox::~ClipDialogBox()
 }
 
 
+static int __cdecl DirectoryEntryCompare(const void* a1, const void* a2)
+{
+	const DirectoryEntry* p1 = reinterpret_cast<const DirectoryEntry*>(a1);
+	const DirectoryEntry* p2 = reinterpret_cast<const DirectoryEntry*>(a2);
+	return String::Compare(p1->szFileName, p2->szFileName);
+}
+
+
 void ClipDialogBox::OnCreate()
 {
 	MyDialogBox::OnCreate();
@@ -48,6 +56,35 @@ void ClipDialogBox::OnCreate()
 	DisableWindow(IDC_CLIP_DELETE_BUTTON);
 	m_menuView
 		.Add(ResourceString(IDS_MENU_CLIP), IDM_VIEW_CLIP);
+	std::vector<DirectoryEntry> entries;
+	Path::ListFiles(entries, m_szDirectoryPath);
+	qsort(&entries[0], entries.size(), sizeof(DirectoryEntry), DirectoryEntryCompare);
+	for (std::vector<DirectoryEntry>::const_iterator iter = entries.cbegin(); iter != entries.cend(); iter++)
+	{
+		try
+		{
+			String szFileName(iter->szFileName);
+			String szFilePath(Path::Combine(m_szDirectoryPath, szFileName));
+			FileMapper file(szFilePath);
+			const WCHAR* pStart = reinterpret_cast<const WCHAR*>(file.Ptr);
+			const WCHAR* pEnd = pStart + file.Len / sizeof(WCHAR);
+			const WCHAR* pHash = wmemchr(pStart, Separator, pEnd - pStart);
+			if (!pHash++)
+			{
+				throw Exception(L"Looks broken!");
+			}
+			const WCHAR* pHashEnd = wmemchr(pHash, Separator, pEnd - pHash);
+			if (!pHashEnd)
+			{
+				throw Exception(L"Looks broken!");
+			}
+			m_mapHash.insert(ClipEntry(String(pHash, pHashEnd - pHash), szFileName));
+			SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(szFileName.Ptr));
+		}
+		catch (Exception e)
+		{
+		}
+	}
 }
 
 

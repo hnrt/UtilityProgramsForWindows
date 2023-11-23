@@ -35,111 +35,33 @@ StringStoreInternal::StringStoreInternal()
 
 PCWSTR StringStoreInternal::Get(PCWSTR psz)
 {
-    if (!psz)
-    {
-        return L"";
-    }
-    else if (!*psz)
+    if (!psz || !*psz)
     {
         return L"";
     }
     SpinLock lock(m_lockUcs);
-    UcsStringSet::const_iterator iter = m_setUcs.find(psz);
+    auto iter = m_setUcs.find(psz);
     if (iter != m_setUcs.end())
     {
         return *iter;
     }
-    PWSTR psz2 = Clone(psz);
-    m_setUcs.insert(psz2);
-    return psz2;
+    auto iter2 = m_setUcs.insert(String(psz));
+    return *(iter2.first);
 }
 
 
 PCSTR StringStoreInternal::Get(PCSTR psz)
 {
-    if (!psz)
-    {
-        return "";
-    }
-    else if (!*psz)
+    if (!psz || !*psz)
     {
         return "";
     }
     SpinLock lock(m_lockAcp);
-    AcpStringSet::const_iterator iter = m_setAcp.find(psz);
+    auto iter = m_setAcp.find(psz);
     if (iter != m_setAcp.end())
     {
         return *iter;
     }
-    PSTR psz2 = Clone(psz);
-    m_setAcp.insert(psz2);
-    return psz2;
-}
-
-
-PCWSTR StringStoreInternal::Set(PWSTR psz)
-{
-    if (!psz)
-    {
-        return L"";
-    }
-    else if (!*psz)
-    {
-        free(psz);
-        return L"";
-    }
-    SpinLock lock(m_lockUcs);
-    UcsStringSet::const_iterator iter = m_setUcs.find(psz);
-    if (iter != m_setUcs.end())
-    {
-        free(psz);
-        return *iter;
-    }
-    m_setUcs.insert(psz);
-    return psz;
-}
-
-
-PCSTR StringStoreInternal::Set(char* psz)
-{
-    if (!psz)
-    {
-        return "";
-    }
-    else if (!*psz)
-    {
-        free(psz);
-        return "";
-    }
-    SpinLock lock(m_lockAcp);
-    AcpStringSet::const_iterator iter = m_setAcp.find(psz);
-    if (iter != m_setAcp.end())
-    {
-        free(psz);
-        return *iter;
-    }
-    m_setAcp.insert(psz);
-    return psz;
-}
-
-
-PCWSTR StringStoreInternal::Set(StringBuffer& buf)
-{
-    if (!buf.Ptr)
-    {
-        return L"";
-    }
-    else if (!*buf.Ptr)
-    {
-        return L"";
-    }
-    SpinLock lock(m_lockUcs);
-    UcsStringSet::const_iterator iter = m_setUcs.find(buf.Ptr);
-    if (iter != m_setUcs.end())
-    {
-        return *iter;
-    }
-    PWSTR psz = buf.Detach();
-    m_setUcs.insert(psz);
-    return psz;
+    auto iter2 = m_setAcp.insert(StringAcp(psz));
+    return *(iter2.first);
 }

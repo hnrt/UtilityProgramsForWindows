@@ -204,6 +204,7 @@
     <ClInclude Include="inc\hnrt\CoreLibrary.h" />
     <ClInclude Include="inc\hnrt\DataFeeder.h" />
     <ClInclude Include="inc\hnrt\Debug.h" />
+    <ClInclude Include="inc\hnrt\DirectoryEntry.h" />
     <ClInclude Include="inc\hnrt\DoubleNullTerminatedStringArray.h" />
     <ClInclude Include="inc\hnrt\ErrorMessage.h" />
     <ClInclude Include="inc\hnrt\Exception.h" />

@@ -80,8 +80,6 @@ namespace hnrt
         static int Compare(PCWSTR psz1, PCWSTR psz2);
         static int Compare(PCWSTR psz1, PCWSTR psz2, INT_PTR cch2);
         static int Compare(PCWSTR psz1, INT_PTR cch1, PCWSTR psz2, INT_PTR cch2);
-
-        static PCWSTR Copy(PCWSTR psz, size_t cch = static_cast<size_t>(-1));
     };
 
     inline String::operator PCWSTR() const

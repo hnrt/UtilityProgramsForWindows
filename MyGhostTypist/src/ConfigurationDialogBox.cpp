@@ -4,7 +4,6 @@
 #include "hnrt/Debug.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/ResourceString.h"
-#include "hnrt/StringStore.h"
 #include "hnrt/String.h"
 #include "hnrt/VirtualKey.h"
 #include "hnrt/WhileInScope.h"
@@ -26,10 +25,10 @@ using namespace hnrt;
 #define TV_ACTIONITEM   7
 
 
-static PCWSTR s_pszDefaultLabel = nullptr;
+static String s_szDefaultLabel;
 
 
-#define DEFAULT_CREDENTIALS s_pszDefaultLabel
+#define DEFAULT_CREDENTIALS s_szDefaultLabel
 
 
 ConfigurationDialogBox::ConfigurationDialogBox(HINSTANCE hInstance)
@@ -41,9 +40,9 @@ ConfigurationDialogBox::ConfigurationDialogBox(HINSTANCE hInstance)
     , m_tvstate(TV_INIT)
     , m_bChanging(false)
 {
-    if (!s_pszDefaultLabel)
+    if (!s_szDefaultLabel)
     {
-        s_pszDefaultLabel = StringStore::Get(ResourceString(IDS_DEFAULT_LABEL));
+        s_szDefaultLabel = ResourceString(IDS_DEFAULT_LABEL);
     }
 }
 
@@ -326,14 +325,14 @@ INT_PTR ConfigurationDialogBox::OnComboBoxNotified(HWND hwnd, WORD wControlId, W
         case IDC_CREDKEY_COMBO:
             if (m_tv.IsActionItemSelected)
             {
-                PCWSTR pszSelected = m_cbCredentials.Selected;
+                String szSelected = m_cbCredentials.Selected;
                 RefPtr<Action> pAction = m_tv.SelectedActionItem;
                 switch (pAction->Type)
                 {
                 case AC_TYPEUSERNAME:
-                    if (*pszSelected && String::Compare(pszSelected, DEFAULT_CREDENTIALS))
+                    if (String::Compare(szSelected, DEFAULT_CREDENTIALS))
                     {
-                        m_tv.SelectedActionItem = Action::TypeUsername(pszSelected);
+                        m_tv.SelectedActionItem = Action::TypeUsername(szSelected);
                     }
                     else
                     {
@@ -341,9 +340,9 @@ INT_PTR ConfigurationDialogBox::OnComboBoxNotified(HWND hwnd, WORD wControlId, W
                     }
                     break;
                 case AC_TYPEPASSWORD:
-                    if (*pszSelected && String::Compare(pszSelected, DEFAULT_CREDENTIALS))
+                    if (String::Compare(szSelected, DEFAULT_CREDENTIALS))
                     {
-                        m_tv.SelectedActionItem = Action::TypePassword(pszSelected);
+                        m_tv.SelectedActionItem = Action::TypePassword(szSelected);
                     }
                     else
                     {
@@ -513,10 +512,10 @@ INT_PTR ConfigurationDialogBox::OnUsernameButtonClicked(HWND hwnd)
 {
     if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
     {
-        PCWSTR pszSelected = m_cbCredentials.Selected;
-        if (*pszSelected && wcscmp(pszSelected, DEFAULT_CREDENTIALS))
+        String szSelected = m_cbCredentials.Selected;
+        if (String::Compare(szSelected, DEFAULT_CREDENTIALS))
         {
-            m_tv.AddActionItem(Action::TypeUsername(pszSelected));
+            m_tv.AddActionItem(Action::TypeUsername(szSelected));
         }
         else
         {
@@ -531,10 +530,10 @@ INT_PTR ConfigurationDialogBox::OnPasswordButtonClicked(HWND hwnd)
 {
     if (m_tv.IsActionItemSelected || m_tv.IsTargetSelected)
     {
-        PCWSTR pszSelected = m_cbCredentials.Selected;
-        if (*pszSelected && wcscmp(pszSelected, DEFAULT_CREDENTIALS))
+        String szSelected = m_cbCredentials.Selected;
+        if (String::Compare(szSelected, DEFAULT_CREDENTIALS))
         {
-            m_tv.AddActionItem(Action::TypePassword(pszSelected));
+            m_tv.AddActionItem(Action::TypePassword(szSelected));
         }
         else
         {
@@ -633,7 +632,7 @@ void ConfigurationDialogBox::OnCredentialsListSelected(HWND hwnd)
 void ConfigurationDialogBox::OnCredentialsSelected(HWND hwnd, RefPtr<Credentials> pC)
 {
     DBGFNC(L"ConfigurationDialogBox::OnCredentialsSelected");
-    DBGPUT(L"%s %s", pC->Username, pC->Key ? pC->Key : L"");
+    DBGPUT(L"%s %s", pC->Username.Ptr, pC->Key.Ptr);
     WhileInScope<bool> wis(m_bChanging, true, false);;
     LONG prev = InterlockedExchange(&m_tvstate, TV_CRED);
     EnableWindow(GetDlgItem(hwnd, IDC_UP_BUTTON), pC.Ptr != m_tv.CredentialsList[0UL].Ptr ? TRUE : FALSE);
@@ -651,7 +650,7 @@ void ConfigurationDialogBox::OnCredentialsSelected(HWND hwnd, RefPtr<Credentials
     SetDlgItemTextW(hwnd, IDC_USERNAME_EDIT, pC->Username);
     SetDlgItemTextW(hwnd, IDC_PASSWORD_EDIT, pC->Password);
     pC->ClearPlainText();
-    SetDlgItemTextW(hwnd, IDC_CREDKEY_EDIT, pC->Key ? pC->Key : L"");
+    SetDlgItemTextW(hwnd, IDC_CREDKEY_EDIT, pC->Key);
     // Target
     if (prev != TV_CRED && prev != TV_CLIST)
     {
@@ -876,7 +875,7 @@ void ConfigurationDialogBox::LoadCredKeyCombo(HWND hwnd)
     m_cbCredentials.Add(DEFAULT_CREDENTIALS);
     for (size_t index = 0; index < m_tv.CredentialsList.Count; index++)
     {
-        if (m_tv.CredentialsList[index]->Key && m_tv.CredentialsList[index]->Key[0])
+        if (m_tv.CredentialsList[index]->Key.Len > 0)
         {
             m_cbCredentials.Add(m_tv.CredentialsList[index]->Key);
         }

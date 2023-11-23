@@ -1,6 +1,5 @@
 #include "ComboBox.h"
 #include "hnrt/Buffer.h"
-#include "hnrt/StringStore.h"
 
 
 using namespace hnrt;
@@ -43,7 +42,7 @@ void ComboBox::Set(PCWSTR psz)
 }
 
 
-PCWSTR ComboBox::get_Selected() const
+String ComboBox::get_Selected() const
 {
     LRESULT index = SendMessageW(m_hwnd, CB_GETCURSEL, 0, 0);
     if (index == CB_ERR)
@@ -55,7 +54,7 @@ PCWSTR ComboBox::get_Selected() const
         }
         Buffer<WCHAR> buf(length + 1);
         GetWindowTextW(m_hwnd, &buf, static_cast<int>(buf.Len));
-        return StringStore::Get(buf);
+        return String(buf);
     }
     else
     {
@@ -70,6 +69,6 @@ PCWSTR ComboBox::get_Selected() const
         {
             return L"";
         }
-        return StringStore::Get(buf);
+        return String(buf);
     }
 }

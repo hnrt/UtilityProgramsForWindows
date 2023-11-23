@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <Windows.h>
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -19,8 +19,8 @@ namespace hnrt
         void Add(PCWSTR psz);
         bool Select(PCWSTR psz);
         void Set(PCWSTR psz);
-        PCWSTR get_Selected() const;
-        __declspec(property(get = get_Selected)) PCWSTR Selected;
+        String get_Selected() const;
+        __declspec(property(get = get_Selected)) String Selected;
 
     protected:
 

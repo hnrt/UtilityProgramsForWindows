@@ -86,7 +86,7 @@ namespace hnrt
         while (true)
         {
             RefPtr<Credentials> pC = m_collection[index];
-            if (!pC->Key || !*pC->Key)
+            if (!pC->Key.Len)
             {
                 return pC;
             }

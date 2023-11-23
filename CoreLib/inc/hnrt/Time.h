@@ -12,8 +12,9 @@ namespace hnrt
 	public:
 
 		FileTime();
-		FileTime(const SYSTEMTIME&);
+		FileTime(const FILETIME&);
 		FileTime(LONGLONG);
+		FileTime(const SYSTEMTIME&);
 		FileTime(const FileTime&);
 		~FileTime() = default;
 		FileTime& operator =(const FileTime&);
@@ -52,8 +53,8 @@ namespace hnrt
 		FILETIME m_ft;
 	};
 
-	inline FileTime::FileTime(const FileTime& src)
-		: m_ft(src.m_ft)
+	inline FileTime::FileTime(const FILETIME& ft)
+		: m_ft(ft)
 	{
 	}
 
@@ -64,6 +65,11 @@ namespace hnrt
 		li.QuadPart = value;
 		m_ft.dwLowDateTime = li.LowPart;
 		m_ft.dwHighDateTime = li.HighPart;
+	}
+
+	inline FileTime::FileTime(const FileTime& src)
+		: m_ft(src.m_ft)
+	{
 	}
 
 	inline FileTime& FileTime::operator =(const FileTime& other)

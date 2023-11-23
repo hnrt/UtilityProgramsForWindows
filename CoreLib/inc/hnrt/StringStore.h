@@ -10,8 +10,5 @@ namespace hnrt
     {
         static PCWSTR Get(PCWSTR psz);
         static PCSTR Get(PCSTR psz);
-        static PCWSTR Set(PWSTR psz);
-        static PCSTR Set(PSTR psz);
-        static PCWSTR Set(StringBuffer&);
     };
 }

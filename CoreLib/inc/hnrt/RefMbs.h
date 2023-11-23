@@ -4,6 +4,8 @@
 #include "hnrt/RefObj.h"
 #include "hnrt/StringOptions.h"
 #include "hnrt/Heap.h"
+#include "hnrt/Interlocked.h"
+#include "hnrt/Exception.h"
 
 
 namespace hnrt

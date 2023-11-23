@@ -1,5 +1,4 @@
 #include "CredentialsCollection.h"
-#include "hnrt/StringStore.h"
 
 
 using namespace hnrt;
@@ -9,7 +8,7 @@ const RefPtr<Credentials> CredentialsCollection::operator[](PCWSTR pszKey) const
 {
     for (ULONG index = 0; index < Count; index++)
     {
-        if (m_collection[index]->Key && !wcscmp(pszKey, m_collection[index]->Key))
+        if (!String::Compare(pszKey, m_collection[index]->Key))
         {
             return m_collection[index];
         }
@@ -22,7 +21,7 @@ RefPtr<Credentials> CredentialsCollection::operator[](PCWSTR pszKey)
 {
     for (ULONG index = 0; index < Count; index++)
     {
-        if (m_collection[index]->Key && !wcscmp(pszKey, m_collection[index]->Key))
+        if (!String::Compare(pszKey, m_collection[index]->Key))
         {
             return m_collection[index];
         }

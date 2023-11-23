@@ -2,7 +2,6 @@
 #include <Lmcons.h>
 #include <sddl.h>
 #pragma comment(lib,"Advapi32")
-#include "hnrt/StringStore.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/Debug.h"
 #include "hnrt/StringBuffer.h"
