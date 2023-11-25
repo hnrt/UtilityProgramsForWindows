@@ -30,6 +30,7 @@ namespace hnrt
         StringBuffer& Append(PCWSTR, INT_PTR = -1);
         StringBuffer& AppendFormat(PCWSTR pszFormat, ...);
         StringBuffer& VaAppendFormat(PCWSTR pszFormat, va_list argList);
+        StringBuffer& Replace(WCHAR, WCHAR, size_t = 0, int = -1, size_t* = nullptr);
         operator PCWSTR() const;
         operator PWSTR();
         PCWSTR operator &() const;

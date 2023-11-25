@@ -7,14 +7,13 @@
 namespace hnrt
 {
 	// Intervals in 100 nanoseconds since 1601-01-01T00:00:00.000Z
-	class FileTime
+	struct FileTime
+		: public FILETIME
 	{
-	public:
-
 		FileTime();
-		FileTime(const FILETIME&);
 		FileTime(LONGLONG);
 		FileTime(const SYSTEMTIME&);
+		FileTime(const FILETIME&);
 		FileTime(const FileTime&);
 		~FileTime() = default;
 		FileTime& operator =(const FileTime&);
@@ -24,10 +23,6 @@ namespace hnrt
 		bool operator <=(const FileTime&) const;
 		bool operator >(const FileTime&) const;
 		bool operator >=(const FileTime&) const;
-		operator const FILETIME& () const;
-		operator FILETIME& ();
-		const FILETIME* operator &() const;
-		FILETIME* operator &();
 		FileTime& FromSystemTime();
 		FileTime& FromLocalTime();
 		FileTime& From(const SYSTEMTIME&);
@@ -47,34 +42,30 @@ namespace hnrt
 		__declspec(property(get = GetMicroseconds)) LONGLONG Microseconds;
 		__declspec(property(get = GetMilliseconds)) LONGLONG Milliseconds;
 		__declspec(property(get = GetSeconds)) LONGLONG Seconds;
-
-	private:
-
-		FILETIME m_ft;
 	};
 
-	inline FileTime::FileTime(const FILETIME& ft)
-		: m_ft(ft)
-	{
-	}
-
 	inline FileTime::FileTime(LONGLONG value)
-		: m_ft()
+		: FILETIME()
 	{
 		LARGE_INTEGER li = { 0 };
 		li.QuadPart = value;
-		m_ft.dwLowDateTime = li.LowPart;
-		m_ft.dwHighDateTime = li.HighPart;
+		dwLowDateTime = li.LowPart;
+		dwHighDateTime = li.HighPart;
+	}
+
+	inline FileTime::FileTime(const FILETIME& src)
+		: FILETIME(src)
+	{
 	}
 
 	inline FileTime::FileTime(const FileTime& src)
-		: m_ft(src.m_ft)
+		: FILETIME(src)
 	{
 	}
 
 	inline FileTime& FileTime::operator =(const FileTime& other)
 	{
-		m_ft = other.m_ft;
+		*this = other;
 		return *this;
 	}
 
@@ -90,113 +81,93 @@ namespace hnrt
 
 	inline bool FileTime::operator <(const FileTime& other) const
 	{
-		return (m_ft.dwHighDateTime < other.m_ft.dwHighDateTime) || ((m_ft.dwHighDateTime == other.m_ft.dwHighDateTime) && (m_ft.dwLowDateTime < other.m_ft.dwLowDateTime));
+		return (dwHighDateTime < other.dwHighDateTime) || ((dwHighDateTime == other.dwHighDateTime) && (dwLowDateTime < other.dwLowDateTime));
 	}
 
 	inline bool FileTime::operator <=(const FileTime& other) const
 	{
-		return (m_ft.dwHighDateTime < other.m_ft.dwHighDateTime) || ((m_ft.dwHighDateTime == other.m_ft.dwHighDateTime) && (m_ft.dwLowDateTime <= other.m_ft.dwLowDateTime));
+		return (dwHighDateTime < other.dwHighDateTime) || ((dwHighDateTime == other.dwHighDateTime) && (dwLowDateTime <= other.dwLowDateTime));
 	}
 
 	inline bool FileTime::operator >(const FileTime& other) const
 	{
-		return (m_ft.dwHighDateTime > other.m_ft.dwHighDateTime) || ((m_ft.dwHighDateTime == other.m_ft.dwHighDateTime) && (m_ft.dwLowDateTime > other.m_ft.dwLowDateTime));
+		return (dwHighDateTime > other.dwHighDateTime) || ((dwHighDateTime == other.dwHighDateTime) && (dwLowDateTime > other.dwLowDateTime));
 	}
 
 	inline bool FileTime::operator >=(const FileTime& other) const
 	{
-		return (m_ft.dwHighDateTime > other.m_ft.dwHighDateTime) || ((m_ft.dwHighDateTime == other.m_ft.dwHighDateTime) && (m_ft.dwLowDateTime >= other.m_ft.dwLowDateTime));
-	}
-
-	inline FileTime::operator const FILETIME& () const
-	{
-		return m_ft;
-	}
-
-	inline FileTime::operator FILETIME& ()
-	{
-		return m_ft;
-	}
-
-	inline const FILETIME* FileTime::operator &() const
-	{
-		return &m_ft;
-	}
-
-	inline FILETIME* FileTime::operator &()
-	{
-		return &m_ft;
+		return (dwHighDateTime > other.dwHighDateTime) || ((dwHighDateTime == other.dwHighDateTime) && (dwLowDateTime >= other.dwLowDateTime));
 	}
 
 	inline FileTime& FileTime::From(LONGLONG value)
 	{
 		LARGE_INTEGER li = { 0 };
 		li.QuadPart = value;
-		m_ft.dwLowDateTime = li.LowPart;
-		m_ft.dwHighDateTime = li.HighPart;
+		dwLowDateTime = li.LowPart;
+		dwHighDateTime = li.HighPart;
 		return *this;
 	}
 
 	inline FileTime& FileTime::AddMilliseconds(LONGLONG milliseconds)
 	{
 		LARGE_INTEGER li = { 0 };
-		li.LowPart = m_ft.dwLowDateTime;
-		li.HighPart = m_ft.dwHighDateTime;
+		li.LowPart = dwLowDateTime;
+		li.HighPart = dwHighDateTime;
 		li.QuadPart += milliseconds * 10000LL;
-		m_ft.dwLowDateTime = li.LowPart;
-		m_ft.dwHighDateTime = li.HighPart;
+		dwLowDateTime = li.LowPart;
+		dwHighDateTime = li.HighPart;
 		return *this;
 	}
 
 	inline FileTime& FileTime::AddSeconds(LONGLONG seconds)
 	{
 		LARGE_INTEGER li = { 0 };
-		li.LowPart = m_ft.dwLowDateTime;
-		li.HighPart = m_ft.dwHighDateTime;
+		li.LowPart = dwLowDateTime;
+		li.HighPart = dwHighDateTime;
 		li.QuadPart += seconds * 10000000LL;
-		m_ft.dwLowDateTime = li.LowPart;
-		m_ft.dwHighDateTime = li.HighPart;
+		dwLowDateTime = li.LowPart;
+		dwHighDateTime = li.HighPart;
 		return *this;
 	}
 
-	inline FileTime& FileTime::AddMinutes(LONGLONG seconds)
+	inline FileTime& FileTime::AddMinutes(LONGLONG minutes)
 	{
 		LARGE_INTEGER li = { 0 };
-		li.LowPart = m_ft.dwLowDateTime;
-		li.HighPart = m_ft.dwHighDateTime;
-		li.QuadPart += seconds * 10000000LL * 60LL;
-		m_ft.dwLowDateTime = li.LowPart;
-		m_ft.dwHighDateTime = li.HighPart;
+		li.LowPart = dwLowDateTime;
+		li.HighPart = dwHighDateTime;
+		li.QuadPart += minutes * 10000000LL * 60LL;
+		dwLowDateTime = li.LowPart;
+		dwHighDateTime = li.HighPart;
 		return *this;
 	}
 
-	inline FileTime& FileTime::AddHours(LONGLONG seconds)
+	inline FileTime& FileTime::AddHours(LONGLONG hours)
 	{
 		LARGE_INTEGER li = { 0 };
-		li.LowPart = m_ft.dwLowDateTime;
-		li.HighPart = m_ft.dwHighDateTime;
-		li.QuadPart += seconds * 10000000LL * 60LL * 60LL;
-		m_ft.dwLowDateTime = li.LowPart;
-		m_ft.dwHighDateTime = li.HighPart;
+		li.LowPart = dwLowDateTime;
+		li.HighPart = dwHighDateTime;
+		li.QuadPart += hours * 10000000LL * 60LL * 60LL;
+		dwLowDateTime = li.LowPart;
+		dwHighDateTime = li.HighPart;
 		return *this;
 	}
 
-	inline FileTime& FileTime::AddDays(LONGLONG seconds)
+	inline FileTime& FileTime::AddDays(LONGLONG days)
 	{
 		LARGE_INTEGER li = { 0 };
-		li.LowPart = m_ft.dwLowDateTime;
-		li.HighPart = m_ft.dwHighDateTime;
-		li.QuadPart += seconds * 10000000LL * 60LL * 60LL * 24LL;
-		m_ft.dwLowDateTime = li.LowPart;
-		m_ft.dwHighDateTime = li.HighPart;
+		li.LowPart = dwLowDateTime;
+		li.HighPart = dwHighDateTime;
+		li.QuadPart += days * 10000000LL * 60LL * 60LL * 24LL;
+		dwLowDateTime = li.LowPart;
+		dwHighDateTime = li.HighPart;
 		return *this;
 	}
 
 	inline LONGLONG FileTime::GetIntervals() const
 	{
 		LARGE_INTEGER li = { 0 };
-		li.LowPart = m_ft.dwLowDateTime;
-		li.HighPart = m_ft.dwHighDateTime;
+		li.LowPart = dwLowDateTime;
+		li.HighPart = dwHighDateTime;
 		return li.QuadPart;
 	}
 
@@ -215,9 +186,9 @@ namespace hnrt
 		return (Intervals + 5000000LL) / 10000000LL;
 	}
 
-	void GetLastDayOfMonth(int year, int month, WORD& dayOfMonth);
+	WORD GetLastDayOfMonth(int year, int month);
 
-	void GetLastDayOfMonth(WORD& year, WORD& month, WORD& dayOfMonth, int dayOfWeek);
+	void GetLastDayOfMonth(WORD& year, WORD& month, WORD& day, int dayOfWeek);
 
 	void GetWeekDay(WORD& year, WORD& month, WORD& day);
 

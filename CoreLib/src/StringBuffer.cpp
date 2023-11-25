@@ -251,6 +251,51 @@ StringBuffer& StringBuffer::VaAppendFormat(PCWSTR pszFormat, va_list argList)
 }
 
 
+StringBuffer& StringBuffer::Replace(WCHAR c1, WCHAR c2, size_t offset, int count, size_t* pOffset)
+{
+    if (m_len <= offset)
+    {
+        if (pOffset)
+        {
+            *pOffset = m_len;
+        }
+        return *this;
+    }
+    if (count == 0)
+    {
+        if (pOffset)
+        {
+            *pOffset = offset;
+        }
+        return *this;
+    }
+    else if (count < 0)
+    {
+        count = INT_MAX;
+    }
+    PWCHAR pCur = m_ptr + offset;
+    PWCHAR pEnd = m_ptr + m_len;
+    PWCHAR pLast = nullptr;
+    while ((pCur = wmemchr(pCur, c1, pEnd - pCur)))
+    {
+        *pCur = c2;
+        if (--count)
+        {
+            pCur++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    if (pOffset)
+    {
+        *pOffset = (pCur ? pCur : pEnd) - m_ptr;
+    }
+    return *this;
+}
+
+
 void StringBuffer::set_Len(size_t value)
 {
     if (m_len > value)

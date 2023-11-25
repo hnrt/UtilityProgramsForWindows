@@ -7,14 +7,14 @@ using namespace hnrt;
 
 
 FileTime::FileTime()
-	: m_ft()
+	: FILETIME()
 {
-	GetSystemTimeAsFileTime(&m_ft);
+	GetSystemTimeAsFileTime(this);
 }
 
 
 FileTime::FileTime(const SYSTEMTIME& st)
-	: m_ft()
+	: FILETIME()
 {
 	(void)From(st);
 }
@@ -22,7 +22,7 @@ FileTime::FileTime(const SYSTEMTIME& st)
 
 FileTime& FileTime::FromSystemTime()
 {
-	GetSystemTimeAsFileTime(&m_ft);
+	GetSystemTimeAsFileTime(this);
 	return *this;
 }
 
@@ -37,7 +37,7 @@ FileTime& FileTime::FromLocalTime()
 
 FileTime& FileTime::From(const SYSTEMTIME& st)
 {
-	if (!SystemTimeToFileTime(&st, &m_ft))
+	if (!SystemTimeToFileTime(&st, this))
 	{
 		throw Win32Exception(GetLastError(), L"SystemTimeToFileTime failed.");
 	}
@@ -47,15 +47,44 @@ FileTime& FileTime::From(const SYSTEMTIME& st)
 
 SYSTEMTIME& FileTime::ToSystemTime(SYSTEMTIME& st) const
 {
-	if (!FileTimeToSystemTime(&m_ft, &st))
+	if (!FileTimeToSystemTime(this, &st))
 	{
 		throw Win32Exception(GetLastError(), L"FileTimeToSystemTime failed.");
+	}
+	// Validate returned values just in case
+	if (st.wMonth < 1 || 12 < st.wMonth)
+	{
+		throw Exception(L"FileTimeToSystemTime returned an invalid month: %d", st.wMonth);
+	}
+	if (6 < st.wDayOfWeek) // 0=SUN 1=MON 2=TUE 3=WED 4=THU 5=FRI 6=SAT
+	{
+		throw Exception(L"FileTimeToSystemTime returned an invalid day of week: %d", st.wDayOfWeek);
+	}
+	if (st.wDay < 1 || 31 < st.wDay)
+	{
+		throw Exception(L"FileTimeToSystemTime returned an invalid day: %d", st.wDay);
+	}
+	if (23 < st.wHour)
+	{
+		throw Exception(L"FileTimeToSystemTime returned an invalid hour: %d", st.wHour);
+	}
+	if (59 < st.wMinute)
+	{
+		throw Exception(L"FileTimeToSystemTime returned an invalid minute: %d", st.wMinute);
+	}
+	if (59 < st.wSecond)
+	{
+		throw Exception(L"FileTimeToSystemTime returned an invalid second: %d", st.wSecond);
+	}
+	if (999 < st.wMilliseconds)
+	{
+		throw Exception(L"FileTimeToSystemTime returned an invalid millisecond: %d", st.wMilliseconds);
 	}
 	return st;
 }
 
 
-void hnrt::GetLastDayOfMonth(int year, int month, WORD& dayOfMonth)
+WORD hnrt::GetLastDayOfMonth(int year, int month)
 {
 	switch (month)
 	{
@@ -66,31 +95,29 @@ void hnrt::GetLastDayOfMonth(int year, int month, WORD& dayOfMonth)
 	case 8:
 	case 10:
 	case 12:
-		dayOfMonth = 31;
-		break;
+		return 31;
 	case 2:
 		if ((year % 4) == 0 && ((year % 100) != 0 || (year % 400) == 0))
 		{
-			dayOfMonth = 29;
+			return 29;
 		}
 		else
 		{
-			dayOfMonth = 28;
+			return 28;
 		}
 		break;
 	case 4:
 	case 6:
 	case 9:
 	case 11:
-		dayOfMonth = 30;
-		break;
+		return 30;
 	default:
 		throw Exception(L"GetLastDayOfMonth: Bad month: %d", month);
 	}
 }
 
 
-void hnrt::GetLastDayOfMonth(WORD& year, WORD& month, WORD& dayOfMonth, int dayOfWeek)
+void hnrt::GetLastDayOfMonth(WORD& year, WORD& month, WORD& day, int dayOfWeek)
 {
 	if (dayOfWeek < 0 || 6 < dayOfWeek)
 	{
@@ -99,21 +126,20 @@ void hnrt::GetLastDayOfMonth(WORD& year, WORD& month, WORD& dayOfMonth, int dayO
 	SYSTEMTIME st = { 0 };
 	st.wYear = year;
 	st.wMonth = month;
-	st.wDay = dayOfMonth;
+	st.wDay = day;
 	FileTime ft(st);
 	ft.ToSystemTime(st);
-	while (true)
+	WORD delta = (dayOfWeek + 7 - st.wDayOfWeek) % 7;
+	if (delta)
 	{
-		if (st.wDayOfWeek == dayOfWeek)
-		{
-			WORD last = 0;
-			GetLastDayOfMonth(year, month, last);
-			st.wDay += ((last - st.wDay) / 7) * 7;
-			return;
-		}
-		ft.AddDays(1);
+		ft.AddDays(delta);
 		ft.ToSystemTime(st);
 	}
+	WORD last = GetLastDayOfMonth(year, month);
+	st.wDay += ((last - st.wDay) / 7) * 7;
+	year = st.wYear;
+	month = st.wMonth;
+	day = st.wDay;
 }
 
 
@@ -125,9 +151,14 @@ void hnrt::GetWeekDay(WORD& year, WORD& month, WORD& day)
 	st.wDay = day;
 	FileTime ft(st);
 	ft.ToSystemTime(st);
-	while (st.wDayOfWeek == 0 || st.wDayOfWeek == 6)
+	if (st.wDayOfWeek == 0)
 	{
 		ft.AddDays(1);
+		ft.ToSystemTime(st);
+	}
+	else if (st.wDayOfWeek == 6)
+	{
+		ft.AddDays(2);
 		ft.ToSystemTime(st);
 	}
 	year = st.wYear;
@@ -152,24 +183,22 @@ void hnrt::GetDayOfWeek(WORD& year, WORD& month, WORD& day, int dayOfWeek, int o
 	st.wDay = day;
 	FileTime ft(st);
 	ft.ToSystemTime(st);
-	while (true)
+	WORD delta = (dayOfWeek + 7 - st.wDayOfWeek) % 7;
+	if (delta)
 	{
-		if (st.wDayOfWeek == dayOfWeek)
-		{
-			if ((st.wDay + 6) / 7 == ordinal)
-			{
-				year = st.wYear;
-				month = st.wMonth;
-				day = st.wDay;
-				return;
-			}
-			ft.AddDays(7);
-		}
-		else
-		{
-			int delta = (dayOfWeek + 7 - st.wDayOfWeek) % 7;
-			ft.AddDays(static_cast<LONGLONG>(delta));
-		}
+		ft.AddDays(delta);
 		ft.ToSystemTime(st);
 	}
+	while (true)
+	{
+		if ((st.wDay + 6) / 7 == ordinal)
+		{
+			break;
+		}
+		ft.AddDays(7);
+		ft.ToSystemTime(st);
+	}
+	year = st.wYear;
+	month = st.wMonth;
+	day = st.wDay;
 }

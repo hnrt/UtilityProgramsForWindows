@@ -176,31 +176,31 @@ void NativeToAsciiDialogBox::OnSaveAs()
 
 void NativeToAsciiDialogBox::OnCut()
 {
-	CutText(CurrentEdit);
+	EditCut(CurrentEdit);
 }
 
 
 void NativeToAsciiDialogBox::OnCopy()
 {
-	CopyText(CurrentEdit);
+	EditCopy(CurrentEdit);
 }
 
 
 void NativeToAsciiDialogBox::OnPaste()
 {
-	PasteText(CurrentEdit);
+	EditPaste(CurrentEdit);
 }
 
 
 void NativeToAsciiDialogBox::OnDelete()
 {
-	DeleteText(CurrentEdit);
+	EditDelete(CurrentEdit);
 }
 
 
 void NativeToAsciiDialogBox::OnSelectAll()
 {
-	SelectAllText(CurrentEdit);
+	EditSelectAll(CurrentEdit);
 }
 
 
@@ -212,7 +212,7 @@ void NativeToAsciiDialogBox::OnCopyAll()
 
 void NativeToAsciiDialogBox::OnClear()
 {
-	ClearEdit(CurrentEdit);
+	EditClear(CurrentEdit);
 	CurrentPath = String::Empty;
 }
 
@@ -251,10 +251,10 @@ void NativeToAsciiDialogBox::OnSettingChanged(UINT uId)
 void NativeToAsciiDialogBox::OnSelectSource(int id)
 {
 	CheckButton(IDC_NTOA_NATIVE_RADIO, id == IDC_NTOA_NATIVE_RADIO ? BST_CHECKED : BST_UNCHECKED);
-	SetReadOnlyEdit(IDC_NTOA_NATIVE_EDIT, id == IDC_NTOA_NATIVE_RADIO ? FALSE : TRUE);
+	EditSetReadOnly(IDC_NTOA_NATIVE_EDIT, id == IDC_NTOA_NATIVE_RADIO ? FALSE : TRUE);
 	EnableWindow(IDC_NTOA_ENCODE_BUTTON, id == IDC_NTOA_NATIVE_RADIO);
 	CheckButton(IDC_NTOA_ASCII_RADIO, id == IDC_NTOA_ASCII_RADIO ? BST_CHECKED : BST_UNCHECKED);
-	SetReadOnlyEdit(IDC_NTOA_ASCII_EDIT, id == IDC_NTOA_ASCII_RADIO ? FALSE : TRUE);
+	EditSetReadOnly(IDC_NTOA_ASCII_EDIT, id == IDC_NTOA_ASCII_RADIO ? FALSE : TRUE);
 	EnableWindow(IDC_NTOA_DECODE_BUTTON, id == IDC_NTOA_ASCII_RADIO);
 	m_menuEdit
 		.Modify(

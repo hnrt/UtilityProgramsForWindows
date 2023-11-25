@@ -45,6 +45,7 @@ namespace hnrt
         String& VaFormat(PCWSTR, va_list);
         String& AppendFormat(PCWSTR, ...);
         String& VaAppendFormat(PCWSTR, va_list);
+        int IndexOf(WCHAR, INT_PTR = 0);
         operator PCWSTR() const;
         operator bool() const;
         String& operator =(const String&);

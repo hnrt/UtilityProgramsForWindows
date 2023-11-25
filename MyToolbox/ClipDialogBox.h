@@ -36,11 +36,12 @@ namespace hnrt
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		void OnSelectionChange();
-		void WriteBackToFile();
+		void WriteBackToFile() const;
 
 		RefPtr<ClipboardObserver> m_pCO;
 		String m_szDirectoryPath;
 		ClipMap m_mapHash;
+		int m_selected;
 		String m_szFilePath;
 		String m_szHash;
 		bool m_bChanged;

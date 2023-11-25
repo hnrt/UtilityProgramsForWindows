@@ -310,7 +310,7 @@ void HashDialogBox::OnCut()
 {
     if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
     {
-        CutText(IDC_HASH_CONTENT);
+        EditCut(IDC_HASH_CONTENT);
         ClearResult();
     }
 }
@@ -320,7 +320,7 @@ void HashDialogBox::OnCopy()
 {
     if (!HasResult())
     {
-        CopyText(IDC_HASH_CONTENT);
+        EditCopy(IDC_HASH_CONTENT);
         return;
     }
     if (!m_hash.Value)
@@ -347,7 +347,7 @@ void HashDialogBox::OnPaste()
 {
     if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
     {
-        PasteText(IDC_HASH_CONTENT);
+        EditPaste(IDC_HASH_CONTENT);
         ClearResult();
     }
 }
@@ -357,7 +357,7 @@ void HashDialogBox::OnSelectAll()
 {
     if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
     {
-        SelectAllText(IDC_HASH_CONTENT);
+        EditSelectAll(IDC_HASH_CONTENT);
     }
 }
 
@@ -366,7 +366,7 @@ void HashDialogBox::OnClear()
 {
     if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
     {
-        ClearEdit(IDC_HASH_CONTENT);
+        EditClear(IDC_HASH_CONTENT);
         m_szTextPath = String::Empty;
         ClearResult();
     }
@@ -421,7 +421,7 @@ void HashDialogBox::OnSelectSource(UINT uSource)
     EnableWindow(IDC_HASH_PATH, bFile);
     EnableWindow(IDC_HASH_BROWSE, bFile);
     EnableWindow(IDC_HASH_TEXT, bRadio);
-    SetReadOnlyEdit(IDC_HASH_CONTENT, bText ? FALSE : TRUE);
+    EditSetReadOnly(IDC_HASH_CONTENT, bText ? FALSE : TRUE);
     EnableWindow(IDC_HASH_ENCODING, bText);
     EnableWindow(IDC_HASH_LINEBREAK, bText);
     if (uSource)
@@ -717,13 +717,13 @@ void HashDialogBox::ResetResultCase()
 
 UINT HashDialogBox::GetCodePage() const
 {
-    return GetComboBoxSelection(IDC_HASH_ENCODING, CP_UTF8);
+    return ComboBoxGetSelection(IDC_HASH_ENCODING, CP_UTF8);
 }
 
 
 UINT HashDialogBox::GetLineBreak() const
 {
-    return GetComboBoxSelection(IDC_HASH_LINEBREAK, 0x0d0a);
+    return ComboBoxGetSelection(IDC_HASH_LINEBREAK, 0x0d0a);
 }
 
 

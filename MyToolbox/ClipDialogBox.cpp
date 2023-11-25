@@ -1,15 +1,15 @@
 #include "pch.h"
 #include "ClipDialogBox.h"
+#include "ClipFile.h"
 #include "resource.h"
 #include "hnrt/WindowDesign.h"
 #include "hnrt/WindowLayoutSnapshot.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/Path.h"
+#include "hnrt/Time.h"
 #include "hnrt/Debug.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/ErrorMessage.h"
-#include "hnrt/FileWriter.h"
-#include "hnrt/FileMapper.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/ByteDataFeeder.h"
 #include "hnrt/Unicode.h"
@@ -18,14 +18,12 @@
 using namespace hnrt;
 
 
-static const WCHAR Separator = LINE_SEPARATOR;
-
-
 ClipDialogBox::ClipDialogBox()
 	: MyDialogBox(IDD_CLIP)
 	, m_pCO(RefPtr<ClipboardObserver>(new MyClipboardObserver(*this)))
 	, m_szDirectoryPath(Path::Combine(Path::GetKnownFolder(FOLDERID_LocalAppData), L"hnrt", L"MyToolbox", L"clippings"))
 	, m_mapHash()
+	, m_selected(-1)
 	, m_szFilePath()
 	, m_szHash()
 	, m_bChanged(false)
@@ -45,6 +43,24 @@ static int __cdecl DirectoryEntryCompare(const void* a1, const void* a2)
 {
 	const DirectoryEntry* p1 = reinterpret_cast<const DirectoryEntry*>(a1);
 	const DirectoryEntry* p2 = reinterpret_cast<const DirectoryEntry*>(a2);
+	LONGLONG diff = FileTime(p1->ftLastWriteTime).Intervals - FileTime(p2->ftLastWriteTime).Intervals;
+	if (diff > 0)
+	{
+		return 1;
+	}
+	else if (diff < 0)
+	{
+		return -1;
+	}
+	diff = FileTime(p1->ftCreationTime).Intervals - FileTime(p2->ftCreationTime).Intervals;
+	if (diff > 0)
+	{
+		return 1;
+	}
+	else if (diff < 0)
+	{
+		return -1;
+	}
 	return String::Compare(p1->szFileName, p2->szFileName);
 }
 
@@ -65,21 +81,10 @@ void ClipDialogBox::OnCreate()
 		{
 			String szFileName(iter->szFileName);
 			String szFilePath(Path::Combine(m_szDirectoryPath, szFileName));
-			FileMapper file(szFilePath);
-			const WCHAR* pStart = reinterpret_cast<const WCHAR*>(file.Ptr);
-			const WCHAR* pEnd = pStart + file.Len / sizeof(WCHAR);
-			const WCHAR* pHash = wmemchr(pStart, Separator, pEnd - pStart);
-			if (!pHash++)
-			{
-				throw Exception(L"Looks broken!");
-			}
-			const WCHAR* pHashEnd = wmemchr(pHash, Separator, pEnd - pHash);
-			if (!pHashEnd)
-			{
-				throw Exception(L"Looks broken!");
-			}
-			m_mapHash.insert(ClipEntry(String(pHash, pHashEnd - pHash), szFileName));
-			SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(szFileName.Ptr));
+			ClipFile file(szFilePath);
+			m_mapHash.insert(ClipEntry(file.Hash, szFileName));
+			String item(PRINTF, L"%s %s", szFileName.Ptr, file.Header.Ptr);
+			SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(item.Ptr));
 		}
 		catch (Exception e)
 		{
@@ -160,6 +165,8 @@ INT_PTR ClipDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			{
 				m_bChanged = false;
 				WriteBackToFile();
+				ListBoxSetText(IDC_CLIP_FILENAME_LIST, m_selected,
+					String(PRINTF, L"%s %s", Path::GetFileName(m_szFilePath).Ptr, GetText(IDC_CLIP_HEADER_EDIT).Ptr).Ptr);
 			}
 			break;
 		default:
@@ -182,11 +189,8 @@ INT_PTR ClipDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 void ClipDialogBox::OnCopy()
 {
 	m_bProcessing = true;
-	int cch = GetTextLength(IDC_CLIP_BODY_EDIT);
-	int cchSize = cch + 1;
-	Buffer<WCHAR> content(cchSize);
-	GetText(IDC_CLIP_BODY_EDIT, content, content.Len);
-	if (!Clipboard::Write(hwnd, content, cch))
+	String szContent = GetText(IDC_CLIP_BODY_EDIT);
+	if (!Clipboard::Write(hwnd, szContent, szContent.Len))
 	{
 		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
 	}
@@ -196,6 +200,30 @@ void ClipDialogBox::OnCopy()
 
 void ClipDialogBox::OnDelete()
 {
+	int index = ListBoxGetSelection(IDC_CLIP_FILENAME_LIST);
+	if (index < 0)
+	{
+		return;
+	}
+	String szFilePath = m_szFilePath;
+	ListBoxDelete(IDC_CLIP_FILENAME_LIST, index);
+	SetText(IDC_CLIP_HEADER_EDIT);
+	EditSetReadOnly(IDC_CLIP_HEADER_EDIT, TRUE);
+	SetText(IDC_CLIP_BODY_EDIT);
+	DisableWindow(IDC_CLIP_COPY_BUTTON);
+	DisableWindow(IDC_CLIP_DELETE_BUTTON);
+	m_menuEdit
+		.Enable(IDM_EDIT_COPY, MF_DISABLED)
+		.Enable(IDS_MENU_DELETE, MF_DISABLED);
+	m_mapHash.erase(m_szHash);
+	m_szFilePath = String::Empty;
+	m_szHash = String::Empty;
+	m_bChanged = false;
+	if (!DeleteFileW(szFilePath))
+	{
+		DWORD dwError = GetLastError();
+		Debug::Put(L"DeleteFile(%s) failed: %s", szFilePath.Ptr, ErrorMessage::Get(dwError));
+	}
 }
 
 
@@ -225,12 +253,7 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 		{
 			if (!Path::IsFile(Path::Combine(m_szDirectoryPath, szName)))
 			{
-				FileWriter body(Path::Combine(m_szDirectoryPath, szName), CREATE_NEW);
-				body.Write(&Separator, sizeof(WCHAR));
-				body.Write(hash.Text, wcslen(hash.Text) * sizeof(WCHAR));
-				body.Write(&Separator, sizeof(WCHAR));
-				body.Write(psz, cch * sizeof(WCHAR));
-				body.Close();
+				ClipFile(Path::Combine(m_szDirectoryPath, szName)).Save(hash.Text, psz);
 			}
 		}
 		else
@@ -242,10 +265,10 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 				throw Win32Exception(dwError, L"Failed to rename %s to %s.", szOldName.Ptr, szName.Ptr);
 			}
 			m_mapHash.erase(iter);
-			LRESULT index = SendMessage(IDC_CLIP_FILENAME_LIST, LB_FINDSTRING, -1, reinterpret_cast<LPARAM>(szOldName.Ptr));
-			if (index != LB_ERR)
+			int index = ListBoxFind(IDC_CLIP_FILENAME_LIST, szOldName);
+			if (index >= 0)
 			{
-				if (SendMessage(IDC_CLIP_FILENAME_LIST, LB_GETSEL, index, 0) > 0)
+				if (ListBoxIsSelected(IDC_CLIP_FILENAME_LIST, index))
 				{
 					bSelect = true;
 					m_szFilePath = Path::Combine(m_szDirectoryPath, szName);
@@ -254,7 +277,9 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 			}
 		}
 		m_mapHash.insert(ClipEntry(hash.Text, szName));
-		SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(szName.Ptr));
+		ClipFile file(Path::Combine(m_szDirectoryPath, szName));
+		String item(PRINTF, L"%s %s", szName.Ptr, file.Header.Ptr);
+		SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(item.Ptr));
 		if (bSelect)
 		{
 			SendMessage(IDC_CLIP_FILENAME_LIST, LB_SETCURSEL, 0, 0);
@@ -269,102 +294,70 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 
 void ClipDialogBox::OnSelectionChange()
 {
-	LRESULT index = SendMessage(IDC_CLIP_FILENAME_LIST, LB_GETCURSEL, 0, 0);
-	if (index == LB_ERR)
-	{
-		Debug::Put(L"ClipDialogBox::OnSelectionChange: LB_GETCURSEL failed.");
-		return;
-	}
-	LRESULT cch = SendMessage(IDC_CLIP_FILENAME_LIST, LB_GETTEXTLEN, index, 0);
-	if (cch++ == LB_ERR)
-	{
-		Debug::Put(L"ClipDialogBox::OnSelectionChange: LB_GETTEXTLEN failed.");
-		return;
-	}
-	Buffer<WCHAR> name(cch);
-	if (SendMessage(IDC_CLIP_FILENAME_LIST, LB_GETTEXT, index, reinterpret_cast<LPARAM>(name.Ptr)) == LB_ERR)
-	{
-		Debug::Put(L"ClipDialogBox::OnSelectionChange: LB_GETTEXT failed.");
-		return;
-	}
 	try
 	{
+		int index = ListBoxGetSelection(IDC_CLIP_FILENAME_LIST, -1);
+		if (index < 0)
+		{
+			return;
+		}
 		if (m_bChanged)
 		{
 			m_bChanged = false;
 			WriteBackToFile();
+			ListBoxSetText(IDC_CLIP_FILENAME_LIST, m_selected,
+				String(PRINTF, L"%s %s", Path::GetFileName(m_szFilePath).Ptr, GetText(IDC_CLIP_HEADER_EDIT).Ptr).Ptr);
 		}
-		m_szFilePath = Path::Combine(m_szDirectoryPath, name.Ptr);
-		FileMapper file(m_szFilePath);
-		Buffer<WCHAR> buf(file.Len / sizeof(WCHAR) + 1);
-		memcpy_s(buf, buf.Len * sizeof(WCHAR), file.Ptr, file.Len);
-		buf[buf.Len - 1] = L'\0';
-		file.Close();
-		PWSTR pszHash = wcschr(buf, Separator);
-		if (!pszHash)
-		{
-			throw Exception(L"Looks broken!");
-		}
-		*pszHash++ = L'\0';
-		PWSTR pContent = wcschr(pszHash, Separator);
-		if (!pContent)
-		{
-			throw Exception(L"Looks broken!");
-		}
-		*pContent++ = L'\0';
-		SetText(IDC_CLIP_HEADER_EDIT, buf);
-		SetReadOnlyEdit(IDC_CLIP_HEADER_EDIT, FALSE);
-		m_szHash = pszHash;
-		SetText(IDC_CLIP_BODY_EDIT, pContent);
+		String szItem = ListBoxGetText(IDC_CLIP_FILENAME_LIST, index);
+		int nameLen = szItem.IndexOf(L' ');
+		String szName(szItem, nameLen >= 0 ? nameLen : szItem.Len);
+		String szFilePath = Path::Combine(m_szDirectoryPath, szName.Ptr);
+		ClipFile file(szFilePath);
+		String item(PRINTF, L"%s %s", szName.Ptr, file.Header.Ptr);
+		ListBoxSetText(IDC_CLIP_FILENAME_LIST, index, item);
+		SetText(IDC_CLIP_HEADER_EDIT, file.Header);
+		EditSetReadOnly(IDC_CLIP_HEADER_EDIT, FALSE);
+		SetText(IDC_CLIP_BODY_EDIT, file.Content);
 		EnableWindow(IDC_CLIP_COPY_BUTTON);
 		EnableWindow(IDC_CLIP_DELETE_BUTTON);
 		m_menuEdit
 			.Enable(IDM_EDIT_COPY)
 			.Enable(IDS_MENU_DELETE);
+		m_selected = index;
+		m_szFilePath = szFilePath;
+		m_szHash = file.Hash;
+		m_bChanged = false;
 		return;
 	}
 	catch (Win32Exception e)
 	{
-		WCHAR szMessage[MAX_PATH * 2] = { 0 };
-		swprintf_s(szMessage, L"%s %s", e.Message, ErrorMessage::Get(e.Error));
-		SetText(IDC_CLIP_HEADER_EDIT, szMessage);
-		SetReadOnlyEdit(IDC_CLIP_HEADER_EDIT, TRUE);
+		SetText(IDC_CLIP_HEADER_EDIT, String(PRINTF, L"%s %s", e.Message, ErrorMessage::Get(e.Error)));
+		EditSetReadOnly(IDC_CLIP_HEADER_EDIT, TRUE);
 	}
 	catch (Exception e)
 	{
 		SetText(IDC_CLIP_HEADER_EDIT, e.Message);
-		SetReadOnlyEdit(IDC_CLIP_HEADER_EDIT, TRUE);
+		EditSetReadOnly(IDC_CLIP_HEADER_EDIT, TRUE);
 	}
 	SetText(IDC_CLIP_BODY_EDIT);
-	m_szFilePath = String::Empty;
 	DisableWindow(IDC_CLIP_COPY_BUTTON);
 	DisableWindow(IDC_CLIP_DELETE_BUTTON);
 	m_menuEdit
 		.Enable(IDM_EDIT_COPY, MF_DISABLED)
 		.Enable(IDS_MENU_DELETE, MF_DISABLED);
+	m_szFilePath = String::Empty;
+	m_szHash = String::Empty;
+	m_bChanged = false;
 }
 
 
-void ClipDialogBox::WriteBackToFile()
+void ClipDialogBox::WriteBackToFile() const
 {
 	try
 	{
-		size_t cchHeader = GetTextLength(IDC_CLIP_HEADER_EDIT);
-		Buffer<WCHAR> header(cchHeader + 1);
-		GetText(IDC_CLIP_HEADER_EDIT, header, header.Len);
-		for (PWCHAR pCur = header; (pCur = wcschr(pCur, Separator)) != nullptr ; pCur++)
-		{
-			*pCur = L' ';
-		}
-		size_t cchBody = GetTextLength(IDC_CLIP_BODY_EDIT);
-		Buffer<WCHAR> body(cchBody + 1);
-		GetText(IDC_CLIP_BODY_EDIT, body, body.Len);
-		FileWriter file(m_szFilePath, CREATE_ALWAYS);
-		file.Write(header, cchHeader * sizeof(WCHAR));
-		file.Write(&Separator, sizeof(WCHAR));
-		file.Write(m_szHash.Ptr, m_szHash.Len * sizeof(WCHAR));
-		file.Write(&Separator, sizeof(WCHAR));
-		file.Write(body, cchBody * sizeof(WCHAR));
+		String szHeader = GetText(IDC_CLIP_HEADER_EDIT);
+		String szContent = GetText(IDC_CLIP_BODY_EDIT);
+		ClipFile(m_szFilePath).Save(szHeader, m_szHash, szContent);
 	}
 	catch (Win32Exception e)
 	{

@@ -12,6 +12,10 @@
 using namespace hnrt;
 
 
+typedef std::map<String, int> StringIntMap;
+typedef std::pair<String, int> StringIntPair;
+
+
 DialogBox::DialogBox(UINT idTemplate)
     : WindowSize()
     , WindowLayout()
@@ -102,6 +106,12 @@ BOOL DialogBox::DisableWindow(int id) const
 }
 
 
+void DialogBox::SetFocus(int id) const
+{
+    ::SetFocus(GetDlgItem(hwnd, id));
+}
+
+
 LRESULT DialogBox::SendMessage(int id, UINT msg, WPARAM wParam, LPARAM lParam) const
 {
     return SendDlgItemMessageW(m_hwnd, id, msg, wParam, lParam);
@@ -136,25 +146,35 @@ void DialogBox::SetText(int id, PCWSTR psz) const
 }
 
 
-void DialogBox::GetTextSelection(int id, int& start, int& end) const
+void DialogBox::CopyAllText(int id) const
+{
+    if (!Clipboard::Write(hwnd, hwnd, id))
+    {
+        MessageBoxW(hwnd, L"Unable to write text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// 
+//  E D I T   C O N T R O L
+// 
+//////////////////////////////////////////////////////////////////////
+
+
+void DialogBox::EditGetSelection(int id, int& start, int& end) const
 {
     SendMessage(id, EM_GETSEL, reinterpret_cast<WPARAM>(&start), reinterpret_cast<LPARAM>(&end));
 }
 
 
-void DialogBox::SetTextSelection(int id, int start, int end) const
+void DialogBox::EditSetSelection(int id, int start, int end) const
 {
     SendMessage(id, EM_SETSEL, start, end);
 }
 
 
-void DialogBox::SetReadOnlyEdit(int id, BOOL bReadOnly) const
-{
-    SendMessage(id, EM_SETREADONLY, bReadOnly, 0);
-}
-
-
-void DialogBox::CutText(int id) const
+void DialogBox::EditCut(int id) const
 {
     //
     // |<-------------------- cch ---------------------->|
@@ -166,10 +186,10 @@ void DialogBox::CutText(int id) const
     int cch = GetTextLength(id) + 1;
     int off2 = 0;
     int off3 = 0;
-    GetTextSelection(id, off2, off3);
+    EditGetSelection(id, off2, off3);
     if (off2 > off3 || off3 >= cch)
     {
-        Debug::Put(L"DialogBox::CutText: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
+        Debug::Put(L"DialogBox::EditCut: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
         return;
     }
     Buffer<WCHAR> buf(cch);
@@ -183,12 +203,12 @@ void DialogBox::CutText(int id) const
     int cch3 = cch - off3;
     wmemmove_s(&buf[off2], cch3, &buf[off3], cch3);
     SetText(id, buf);
-    SetTextSelection(id, off2, off2);
+    EditSetSelection(id, off2, off2);
     SetFocus(id);
 }
 
 
-void DialogBox::CopyText(int id) const
+void DialogBox::EditCopy(int id) const
 {
     //
     // |<-------------------- cch ---------------------->|
@@ -198,10 +218,10 @@ void DialogBox::CopyText(int id) const
     int cch = GetTextLength(id) + 1;
     int off2 = 0;
     int off3 = 0;
-    GetTextSelection(id, off2, off3);
+    EditGetSelection(id, off2, off3);
     if (off2 > off3 || off3 >= cch)
     {
-        Debug::Put(L"DialogBox::CopyText: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
+        Debug::Put(L"DialogBox::EditCopy: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
         return;
     }
     Buffer<WCHAR> buf(cch);
@@ -216,7 +236,7 @@ void DialogBox::CopyText(int id) const
 }
 
 
-void DialogBox::PasteText(int id) const
+void DialogBox::EditPaste(int id) const
 {
     //
     // |<-------------------- cch ---------------------->|
@@ -237,10 +257,10 @@ void DialogBox::PasteText(int id) const
     int cch = GetTextLength(id) + 1;
     int off2 = 0;
     int off3 = 0;
-    GetTextSelection(id, off2, off3);
+    EditGetSelection(id, off2, off3);
     if (off2 > off3 || off3 >= cch)
     {
-        Debug::Put(L"DialogBox::PasteText: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
+        Debug::Put(L"DialogBox::EditPaste: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
         return;
     }
     int size = cch + cch2;
@@ -251,12 +271,12 @@ void DialogBox::PasteText(int id) const
     wmemmove_s(&buf[off4], cch3, &buf[off3], cch3);
     wmemcpy_s(&buf[off2], cch2, szText, cch2);
     SetText(id, buf);
-    SetTextSelection(id, off4, off4);
+    EditSetSelection(id, off4, off4);
     SetFocus(id);
 }
 
 
-void DialogBox::DeleteText(int id) const
+void DialogBox::EditDelete(int id) const
 {
     //
     // |<-------------------- cch ---------------------->|
@@ -268,7 +288,7 @@ void DialogBox::DeleteText(int id) const
     int cch = GetTextLength(id) + 1;
     int off2 = 0;
     int off3 = 0;
-    GetTextSelection(id, off2, off3);
+    EditGetSelection(id, off2, off3);
     if (off2 > off3 || off3 >= cch)
     {
         Debug::Put(L"DialogBox::DeleteText: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
@@ -287,33 +307,37 @@ void DialogBox::DeleteText(int id) const
     int cch3 = cch - off3;
     wmemmove_s(&buf[off2], cch3, &buf[off3], cch3);
     SetText(id, buf);
-    SetTextSelection(id, off2, off2);
+    EditSetSelection(id, off2, off2);
     SetFocus(id);
 }
 
 
-void DialogBox::SelectAllText(int id) const
+void DialogBox::EditSelectAll(int id) const
 {
     int cch = GetTextLength(id);
-    SetTextSelection(id, 0, cch);
+    EditSetSelection(id, 0, cch);
     SetFocus(id);
 }
 
 
-void DialogBox::CopyAllText(int id) const
+void DialogBox::EditSetReadOnly(int id, BOOL bReadOnly) const
 {
-    if (!Clipboard::Write(hwnd, hwnd, id))
-    {
-        MessageBoxW(hwnd, L"Unable to write text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
-    }
+    SendMessage(id, EM_SETREADONLY, bReadOnly);
 }
 
 
-void DialogBox::ClearEdit(int id) const
+void DialogBox::EditClear(int id) const
 {
     SetText(id);
     SetFocus(id);
 }
+
+
+//////////////////////////////////////////////////////////////////////
+// 
+//  B U T T O N   C O N T R O L
+// 
+//////////////////////////////////////////////////////////////////////
 
 
 void DialogBox::CheckButton(int id, BOOL bCheck) const
@@ -334,128 +358,257 @@ int DialogBox::GetButtonState(int id) const
 }
 
 
-typedef std::map<PCWSTR, int, StringLessThan> StringIntMap;
-typedef std::pair<PCWSTR, int> StringIntPair;
+//////////////////////////////////////////////////////////////////////
+// 
+//  C O M B O   B O X   C O N T R O L
+// 
+//////////////////////////////////////////////////////////////////////
 
 
-void DialogBox::AddStringToComboBox(int id, PCWSTR psz, int value) const
+int DialogBox::ComboBoxGetCount(int id) const
+{
+    return static_cast<int>(SendMessage(id, CB_GETCOUNT));
+}
+
+
+void DialogBox::ComboBoxAdd(int id, const String& szText, int value) const
 {
     StringIntMap* pMap = GetWindowUserData<StringIntMap>(GetChild(id));
     if (!pMap)
     {
         pMap = SetWindowUserData<StringIntMap>(GetChild(id), new StringIntMap());
     }
-    pMap->insert(StringIntPair(psz, value));
-    SendMessage(id, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(psz));
+    pMap->insert(StringIntPair(szText, value));
+    SendMessage(id, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(szText.Ptr));
 }
 
 
-void DialogBox::RemoveValueFromComboBox(int id, int value) const
+void DialogBox::ComboBoxRemove(int id, int value) const
 {
     StringIntMap* pMap = GetWindowUserData<StringIntMap>(GetChild(id));
     if (!pMap)
     {
-        Debug::Put(L"DialogBox::RemoveValueFromComboBox(%d): Has no map.", id);
+        Debug::Put(L"DialogBox::ComboBoxRemoveValue(%d): Has no map.", id);
         return;
     }
     for (StringIntMap::const_iterator iter = pMap->cbegin(); iter != pMap->cend(); iter++)
     {
         if (iter->second == value)
         {
-            LRESULT index = SendMessage(id, CB_FINDSTRING, -1, reinterpret_cast<LPARAM>(iter->first));
+            LRESULT index = SendMessage(id, CB_FINDSTRING, -1, reinterpret_cast<LPARAM>(iter->first.Ptr));
             if (index != CB_ERR)
             {
-                SendMessage(id, CB_DELETESTRING, index, 0);
+                SendMessage(id, CB_DELETESTRING, index);
             }
             return;
         }
     }
-    Debug::Put(L"DialogBox::RemoveValueFromComboBox(%d): Map has no entry for %d.", id, value);
+    Debug::Put(L"DialogBox::ComboBoxRemoveValue(%d): Map has no entry for %d.", id, value);
 }
 
 
-int DialogBox::GetComboBoxSelection(int id, int defaultValue) const
+int DialogBox::ComboBoxGetSelection(int id, int defaultValue) const
 {
     StringIntMap* pMap = GetWindowUserData<StringIntMap>(GetChild(id));
     if (!pMap)
     {
-        Debug::Put(L"DialogBox::GetComboBoxSelection(%d): Has no map.", id);
+        Debug::Put(L"DialogBox::ComboBoxGetSelection(%d): Has no map.", id);
         return defaultValue;
     }
     int selected = static_cast<int>(SendMessage(id, CB_GETCURSEL));
     if (selected == CB_ERR)
     {
-        Debug::Put(L"DialogBox::GetComboBoxSelection(%d): CB_GETCURSEL failed.", id);
+        Debug::Put(L"DialogBox::ComboBoxGetSelection(%d): CB_GETCURSEL failed.", id);
         return defaultValue;
     }
-    int cch = GetListBoxTextLength(id, selected) + 1;
-    Buffer<WCHAR> name(cch);
-    GetListBoxText(id, selected, name);
-    StringIntMap::const_iterator iter = pMap->find(name);
+    String szText = ComboBoxGetText(id, selected);
+    StringIntMap::const_iterator iter = pMap->find(szText);
     if (iter == pMap->cend())
     {
-        Debug::Put(L"DialogBox::GetComboBoxSelection(%d): Map has no entry for %s.", id, name.Ptr);
+        Debug::Put(L"DialogBox::ComboBoxGetSelection(%d): Map has no entry for %s.", id, szText.Ptr);
         return defaultValue;
     }
     return iter->second;
 }
 
 
-void DialogBox::SetComboBoxSelection(int id, int value) const
+void DialogBox::ComboBoxSetSelection(int id, int value) const
 {
     StringIntMap* pMap = GetWindowUserData<StringIntMap>(GetChild(id));
     if (!pMap)
     {
-        Debug::Put(L"DialogBox::SetComboBoxSelection(%d): Has no map.", id);
+        Debug::Put(L"DialogBox::ComboBoxSetSelection(%d): Has no map.", id);
         return;
     }
     for (StringIntMap::const_iterator iter = pMap->cbegin(); iter != pMap->cend(); iter++)
     {
         if (iter->second == value)
         {
-            SetComboBoxSelection(id, iter->first);
+            ComboBoxSetSelection(id, iter->first);
             return;
         }
     }
-    Debug::Put(L"DialogBox::SetComboBoxSelection(%d): Map has no entry for %d.", id, value);
+    Debug::Put(L"DialogBox::ComboBoxSetSelection(%d): Map has no entry for %d.", id, value);
 }
 
 
-void DialogBox::SetComboBoxSelection(int id, PCWSTR psz) const
+void DialogBox::ComboBoxSetSelection(int id, const String& szText) const
 {
-    SendMessage(id, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(psz));
+    SendMessage(id, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(szText.Ptr));
 }
 
 
-void DialogBox::ClearComboBoxSelection(int id) const
+void DialogBox::ComboBoxClearSelection(int id) const
 {
     SendMessage(id, CB_SETCURSEL, -1);
 }
 
 
-int DialogBox::GetListBoxTextLength(int id, int index, size_t defaultValue) const
+String DialogBox::ComboBoxGetText(int id, int index, const String& szDefault) const
 {
-    LRESULT length = SendMessage(id, CB_GETLBTEXTLEN, index);
-    return length != CB_ERR ? static_cast<int>(length) : static_cast<int>(defaultValue);
-
-}
-
-
-PWCHAR DialogBox::GetListBoxText(int id, int index, PWCHAR pBuf, PCWSTR pszDefault) const
-{
-    LRESULT length = SendMessage(id, CB_GETLBTEXT, index, reinterpret_cast<LPARAM>(pBuf));
+    if (index < 0)
+    {
+        int count = ComboBoxGetCount(id);
+        if (count <= 0)
+        {
+            return String(szDefault);
+        }
+        index += count;
+    }
+    LRESULT cch = SendMessage(id, CB_GETLBTEXTLEN, index);
+    if (cch == CB_ERR)
+    {
+        return String(szDefault);
+    }
+    Buffer<WCHAR> buf(cch + 1);
+    LRESULT length = SendMessage(id, CB_GETLBTEXT, index, reinterpret_cast<LPARAM>(buf.Ptr));
     if (length == CB_ERR)
     {
-        wcscpy_s(pBuf, wcslen(pszDefault) + 1, pszDefault);
+        return String(szDefault);
     }
-    return pBuf;
+    return String(buf, cch);
 }
 
 
-void DialogBox::SetFocus(int id) const
+//////////////////////////////////////////////////////////////////////
+// 
+//  L I S T   B O X   C O N T R O L
+// 
+//////////////////////////////////////////////////////////////////////
+
+
+int DialogBox::ListBoxGetCount(int id) const
 {
-    ::SetFocus(GetDlgItem(hwnd, id));
+    return static_cast<int>(SendMessage(id, LB_GETCOUNT));
 }
+
+
+int DialogBox::ListBoxGetSelection(int id, int defaultValue) const
+{
+    LRESULT index = SendMessage(id, LB_GETCURSEL);
+    if (index == LB_ERR)
+    {
+        return defaultValue;
+    }
+    return static_cast<int>(index);
+}
+
+
+bool DialogBox::ListBoxSetSelection(int id, int index) const
+{
+    LRESULT result = SendMessage(id, LB_SETCURSEL, index);
+    return result != LB_ERR;
+}
+
+
+bool DialogBox::ListBoxIsSelected(int id, int index) const
+{
+    return SendMessage(id, LB_GETSEL, index, 0) > 0;
+}
+
+
+// The return value is the zero-based index of the string in the list box.
+// If an error occurs, the return value is less than zero.
+int DialogBox::ListBoxAddText(int id, const String& szText) const
+{
+    return static_cast<int>(SendMessage(id, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(szText.Ptr)));
+}
+
+
+String DialogBox::ListBoxGetText(int id, int index, const String& szDefault) const
+{
+    LRESULT cch = SendMessage(id, LB_GETTEXTLEN, index);
+    if (cch == LB_ERR)
+    {
+        return String(szDefault);
+    }
+    Buffer<WCHAR> buf(cch + 1);
+    if (SendMessage(id, LB_GETTEXT, index, reinterpret_cast<LPARAM>(buf.Ptr)) == LB_ERR)
+    {
+        return String(szDefault);
+    }
+    return String(buf, cch);
+}
+
+
+// The return value is the index of the position at which the string was inserted.
+// If an error occurs, the return value is less than zero.
+int DialogBox::ListBoxInsertText(int id, int index, const String& szText) const
+{
+    return static_cast<int>(SendMessage(id, LB_INSERTSTRING, index, reinterpret_cast<LPARAM>(szText.Ptr)));
+}
+
+
+// If an error occurs, the return value is less than zero.
+int DialogBox::ListBoxSetText(int id, int index, const String& szText) const
+{
+    bool bSelected = ListBoxIsSelected(id, index);
+    if (ListBoxDelete(id, index) < 0)
+    {
+        return -1;
+    }
+    index = ListBoxInsertText(id, index, szText);
+    if (index >= 0)
+    {
+        if (bSelected)
+        {
+            ListBoxSetSelection(id, index);
+        }
+    }
+    return index;
+}
+
+
+// The return value is the zero-based index of the string in the list box.
+// If an error occurs, the return value is less than zero.
+int DialogBox::ListBoxFind(int id, const String& szText, int fromIndex) const
+{
+    return static_cast<int>(SendMessage(id, LB_FINDSTRING, fromIndex, reinterpret_cast<LPARAM>(szText.Ptr)));
+}
+
+
+// The return value is a count of the strings remaining in the list.
+// If an error occurs, the return value is less than zero.
+int DialogBox::ListBoxDelete(int id, int index) const
+{
+    if (index < 0)
+    {
+        int count = ListBoxGetCount(id);
+        if (count <= 0)
+        {
+            return -1;
+        }
+        index += count;
+    }
+    return static_cast<int>(SendMessage(id, LB_DELETESTRING, index, 0));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// 
+//  P R O T E C T E D  /  P R I V A T E
+// 
+//////////////////////////////////////////////////////////////////////
 
 
 INT_PTR CALLBACK DialogBox::MessageCallback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)

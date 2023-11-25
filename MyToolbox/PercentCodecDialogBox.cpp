@@ -49,7 +49,7 @@ void PercentCodecDialogBox::OnCreate()
 		m_szEncodedPath = value.GetSZ(hKey, REG_NAME_ENCODED_PATH, L"");
 	}
 	InitializeCodePageComboBox(IDC_PCTC_ENCODING);
-	RemoveValueFromComboBox(IDC_PCTC_ENCODING, CP_UTF16);
+	ComboBoxRemove(IDC_PCTC_ENCODING, CP_UTF16);
 	CheckButton(IDC_PCTC_USE_PLUS);
 	OnSelectSource(IDC_PCTC_LABEL1);
 	SetText(IDC_PCTC_STATUS1, L"");
@@ -237,31 +237,31 @@ void PercentCodecDialogBox::OnSaveAs()
 
 void PercentCodecDialogBox::OnCut()
 {
-	CutText(CurrentEdit);
+	EditCut(CurrentEdit);
 }
 
 
 void PercentCodecDialogBox::OnCopy()
 {
-	CopyText(CurrentEdit);
+	EditCopy(CurrentEdit);
 }
 
 
 void PercentCodecDialogBox::OnPaste()
 {
-	PasteText(CurrentEdit);
+	EditPaste(CurrentEdit);
 }
 
 
 void PercentCodecDialogBox::OnDelete()
 {
-	DeleteText(CurrentEdit);
+	EditDelete(CurrentEdit);
 }
 
 
 void PercentCodecDialogBox::OnSelectAll()
 {
-	SelectAllText(CurrentEdit);
+	EditSelectAll(CurrentEdit);
 }
 
 
@@ -273,7 +273,7 @@ void PercentCodecDialogBox::OnCopyAll()
 
 void PercentCodecDialogBox::OnClear()
 {
-	ClearEdit(CurrentEdit);
+	EditClear(CurrentEdit);
 	CurrentPath = String::Empty;
 }
 
@@ -316,11 +316,11 @@ void PercentCodecDialogBox::OnSettingChanged(UINT uId)
 void PercentCodecDialogBox::OnSelectSource(int id)
 {
 	CheckButton(IDC_PCTC_LABEL1, id == IDC_PCTC_LABEL1 ? BST_CHECKED : BST_UNCHECKED);
-	SetReadOnlyEdit(IDC_PCTC_EDIT1, id == IDC_PCTC_LABEL1 ? FALSE : TRUE);
+	EditSetReadOnly(IDC_PCTC_EDIT1, id == IDC_PCTC_LABEL1 ? FALSE : TRUE);
 	EnableWindow(IDC_PCTC_USE_PLUS, id == IDC_PCTC_LABEL1);
 	EnableWindow(IDC_PCTC_ENCODE, id == IDC_PCTC_LABEL1);
 	CheckButton(IDC_PCTC_LABEL2, id == IDC_PCTC_LABEL2 ? BST_CHECKED : BST_UNCHECKED);
-	SetReadOnlyEdit(IDC_PCTC_EDIT2, id == IDC_PCTC_LABEL2 ? FALSE : TRUE);
+	EditSetReadOnly(IDC_PCTC_EDIT2, id == IDC_PCTC_LABEL2 ? FALSE : TRUE);
 	EnableWindow(IDC_PCTC_DECODE, id == IDC_PCTC_LABEL2);
 	if (m_bEncodingError)
 	{
@@ -408,7 +408,7 @@ bool PercentCodecDialogBox::OnDecode()
 
 UINT PercentCodecDialogBox::GetCodePage() const
 {
-	return GetComboBoxSelection(IDC_PCTC_ENCODING, CP_UTF8);
+	return ComboBoxGetSelection(IDC_PCTC_ENCODING, CP_UTF8);
 }
 
 

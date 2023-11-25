@@ -538,6 +538,17 @@ String& String::VaAppendFormat(PCWSTR psz, va_list argList)
 }
 
 
+int String::IndexOf(WCHAR c, INT_PTR fromIndex)
+{
+    if (m_ptr && static_cast<size_t>(fromIndex) < m_ptr->Len)
+    {
+        const WCHAR* pCur = wmemchr(m_ptr->Ptr + fromIndex, c, m_ptr->Len - fromIndex);
+        return pCur ? static_cast<int>(pCur - m_ptr->Ptr) : -1;
+    }
+    return -1;
+}
+
+
 bool String::operator ==(const String& other) const
 {
     return Compare(*this, other) == 0;

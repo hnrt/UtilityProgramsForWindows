@@ -188,13 +188,43 @@ bool CronEvaluation::GetDayOfMonthEqualToOrLaterThanToday()
 	}
 	else if (m_cron.m_pDayOfMonth->type == CRON_WEEKDAY)
 	{
-		m_et.wDay = m_ct.wDay;
-		GetWeekDay(m_et.wYear, m_et.wMonth, m_et.wDay);
-		return true;
+		WORD wYear = m_et.wYear;
+		WORD wMonth = m_et.wMonth;
+		WORD wDay = m_ct.wDay;
+		GetWeekDay(wYear, wMonth, wDay);
+		if (wYear == m_et.wYear && wMonth == m_et.wMonth)
+		{
+			m_et.wDay = wDay;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else if (m_cron.m_pDayOfMonth->type == CRON_CLOSEST_WEEKDAY)
+	{
+		WORD wYear = m_et.wYear;
+		WORD wMonth = m_et.wMonth;
+		WORD wDay = dynamic_cast<const CronValueClosestWeekDay*>(m_cron.m_pDayOfMonth.Ptr)->dom;
+		if (wDay < m_ct.wDay || GetLastDayOfMonth(wYear, wMonth) < wDay)
+		{
+			return false;
+		}
+		GetWeekDay(wYear, wMonth, wDay);
+		if (wYear == m_et.wYear && wMonth == m_et.wMonth)
+		{
+			m_et.wDay = wDay;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	else if (m_cron.m_pDayOfMonth->type == CRON_LASTDAY)
 	{
-		GetLastDayOfMonth(m_et.wYear, m_et.wMonth, m_et.wDay);
+		m_et.wDay = GetLastDayOfMonth(m_et.wYear, m_et.wMonth);
 		return true;
 	}
 	else
@@ -212,13 +242,35 @@ bool CronEvaluation::GetNextDayOfWeekEqualToOrLaterThanToday()
 	}
 	if (m_cron.m_pDayOfWeek->type == CRON_LAST_DAYOFWEEK)
 	{
-		m_et.wDay = m_ct.wDay;
-		GetLastDayOfMonth(m_et.wYear, m_et.wMonth, m_et.wDay, CRON_NUMBER(dynamic_cast<const CronValueLastDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->dow) - 1);
+		WORD wYear = m_et.wYear;
+		WORD wMonth = m_et.wMonth;
+		WORD wDay = m_ct.wDay;
+		GetLastDayOfMonth(wYear, wMonth, wDay, CRON_NUMBER(dynamic_cast<const CronValueLastDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->dow) - 1);
+		if (wYear == m_et.wYear && wMonth == m_et.wMonth)
+		{
+			m_et.wDay = wDay;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	else if (m_cron.m_pDayOfWeek->type == CRON_NTH_DAYOFWEEK)
 	{
-		m_et.wDay = m_ct.wDay;
-		GetDayOfWeek(m_et.wYear, m_et.wMonth, m_et.wDay, CRON_NUMBER(dynamic_cast<const CronValueNthDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->dow) - 1, dynamic_cast<const CronValueNthDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->nth);
+		WORD wYear = m_et.wYear;
+		WORD wMonth = m_et.wMonth;
+		WORD wDay = m_ct.wDay;
+		GetDayOfWeek(wYear, wMonth, wDay, CRON_NUMBER(dynamic_cast<const CronValueNthDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->dow) - 1, dynamic_cast<const CronValueNthDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->nth);
+		if (wYear == m_et.wYear && wMonth == m_et.wMonth)
+		{
+			m_et.wDay = wDay;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	else
 	{
@@ -229,22 +281,23 @@ bool CronEvaluation::GetNextDayOfWeekEqualToOrLaterThanToday()
 			WORD next = ~0;
 			if (m_pDayOfWeekEval->Next(next))
 			{
-				if (next == tt.wDayOfWeek + 1)
+				if (next == m_ct.wDayOfWeek + 1)
 				{
-					m_et.wYear = tt.wYear;
-					m_et.wMonth = tt.wMonth;
 					m_et.wDay = tt.wDay;
-					break;
+					return true;
 				}
 			}
 			else
 			{
 				ft.AddDays(1);
-				ft.ToSystemTime(tt); // sets tt.wDayOfWeek
+				ft.ToSystemTime(tt);
+				if (tt.wYear != m_et.wYear || tt.wMonth != m_et.wMonth)
+				{
+					return false;
+				}
 			}
 		}
 	}
-	return true;
 }
 
 
@@ -256,14 +309,44 @@ bool CronEvaluation::GetNextDayOfMonth()
 	}
 	else if (m_cron.m_pDayOfMonth->type == CRON_WEEKDAY)
 	{
-		m_et.wDay = 1;
-		GetWeekDay(m_et.wYear, m_et.wMonth, m_et.wDay);
-		return true;
+		WORD wYear = m_et.wYear;
+		WORD wMonth = m_et.wMonth;
+		WORD wDay = 1;
+		GetWeekDay(wYear, wMonth, wDay);
+		if (wYear == m_et.wYear && wMonth == m_et.wMonth)
+		{
+			m_et.wDay = wDay;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	else if (m_cron.m_pDayOfMonth->type == CRON_LASTDAY)
 	{
-		GetLastDayOfMonth(m_et.wYear, m_et.wMonth, m_et.wDay);
+		m_et.wDay = GetLastDayOfMonth(m_et.wYear, m_et.wMonth);
 		return true;
+	}
+	else if (m_cron.m_pDayOfMonth->type == CRON_CLOSEST_WEEKDAY)
+	{
+		WORD wYear = m_et.wYear;
+		WORD wMonth = m_et.wMonth;
+		WORD wDay = dynamic_cast<const CronValueClosestWeekDay*>(m_cron.m_pDayOfMonth.Ptr)->dom;
+		if (GetLastDayOfMonth(wYear, wMonth) < wDay)
+		{
+			return false;
+		}
+		GetWeekDay(wYear, wMonth, wDay);
+		if (wYear == m_et.wYear && wMonth == m_et.wMonth)
+		{
+			m_et.wDay = wDay;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	else
 	{
@@ -278,47 +361,68 @@ bool CronEvaluation::GetNextDayOfWeek()
 	{
 		return false;
 	}
-	SYSTEMTIME tt = { 0 };
-	tt.wYear = m_et.wYear;
-	tt.wMonth = m_et.wMonth;
-	tt.wDay = m_ct.wDay;
-	FileTime ft(tt);
-	ft.AddDays(1);
-	ft.ToSystemTime(tt); // sets tt.wDayOfWeek
-	m_et.wYear = tt.wYear;
-	m_et.wMonth = tt.wMonth;
-	m_et.wDay = tt.wDay;
 	if (m_cron.m_pDayOfWeek->type == CRON_LAST_DAYOFWEEK)
 	{
-		GetLastDayOfMonth(m_et.wYear, m_et.wMonth, m_et.wDay, CRON_NUMBER(dynamic_cast<const CronValueLastDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->dow) - 1);
+		WORD wYear = m_et.wYear;
+		WORD wMonth = m_et.wMonth;
+		WORD wDay = 1;
+		GetLastDayOfMonth(wYear, wMonth, wDay, CRON_NUMBER(dynamic_cast<const CronValueLastDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->dow) - 1);
+		if (wYear == m_et.wYear && wMonth == m_et.wMonth)
+		{
+			m_et.wDay = wDay;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	else if (m_cron.m_pDayOfWeek->type == CRON_NTH_DAYOFWEEK)
 	{
-		GetDayOfWeek(m_et.wYear, m_et.wMonth, m_et.wDay, CRON_NUMBER(dynamic_cast<const CronValueNthDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->dow) - 1, dynamic_cast<const CronValueNthDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->nth);
+		WORD wYear = m_et.wYear;
+		WORD wMonth = m_et.wMonth;
+		WORD wDay = 1;
+		GetDayOfWeek(wYear, wMonth, wDay, CRON_NUMBER(dynamic_cast<const CronValueNthDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->dow) - 1, dynamic_cast<const CronValueNthDayOfWeek*>(m_cron.m_pDayOfWeek.Ptr)->nth);
+		if (wYear == m_et.wYear && wMonth == m_et.wMonth)
+		{
+			m_et.wDay = wDay;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	else
 	{
+		SYSTEMTIME tt = { 0 };
+		tt.wYear = m_et.wYear;
+		tt.wMonth = m_et.wMonth;
+		tt.wDay = 1;
+		FileTime ft(tt);
+		ft.ToSystemTime(tt);
 		while (true)
 		{
 			WORD next = ~0;
 			if (m_pDayOfWeekEval->Next(next))
 			{
-				if (next == tt.wDayOfWeek + 1)
+				if (next == m_ct.wDayOfWeek + 1)
 				{
-					m_et.wYear = tt.wYear;
-					m_et.wMonth = tt.wMonth;
 					m_et.wDay = tt.wDay;
-					break;
+					return true;
 				}
 			}
 			else
 			{
 				ft.AddDays(1);
-				ft.ToSystemTime(tt); // sets tt.wDayOfWeek
+				ft.ToSystemTime(tt);
+				if (tt.wYear != m_et.wYear || tt.wMonth != m_et.wMonth)
+				{
+					return false;
+				}
 			}
 		}
 	}
-	return true;
 }
 
 

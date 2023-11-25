@@ -165,6 +165,7 @@
   <ItemGroup>
     <ClInclude Include="AboutBox.h" />
     <ClInclude Include="ClipDialogBox.h" />
+    <ClInclude Include="ClipFile.h" />
     <ClInclude Include="Cron.h" />
     <ClInclude Include="CronDialogBox.h" />
     <ClInclude Include="CronElement.h" />
@@ -191,6 +192,7 @@
   <ItemGroup>
     <ClCompile Include="AboutBox.cpp" />
     <ClCompile Include="ClipDialogBox.cpp" />
+    <ClCompile Include="ClipFile.cpp" />
     <ClCompile Include="Cron.cpp" />
     <ClCompile Include="CronDialogBox.cpp" />
     <ClCompile Include="CronEvaluation.cpp" />

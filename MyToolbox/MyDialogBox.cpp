@@ -762,7 +762,7 @@ void MyDialogBox::SaveTextAsFile(int id, String& szPath) const
 
 void MyDialogBox::InitializeCodePageComboBox(int id, int initialSelection) const
 {
-#define ADD(x,y) AddStringToComboBox(id,x,y)
+#define ADD(x,y) ComboBoxAdd(id,x,y)
 #define ADDCP(x) ADD(L"CP" L#x,x)
 	ADD(L"UTF-8", CP_UTF8);
 	ADD(L"UTF-16", CP_UTF16);
@@ -781,15 +781,15 @@ void MyDialogBox::InitializeCodePageComboBox(int id, int initialSelection) const
 	ADDCP(1258);
 #undef ADD
 #undef ADDCP
-	SetComboBoxSelection(id, initialSelection);
+	ComboBoxSetSelection(id, initialSelection);
 }
 
 
 void MyDialogBox::InitializeLineBreakComboBox(int id, int initialSelection) const
 {
-	AddStringToComboBox(id, L"CRLF", 0x0d0a);
-	AddStringToComboBox(id, L"LF", 0x0a);
-	SetComboBoxSelection(id, initialSelection);
+	ComboBoxAdd(id, L"CRLF", 0x0d0a);
+	ComboBoxAdd(id, L"LF", 0x0a);
+	ComboBoxSetSelection(id, initialSelection);
 }
 
 
@@ -846,7 +846,7 @@ void MyDialogBox::InitializeOffsetComboBox(int id, int initialSelection) const
 	};
 	for (int i = 0; i < _countof(data); i++)
 	{
-		AddStringToComboBox(id, data[i].psz, data[i].offset);
+		ComboBoxAdd(id, data[i].psz, data[i].offset);
 	}
-	SetComboBoxSelection(id, initialSelection);
+	ComboBoxSetSelection(id, initialSelection);
 }

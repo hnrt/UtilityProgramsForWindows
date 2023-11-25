@@ -162,15 +162,15 @@ void CronDialogBox::OnCreate()
 	CheckButton(IDC_CRON_SECOND_CHECK, m_cron.SecondEnabled ? TRUE : FALSE);
 	if (valueBaseOffset.Type == REG_DWORD)
 	{
-		SetComboBoxSelection(IDC_CRON_EXPR_COMBO, valueBaseOffset.Int32);
+		ComboBoxSetSelection(IDC_CRON_EXPR_COMBO, valueBaseOffset.Int32);
 		if (valueDisplayOffset.Type == REG_DWORD)
 		{
-			SetComboBoxSelection(IDC_CRON_OFFSET_COMBO, valueDisplayOffset.Int32);
+			ComboBoxSetSelection(IDC_CRON_OFFSET_COMBO, valueDisplayOffset.Int32);
 			m_offset = valueDisplayOffset.Int32 - valueBaseOffset.Int32;
 		}
 		else
 		{
-			SetComboBoxSelection(IDC_CRON_OFFSET_COMBO, valueBaseOffset.Int32);
+			ComboBoxSetSelection(IDC_CRON_OFFSET_COMBO, valueBaseOffset.Int32);
 		}
 	}
 	if (valueExpression.Type == REG_SZ)
@@ -196,8 +196,8 @@ void CronDialogBox::OnDestroy()
 	if (rc == ERROR_SUCCESS)
 	{
 		RegistryValue::SetDWORD(hKey, REG_NAME_SECOND, m_cron.SecondEnabled ? 1U : 0U);
-		RegistryValue::SetDWORD(hKey, REG_NAME_BASEOFFSET, GetComboBoxSelection(IDC_CRON_EXPR_COMBO));
-		RegistryValue::SetDWORD(hKey, REG_NAME_DISPLAYOFFSET, GetComboBoxSelection(IDC_CRON_OFFSET_COMBO));
+		RegistryValue::SetDWORD(hKey, REG_NAME_BASEOFFSET, ComboBoxGetSelection(IDC_CRON_EXPR_COMBO));
+		RegistryValue::SetDWORD(hKey, REG_NAME_DISPLAYOFFSET, ComboBoxGetSelection(IDC_CRON_OFFSET_COMBO));
 		int cch = GetTextLength(IDC_CRON_EXPR_EDIT) + 1;
 		Buffer<WCHAR> buf(cch);
 		GetText(IDC_CRON_EXPR_EDIT, buf, buf.Len);
@@ -626,7 +626,7 @@ INT_PTR CronDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 		else if (m_bParseSuccessful)
 		{
 			SYSTEMTIME st = { 0 };
-			if (m_cron.GetNextTime(GetComboBoxSelection(IDC_CRON_EXPR_COMBO), st))
+			if (m_cron.GetNextTime(ComboBoxGetSelection(IDC_CRON_EXPR_COMBO), st))
 			{
 				FileTime ft(st);
 				ft.AddMinutes(m_offset);
@@ -726,8 +726,8 @@ void CronDialogBox::OnSecondChanged()
 
 void CronDialogBox::OnOffsetChanged()
 {
-	int offset1 = GetComboBoxSelection(IDC_CRON_EXPR_COMBO);
-	int offset2 = GetComboBoxSelection(IDC_CRON_OFFSET_COMBO);
+	int offset1 = ComboBoxGetSelection(IDC_CRON_EXPR_COMBO);
+	int offset2 = ComboBoxGetSelection(IDC_CRON_OFFSET_COMBO);
 	m_offset = offset2 - offset1;
 	if (GetButtonState(IDC_CRON_EXPR_RADIO) == BST_CHECKED)
 	{
