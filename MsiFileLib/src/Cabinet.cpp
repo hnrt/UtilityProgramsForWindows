@@ -228,7 +228,7 @@ INT_PTR Cabinet::OnOpen(PCSTR pszFileAcp)
 {
     if (m_State == CabinetExtractionState::Pending)
     {
-        String file(pszFileAcp);
+        String file(CP_ACP, pszFileAcp);
         String path = m_pCallbacks->CabinetExtractGetPath(file);
         if (path)
         {
@@ -267,7 +267,7 @@ INT_PTR Cabinet::OnClose(PCSTR pszFileAcp, INT_PTR hf)
         ICabinetStream* pStream = reinterpret_cast<ICabinetStream*>(hf);
         pStream->Close();
         m_State = CabinetExtractionState::Ended;
-        bool bContinue = m_pCallbacks->CabinetExtractOnEnd(String(pszFileAcp), m_OutputPath);
+        bool bContinue = m_pCallbacks->CabinetExtractOnEnd(String(CP_ACP, pszFileAcp), m_OutputPath);
         m_State = CabinetExtractionState::Pending;
         return bContinue ? TRUE : -1; // TRUE=SUCCESS / -1=ABORT
     }

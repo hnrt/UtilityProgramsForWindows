@@ -8,23 +8,22 @@ namespace hnrt
 {
     class RefStr;
     class String;
-    class StringBuffer;
 
     class StringCaseInsensitive
     {
     public:
 
         StringCaseInsensitive();
-        StringCaseInsensitive(PCWSTR);
-        StringCaseInsensitive(PCWSTR, size_t);
-        StringCaseInsensitive(StringBuffer&);
-        StringCaseInsensitive(const String&);
         StringCaseInsensitive(const StringCaseInsensitive&);
+        StringCaseInsensitive(PCWSTR, INT_PTR = -1);
+        StringCaseInsensitive(const String&);
         ~StringCaseInsensitive();
         operator PCWSTR() const;
         operator bool() const;
-        StringCaseInsensitive& operator =(const String&);
         StringCaseInsensitive& operator =(const StringCaseInsensitive&);
+        StringCaseInsensitive& operator =(const String&);
+        StringCaseInsensitive& operator +=(const StringCaseInsensitive&);
+        StringCaseInsensitive& operator +=(const String&);
         bool operator ==(const StringCaseInsensitive&) const;
         bool operator !=(const StringCaseInsensitive&) const;
         bool operator <(const StringCaseInsensitive&) const;
@@ -32,7 +31,7 @@ namespace hnrt
         bool operator >(const StringCaseInsensitive&) const;
         bool operator >=(const StringCaseInsensitive&) const;
         StringCaseInsensitive operator +(const StringCaseInsensitive&) const;
-        StringCaseInsensitive& operator +=(const StringCaseInsensitive&);
+        StringCaseInsensitive operator +(const String&) const;
         PCWSTR get_ptr() const;
         size_t get_len() const;
 
@@ -41,17 +40,13 @@ namespace hnrt
 
     private:
 
-        StringCaseInsensitive(RefStr*);
-
         RefStr* m_ptr;
-
-        friend class String;
 
     public:
 
         static int Compare(PCWSTR psz1, PCWSTR psz2);
-        static int Compare(PCWSTR psz1, PCWSTR psz2, LONG_PTR cch2);
-        static int Compare(PCWSTR psz1, LONG_PTR cch1, PCWSTR psz2, LONG_PTR cch2);
+        static int Compare(PCWSTR psz1, PCWSTR psz2, INT_PTR cch2);
+        static int Compare(PCWSTR psz1, INT_PTR cch1, PCWSTR psz2, INT_PTR cch2);
     };
 
     inline StringCaseInsensitive::operator PCWSTR() const
@@ -69,7 +64,7 @@ namespace hnrt
         return Compare(psz1, -1, psz2, -1);
     }
 
-    inline int StringCaseInsensitive::Compare(PCWSTR psz1, PCWSTR psz2, LONG_PTR cch2)
+    inline int StringCaseInsensitive::Compare(PCWSTR psz1, PCWSTR psz2, INT_PTR cch2)
     {
         return Compare(psz1, -1, psz2, cch2);
     }
@@ -85,6 +80,6 @@ namespace hnrt
 
     inline bool StringCaseLessThan::operator ()(PCWSTR psz1, PCWSTR psz2) const
     {
-        return StringCase::Compare(psz1, psz2) < 0;
+        return StringCaseInsensitive::Compare(psz1, psz2) < 0;
     }
 }

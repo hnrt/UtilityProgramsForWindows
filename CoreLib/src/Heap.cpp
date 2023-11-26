@@ -173,7 +173,7 @@ PSTR hnrt::VaFormat(PCSTR pszFormat, va_list argList)
 {
     va_list argList2;
     va_copy(argList2, argList);
-    LONG_PTR cb = static_cast<LONG_PTR>(_vscprintf(pszFormat, argList));
+    INT_PTR cb = static_cast<INT_PTR>(_vscprintf(pszFormat, argList));
     va_end(argList2);
     if (cb < 0)
     {
@@ -182,6 +182,47 @@ PSTR hnrt::VaFormat(PCSTR pszFormat, va_list argList)
     PSTR psz = reinterpret_cast<PSTR>(Malloc(++cb));
     _vsnprintf_s(psz, cb, _TRUNCATE, pszFormat, argList);
     return psz;
+}
+
+
+PSTR hnrt::VaAppendFormat(PSTR psz, INT_PTR cb, PCSTR pszFormat, va_list argList)
+{
+    va_list argList2;
+    va_copy(argList2, argList);
+    INT_PTR cb2 = static_cast<INT_PTR>(_vscprintf(pszFormat, argList));
+    va_end(argList2);
+    if (cb2 < 0)
+    {
+        throw Exception(L"VaAppendFormat(PCSTR) failed.");
+    }
+    if (cb < 0)
+    {
+        cb = strlen(psz);
+    }
+    psz = Allocate(psz, cb + cb2 + 1);
+    _vsnprintf_s(psz + cb, cb2 + 1, _TRUNCATE, pszFormat, argList);
+    return psz;
+}
+
+
+PSTR hnrt::VaConcatFormat(PCSTR psz, INT_PTR cb, PCSTR pszFormat, va_list argList)
+{
+    va_list argList2;
+    va_copy(argList2, argList);
+    INT_PTR cb2 = static_cast<INT_PTR>(_vscprintf(pszFormat, argList));
+    va_end(argList2);
+    if (cb2 < 0)
+    {
+        throw Exception(L"VaConcatFormat(PCSTR) failed.");
+    }
+    if (cb < 0)
+    {
+        cb = strlen(psz);
+    }
+    PSTR psz1 = Allocate<CHAR>(cb + cb2 + 1);
+    memcpy_s(psz1, cb, psz, cb);
+    _vsnprintf_s(psz1 + cb, cb2 + 1, _TRUNCATE, pszFormat, argList);
+    return psz1;
 }
 
 
@@ -403,7 +444,7 @@ PWSTR hnrt::VaFormat(PCWSTR pszFormat, va_list argList)
 {
     va_list argList2;
     va_copy(argList2, argList);
-    LONG_PTR cch = static_cast<LONG_PTR>(_vscwprintf(pszFormat, argList2));
+    INT_PTR cch = static_cast<INT_PTR>(_vscwprintf(pszFormat, argList2));
     va_end(argList2);
     if (cch < 0)
     {
@@ -412,6 +453,47 @@ PWSTR hnrt::VaFormat(PCWSTR pszFormat, va_list argList)
     PWSTR psz = reinterpret_cast<PWSTR>(Malloc(++cch * sizeof(WCHAR)));
     _vsnwprintf_s(psz, cch, _TRUNCATE, pszFormat, argList);
     return psz;
+}
+
+
+PWSTR hnrt::VaAppendFormat(PWSTR psz, INT_PTR cch, PCWSTR pszFormat, va_list argList)
+{
+    va_list argList2;
+    va_copy(argList2, argList);
+    INT_PTR cch2 = static_cast<INT_PTR>(_vscwprintf(pszFormat, argList));
+    va_end(argList2);
+    if (cch2 < 0)
+    {
+        throw Exception(L"VaAppendFormat(PCWSTR) failed.");
+    }
+    if (cch < 0)
+    {
+        cch = wcslen(psz);
+    }
+    psz = Allocate(psz, cch + cch2 + 1);
+    _vsnwprintf_s(psz + cch, cch2 + 1, _TRUNCATE, pszFormat, argList);
+    return psz;
+}
+
+
+PWSTR hnrt::VaConcatFormat(PCWSTR psz, INT_PTR cch, PCWSTR pszFormat, va_list argList)
+{
+    va_list argList2;
+    va_copy(argList2, argList);
+    INT_PTR cch2 = static_cast<INT_PTR>(_vscwprintf(pszFormat, argList));
+    va_end(argList2);
+    if (cch2 < 0)
+    {
+        throw Exception(L"VaConcatFormat(PCWSTR) failed.");
+    }
+    if (cch < 0)
+    {
+        cch = wcslen(psz);
+    }
+    PWSTR psz1 = Allocate<WCHAR>(cch + cch2 + 1);
+    wmemcpy_s(psz1, cch, psz, cch);
+    _vsnwprintf_s(psz1 + cch, cch2 + 1, _TRUNCATE, pszFormat, argList);
+    return psz1;
 }
 
 

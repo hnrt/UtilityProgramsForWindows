@@ -50,7 +50,7 @@ void PercentCodecDialogBox::OnCreate()
 	}
 	InitializeCodePageComboBox(IDC_PCTC_ENCODING);
 	ComboBoxRemove(IDC_PCTC_ENCODING, CP_UTF16);
-	CheckButton(IDC_PCTC_USE_PLUS);
+	ButtonCheck(IDC_PCTC_USE_PLUS);
 	OnSelectSource(IDC_PCTC_LABEL1);
 	SetText(IDC_PCTC_STATUS1, L"");
 	SetText(IDC_PCTC_STATUS2, L"");
@@ -315,11 +315,11 @@ void PercentCodecDialogBox::OnSettingChanged(UINT uId)
 
 void PercentCodecDialogBox::OnSelectSource(int id)
 {
-	CheckButton(IDC_PCTC_LABEL1, id == IDC_PCTC_LABEL1 ? BST_CHECKED : BST_UNCHECKED);
+	ButtonCheck(IDC_PCTC_LABEL1, id == IDC_PCTC_LABEL1);
 	EditSetReadOnly(IDC_PCTC_EDIT1, id == IDC_PCTC_LABEL1 ? FALSE : TRUE);
 	EnableWindow(IDC_PCTC_USE_PLUS, id == IDC_PCTC_LABEL1);
 	EnableWindow(IDC_PCTC_ENCODE, id == IDC_PCTC_LABEL1);
-	CheckButton(IDC_PCTC_LABEL2, id == IDC_PCTC_LABEL2 ? BST_CHECKED : BST_UNCHECKED);
+	ButtonCheck(IDC_PCTC_LABEL2, id == IDC_PCTC_LABEL2);
 	EditSetReadOnly(IDC_PCTC_EDIT2, id == IDC_PCTC_LABEL2 ? FALSE : TRUE);
 	EnableWindow(IDC_PCTC_DECODE, id == IDC_PCTC_LABEL2);
 	if (m_bEncodingError)
@@ -359,7 +359,7 @@ bool PercentCodecDialogBox::OnEncode()
 		UINT uCodePage = GetCodePage();
 		UINT size = cch * 4 * 3;
 		Buffer<WCHAR> buf2(size);
-		Encode(buf1, cch, uCodePage, buf2, static_cast<UINT>(buf2.Len), GetButtonState(IDC_PCTC_USE_PLUS) == BST_CHECKED);
+		Encode(buf1, cch, uCodePage, buf2, static_cast<UINT>(buf2.Len), ButtonIsChecked(IDC_PCTC_USE_PLUS));
 		SetText(IDC_PCTC_EDIT2, buf2);
 		m_bDecodingError = false;
 		return true;
@@ -728,11 +728,11 @@ UINT PercentCodecDialogBox::GetDecodedOffset(PCWSTR pszIn, UINT cbOut)
 
 int PercentCodecDialogBox::get_CurrentEdit() const
 {
-	if (GetButtonState(IDC_PCTC_LABEL1) == BST_CHECKED)
+	if (ButtonIsChecked(IDC_PCTC_LABEL1))
 	{
 		return IDC_PCTC_EDIT1;
 	}
-	else if (GetButtonState(IDC_PCTC_LABEL2) == BST_CHECKED)
+	else if (ButtonIsChecked(IDC_PCTC_LABEL2))
 	{
 		return IDC_PCTC_EDIT2;
 	}

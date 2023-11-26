@@ -277,25 +277,25 @@ INT_PTR ConfigurationDialogBox::OnEditNotified(HWND hwnd, WORD wControlId, WORD 
         case IDC_USERNAME_EDIT:
             if (m_tv.IsCredentialsSelected)
             {
-                m_tv.SelectedCredentials->Username = buf;
+                m_tv.SelectedCredentials->Username = String(IMMEDIATE_TEXT, buf.Detach());
             }
             return TRUE;
         case IDC_PASSWORD_EDIT:
             if (m_tv.IsCredentialsSelected)
             {
-                m_tv.SelectedCredentials->Password = buf;
+                m_tv.SelectedCredentials->Password = String(IMMEDIATE_TEXT, buf.Detach());
             }
             return TRUE;
         case IDC_CREDKEY_EDIT:
             if (m_tv.IsCredentialsSelected)
             {
-                m_tv.SelectedCredentials->Key = buf;
+                m_tv.SelectedCredentials->Key = String(IMMEDIATE_TEXT, buf.Detach());
             }
             return TRUE;
         case IDC_TARGET_EDIT:
             if (m_tv.IsTargetSelected || m_tv.IsActionItemSelected)
             {
-                m_tv.SelectedTarget->Name = buf;
+                m_tv.SelectedTarget->Name = String(IMMEDIATE_TEXT, buf.Detach());
             }
             return TRUE;
         case IDC_UNICODE_EDIT:

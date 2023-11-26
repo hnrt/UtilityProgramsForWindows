@@ -7,21 +7,30 @@
 using namespace hnrt;
 
 
-struct CoInitFlags
+class CoInitFlags
 {
-    WCHAR Text[64];
+public:
+
     CoInitFlags(DWORD dwCoInit)
+        : m_buf(64)
     {
-        StringBuffer sb(64);
-        if ((dwCoInit & COINIT_APARTMENTTHREADED)) sb.AppendFormat(L"|APARTMENTTHREADED");
-        else sb.AppendFormat(L"|MULTITHREADED");
-        if ((dwCoInit & COINIT_DISABLE_OLE1DDE)) sb.AppendFormat(L"|DISABLE_OLE1DDE");
-        if ((dwCoInit & COINIT_SPEED_OVER_MEMORY)) sb.AppendFormat(L"|SPEED_OVER_MEMORY");
-        wcscpy_s(Text, sb.Ptr + 1);
+        if ((dwCoInit & COINIT_APARTMENTTHREADED)) m_buf += L"|APARTMENTTHREADED";
+        else m_buf += L"|MULTITHREADED";
+        if ((dwCoInit & COINIT_DISABLE_OLE1DDE)) m_buf += L"|DISABLE_OLE1DDE";
+        if ((dwCoInit & COINIT_SPEED_OVER_MEMORY)) m_buf += L"|SPEED_OVER_MEMORY";
     }
     CoInitFlags(const CoInitFlags&) = delete;
     ~CoInitFlags() = default;
     void operator =(const CoInitFlags&) = delete;
+    PCWSTR get_Text() const
+    {
+        return m_buf.Ptr + 1;
+    }
+    __declspec(property(get = get_Text)) PCWSTR Text;
+
+private:
+
+    StringBuffer m_buf;
 };
 
 
@@ -30,7 +39,7 @@ ComLibrary::ComLibrary(DWORD dwCoInit)
 {
     DBGFNC(L"ComLibrary::ctor");
     m_hrInit = CoInitializeEx(NULL, dwCoInit);
-    DBGPUT(L"CoInitializeEx(%s): %s", CoInitFlags(dwCoInit).Text, ComLibrary::ToString(m_hrInit));
+    DBGPUT(L"CoInitializeEx(%s): %s", CoInitFlags(dwCoInit).Text, ComLibrary::ToString(m_hrInit).Ptr);
 }
 
 
@@ -45,11 +54,11 @@ ComLibrary::~ComLibrary()
 }
 
 
-PCWSTR ComLibrary::ToString(HRESULT hr)
+String ComLibrary::ToString(HRESULT hr)
 {
     switch (hr)
     {
-#define CASE(x) case x: return L#x
+#define CASE(x) case x: return String(STATIC_TEXT, L#x)
         CASE(S_OK);
         CASE(S_FALSE);
         CASE(RPC_E_CHANGED_MODE);
@@ -71,9 +80,5 @@ PCWSTR ComLibrary::ToString(HRESULT hr)
 #undef  CASE
     default: break;
     }
-    static ULONG next = 0;
-    static WCHAR buf[16][10];
-    ULONG index = InterlockedIncrement(&next) % 16;
-    _snwprintf_s(buf[index], _TRUNCATE, L"%08X", static_cast<int>(hr));
-    return buf[index];
+    return String(PRINTF, L"%08X", static_cast<int>(hr));
 }

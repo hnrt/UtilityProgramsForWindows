@@ -49,6 +49,8 @@ namespace hnrt
     DWORD ArraySize(PSTR* ppsz);
     PSTR Format(PCSTR pszFormat, ...);
     PSTR VaFormat(PCSTR pszFormat, va_list argList);
+    PSTR VaAppendFormat(PSTR psz, INT_PTR cb, PCSTR pszFormat, va_list argList);
+    PSTR VaConcatFormat(PCSTR psz, INT_PTR cb, PCSTR pszFormat, va_list argList);
     PSTR Concat(PCSTR psz1, PCSTR psz2);
     PSTR Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3);
     PSTR Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4);
@@ -64,6 +66,8 @@ namespace hnrt
     DWORD ArraySize(PWSTR* ppsz);
     PWSTR Format(PCWSTR pszFormat, ...);
     PWSTR VaFormat(PCWSTR pszFormat, va_list argList);
+    PWSTR VaAppendFormat(PWSTR psz, INT_PTR cch, PCWSTR pszFormat, va_list argList);
+    PWSTR VaConcatFormat(PCWSTR psz, INT_PTR cch, PCWSTR pszFormat, va_list argList);
     PWSTR Concat(PCWSTR psz1, PCWSTR psz2);
     PWSTR Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3);
     PWSTR Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4);

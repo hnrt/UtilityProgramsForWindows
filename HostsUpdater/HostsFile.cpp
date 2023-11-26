@@ -1,6 +1,7 @@
 #include "HostsFile.h"
 #include "HostsReader.h"
 #include "hnrt/Heap.h"
+#include "hnrt/StringBuffer.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/Debug.h"
@@ -11,15 +12,15 @@
 using namespace hnrt;
 
 
-HostsFile::HostsFile(PCWSTR pszFileName, bool bReadOnly)
-	: m_pszFileName(Clone(pszFileName))
+HostsFile::HostsFile(const String& szFileName, bool bReadOnly)
+	: m_szFileName(szFileName)
 	, m_bReadOnly(bReadOnly)
 	, m_hFile(INVALID_HANDLE_VALUE)
 	, m_dwError(ERROR_SUCCESS)
 	, m_buf()
 {
 	DBGFNC(L"HostsFile::ctor");
-	DBGPUT(L"FileName=%s", pszFileName);
+	DBGPUT(L"FileName=%s", szFileName.Ptr);
 }
 
 
@@ -27,17 +28,16 @@ HostsFile::~HostsFile()
 {
 	DBGFNC(L"HostsFile::dtor");
 	Close();
-	free(m_pszFileName);
 }
 
 
 void HostsFile::Open()
 {
-	m_hFile = CreateFileW(m_pszFileName, m_bReadOnly ? GENERIC_READ : GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	m_hFile = CreateFileW(m_szFileName, m_bReadOnly ? GENERIC_READ : GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (!m_hFile.isValid)
 	{
 		m_dwError = GetLastError();
-		throw Exception(ResourceString(IDS_FAILED_OPEN), m_pszFileName, m_dwError, ErrorMessage::Get(m_dwError));
+		throw Exception(ResourceString(IDS_FAILED_OPEN), m_szFileName.Ptr, m_dwError, ErrorMessage::Get(m_dwError));
 	}
 }
 
@@ -60,7 +60,7 @@ void HostsFile::Read()
 	{
 		m_dwError = GetLastError();
 		DBGPUT(L"GetFileSize: %lu %s", m_dwError, ErrorMessage::Get(m_dwError));
-		throw Exception(ResourceString(IDS_FAILED_GETSIZE), m_pszFileName, m_dwError, ErrorMessage::Get(m_dwError));
+		throw Exception(ResourceString(IDS_FAILED_GETSIZE), m_szFileName.Ptr, m_dwError, ErrorMessage::Get(m_dwError));
 	}
 	Buffer<CHAR> buf(cb);
 	DWORD dwRead = 0;
@@ -68,13 +68,13 @@ void HostsFile::Read()
 	{
 		m_dwError = GetLastError();
 		DBGPUT(L"ReadFile: %lu %s", m_dwError, ErrorMessage::Get(m_dwError));
-		throw Exception(ResourceString(IDS_FAILED_READ), m_pszFileName, m_dwError, ErrorMessage::Get(m_dwError));
+		throw Exception(ResourceString(IDS_FAILED_READ), m_szFileName.Ptr, m_dwError, ErrorMessage::Get(m_dwError));
 	}
 	if (cb != static_cast<int>(dwRead))
 	{
 		m_dwError = ERROR_INCORRECT_SIZE;
 		DBGPUT(L"ReadFile: expected=%d actual=%d", cb, static_cast<int>(dwRead));
-		throw Exception(ResourceString(IDS_FAILED_READ_SIZE_MISMATCH), m_pszFileName, cb, static_cast<int>(dwRead));
+		throw Exception(ResourceString(IDS_FAILED_READ_SIZE_MISMATCH), m_szFileName.Ptr, cb, static_cast<int>(dwRead));
 	}
 	int cch = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, buf, cb, NULL, 0);
 	m_buf.Resize(cch);
@@ -90,15 +90,14 @@ void HostsFile::CreateBackup()
 		return;
 	}
 	DBGFNC(L"HostsFile::CreateBackup");
-	WCHAR szFileName[MAX_PATH] = { 0 };
-	_snwprintf_s(szFileName, _TRUNCATE, L"%s.backup", m_pszFileName);
-	DBGPUT(L"FileName=%s", szFileName);
+	String szFileName(PRINTF, L"%s.backup", m_szFileName);
+	DBGPUT(L"FileName=%s", szFileName.Ptr);
 	WindowsHandle hFile = CreateFileW(szFileName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (!m_hFile.isValid)
 	{
 		m_dwError = GetLastError();
 		DBGPUT(L"CreateFile: %lu %s", m_dwError, ErrorMessage::Get(m_dwError));
-		throw Exception(ResourceString(IDS_FAILED_OPEN), m_pszFileName, m_dwError, ErrorMessage::Get(m_dwError));
+		throw Exception(ResourceString(IDS_FAILED_OPEN), m_szFileName.Ptr, m_dwError, ErrorMessage::Get(m_dwError));
 	}
 	DWORD dwError = GetLastError();
 	if (dwError == ERROR_ALREADY_EXISTS)
@@ -108,7 +107,7 @@ void HostsFile::CreateBackup()
 		{
 			m_dwError = GetLastError();
 			DBGPUT(L"GetFileSize: %lu %s", m_dwError, ErrorMessage::Get(m_dwError));
-			throw Exception(ResourceString(IDS_FAILED_GETSIZE), m_pszFileName, m_dwError, ErrorMessage::Get(m_dwError));
+			throw Exception(ResourceString(IDS_FAILED_GETSIZE), m_szFileName.Ptr, m_dwError, ErrorMessage::Get(m_dwError));
 		}
 		Buffer<CHAR> buf1(cb);
 		DWORD dwRead = 0;
@@ -116,13 +115,13 @@ void HostsFile::CreateBackup()
 		{
 			m_dwError = GetLastError();
 			DBGPUT(L"ReadFile: %lu %s", m_dwError, ErrorMessage::Get(m_dwError));
-			throw Exception(ResourceString(IDS_FAILED_READ), m_pszFileName, m_dwError, ErrorMessage::Get(m_dwError));
+			throw Exception(ResourceString(IDS_FAILED_READ), m_szFileName.Ptr, m_dwError, ErrorMessage::Get(m_dwError));
 		}
 		if (cb != static_cast<int>(dwRead))
 		{
 			m_dwError = ERROR_INCORRECT_SIZE;
 			DBGPUT(L"ReadFile: expected=%d actual=%d", cb, static_cast<int>(dwRead));
-			throw Exception(ResourceString(IDS_FAILED_READ_SIZE_MISMATCH), m_pszFileName, cb, static_cast<int>(dwRead));
+			throw Exception(ResourceString(IDS_FAILED_READ_SIZE_MISMATCH), m_szFileName.Ptr, cb, static_cast<int>(dwRead));
 		}
 		int cch = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, buf1, cb, NULL, 0);
 		Buffer<WCHAR> buf2(cch);
@@ -137,7 +136,7 @@ void HostsFile::CreateBackup()
 	{
 		m_dwError = GetLastError();
 		DBGPUT(L"SetFilePointer: %lu %s", m_dwError, ErrorMessage::Get(m_dwError));
-		throw Exception(ResourceString(IDS_FAILED_REWIND), m_pszFileName, m_dwError, ErrorMessage::Get(m_dwError));
+		throw Exception(ResourceString(IDS_FAILED_REWIND), m_szFileName.Ptr, m_dwError, ErrorMessage::Get(m_dwError));
 	}
 	int cch = static_cast<int>(m_buf.Len);
 	int cb = WideCharToMultiByte(CP_UTF8, 0, m_buf, cch, NULL, 0, NULL, NULL);
@@ -148,19 +147,19 @@ void HostsFile::CreateBackup()
 	{
 		m_dwError = GetLastError();
 		DBGPUT(L"WriteFile: %lu %s", m_dwError, ErrorMessage::Get(m_dwError));
-		throw Exception(ResourceString(IDS_FAILED_WRITE), m_pszFileName, m_dwError, ErrorMessage::Get(m_dwError));
+		throw Exception(ResourceString(IDS_FAILED_WRITE), m_szFileName.Ptr, m_dwError, ErrorMessage::Get(m_dwError));
 	}
 	if (cb != static_cast<int>(dwWritten))
 	{
 		m_dwError = ERROR_INCORRECT_SIZE;
 		DBGPUT(L"WriteFile: expected=%d actual=%d", cb, static_cast<int>(dwWritten));
-		throw Exception(ResourceString(IDS_FAILED_WRITE_SIZE_MISMATCH), m_pszFileName, cb, static_cast<int>(dwWritten));
+		throw Exception(ResourceString(IDS_FAILED_WRITE_SIZE_MISMATCH), m_szFileName.Ptr, cb, static_cast<int>(dwWritten));
 	}
 	if (!SetEndOfFile(hFile))
 	{
 		m_dwError = GetLastError();
 		DBGPUT(L"SetEndOfFile: %lu %s", m_dwError, ErrorMessage::Get(m_dwError));
-		throw Exception(ResourceString(IDS_FAILED_SETSIZE), m_pszFileName, m_dwError, ErrorMessage::Get(m_dwError));
+		throw Exception(ResourceString(IDS_FAILED_SETSIZE), m_szFileName.Ptr, m_dwError, ErrorMessage::Get(m_dwError));
 	}
 	DBGPUT(L"characters=%d bytes=%d", cch, cb);
 }
@@ -177,7 +176,7 @@ void HostsFile::Write()
 	{
 		m_dwError = GetLastError();
 		DBGPUT(L"SetFilePointer: %lu %s", m_dwError, ErrorMessage::Get(m_dwError));
-		throw Exception(ResourceString(IDS_FAILED_REWIND), m_pszFileName, m_dwError, ErrorMessage::Get(m_dwError));
+		throw Exception(ResourceString(IDS_FAILED_REWIND), m_szFileName.Ptr, m_dwError, ErrorMessage::Get(m_dwError));
 	}
 	int cch = static_cast<int>(m_buf.Len);
 	int cb = WideCharToMultiByte(CP_UTF8, 0, m_buf, cch, NULL, 0, NULL, NULL);
@@ -188,19 +187,19 @@ void HostsFile::Write()
 	{
 		m_dwError = GetLastError();
 		DBGPUT(L"WriteFile: %lu %s", m_dwError, ErrorMessage::Get(m_dwError));
-		throw Exception(ResourceString(IDS_FAILED_WRITE), m_pszFileName, m_dwError, ErrorMessage::Get(m_dwError));
+		throw Exception(ResourceString(IDS_FAILED_WRITE), m_szFileName.Ptr, m_dwError, ErrorMessage::Get(m_dwError));
 	}
 	if (cb != static_cast<int>(dwWritten))
 	{
 		m_dwError = ERROR_INCORRECT_SIZE;
 		DBGPUT(L"WriteFile: expected=%d actual=%d", cb, static_cast<int>(dwWritten));
-		throw Exception(ResourceString(IDS_FAILED_WRITE_SIZE_MISMATCH), m_pszFileName, cb, static_cast<int>(dwWritten));
+		throw Exception(ResourceString(IDS_FAILED_WRITE_SIZE_MISMATCH), m_szFileName.Ptr, cb, static_cast<int>(dwWritten));
 	}
 	if (!SetEndOfFile(m_hFile))
 	{
 		m_dwError = GetLastError();
 		DBGPUT(L"SetEndOfFile: %lu %s", m_dwError, ErrorMessage::Get(m_dwError));
-		throw Exception(ResourceString(IDS_FAILED_SETSIZE), m_pszFileName, m_dwError, ErrorMessage::Get(m_dwError));
+		throw Exception(ResourceString(IDS_FAILED_SETSIZE), m_szFileName.Ptr, m_dwError, ErrorMessage::Get(m_dwError));
 	}
 	DBGPUT(L"characters=%d bytes=%d", cch, cb);
 }
@@ -287,7 +286,7 @@ void HostsFile::Parse()
 			}
 			else
 			{
-				throw Exception(ResourceString(IDS_FAILED_PARSE), m_pszFileName);
+				throw Exception(ResourceString(IDS_FAILED_PARSE), m_szFileName);
 			}
 		}
 		else
@@ -303,55 +302,31 @@ void HostsFile::Parse()
 
 void HostsFile::Rebuild(const UpdateMap& updateEntries, const AppendList& appendEntries)
 {
-	size_t size = Rebuild(updateEntries, appendEntries, nullptr, 0);
-	Buffer<WCHAR> buf(size);
-	Rebuild(updateEntries, appendEntries, buf, buf.Len);
-	m_buf.Resize(buf.Len);
-	wmemcpy_s(m_buf, m_buf.Len, buf, buf.Len);
-}
-
-
-size_t HostsFile::Rebuild(const UpdateMap& updateEntries, const AppendList& appendEntries, WCHAR buf[], size_t bufsz)
-{
-	size_t size = 0, len;
+	StringBuffer buf(512);
 	LONGLONG offset = 0;
 	for (DWORD dwIndex = 0; dwIndex < m_Entries.Count; dwIndex++)
 	{
 		UpdateMap::const_iterator iter = updateEntries.find(&m_Entries[dwIndex]);
 		if (iter != updateEntries.end())
 		{
-			len = static_cast<LONGLONG>(iter->first->Address.Start) - offset;
-			if (bufsz) wmemcpy_s(&buf[size], bufsz - size, &m_buf[offset], len);
-			size += len;
-			len = wcslen(iter->second.c_str());
-			if (bufsz) wmemcpy_s(&buf[size], bufsz - size, iter->second.c_str(), len);
-			size += len;
+			buf.Append(&m_buf[offset], static_cast<LONGLONG>(iter->first->Address.Start) - offset);
+			buf.Append(iter->second);
 			offset = static_cast<LONGLONG>(iter->first->Address.End);
 		}
 	}
-	len = m_buf.Len - offset;
-	if (bufsz) wmemcpy_s(&buf[size], bufsz - size, &m_buf[offset], len);
-	size += len;
+	buf.Append(&m_buf[offset], m_buf.Len - offset);
 	if (m_buf[m_buf.Len - 1] != L'\n')
 	{
-		if (bufsz) wmemcpy_s(&buf[size], bufsz - size, L"\r\n", 2);
-		size += 2;
+		buf.Append(L"\r\n");
 	}
 	for (AppendList::const_iterator iter = appendEntries.begin(); iter != appendEntries.end(); iter++)
 	{
-		len = wcslen(iter->first.c_str());
-		if (bufsz) wmemcpy_s(&buf[size], bufsz - size, iter->first.c_str(), len);
-		size += len;
-		if (bufsz) wmemcpy_s(&buf[size], bufsz - size, L"\t", 1);
-		size += 1;
-		len = wcslen(iter->second.c_str());
-		if (bufsz) wmemcpy_s(&buf[size], bufsz - size, iter->second.c_str(), len);
-		size += len;
-		if (bufsz) wmemcpy_s(&buf[size], bufsz - size, L"\r\n", 2);
-		size += 2;
+		buf.AppendFormat(L"%s\t%s\r\n", iter->first.Ptr, iter->second.Ptr);
 	}
-	return size;
+	m_buf.Resize(buf.Len);
+	wmemcpy_s(m_buf, m_buf.Len, buf, buf.Len);
 }
+
 
 HostEntry* HostsFile::FindByName(const WCHAR* pContent, PCWSTR pszName)
 {

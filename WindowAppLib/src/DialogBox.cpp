@@ -340,21 +340,31 @@ void DialogBox::EditClear(int id) const
 //////////////////////////////////////////////////////////////////////
 
 
-void DialogBox::CheckButton(int id, BOOL bCheck) const
+void DialogBox::ButtonCheck(int id, BOOL bCheck) const
 {
     SendMessage(id, BM_SETCHECK, bCheck ? BST_CHECKED : BST_UNCHECKED);
 }
 
 
-void DialogBox::UncheckButton(int id) const
+void DialogBox::ButtonUncheck(int id) const
 {
     SendMessage(id, BM_SETCHECK, BST_UNCHECKED);
 }
 
 
-int DialogBox::GetButtonState(int id) const
+BOOL DialogBox::ButtonIsChecked(int id) const
 {
-    return static_cast<int>(SendMessage(id, BM_GETCHECK));
+    switch (SendMessage(id, BM_GETCHECK))
+    {
+    case BST_CHECKED:
+        return TRUE;
+    case BST_UNCHECKED:
+        return FALSE;
+    case BST_INDETERMINATE:
+        return FALSE;
+    default:
+        return FALSE;
+    }
 }
 
 

@@ -52,9 +52,9 @@ namespace hnrt
 		void EditSelectAll(int id) const;
 		void EditSetReadOnly(int id, BOOL bReadOnly = TRUE) const;
 		void EditClear(int id) const;
-		void CheckButton(int id, BOOL bCheck = TRUE) const;
-		void UncheckButton(int id) const;
-		int GetButtonState(int id) const;
+		void ButtonCheck(int id, BOOL bCheck = TRUE) const;
+		void ButtonUncheck(int id) const;
+		BOOL ButtonIsChecked(int id) const;
 		int ComboBoxGetCount(int id) const;
 		void ComboBoxAdd(int id, const String& szText, int value) const;
 		void ComboBoxRemove(int id, int value) const;

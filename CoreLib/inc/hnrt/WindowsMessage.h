@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <Windows.h>
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -24,21 +24,25 @@ namespace hnrt
     private:
 
         UINT m_value;
+        mutable String m_sz;
     };
 
     inline WindowsMessage::WindowsMessage(UINT uMsg)
         : m_value(uMsg)
+        , m_sz()
     {
     }
 
     inline WindowsMessage::WindowsMessage(const WindowsMessage& src)
         : m_value(src.m_value)
+        , m_sz(src.m_sz)
     {
     }
 
     inline WindowsMessage& WindowsMessage::operator =(const WindowsMessage& src)
     {
         m_value = src.m_value;
+        m_sz = src.m_sz;
         return *this;
     }
 

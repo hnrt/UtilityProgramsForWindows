@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <Windows.h>
+#include "hnrt/StringBuffer.h"
 
 
 namespace hnrt
@@ -11,9 +11,9 @@ namespace hnrt
     public:
 
         CommandTemplate();
-        ~CommandTemplate();
-        PCWSTR Template() const { return m_pszTemplate; }
-        PCWSTR CommandLine() const { return m_pszCommandLine; }
+        ~CommandTemplate() = default;
+        PCWSTR Template() const { return m_Template; }
+        PCWSTR CommandLine() const { return m_CommandLine; }
         DWORD ProcessId() const { return m_pi.dwProcessId; }
         DWORD ThreadId() const { return m_pi.dwThreadId; }
         void Append(PCWSTR);
@@ -27,8 +27,8 @@ namespace hnrt
 
     private:
 
-        PWSTR m_pszTemplate;
-        PWSTR m_pszCommandLine;
+        StringBuffer m_Template;
+        StringBuffer m_CommandLine;
         STARTUPINFO m_si;
         PROCESS_INFORMATION m_pi;
     };

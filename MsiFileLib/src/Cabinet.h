@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include <fdi.h>
+#undef HUGE // to suppress warning C4091
 #include "hnrt/ICabinet.h"
 #include "hnrt/String.h"
 

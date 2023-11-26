@@ -2,8 +2,8 @@
 
 
 #include "hnrt/RefObj.h"
-#include "hnrt/StringOptions.h"
 #include "hnrt/Heap.h"
+#include "hnrt/StringUtils.h"
 #include "hnrt/Interlocked.h"
 #include "hnrt/Exception.h"
 
@@ -16,16 +16,19 @@ namespace hnrt
     public:
 
         RefMbs(const RefMbs&) = delete;
-        RefMbs(PCSTR);
-        RefMbs(PCSTR, size_t);
+        RefMbs(PCSTR, INT_PTR = -1);
         RefMbs(PCSTR, va_list);
         RefMbs(PCSTR, PCSTR);
+        RefMbs(PCSTR, PCSTR, PCSTR);
+        RefMbs(PCSTR, PCSTR, PCSTR, PCSTR);
+        RefMbs(PCSTR, PCSTR, PCSTR, PCSTR, PCSTR);
         RefMbs(UINT, PCWSTR, INT_PTR = -1);
         RefMbs(StringOptions, ...);
         virtual ~RefMbs();
         void operator =(const RefMbs&) = delete;
-        PSTR Exchange(PSTR);
-        RefMbs& ZeroFill();
+        PSTR Exchange(PSTR psz);
+        PSTR Detach();
+        void ZeroFill();
         RefMbs& Assign(PCSTR, INT_PTR = -1);
         RefMbs& Append(PCSTR, INT_PTR = -1);
         PCSTR get_ptr() const;
@@ -41,20 +44,17 @@ namespace hnrt
         size_t m_cap;
     };
 
-    inline RefMbs::RefMbs(PCSTR psz)
+    inline RefMbs::RefMbs(PCSTR psz, INT_PTR cb)
         : RefObj()
-        , m_psz(Clone(psz))
-        , m_len(strlen(m_psz))
-        , m_cap(m_len + 1)
+        , m_psz(nullptr)
+        , m_len(0)
+        , m_cap(0)
     {
-    }
-
-    inline RefMbs::RefMbs(PCSTR psz, size_t cb)
-        : RefObj()
-        , m_psz(Clone(psz, cb))
-        , m_len(strlen(m_psz))
-        , m_cap(cb + 1)
-    {
+        m_len = cb > 0 ? strnlen(psz, cb) : cb < 0 ? strlen(psz) : 0;
+        m_cap = m_len + 1;
+        m_psz = Allocate<CHAR>(m_cap);
+        memcpy_s(m_psz, m_len, psz, m_len);
+        m_psz[m_len] = '\0';
     }
 
     inline RefMbs::RefMbs(PCSTR pszFormat, va_list argList)
@@ -68,6 +68,30 @@ namespace hnrt
     inline RefMbs::RefMbs(PCSTR psz1, PCSTR psz2)
         : RefObj()
         , m_psz(Concat(psz1, psz2))
+        , m_len(strlen(m_psz))
+        , m_cap(m_len + 1)
+    {
+    }
+
+    inline RefMbs::RefMbs(PCSTR psz1, PCSTR psz2, PCSTR psz3)
+        : RefObj()
+        , m_psz(Concat(psz1, psz2, psz3))
+        , m_len(strlen(m_psz))
+        , m_cap(m_len + 1)
+    {
+    }
+
+    inline RefMbs::RefMbs(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4)
+        : RefObj()
+        , m_psz(Concat(psz1, psz2, psz3, psz4))
+        , m_len(strlen(m_psz))
+        , m_cap(m_len + 1)
+    {
+    }
+
+    inline RefMbs::RefMbs(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4, PCSTR psz5)
+        : RefObj()
+        , m_psz(Concat(psz1, psz2, psz3, psz4, psz5))
         , m_len(strlen(m_psz))
         , m_cap(m_len + 1)
     {
@@ -95,20 +119,35 @@ namespace hnrt
             m_psz = Clone(va_arg(argList, PCSTR));
             m_len = strlen(m_psz);
             m_cap = m_len + 1;
-            _strupr_s(m_psz, m_cap);
+            StringUtils::Uppercase(m_psz, m_cap);
             break;
         case LOWERCASE:
             m_psz = Clone(va_arg(argList, PCSTR));
             m_len = strlen(m_psz);
             m_cap = m_len + 1;
-            _strlwr_s(m_psz, m_cap);
+            StringUtils::Lowercase(m_psz, m_cap);
             break;
-        case IMMEDIATE:
+        case TRIM:
+        case TRIM_HEAD:
+        case TRIM_TAIL:
+        {
+            PCSTR psz = va_arg(argList, PCSTR);
+            int start = 0;
+            int end = 0;
+            StringUtils::TrimScan(option, psz, start, end);
+            m_len = static_cast<size_t>(end) - static_cast<size_t>(start);
+            m_cap = m_len + 1;
+            m_psz = Allocate<CHAR>(m_cap);
+            memcpy_s(m_psz, m_len, psz + start, m_len);
+            m_psz[m_len] = '\0';
+            break;
+        }
+        case IMMEDIATE_TEXT:
             m_psz = va_arg(argList, PSTR);
             m_len = strlen(m_psz);
             m_cap = m_len + 1;
             break;
-        case STATIC:
+        case STATIC_TEXT:
             m_psz = va_arg(argList, PSTR);
             m_len = strlen(m_psz);
             m_cap = 0; // indicates not to free m_psz
@@ -131,7 +170,7 @@ namespace hnrt
     {
         if (m_psz && !m_cap)
         {
-            throw Exception(L"RefMbs::Exchange: STATIC not allowed.");
+            m_psz = Clone(m_psz);
         }
         psz = Interlocked<PSTR>::ExchangePointer(&m_psz, psz);
         if (m_psz)
@@ -147,18 +186,21 @@ namespace hnrt
         return psz;
     }
 
-    inline RefMbs& RefMbs::ZeroFill()
+    inline PSTR RefMbs::Detach()
+    {
+        return Exchange(nullptr);
+    }
+
+    inline void RefMbs::ZeroFill()
     {
         if (m_psz)
         {
-            if (!m_cap)
+            if (m_cap)
             {
-                throw Exception(L"RefMbs::ZeroFill: STATIC not allowed.");
+                memset(m_psz, '\0', m_cap);
+                m_len = 0;
             }
-            memset(m_psz, '\0', m_cap);
-            m_len = 0;
         }
-        return *this;
     }
 
     inline RefMbs& RefMbs::Assign(PCSTR psz, INT_PTR cb)

@@ -1,13 +1,13 @@
 #pragma once
 
 #include "HostEntry.h"
+#include "hnrt/String.h"
 #include "hnrt/WindowsHandle.h"
 #include "hnrt/Array.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/Exception.h"
 #include <list>
 #include <map>
-#include <string>
 
 namespace hnrt
 {
@@ -15,12 +15,12 @@ namespace hnrt
 	{
 	public:
 
-		typedef std::pair<HostEntry*, std::wstring> HostEntryAddressPair;
-		typedef std::map<HostEntry*, std::wstring> UpdateMap;
-		typedef std::pair<std::wstring, std::wstring> AddressAliasPair;
+		typedef std::pair<HostEntry*, String> HostEntryAddressPair;
+		typedef std::map<HostEntry*, String> UpdateMap;
+		typedef std::pair<String, String> AddressAliasPair;
 		typedef std::list<AddressAliasPair> AppendList;
 
-		HostsFile(PCWSTR pszFileName, bool bReadOnly);
+		HostsFile(const String& szFileName, bool bReadOnly);
 		HostsFile(const HostsFile&) = delete;
 		~HostsFile();
 		void operator =(const HostsFile&) = delete;
@@ -47,9 +47,9 @@ namespace hnrt
 
 	private:
 
-		size_t Rebuild(const UpdateMap& updateEntries, const AppendList& appendEntries, WCHAR buf[], size_t bufsz);
+		String DoRebuild(const UpdateMap& updateEntries, const AppendList& appendEntries);
 
-		PWSTR m_pszFileName;
+		String m_szFileName;
 		bool m_bReadOnly;
 		WindowsHandle m_hFile;
 		DWORD m_dwError;
@@ -59,7 +59,7 @@ namespace hnrt
 
 	inline PCWSTR HostsFile::get_FileName() const
 	{
-		return m_pszFileName;
+		return m_szFileName;
 	}
 
 	inline DWORD HostsFile::get_Error() const

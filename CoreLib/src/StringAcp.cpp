@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "hnrt/StringAcp.h"
 #include "hnrt/RefMbs.h"
-#include "hnrt/Interlocked.h"
-#include "hnrt/Exception.h"
 
 
 using namespace hnrt;
@@ -13,6 +11,9 @@ using namespace hnrt;
 //   S T R I N G - A C P   C L A S S
 //
 //////////////////////////////////////////////////////////////////////
+
+
+const StringAcp StringAcp::Empty = StringAcp();
 
 
 StringAcp::StringAcp()
@@ -31,19 +32,7 @@ StringAcp::StringAcp(const StringAcp& other)
 }
 
 
-StringAcp::StringAcp(RefMbs* ptr)
-    : m_ptr(ptr)
-{
-}
-
-
-StringAcp::StringAcp(PCSTR psz)
-    : m_ptr(psz && *psz ? new RefMbs(psz) : nullptr)
-{
-}
-
-
-StringAcp::StringAcp(PCSTR psz, size_t cb)
+StringAcp::StringAcp(PCSTR psz, INT_PTR cb)
     : m_ptr(psz && cb ? new RefMbs(psz, cb) : nullptr)
 {
 }
@@ -58,42 +47,14 @@ StringAcp::StringAcp(PCSTR psz, va_list argList)
 StringAcp::StringAcp(StringOptions option, PCSTR psz, ...)
     : m_ptr(nullptr)
 {
+    va_list argList;
+    va_start(argList, psz);
     switch (option)
     {
     case PRINTF:
-    {
-        va_list argList;
-        va_start(argList, psz);
         m_ptr = new RefMbs(psz, argList);
-        va_end(argList);
         break;
-    }
     case CONCAT:
-    {
-        size_t cb1 = strlen(psz);
-        size_t required = cb1;
-        PCSTR psz2;
-        va_list argList1;
-        va_start(argList1, psz);
-        while ((psz2 = va_arg(argList1, PCSTR)))
-        {
-            required += strlen(psz2);
-        }
-        va_end(argList1);
-        PSTR psz1 = Allocate<CHAR>(++required);
-        memcpy_s(psz1, cb1 + 1, psz, cb1 + 1);
-        va_list argList2;
-        va_start(argList2, psz);
-        while ((psz2 = va_arg(argList2, PCSTR)))
-        {
-            size_t cb2 = strlen(psz2);
-            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
-            cb1 += cb2;
-        }
-        va_end(argList2);
-        m_ptr = new RefMbs(IMMEDIATE, psz1);
-        break;
-    }
     case CONCAT2:
     case CONCAT3:
     case CONCAT4:
@@ -102,186 +63,49 @@ StringAcp::StringAcp(StringOptions option, PCSTR psz, ...)
     case CONCAT7:
     case CONCAT8:
     case CONCAT9:
-    {
-        size_t cb1 = strlen(psz);
-        size_t required = cb1;
-        va_list argList1;
-        va_start(argList1, psz);
-        switch (option)
-        {
-        case CONCAT9:
-            required += strlen(va_arg(argList1, PCSTR));
-            //FALLTHROUGH
-        case CONCAT8:
-            required += strlen(va_arg(argList1, PCSTR));
-            //FALLTHROUGH
-        case CONCAT7:
-            required += strlen(va_arg(argList1, PCSTR));
-            //FALLTHROUGH
-        case CONCAT6:
-            required += strlen(va_arg(argList1, PCSTR));
-            //FALLTHROUGH
-        case CONCAT5:
-            required += strlen(va_arg(argList1, PCSTR));
-            //FALLTHROUGH
-        case CONCAT4:
-            required += strlen(va_arg(argList1, PCSTR));
-            //FALLTHROUGH
-        case CONCAT3:
-            required += strlen(va_arg(argList1, PCSTR));
-            //FALLTHROUGH
-        case CONCAT2:
-        default:
-            required += strlen(va_arg(argList1, PCSTR));
-            break;
-        }
-        va_end(argList1);
-        PSTR psz1 = Allocate<CHAR>(++required);
-        memcpy_s(psz1, cb1 + 1, psz, cb1 + 1);
-        PCSTR psz2;
-        size_t cb2;
-        va_list argList2;
-        va_start(argList2, psz);
-        switch (option)
-        {
-        case CONCAT9:
-            psz2 = va_arg(argList2, PCSTR);
-            cb2 = strlen(psz2);
-            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
-            cb1 += cb2;
-            //FALLTHROUGH
-        case CONCAT8:
-            psz2 = va_arg(argList2, PCSTR);
-            cb2 = strlen(psz2);
-            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
-            cb1 += cb2;
-            //FALLTHROUGH
-        case CONCAT7:
-            psz2 = va_arg(argList2, PCSTR);
-            cb2 = strlen(psz2);
-            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
-            cb1 += cb2;
-            //FALLTHROUGH
-        case CONCAT6:
-            psz2 = va_arg(argList2, PCSTR);
-            cb2 = strlen(psz2);
-            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
-            cb1 += cb2;
-            //FALLTHROUGH
-        case CONCAT5:
-            psz2 = va_arg(argList2, PCSTR);
-            cb2 = strlen(psz2);
-            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
-            cb1 += cb2;
-            //FALLTHROUGH
-        case CONCAT4:
-            psz2 = va_arg(argList2, PCSTR);
-            cb2 = strlen(psz2);
-            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
-            cb1 += cb2;
-            //FALLTHROUGH
-        case CONCAT3:
-            psz2 = va_arg(argList2, PCSTR);
-            cb2 = strlen(psz2);
-            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
-            cb1 += cb2;
-            //FALLTHROUGH
-        case CONCAT2:
-        default:
-            psz2 = va_arg(argList2, PCSTR);
-            cb2 = strlen(psz2);
-            memcpy_s(psz1 + cb1, cb2 + 1, psz2, cb2 + 1);
-            cb1 += cb2;
-            break;
-        }
-        va_end(argList2);
-        m_ptr = new RefMbs(IMMEDIATE, psz1);
+        m_ptr = new RefMbs(IMMEDIATE_TEXT, StringUtils::VaConcat(option, psz, argList));
         break;
-    }
+    case UPPERCASE:
+    case LOWERCASE:
     case TRIM:
     case TRIM_HEAD:
     case TRIM_TAIL:
-    {
-        const CHAR* pCur = psz;
-        const CHAR* pStart;
-        CHAR c = *pCur++;
-        if (option == TRIM_TAIL)
-        {
-            pStart = pCur - 1;
-        }
-        else
-        {
-            while (isspace(c))
-            {
-                c = *pCur++;
-            }
-            if (c)
-            {
-                pStart = pCur - 1;
-                if (option == TRIM_HEAD)
-                {
-                    m_ptr = new RefMbs(pStart);
-                    break;
-                }
-                c = *pCur++;
-            }
-            else
-            {
-                m_ptr = new RefMbs("");
-                break;
-            }
-        }
-        while (true)
-        {
-            if (isspace(c))
-            {
-                const CHAR* pEnd = pCur - 1;
-                c = *pCur++;
-                while (isspace(c))
-                {
-                    c = *pCur++;
-                }
-                if (c)
-                {
-                    c = *pCur++;
-                }
-                else
-                {
-                    m_ptr = new RefMbs(pStart, pEnd - pStart);
-                    break;
-                }
-            }
-            else if (c)
-            {
-                c = *pCur++;
-            }
-            else
-            {
-                m_ptr = new RefMbs(pStart);
-                break;
-            }
-        }
-        break;
-    }
-    case UPPERCASE:
-    case LOWERCASE:
-    case IMMEDIATE:
-    case STATIC:
+    case IMMEDIATE_TEXT:
+    case STATIC_TEXT:
         m_ptr = new RefMbs(option, psz);
         break;
     default:
         throw Exception(L"StringAcp::ctor: Bad option.");
     }
+    va_end(argList);
 }
 
 
-StringAcp::StringAcp(PCWSTR psz)
-    : m_ptr(psz && *psz ? new RefMbs(CP_ACP, psz) : nullptr)
+StringAcp::StringAcp(PCSTR psz1, PCSTR psz2)
+    : m_ptr(new RefMbs(psz1, psz2))
 {
 }
 
 
-StringAcp::StringAcp(PCWSTR psz, size_t cch)
+StringAcp::StringAcp(PCSTR psz1, PCSTR psz2, PCSTR psz3)
+    : m_ptr(new RefMbs(psz1, psz2, psz3))
+{
+}
+
+
+StringAcp::StringAcp(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4)
+    : m_ptr(new RefMbs(psz1, psz2, psz3, psz4))
+{
+}
+
+
+StringAcp::StringAcp(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4, PCSTR psz5)
+    : m_ptr(new RefMbs(psz1, psz2, psz3, psz4, psz5))
+{
+}
+
+
+StringAcp::StringAcp(PCWSTR psz, INT_PTR cch)
     : m_ptr(psz && cch ? new RefMbs(CP_ACP, psz, cch) : nullptr)
 {
 }
@@ -297,7 +121,82 @@ StringAcp::~StringAcp()
 }
 
 
-StringAcp& StringAcp::operator =(const StringAcp& other)
+StringAcp& StringAcp::ZeroFill()
+{
+    if (m_ptr)
+    {
+        m_ptr->ZeroFill();
+    }
+    return *this;
+}
+
+
+StringAcp& StringAcp::Uppercase()
+{
+    if (Len)
+    {
+        if (m_ptr->RefCnt == 1)
+        {
+            size_t size = Len + 1;
+            m_ptr->Exchange(StringUtils::Uppercase(m_ptr->Detach(), size));
+        }
+        else
+        {
+            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(UPPERCASE, Ptr));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
+    }
+    return *this;
+}
+
+
+StringAcp& StringAcp::Lowercase()
+{
+    if (Len)
+    {
+        if (m_ptr->RefCnt == 1)
+        {
+            size_t size = Len + 1;
+            m_ptr->Exchange(StringUtils::Lowercase(m_ptr->Detach(), size));
+        }
+        else
+        {
+            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(LOWERCASE, Ptr));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
+    }
+    return *this;
+}
+
+
+StringAcp& StringAcp::Trim(StringOptions option)
+{
+    if (Len)
+    {
+        if (m_ptr->RefCnt == 1)
+        {
+            m_ptr->Exchange(StringUtils::Trim(option, m_ptr->Detach()));
+        }
+        else
+        {
+            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(option, Ptr));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
+    }
+    return *this;
+}
+
+
+StringAcp& StringAcp::Assign(const StringAcp& other)
 {
     RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, other.m_ptr);
     if (m_ptr)
@@ -312,14 +211,174 @@ StringAcp& StringAcp::operator =(const StringAcp& other)
 }
 
 
-StringAcp& StringAcp::operator +=(const StringAcp& other)
+StringAcp& StringAcp::Assign(PCSTR psz, INT_PTR cb)
 {
-    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(Ptr, other.Ptr));
-    if (ptr)
+    if (psz && cb)
     {
-        ptr->Release();
+        if (m_ptr && m_ptr->RefCnt == 1)
+        {
+            m_ptr->Assign(psz, cb);
+        }
+        else
+        {
+            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(psz, cb));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
+    }
+    else
+    {
+        RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, nullptr);
+        if (ptr)
+        {
+            ptr->Release();
+        }
     }
     return *this;
+}
+
+
+StringAcp& StringAcp::Append(const StringAcp& other)
+{
+    if (other.Len)
+    {
+        if (m_ptr && m_ptr->RefCnt == 1)
+        {
+            m_ptr->Append(other.Ptr);
+        }
+        else
+        {
+            PSTR psz2 = Allocate<CHAR>(Len + other.Len + 1);
+            memcpy_s(psz2, Len, Ptr, Len);
+            memcpy_s(psz2 + Len, other.Len, other.Ptr, other.Len);
+            psz2[Len + other.Len] = '\0';
+            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(IMMEDIATE_TEXT, psz2));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
+    }
+    return *this;
+}
+
+
+StringAcp& StringAcp::Append(PCSTR psz, INT_PTR cb)
+{
+    if (psz && cb)
+    {
+        if (m_ptr && m_ptr->RefCnt == 1)
+        {
+            m_ptr->Append(psz, cb);
+        }
+        else
+        {
+            cb = cb > 0 ? strnlen(psz, cb) : strlen(psz);
+            PSTR psz2 = Allocate<CHAR>(Len + cb + 1);
+            memcpy_s(psz2, Len, Ptr, Len);
+            memcpy_s(psz2 + Len, cb, psz, cb);
+            psz2[Len + cb] = '\0';
+            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(IMMEDIATE_TEXT, psz2));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
+    }
+    return *this;
+}
+
+
+StringAcp& StringAcp::Format(PCSTR psz, ...)
+{
+    va_list argList;
+    va_start(argList, psz);
+    if (m_ptr && m_ptr->RefCnt == 1)
+    {
+        m_ptr->Exchange(::VaAppendFormat(m_ptr->Detach(), 0, psz, argList));
+    }
+    else
+    {
+        RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(psz, argList));
+        if (ptr)
+        {
+            ptr->Release();
+        }
+    }
+    va_end(argList);
+    return *this;
+}
+
+
+StringAcp& StringAcp::VaFormat(PCSTR psz, va_list argList)
+{
+    if (m_ptr && m_ptr->RefCnt == 1)
+    {
+        m_ptr->Exchange(::VaAppendFormat(m_ptr->Detach(), 0, psz, argList));
+    }
+    else
+    {
+        RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(psz, argList));
+        if (ptr)
+        {
+            ptr->Release();
+        }
+    }
+    return *this;
+}
+
+
+StringAcp& StringAcp::AppendFormat(PCSTR psz, ...)
+{
+    va_list argList;
+    va_start(argList, psz);
+    if (m_ptr && m_ptr->RefCnt == 1)
+    {
+        INT_PTR cb = m_ptr->Len;
+        m_ptr->Exchange(::VaAppendFormat(m_ptr->Detach(), cb, psz, argList));
+    }
+    else
+    {
+        RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(IMMEDIATE_TEXT, VaConcatFormat(Ptr, Len, psz, argList)));
+        if (ptr)
+        {
+            ptr->Release();
+        }
+    }
+    va_end(argList);
+    return *this;
+}
+
+
+StringAcp& StringAcp::VaAppendFormat(PCSTR psz, va_list argList)
+{
+    if (m_ptr && m_ptr->RefCnt == 1)
+    {
+        INT_PTR cb = m_ptr->Len;
+        m_ptr->Exchange(::VaAppendFormat(m_ptr->Detach(), cb, psz, argList));
+    }
+    else
+    {
+        RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(IMMEDIATE_TEXT, VaConcatFormat(Ptr, Len, psz, argList)));
+        if (ptr)
+        {
+            ptr->Release();
+        }
+    }
+    return *this;
+}
+
+
+int StringAcp::IndexOf(CHAR c, INT_PTR fromIndex)
+{
+    if (m_ptr && static_cast<size_t>(fromIndex) < m_ptr->Len)
+    {
+        const CHAR* pCur = reinterpret_cast<const CHAR*>(memchr(m_ptr->Ptr + fromIndex, c, m_ptr->Len - fromIndex));
+        return pCur ? static_cast<int>(pCur - m_ptr->Ptr) : -1;
+    }
+    return -1;
 }
 
 
@@ -361,7 +420,7 @@ bool StringAcp::operator >=(const StringAcp& other) const
 
 StringAcp StringAcp::operator +(const StringAcp& other) const
 {
-    return StringAcp(new RefMbs(Ptr, other.Ptr));
+    return StringAcp(Ptr, other.Ptr);
 }
 
 
@@ -389,21 +448,5 @@ int StringAcp::Compare(PCSTR psz1, INT_PTR cb1, PCSTR psz2, INT_PTR cb2)
         return 1;
     default:
         throw Exception(L"String::Compare failed.");
-    }
-}
-
-
-int StringAcp::CaseCompare(PCSTR psz1, INT_PTR cb1, PCSTR psz2, INT_PTR cb2)
-{
-    switch (CompareStringA(LOCALE_INVARIANT, LINGUISTIC_IGNORECASE, psz1, static_cast<int>(cb1), psz2, static_cast<int>(cb2)))
-    {
-    case CSTR_EQUAL:
-        return 0;
-    case CSTR_LESS_THAN:
-        return -1;
-    case CSTR_GREATER_THAN:
-        return 1;
-    default:
-        throw Exception(L"StringAcp::CaseCompare failed.");
     }
 }

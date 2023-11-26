@@ -59,9 +59,9 @@ void HashDialogBox::OnCreate()
     UINT uSource = source.Type == REG_DWORD ? ((DWORD)source == 2 ? IDC_HASH_TEXT : IDC_HASH_FILE) : IDC_HASH_FILE;
     UINT uMethod = method.Type == REG_DWORD ? (IDC_HASH_MD5 + ((DWORD)method - 1) % 5) : IDC_HASH_MD5;
     m_uLettercase = lettercase.Type == REG_DWORD ? (DWORD)lettercase : UPPERCASE_LETTER;
-    CheckButton(uSource);
-    CheckButton(uMethod);
-    CheckButton(IDC_HASH_UPPERCASE, m_uLettercase == UPPERCASE_LETTER ? TRUE : FALSE);
+    ButtonCheck(uSource);
+    ButtonCheck(uMethod);
+    ButtonCheck(IDC_HASH_UPPERCASE, m_uLettercase == UPPERCASE_LETTER);
     SetPath();
     SetResult();
     InitializeCodePageComboBox(IDC_HASH_ENCODING);
@@ -148,7 +148,7 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 
     case IDC_HASH_FILE:
     case IDC_HASH_TEXT:
-        if (idNotif == BN_CLICKED && GetButtonState(idChild) == BST_CHECKED)
+        if (idNotif == BN_CLICKED && ButtonIsChecked(idChild))
         {
             OnSelectSource(idChild);
         }
@@ -286,11 +286,11 @@ void HashDialogBox::OnCalculate()
 
 void HashDialogBox::OnLoadFrom()
 {
-    if (GetButtonState(IDC_HASH_FILE) == BST_CHECKED)
+    if (ButtonIsChecked(IDC_HASH_FILE))
     {
         OnBrowse();
     }
-    else if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    else if (ButtonIsChecked(IDC_HASH_TEXT))
     {
         LoadTextFromFile(IDC_HASH_CONTENT, m_szTextPath);
     }
@@ -299,7 +299,7 @@ void HashDialogBox::OnLoadFrom()
 
 void HashDialogBox::OnSaveAs()
 {
-    if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    if (ButtonIsChecked(IDC_HASH_TEXT))
     {
         SaveTextAsFile(IDC_HASH_CONTENT, m_szTextPath);
     }
@@ -308,7 +308,7 @@ void HashDialogBox::OnSaveAs()
 
 void HashDialogBox::OnCut()
 {
-    if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    if (ButtonIsChecked(IDC_HASH_TEXT))
     {
         EditCut(IDC_HASH_CONTENT);
         ClearResult();
@@ -345,7 +345,7 @@ void HashDialogBox::OnCopy()
 
 void HashDialogBox::OnPaste()
 {
-    if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    if (ButtonIsChecked(IDC_HASH_TEXT))
     {
         EditPaste(IDC_HASH_CONTENT);
         ClearResult();
@@ -355,7 +355,7 @@ void HashDialogBox::OnPaste()
 
 void HashDialogBox::OnSelectAll()
 {
-    if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    if (ButtonIsChecked(IDC_HASH_TEXT))
     {
         EditSelectAll(IDC_HASH_CONTENT);
     }
@@ -364,7 +364,7 @@ void HashDialogBox::OnSelectAll()
 
 void HashDialogBox::OnClear()
 {
-    if (GetButtonState(IDC_HASH_TEXT) == BST_CHECKED)
+    if (ButtonIsChecked(IDC_HASH_TEXT))
     {
         EditClear(IDC_HASH_CONTENT);
         m_szTextPath = String::Empty;
@@ -392,14 +392,14 @@ void HashDialogBox::OnSettingChanged(UINT uId)
     UINT uMethod = 0;
     if (ApplyToHashAlgorithm(uId, uMethod, IDC_HASH_MD5))
     {
-        UncheckButton(m_uMethod);
-        CheckButton(uMethod);
+        ButtonUncheck(m_uMethod);
+        ButtonCheck(uMethod);
         OnSelectMethod(uMethod);
         return;
     }
     if (ApplyToLettercase(uId, m_uLettercase, UPPERCASE_LETTER))
     {
-        CheckButton(IDC_HASH_UPPERCASE, m_uLettercase == UPPERCASE_LETTER ? TRUE : FALSE);
+        ButtonCheck(IDC_HASH_UPPERCASE, m_uLettercase == UPPERCASE_LETTER);
         ResetResultCase();
         return;
     }
@@ -486,20 +486,15 @@ void HashDialogBox::OnSelectMethod(UINT uMethod)
 
 void HashDialogBox::OnUppercase()
 {
-    UINT value = GetButtonState(IDC_HASH_UPPERCASE);
-    if (value == BST_CHECKED)
+    if (ButtonIsChecked(IDC_HASH_UPPERCASE))
     {
         ApplyToLettercase(IDM_SETTINGS_UPPERCASE, m_uLettercase, UPPERCASE_LETTER);
         ResetResultCase();
     }
-    else if (value == BST_UNCHECKED)
+    else
     {
         ApplyToLettercase(IDM_SETTINGS_LOWERCASE, m_uLettercase, UPPERCASE_LETTER);
         ResetResultCase();
-    }
-    else
-    {
-        Debug::Put(L"SendDlgItemMessage(UPPERCASE,BM_GETCHECK) unexpectedly returned %ld.", value);
     }
 }
 

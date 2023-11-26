@@ -642,11 +642,11 @@ bool VmIpAddressFinder::ExamineHosts(Hosts& hosts, KeyValueMap& nameAddressMap)
         HostsNode* pHostNode = pAddrNode->Host;
         while (pHostNode)
         {
-            String Key(pHostNode->Text);
+            String Key(CP_ACP, pHostNode->Text);
             String Value = nameAddressMap.GetValue(Key);
             if (Value.Ptr)
             {
-                if (!String::Compare(Value, String(pAddrNode->Text)))
+                if (!String::Compare(Value, String(CP_ACP, pAddrNode->Text)))
                 {
                     // Address not changed -- Do nothing
                 }

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hnrt/Path.h"
 #include "hnrt/StringCaseInsensitive.h"
+#include "hnrt/StringCaseInsensitiveAcp.h"
 #include "hnrt/StringAcp.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/ComException.h"
@@ -238,13 +239,13 @@ String Path::GetKnownFolder(const KNOWNFOLDERID& rid, DWORD dwFlags)
 
 int Path::Compare(PCWSTR psz1, PCWSTR psz2)
 {
-    return StringCase::Compare(psz1, psz2);
+    return StringCase::Compare(psz1, -1, psz2, -1);
 }
 
 
 int Path::Compare(PCSTR psz1, PCSTR psz2)
 {
-    return StringAcp::CaseCompare(psz1, psz2);
+    return StringCaseAcp::Compare(psz1, -1, psz2, -1);
 }
 
 

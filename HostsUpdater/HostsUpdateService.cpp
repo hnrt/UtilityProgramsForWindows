@@ -6,6 +6,7 @@
 #include "hnrt/Path.h"
 #include "hnrt/RegistryValue.h"
 #include "hnrt/Buffer.h"
+#include "hnrt/StringUTF8.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/Debug.h"
@@ -48,17 +49,17 @@ RefPtr<HostsUpdateService> HostsUpdateService::GetInstance()
 
 HostsUpdateService::HostsUpdateService()
 	: m_lockSelf(SPIN_LOCK_INITIALIZER)
-	, m_pszServiceName(Clone(ResourceString(IDS_SERVICE_NAME)))
+	, m_szServiceName(ResourceString(IDS_SERVICE_NAME))
 	, m_dwError(ERROR_SUCCESS)
 	, m_hServiceStatus(NULL)
 	, m_dwCurrentState(0)
 	, m_dwCheckPoint(0)
 	, m_ExclusiveOperation(0)
 	, m_hEventMain(CreateEventW(NULL, TRUE, FALSE, NULL))
-	, m_pszAppDir(Path::Combine(Path::GetKnownFolder(FOLDERID_ProgramData), L"hnrt"))
-	, m_pszLogFile(nullptr)
+	, m_szAppDir(Path::Combine(Path::GetKnownFolder(FOLDERID_ProgramData), L"hnrt"))
+	, m_szLogFile()
 	, m_hLogFile()
-	, m_pszHostsFile(nullptr)
+	, m_szHostsFile()
 	, m_Mappings()
 	, m_bReadOnly(false)
 {
@@ -69,9 +70,6 @@ HostsUpdateService::~HostsUpdateService()
 {
 	SpinLock lock(m_lockPointer);
 	m_pSingleton = nullptr;
-	free(m_pszServiceName);
-	free(m_pszLogFile);
-	free(m_pszHostsFile);
 }
 
 
@@ -80,13 +78,13 @@ void HostsUpdateService::Install(PCWSTR pszCommand)
 	ServiceControlManager scm;
 	scm.Open();
 	ServiceConfiguration cfg;
-	cfg.SetName(m_pszServiceName)
+	cfg.SetName(m_szServiceName)
 		.SetDisplayName(ResourceString(IDS_SERVICE_DISPLAY_NAME))
 		.SetDescription(IDS_SERVICE_DESCRIPTION)
 		.SetBinaryPathName(NULL, pszCommand);
 	Service svc;
 	svc.Create(scm, cfg);
-	fwprintf(stdout, ResourceString(IDS_INFO_CREATED_SERVICE), m_pszServiceName);
+	fwprintf(stdout, ResourceString(IDS_INFO_CREATED_SERVICE), m_szServiceName.Ptr);
 	CreateRegistry();
 	CreateAppDirIfNotExist();
 }
@@ -97,29 +95,29 @@ void HostsUpdateService::Uninstall()
 	ServiceControlManager scm;
 	scm.Open();
 	Service svc;
-	svc.Open(scm, m_pszServiceName, SERVICE_ALL_ACCESS);
+	svc.Open(scm, m_szServiceName, SERVICE_ALL_ACCESS);
 	svc.QueryStatus();
 	if (svc.CurrentState != SERVICE_STOPPED)
 	{
 		fwprintf(stdout,
 			svc.CurrentState == SERVICE_RUNNING ? ResourceString(IDS_INFO_SERVICE_IS_RUNNING).Ptr :
 			svc.CurrentState == SERVICE_PAUSED ? ResourceString(IDS_INFO_SERVICE_IS_SUSPENDED).Ptr :
-			ResourceString(IDS_INFO_SERVICE_IS_NOT_STOPPED).Ptr, m_pszServiceName);
+			ResourceString(IDS_INFO_SERVICE_IS_NOT_STOPPED).Ptr, m_szServiceName.Ptr);
 		svc.Stop();
-		fwprintf(stdout, ResourceString(IDS_INFO_STOPPING_SERVICE), m_pszServiceName);
+		fwprintf(stdout, ResourceString(IDS_INFO_STOPPING_SERVICE), m_szServiceName.Ptr);
 		for (int count = 0; count < 30; count++)
 		{
 			Sleep(100);
 			svc.QueryStatus();
 			if (svc.CurrentState == SERVICE_STOPPED)
 			{
-				fwprintf(stdout, ResourceString(IDS_INFO_STOPPED_SERVICE), m_pszServiceName);
+				fwprintf(stdout, ResourceString(IDS_INFO_STOPPED_SERVICE), m_szServiceName.Ptr);
 				break;
 			}
 		}
 	}
 	svc.Delete();
-	fwprintf(stdout, ResourceString(IDS_INFO_DELETED_SERVICE), m_pszServiceName);
+	fwprintf(stdout, ResourceString(IDS_INFO_DELETED_SERVICE), m_szServiceName.Ptr);
 }
 
 
@@ -127,7 +125,7 @@ void HostsUpdateService::Run()
 {
 	SERVICE_TABLE_ENTRYW ServiceTable[] =
 	{
-		{ m_pszServiceName, ServiceMain },
+		{ const_cast<PWSTR>(m_szServiceName.Ptr), ServiceMain },
 		{ NULL, NULL }
 	};
 	if (!StartServiceCtrlDispatcherW(ServiceTable))
@@ -172,7 +170,7 @@ DWORD WINAPI HostsUpdateService::HandlerEx(DWORD dwControl, DWORD dwEventType, L
 
 bool HostsUpdateService::OnStart()
 {
-	m_hServiceStatus = RegisterServiceCtrlHandlerExW(m_pszServiceName, HandlerEx, this);
+	m_hServiceStatus = RegisterServiceCtrlHandlerExW(m_szServiceName, HandlerEx, this);
 	if (m_hServiceStatus)
 	{
 		SetStatus(SERVICE_START_PENDING);
@@ -380,17 +378,17 @@ bool HostsUpdateService::SetStatus(DWORD dwState, DWORD dwPreviousStatus, DWORD 
 }
 
 
-void HostsUpdateService::OpenLogFile(PCWSTR pszFileName)
+void HostsUpdateService::OpenLogFile(const String& szFileName)
 {
-	if (pszFileName)
+	if (szFileName)
 	{
-		m_pszLogFile = Clone(pszFileName);
+		m_szLogFile = szFileName;
 	}
-	else if (m_hLogFile.isValid || !m_pszLogFile)
+	else if (m_hLogFile.isValid || !m_szLogFile)
 	{
 		return;
 	}
-	m_hLogFile = CreateFileW(m_pszLogFile, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	m_hLogFile = CreateFileW(m_szLogFile, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (m_hLogFile.isValid)
 	{
 		if (SetFilePointer(m_hLogFile, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER)
@@ -415,23 +413,15 @@ void HostsUpdateService::Log(PCWSTR pszFormat, ...)
 	}
 	SYSTEMTIME t = { 0 };
 	GetLocalTime(&t);
-	va_list ap1, ap2;
-	va_start(ap1, pszFormat);
-	va_copy(ap2, ap1);
-	int cch = _vscwprintf(pszFormat, ap1);
-	Buffer<WCHAR> wbuf(static_cast<size_t>(cch) + 1);
-	_vsnwprintf_s(wbuf, wbuf.Len, _TRUNCATE, pszFormat, ap2);
-	va_end(ap2);
-	va_end(ap1);
-	int cb2 = WideCharToMultiByte(CP_UTF8, 0, wbuf, cch, NULL, 0, NULL, NULL);
-	Buffer<CHAR> buf(32 + static_cast<size_t>(cb2));
-	int cb1 = _snprintf_s(buf, buf.Len, _TRUNCATE, "%04d-%02d-%02dT%02d:%02d:%02d.%03d ", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond, t.wMilliseconds);
-	WideCharToMultiByte(CP_UTF8, 0, wbuf, cch, buf + cb1, cb2, NULL, NULL);
-	int cb = cb1 + cb2;
-	buf[cb++] = '\r';
-	buf[cb++] = '\n';
+	String sz(PRINTF, L"%04d-%02d-%02dT%02d:%02d:%02d.%03d ", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond, t.wMilliseconds);
+	va_list argList;
+	va_start(argList, pszFormat);
+	sz.VaAppendFormat(pszFormat, argList);
+	va_end(argList);
+	sz.Append(L"\r\n");
+	StringUTF8 szUTF8(sz);
 	SpinLock lock(m_lockSelf);
-	WriteFile(m_hLogFile, buf.Ptr, cb, NULL, NULL);
+	WriteFile(m_hLogFile, szUTF8.Ptr, static_cast<DWORD>(szUTF8.Len), NULL, NULL);
 }
 
 
@@ -488,20 +478,19 @@ void HostsUpdateService::CreateRegistryV1(RegistryKey& key)
 
 void HostsUpdateService::CreateAppDirIfNotExist()
 {
-	DWORD dwAttr = GetFileAttributesW(m_pszAppDir);
-	if ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
+	if (Path::IsDirectory(m_szAppDir))
 	{
-		fwprintf(stdout, ResourceString(IDS_INFO_APPDIR_IS), m_pszAppDir);
+		fwprintf(stdout, ResourceString(IDS_INFO_APPDIR_IS), m_szAppDir.Ptr);
 		return;
 	}
-	if (CreateDirectoryW(m_pszAppDir, NULL))
+	if (CreateDirectoryW(m_szAppDir, NULL))
 	{
-		fwprintf(stdout, ResourceString(IDS_INFO_CREATED_DIRECTORY), m_pszAppDir);
+		fwprintf(stdout, ResourceString(IDS_INFO_CREATED_DIRECTORY), m_szAppDir.Ptr);
 	}
 	else
 	{
 		DWORD dwError = GetLastError();
-		fwprintf(stdout, ResourceString(IDS_WARNING_FAILED_CREATE_DIRECTORY), m_pszAppDir, dwError, ErrorMessage::Get(dwError));
+		fwprintf(stdout, ResourceString(IDS_WARNING_FAILED_CREATE_DIRECTORY), m_szAppDir.Ptr, dwError, ErrorMessage::Get(dwError));
 	}
 }
 
@@ -524,7 +513,7 @@ void HostsUpdateService::ReadRegistry()
 		if (pszHostsFileName)
 		{
 			DBGPUT(L"%s=%s", REGVAL_HOSTSFILE, pszHostsFileName);
-			m_pszHostsFile = Clone(pszHostsFileName);
+			m_szHostsFile = pszHostsFileName;
 		}
 	}
 	if (key.Open(HKEY_LOCAL_MACHINE, REGKEY_MAPPINGS, 0, KEY_READ) == ERROR_SUCCESS)
@@ -556,7 +545,7 @@ void HostsUpdateService::ReadRegistry()
 			}
 		}
 	}
-	if (!m_pszHostsFile)
+	if (!m_szHostsFile)
 	{
 		Log(L"WARNING: No hosts file name is set.");
 	}
@@ -570,13 +559,13 @@ void HostsUpdateService::ReadRegistry()
 void HostsUpdateService::ProcessHostsFile()
 {
 	DBGFNC(L"HostsUpdateService::ProcessHostsFile");
-	if (!m_pszHostsFile)
+	if (!m_szHostsFile)
 	{
-		DBGPUT(L"m_pszHostsFile=null");
+		DBGPUT(L"m_szHostsFile=null");
 		return;
 	}
-	DBGPUT(L"m_pszHostsFile=%s", m_pszHostsFile);
-	HostsFile hosts(m_pszHostsFile, m_bReadOnly);
+	DBGPUT(L"m_szHostsFile=%s", m_szHostsFile.Ptr);
+	HostsFile hosts(m_szHostsFile, m_bReadOnly);
 	try
 	{
 		hosts.Open();
@@ -589,10 +578,10 @@ void HostsUpdateService::ProcessHostsFile()
 			AddressResolution ar(iter->first, iter->second);
 			if (!ar.Resolve())
 			{
-				DBGPUT(L"alias=%s hostname=%s: Resolution failed.", iter->first, iter->second);
+				DBGPUT(L"alias=%s hostname=%s: Resolution failed.", iter->first.Ptr, iter->second.Ptr);
 				continue;
 			}
-			DBGPUT(L"alias=%s hostname=%s: Resolution succeeded.", iter->first, iter->second);
+			DBGPUT(L"alias=%s hostname=%s: Resolution succeeded.", iter->first.Ptr, iter->second.Ptr);
 			HostEntry* pEntry = hosts.FindByName(hosts.UTF16, ar.Alias);
 			if (pEntry)
 			{
@@ -613,7 +602,7 @@ void HostsUpdateService::ProcessHostsFile()
 					if (updateEntries.find(pEntry) == updateEntries.end())
 					{
 						DBGPUT(L"Address doesn't match with the resolved one; it is going to be updated.");
-						updateEntries.insert(HostsFile::HostEntryAddressPair(pEntry, std::wstring(ar[0])));
+						updateEntries.insert(HostsFile::HostEntryAddressPair(pEntry, String(ar[0])));
 					}
 					else
 					{
@@ -624,7 +613,7 @@ void HostsUpdateService::ProcessHostsFile()
 			else
 			{
 				DBGPUT(L"%s is not found in hosts; Address/hostname pair is going to be appended.", ar.Alias);
-				appendEntries.push_back(HostsFile::AddressAliasPair(std::wstring(ar[0]), std::wstring(ar.Alias)));
+				appendEntries.push_back(HostsFile::AddressAliasPair(String(ar[0]), String(ar.Alias)));
 			}
 		}
 		if (updateEntries.size() + appendEntries.size())

@@ -37,26 +37,14 @@ StringUTF8::StringUTF8(RefMbs* ptr)
 }
 
 
-StringUTF8::StringUTF8(PCSTR psz)
-    : m_ptr(psz ? new RefMbs(psz) : nullptr)
+StringUTF8::StringUTF8(PCSTR psz, INT_PTR cb)
+    : m_ptr(psz && cb ? new RefMbs(psz, cb) : nullptr)
 {
 }
 
 
-StringUTF8::StringUTF8(PCSTR psz, size_t cb)
-    : m_ptr(psz ? new RefMbs(psz, cb) : nullptr)
-{
-}
-
-
-StringUTF8::StringUTF8(PCWSTR psz)
-    : m_ptr(psz ? new RefMbs(CP_UTF8, psz) : nullptr)
-{
-}
-
-
-StringUTF8::StringUTF8(PCWSTR psz, size_t cb)
-    : m_ptr(psz ? new RefMbs(CP_UTF8, psz, cb) : nullptr)
+StringUTF8::StringUTF8(PCWSTR psz, INT_PTR cb)
+    : m_ptr(psz && cb ? new RefMbs(CP_UTF8, psz, cb) : nullptr)
 {
 }
 
@@ -88,10 +76,24 @@ StringUTF8& StringUTF8::operator =(const StringUTF8& other)
 
 StringUTF8& StringUTF8::operator +=(const StringUTF8& other)
 {
-    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(Ptr, other.Ptr));
-    if (ptr)
+    if (other.Len)
     {
-        ptr->Release();
+        if (m_ptr && m_ptr->RefCnt == 1)
+        {
+            m_ptr->Append(other.Ptr);
+        }
+        else
+        {
+            PSTR psz2 = Allocate<CHAR>(Len + other.Len + 1);
+            memcpy_s(psz2, Len, Ptr, Len);
+            memcpy_s(psz2 + Len, other.Len, other.Ptr, other.Len);
+            psz2[Len + other.Len] = '\0';
+            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(IMMEDIATE_TEXT, psz2));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
     }
     return *this;
 }
@@ -99,37 +101,37 @@ StringUTF8& StringUTF8::operator +=(const StringUTF8& other)
 
 bool StringUTF8::operator ==(const StringUTF8& other) const
 {
-    return strcmp(*this, other) == 0;
+    return strcmp(Ptr, other.Ptr) == 0;
 }
 
 
 bool StringUTF8::operator !=(const StringUTF8& other) const
 {
-    return strcmp(*this, other) != 0;
+    return strcmp(Ptr, other.Ptr) != 0;
 }
 
 
 bool StringUTF8::operator <(const StringUTF8& other) const
 {
-    return strcmp(*this, other) < 0;
+    return strcmp(Ptr, other.Ptr) < 0;
 }
 
 
 bool StringUTF8::operator <=(const StringUTF8& other) const
 {
-    return strcmp(*this, other) <= 0;
+    return strcmp(Ptr, other.Ptr) <= 0;
 }
 
 
 bool StringUTF8::operator >(const StringUTF8& other) const
 {
-    return strcmp(*this, other) > 0;
+    return strcmp(Ptr, other.Ptr) > 0;
 }
 
 
 bool StringUTF8::operator >=(const StringUTF8& other) const
 {
-    return strcmp(*this, other) >= 0;
+    return strcmp(Ptr, other.Ptr) >= 0;
 }
 
 

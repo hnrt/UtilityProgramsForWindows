@@ -2,9 +2,8 @@
 
 
 #include "hnrt/RefObj.h"
-#include "hnrt/StringOptions.h"
 #include "hnrt/Heap.h"
-#include "hnrt/StringBuffer.h"
+#include "hnrt/StringUtils.h"
 #include "hnrt/Interlocked.h"
 #include "hnrt/Exception.h"
 
@@ -17,20 +16,19 @@ namespace hnrt
     public:
 
         RefStr(const RefStr&) = delete;
-        RefStr(PCWSTR);
-        RefStr(PCWSTR, size_t);
+        RefStr(PCWSTR, INT_PTR = -1);
         RefStr(PCWSTR, va_list);
         RefStr(PCWSTR, PCWSTR);
         RefStr(PCWSTR, PCWSTR, PCWSTR);
         RefStr(PCWSTR, PCWSTR, PCWSTR, PCWSTR);
         RefStr(PCWSTR, PCWSTR, PCWSTR, PCWSTR, PCWSTR);
         RefStr(UINT, PCSTR, INT_PTR = -1);
-        RefStr(StringBuffer&);
         RefStr(StringOptions, ...);
         virtual ~RefStr();
         void operator =(const RefStr&) = delete;
         PWSTR Exchange(PWSTR);
-        RefStr& ZeroFill();
+        PWSTR Detach();
+        void ZeroFill();
         RefStr& Assign(PCWSTR, INT_PTR = -1);
         RefStr& Append(PCWSTR, INT_PTR = -1);
         PCWSTR get_ptr() const;
@@ -46,20 +44,17 @@ namespace hnrt
         size_t m_cap;
     };
 
-    inline RefStr::RefStr(PCWSTR psz)
+    inline RefStr::RefStr(PCWSTR psz, INT_PTR cch)
         : RefObj()
-        , m_psz(Clone(psz))
-        , m_len(wcslen(m_psz))
-        , m_cap(m_len + 1)
+        , m_psz(nullptr)
+        , m_len(0)
+        , m_cap(0)
     {
-    }
-
-    inline RefStr::RefStr(PCWSTR psz, size_t cch)
-        : RefObj()
-        , m_psz(Clone(psz, cch))
-        , m_len(wcslen(m_psz))
-        , m_cap(cch + 1)
-    {
+        m_len = cch > 0 ? wcsnlen(psz, cch) : cch < 0 ? wcslen(psz) : 0;
+        m_cap = m_len + 1;
+        m_psz = Allocate<WCHAR>(m_cap);
+        wmemcpy_s(m_psz, m_len, psz, m_len);
+        m_psz[m_len] = L'\0';
     }
 
     inline RefStr::RefStr(PCWSTR pszFormat, va_list argList)
@@ -110,17 +105,6 @@ namespace hnrt
     {
     }
 
-    inline RefStr::RefStr(StringBuffer& buf)
-        : RefObj()
-        , m_psz(nullptr)
-        , m_len(0)
-        , m_cap(0)
-    {
-        m_cap = buf.Cap;
-        m_len = buf.Len;
-        m_psz = buf.Detach();
-    }
-
     inline RefStr::RefStr(StringOptions option, ...)
         : RefObj()
         , m_psz(nullptr)
@@ -135,20 +119,35 @@ namespace hnrt
             m_psz = Clone(va_arg(argList, PCWSTR));
             m_len = wcslen(m_psz);
             m_cap = m_len + 1;
-            _wcsupr_s(m_psz, m_cap);
+            StringUtils::Uppercase(m_psz, m_cap);
             break;
         case LOWERCASE:
             m_psz = Clone(va_arg(argList, PCWSTR));
             m_len = wcslen(m_psz);
             m_cap = m_len + 1;
-            _wcslwr_s(m_psz, m_cap);
+            StringUtils::Lowercase(m_psz, m_cap);
             break;
-        case IMMEDIATE:
+        case TRIM:
+        case TRIM_HEAD:
+        case TRIM_TAIL:
+        {
+            PCWSTR psz = va_arg(argList, PCWSTR);
+            int start = 0;
+            int end = 0;
+            StringUtils::TrimScan(option, psz, start, end);
+            m_len = static_cast<size_t>(end) - static_cast<size_t>(start);
+            m_cap = m_len + 1;
+            m_psz = Allocate<WCHAR>(m_cap);
+            wmemcpy_s(m_psz, m_len, psz + start, m_len);
+            m_psz[m_len] = L'\0';
+            break;
+        }
+        case IMMEDIATE_TEXT:
             m_psz = va_arg(argList, PWSTR);
             m_len = wcslen(m_psz);
             m_cap = m_len + 1;
             break;
-        case STATIC:
+        case STATIC_TEXT:
             m_psz = va_arg(argList, PWSTR);
             m_len = wcslen(m_psz);
             m_cap = 0; // indicates not to free m_psz
@@ -171,7 +170,7 @@ namespace hnrt
     {
         if (m_psz && !m_cap)
         {
-            throw Exception(L"RefStr::Exchange: STATIC not allowed.");
+            m_psz = Clone(m_psz);
         }
         psz = Interlocked<PWSTR>::ExchangePointer(&m_psz, psz);
         if (m_psz)
@@ -187,18 +186,21 @@ namespace hnrt
         return psz;
     }
 
-    inline RefStr& RefStr::ZeroFill()
+    inline PWSTR RefStr::Detach()
+    {
+        return Exchange(nullptr);
+    }
+
+    inline void RefStr::ZeroFill()
     {
         if (m_psz)
         {
-            if (!m_cap)
+            if (m_cap)
             {
-                throw Exception(L"RefStr::ZeroFill: STATIC not allowed.");
+                wmemset(m_psz, L'\0', m_cap);
+                m_len = 0;
             }
-            wmemset(m_psz, L'\0', m_cap);
-            m_len = 0;
         }
-        return *this;
     }
 
     inline RefStr& RefStr::Assign(PCWSTR psz, INT_PTR cch)

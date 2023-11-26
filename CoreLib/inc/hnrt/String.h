@@ -2,14 +2,12 @@
 
 
 #include <Windows.h>
-#include <stdarg.h>
 #include "hnrt/StringOptions.h"
 
 
 namespace hnrt
 {
     class RefStr;
-    class StringBuffer;
 
     class String
     {
@@ -17,30 +15,23 @@ namespace hnrt
 
         String();
         String(const String&);
-        String(PCWSTR);
-        String(PCWSTR, size_t);
+        String(PCWSTR, INT_PTR = -1);
         String(PCWSTR, va_list);
         String(StringOptions, PCWSTR, ...);
         String(PCWSTR, PCWSTR);
         String(PCWSTR, PCWSTR, PCWSTR);
         String(PCWSTR, PCWSTR, PCWSTR, PCWSTR);
         String(PCWSTR, PCWSTR, PCWSTR, PCWSTR, PCWSTR);
-        String(PCSTR);
-        String(PCSTR, size_t);
-        String(UINT, PCSTR);
-        String(UINT, PCSTR, size_t);
-        String(StringBuffer&);
+        String(UINT, PCSTR, INT_PTR = -1);
         ~String();
         String& ZeroFill();
         String& Uppercase();
         String& Lowercase();
+        String& Trim(StringOptions = TRIM);
         String& Assign(const String&);
-        String& Assign(PCWSTR);
-        String& Assign(PCWSTR, size_t);
-        String& Assign(StringBuffer&);
+        String& Assign(PCWSTR, INT_PTR = -1);
         String& Append(const String&);
-        String& Append(PCWSTR);
-        String& Append(PCWSTR, size_t);
+        String& Append(PCWSTR, INT_PTR = -1);
         String& Format(PCWSTR, ...);
         String& VaFormat(PCWSTR, va_list);
         String& AppendFormat(PCWSTR, ...);
@@ -50,7 +41,6 @@ namespace hnrt
         operator bool() const;
         String& operator =(const String&);
         String& operator =(PCWSTR);
-        String& operator =(StringBuffer&);
         String& operator +=(const String&);
         String& operator +=(PCWSTR);
         bool operator ==(const String&) const;
@@ -67,8 +57,6 @@ namespace hnrt
         __declspec(property(get = get_len)) size_t Len;
 
     private:
-
-        String(RefStr*);
 
         RefStr* m_ptr;
 
@@ -103,11 +91,6 @@ namespace hnrt
         return Assign(psz);
     }
 
-    inline String& String::operator =(StringBuffer& buf)
-    {
-        return Assign(buf);
-    }
-
     inline String& String::operator +=(const String& other)
     {
         return Append(other);
@@ -137,6 +120,6 @@ namespace hnrt
 
     inline bool StringLessThan::operator ()(PCWSTR psz1, PCWSTR psz2) const
     {
-        return String::Compare(psz1, psz2) < 0;
+        return String::Compare(psz1, -1, psz2, -1) < 0;
     }
 }

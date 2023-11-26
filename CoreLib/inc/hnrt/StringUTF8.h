@@ -14,10 +14,8 @@ namespace hnrt
 
         StringUTF8();
         StringUTF8(const StringUTF8&);
-        StringUTF8(PCSTR);
-        StringUTF8(PCSTR, size_t);
-        StringUTF8(PCWSTR);
-        StringUTF8(PCWSTR, size_t);
+        StringUTF8(PCSTR, INT_PTR = -1);
+        StringUTF8(PCWSTR, INT_PTR = -1);
         ~StringUTF8();
         operator PCSTR() const;
         operator bool() const;

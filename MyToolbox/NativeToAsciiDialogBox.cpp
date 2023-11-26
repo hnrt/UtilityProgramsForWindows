@@ -250,11 +250,11 @@ void NativeToAsciiDialogBox::OnSettingChanged(UINT uId)
 
 void NativeToAsciiDialogBox::OnSelectSource(int id)
 {
-	CheckButton(IDC_NTOA_NATIVE_RADIO, id == IDC_NTOA_NATIVE_RADIO ? BST_CHECKED : BST_UNCHECKED);
-	EditSetReadOnly(IDC_NTOA_NATIVE_EDIT, id == IDC_NTOA_NATIVE_RADIO ? FALSE : TRUE);
+	ButtonCheck(IDC_NTOA_NATIVE_RADIO, id == IDC_NTOA_NATIVE_RADIO);
+	EditSetReadOnly(IDC_NTOA_NATIVE_EDIT, id != IDC_NTOA_NATIVE_RADIO);
 	EnableWindow(IDC_NTOA_ENCODE_BUTTON, id == IDC_NTOA_NATIVE_RADIO);
-	CheckButton(IDC_NTOA_ASCII_RADIO, id == IDC_NTOA_ASCII_RADIO ? BST_CHECKED : BST_UNCHECKED);
-	EditSetReadOnly(IDC_NTOA_ASCII_EDIT, id == IDC_NTOA_ASCII_RADIO ? FALSE : TRUE);
+	ButtonCheck(IDC_NTOA_ASCII_RADIO, id == IDC_NTOA_ASCII_RADIO);
+	EditSetReadOnly(IDC_NTOA_ASCII_EDIT, id != IDC_NTOA_ASCII_RADIO);
 	EnableWindow(IDC_NTOA_DECODE_BUTTON, id == IDC_NTOA_ASCII_RADIO);
 	m_menuEdit
 		.Modify(
@@ -289,11 +289,11 @@ void NativeToAsciiDialogBox::OnDecode() const
 
 int NativeToAsciiDialogBox::get_CurrentEdit() const
 {
-	if (GetButtonState(IDC_NTOA_NATIVE_RADIO) == BST_CHECKED)
+	if (ButtonIsChecked(IDC_NTOA_NATIVE_RADIO))
 	{
 		return IDC_NTOA_NATIVE_EDIT;
 	}
-	else if (GetButtonState(IDC_NTOA_ASCII_RADIO) == BST_CHECKED)
+	else if (ButtonIsChecked(IDC_NTOA_ASCII_RADIO))
 	{
 		return IDC_NTOA_ASCII_EDIT;
 	}

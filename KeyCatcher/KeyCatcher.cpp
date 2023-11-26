@@ -95,7 +95,7 @@ LRESULT CALLBACK KeyCatcher::MessageCallback(HWND hwnd, UINT uMsg, WPARAM wParam
     KeyCatcher* pThis = reinterpret_cast<KeyCatcher*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
     if (pThis)
     {
-        KeystrokeMessage km;
+        KeystrokeMessage km = { 0 };
         switch (uMsg)
         {
         case WM_CREATE:
@@ -212,7 +212,7 @@ void KeyCatcher::Save()
     for (std::list<KeyMessage>::const_iterator iter = m_KeyInput.begin(); iter != m_KeyInput.end(); iter++)
     {
         const KeyMessage& km = *iter;
-        KeystrokeMessage k;
+        KeystrokeMessage k = { 0 };
         k.param = km.lParam;
         switch (km.uMessage)
         {

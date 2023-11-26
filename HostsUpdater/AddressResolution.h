@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Windows.h>
+#include "hnrt/String.h"
+#include <vector>
 
 namespace hnrt
 {
@@ -8,9 +9,9 @@ namespace hnrt
 	{
 	public:
 
-		AddressResolution(PCWSTR pszAlias, PCWSTR pszHostName);
+		AddressResolution(const String& szAlias, const String& szHostName);
 		AddressResolution(const AddressResolution&);
-		~AddressResolution();
+		~AddressResolution() = default;
 		AddressResolution& operator =(const AddressResolution&);
 		PCWSTR operator [](int index) const;
 		void Clear();
@@ -28,29 +29,25 @@ namespace hnrt
 
 	private:
 
-		void Copy(const AddressResolution&);
-		void Add(PCWSTR);
-
-		PWSTR m_pszAlias;
-		PWSTR m_pszHostName;
-		PWSTR* m_pAddresses;
-		DWORD m_Count;
+		String m_szAlias;
+		String m_szHostName;
+		std::vector<String> m_Addresses;
 		INT m_Error;
 	};
 
 	inline PCWSTR AddressResolution::get_Alias() const
 	{
-		return m_pszAlias;
+		return m_szAlias;
 	}
 
 	inline PCWSTR AddressResolution::get_HostName() const
 	{
-		return m_pszHostName;
+		return m_szHostName;
 	}
 
 	inline DWORD AddressResolution::get_Count() const
 	{
-		return m_Count;
+		return static_cast<DWORD>(m_Addresses.size());
 	}
 
 	inline INT AddressResolution::get_Error() const

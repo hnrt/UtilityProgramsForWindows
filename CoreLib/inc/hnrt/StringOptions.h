@@ -1,6 +1,5 @@
 #pragma once
 
-
 namespace hnrt
 {
     enum StringOptions
@@ -20,7 +19,7 @@ namespace hnrt
         TRIM,
         TRIM_HEAD,
         TRIM_TAIL,
-        IMMEDIATE,
-        STATIC
+        IMMEDIATE_TEXT,
+        STATIC_TEXT
     };
 }

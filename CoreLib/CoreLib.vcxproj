@@ -237,6 +237,7 @@
     <ClInclude Include="inc\hnrt\SidPtr.h" />
     <ClInclude Include="inc\hnrt\StringAcp.h" />
     <ClInclude Include="inc\hnrt\StringCaseInsensitive.h" />
+    <ClInclude Include="inc\hnrt\StringCaseInsensitiveAcp.h" />
     <ClInclude Include="inc\hnrt\StringCollection.h" />
     <ClInclude Include="inc\hnrt\StringOptions.h" />
     <ClInclude Include="inc\hnrt\StringStore.h" />
@@ -314,6 +315,7 @@
     <ClCompile Include="src\StringAcp.cpp" />
     <ClCompile Include="src\StringBuffer.cpp" />
     <ClCompile Include="src\StringCaseInsensitive.cpp" />
+    <ClCompile Include="src\StringCaseInsensitiveAcp.cpp" />
     <ClCompile Include="src\StringCollection.cpp" />
     <ClCompile Include="src\StringStore.cpp" />
     <ClCompile Include="src\StringStoreInternal.cpp" />

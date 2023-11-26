@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "hnrt/String.h"
 #include "hnrt/RefStr.h"
-#include "hnrt/Interlocked.h"
-#include "hnrt/Exception.h"
 
 
 using namespace hnrt;
@@ -34,19 +32,7 @@ String::String(const String& other)
 }
 
 
-String::String(RefStr* ptr)
-    : m_ptr(ptr)
-{
-}
-
-
-String::String(PCWSTR psz)
-    : m_ptr(psz && *psz ? new RefStr(psz) : nullptr)
-{
-}
-
-
-String::String(PCWSTR psz, size_t cch)
+String::String(PCWSTR psz, INT_PTR cch)
     : m_ptr(psz && cch ? new RefStr(psz, cch) : nullptr)
 {
 }
@@ -61,30 +47,14 @@ String::String(PCWSTR pszFormat, va_list argList)
 String::String(StringOptions option, PCWSTR psz, ...)
     : m_ptr(nullptr)
 {
+    va_list argList;
+    va_start(argList, psz);
     switch (option)
     {
     case PRINTF:
-    {
-        va_list argList;
-        va_start(argList, psz);
         m_ptr = new RefStr(psz, argList);
-        va_end(argList);
         break;
-    }
     case CONCAT:
-    {
-        StringBuffer buf(MAX_PATH);
-        va_list argList;
-        va_start(argList, psz);
-        while (psz)
-        {
-            buf += psz;
-            psz = va_arg(argList, PCWSTR);
-        }
-        va_end(argList);
-        m_ptr = new RefStr(buf);
-        break;
-    }
     case CONCAT2:
     case CONCAT3:
     case CONCAT4:
@@ -93,117 +63,21 @@ String::String(StringOptions option, PCWSTR psz, ...)
     case CONCAT7:
     case CONCAT8:
     case CONCAT9:
-    {
-        StringBuffer buf(MAX_PATH);
-        va_list argList;
-        va_start(argList, psz);
-        buf += psz;
-        switch (option)
-        {
-        case CONCAT9:
-            buf += va_arg(argList, PCWSTR);
-            //FALLTHROUGH
-        case CONCAT8:
-            buf += va_arg(argList, PCWSTR);
-            //FALLTHROUGH
-        case CONCAT7:
-            buf += va_arg(argList, PCWSTR);
-            //FALLTHROUGH
-        case CONCAT6:
-            buf += va_arg(argList, PCWSTR);
-            //FALLTHROUGH
-        case CONCAT5:
-            buf += va_arg(argList, PCWSTR);
-            //FALLTHROUGH
-        case CONCAT4:
-            buf += va_arg(argList, PCWSTR);
-            //FALLTHROUGH
-        case CONCAT3:
-            buf += va_arg(argList, PCWSTR);
-            //FALLTHROUGH
-        case CONCAT2:
-        default:
-            buf += va_arg(argList, PCWSTR);
-            break;
-        }
-        va_end(argList);
-        m_ptr = new RefStr(buf);
+        m_ptr = new RefStr(IMMEDIATE_TEXT, StringUtils::VaConcat(option, psz, argList));
         break;
-    }
+    case UPPERCASE:
+    case LOWERCASE:
     case TRIM:
     case TRIM_HEAD:
     case TRIM_TAIL:
-    {
-        const WCHAR* pCur = psz;
-        const WCHAR* pStart;
-        WCHAR c = *pCur++;
-        if (option == TRIM_TAIL)
-        {
-            pStart = pCur - 1;
-        }
-        else
-        {
-            while (iswspace(c))
-            {
-                c = *pCur++;
-            }
-            if (c)
-            {
-                pStart = pCur - 1;
-                if (option == TRIM_HEAD)
-                {
-                    m_ptr = new RefStr(pStart);
-                    break;
-                }
-                c = *pCur++;
-            }
-            else
-            {
-                m_ptr = new RefStr(L"");
-                break;
-            }
-        }
-        while (true)
-        {
-            if (iswspace(c))
-            {
-                const WCHAR* pEnd = pCur - 1;
-                c = *pCur++;
-                while (iswspace(c))
-                {
-                    c = *pCur++;
-                }
-                if (c)
-                {
-                    c = *pCur++;
-                }
-                else
-                {
-                    m_ptr = new RefStr(pStart, pEnd - pStart);
-                    break;
-                }
-            }
-            else if (c)
-            {
-                c = *pCur++;
-            }
-            else
-            {
-                m_ptr = new RefStr(pStart);
-                break;
-            }
-        }
-        break;
-    }
-    case UPPERCASE:
-    case LOWERCASE:
-    case IMMEDIATE:
-    case STATIC:
+    case IMMEDIATE_TEXT:
+    case STATIC_TEXT:
         m_ptr = new RefStr(option, psz);
         break;
     default:
         throw Exception(L"String::ctor: Bad option.");
     }
+    va_end(argList);
 }
 
 
@@ -231,32 +105,8 @@ String::String(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5)
 }
 
 
-String::String(PCSTR psz)
-    : m_ptr(psz && *psz ? new RefStr(CP_ACP, psz) : nullptr)
-{
-}
-
-
-String::String(PCSTR psz, size_t cb)
-    : m_ptr(psz && cb ? new RefStr(CP_ACP, psz, cb) : nullptr)
-{
-}
-
-
-String::String(UINT cp, PCSTR psz)
-    : m_ptr(psz && *psz ? new RefStr(cp, psz) : nullptr)
-{
-}
-
-
-String::String(UINT cp, PCSTR psz, size_t cb)
+String::String(UINT cp, PCSTR psz, INT_PTR cb)
     : m_ptr(psz && cb ? new RefStr(cp, psz, cb) : nullptr)
-{
-}
-
-
-String::String(StringBuffer& buf)
-    : m_ptr(buf.Len ? new RefStr(buf) : nullptr)
 {
 }
 
@@ -287,16 +137,12 @@ String& String::Uppercase()
     {
         if (m_ptr->RefCnt == 1)
         {
-            size_t size = m_ptr->Len + 1;
-            PWSTR psz = m_ptr->Exchange(nullptr);
-            _wcsupr_s(psz, size);
-            m_ptr->Exchange(psz);
+            size_t size = Len + 1;
+            m_ptr->Exchange(StringUtils::Uppercase(m_ptr->Detach(), size));
         }
         else
         {
-            StringBuffer buf(-1, Ptr);
-            _wcsupr_s(buf, buf.Cap);
-            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(buf));
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(UPPERCASE, Ptr));
             if (ptr)
             {
                 ptr->Release();
@@ -313,16 +159,33 @@ String& String::Lowercase()
     {
         if (m_ptr->RefCnt == 1)
         {
-            size_t size = m_ptr->Len + 1;
-            PWSTR psz = m_ptr->Exchange(nullptr);
-            _wcslwr_s(psz, size);
-            m_ptr->Exchange(psz);
+            size_t size = Len + 1;
+            m_ptr->Exchange(StringUtils::Lowercase(m_ptr->Detach(), size));
         }
         else
         {
-            StringBuffer buf(-1, Ptr);
-            _wcslwr_s(buf, buf.Cap);
-            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(buf));
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(LOWERCASE, Ptr));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
+    }
+    return *this;
+}
+
+
+String& String::Trim(StringOptions option)
+{
+    if (Len)
+    {
+        if (m_ptr->RefCnt == 1)
+        {
+            m_ptr->Exchange(StringUtils::Trim(option, m_ptr->Detach()));
+        }
+        else
+        {
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(option, Ptr));
             if (ptr)
             {
                 ptr->Release();
@@ -348,36 +211,7 @@ String& String::Assign(const String& other)
 }
 
 
-String& String::Assign(PCWSTR psz)
-{
-    if (psz && *psz)
-    {
-        if (m_ptr && m_ptr->RefCnt == 1)
-        {
-            m_ptr->Assign(psz);
-        }
-        else
-        {
-            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(psz));
-            if (ptr)
-            {
-                ptr->Release();
-            }
-        }
-    }
-    else
-    {
-        RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, nullptr);
-        if (ptr)
-        {
-            ptr->Release();
-        }
-    }
-    return *this;
-}
-
-
-String& String::Assign(PCWSTR psz, size_t cch)
+String& String::Assign(PCWSTR psz, INT_PTR cch)
 {
     if (psz && cch)
     {
@@ -406,17 +240,6 @@ String& String::Assign(PCWSTR psz, size_t cch)
 }
 
 
-String& String::Assign(StringBuffer& buf)
-{
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, buf.Len ? new RefStr(buf) : nullptr);
-    if (ptr)
-    {
-        ptr->Release();
-    }
-    return *this;
-}
-
-
 String& String::Append(const String& other)
 {
     if (other.Len)
@@ -427,7 +250,11 @@ String& String::Append(const String& other)
         }
         else
         {
-            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, other.Ptr));
+            PWSTR psz2 = Allocate<WCHAR>(Len + other.Len + 1);
+            wmemcpy_s(psz2, Len, Ptr, Len);
+            wmemcpy_s(psz2 + Len, other.Len, other.Ptr, other.Len);
+            psz2[Len + other.Len] = L'\0';
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(IMMEDIATE_TEXT, psz2));
             if (ptr)
             {
                 ptr->Release();
@@ -438,28 +265,7 @@ String& String::Append(const String& other)
 }
 
 
-String& String::Append(PCWSTR psz)
-{
-    if (psz && *psz)
-    {
-        if (m_ptr && m_ptr->RefCnt == 1)
-        {
-            m_ptr->Append(psz);
-        }
-        else
-        {
-            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, psz));
-            if (ptr)
-            {
-                ptr->Release();
-            }
-        }
-    }
-    return *this;
-}
-
-
-String& String::Append(PCWSTR psz, size_t cch)
+String& String::Append(PCWSTR psz, INT_PTR cch)
 {
     if (psz && cch)
     {
@@ -469,9 +275,12 @@ String& String::Append(PCWSTR psz, size_t cch)
         }
         else
         {
-            StringBuffer buf(Len + cch + 1, Ptr);
-            buf.Append(psz, cch);
-            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(buf));
+            cch = cch > 0 ? wcsnlen(psz, cch) : wcslen(psz);
+            PWSTR psz2 = Allocate<WCHAR>(Len + cch + 1);
+            wmemcpy_s(psz2, Len, Ptr, Len);
+            wmemcpy_s(psz2 + Len, cch, psz, cch);
+            psz2[Len + cch] = L'\0';
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(IMMEDIATE_TEXT, psz2));
             if (ptr)
             {
                 ptr->Release();
@@ -486,22 +295,36 @@ String& String::Format(PCWSTR psz, ...)
 {
     va_list argList;
     va_start(argList, psz);
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(psz, argList));
-    va_end(argList);
-    if (ptr)
+    if (m_ptr && m_ptr->RefCnt == 1)
     {
-        ptr->Release();
+        m_ptr->Exchange(::VaAppendFormat(m_ptr->Detach(), 0, psz, argList));
     }
+    else
+    {
+        RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(psz, argList));
+        if (ptr)
+        {
+            ptr->Release();
+        }
+    }
+    va_end(argList);
     return *this;
 }
 
 
 String& String::VaFormat(PCWSTR psz, va_list argList)
 {
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(psz, argList));
-    if (ptr)
+    if (m_ptr && m_ptr->RefCnt == 1)
     {
-        ptr->Release();
+        m_ptr->Exchange(::VaAppendFormat(m_ptr->Detach(), 0, psz, argList));
+    }
+    else
+    {
+        RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(psz, argList));
+        if (ptr)
+        {
+            ptr->Release();
+        }
     }
     return *this;
 }
@@ -509,30 +332,40 @@ String& String::VaFormat(PCWSTR psz, va_list argList)
 
 String& String::AppendFormat(PCWSTR psz, ...)
 {
-    StringBuffer buf;
-    buf.Append(psz);
     va_list argList;
     va_start(argList, psz);
-    buf.VaAppendFormat(psz, argList);
-    va_end(argList);
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(buf));
-    if (ptr)
+    if (m_ptr && m_ptr->RefCnt == 1)
     {
-        ptr->Release();
+        INT_PTR cch = m_ptr->Len;
+        m_ptr->Exchange(::VaAppendFormat(m_ptr->Detach(), cch, psz, argList));
     }
+    else
+    {
+        RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(IMMEDIATE_TEXT, VaConcatFormat(Ptr, Len, psz, argList)));
+        if (ptr)
+        {
+            ptr->Release();
+        }
+    }
+    va_end(argList);
     return *this;
 }
 
 
 String& String::VaAppendFormat(PCWSTR psz, va_list argList)
 {
-    StringBuffer buf;
-    buf.Append(*this);
-    buf.VaAppendFormat(psz, argList);
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(buf));
-    if (ptr)
+    if (m_ptr && m_ptr->RefCnt == 1)
     {
-        ptr->Release();
+        INT_PTR cch = m_ptr->Len;
+        m_ptr->Exchange(::VaAppendFormat(m_ptr->Detach(), cch, psz, argList));
+    }
+    else
+    {
+        RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(IMMEDIATE_TEXT, VaConcatFormat(Ptr, Len, psz, argList)));
+        if (ptr)
+        {
+            ptr->Release();
+        }
     }
     return *this;
 }

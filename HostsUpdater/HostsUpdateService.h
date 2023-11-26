@@ -50,7 +50,7 @@ namespace hnrt
 		DWORD OnSessionChange(DWORD, DWORD);
 		void MainLoop();
 		bool SetStatus(DWORD dwState, DWORD dwPreviousStatus = 0, DWORD dwWaitHint = 0);
-		void OpenLogFile(PCWSTR pszFileName = nullptr);
+		void OpenLogFile(const String& szFileName = String::Empty);
 		void CloseLogFile();
 		void Log(PCWSTR pszFormat, ...);
 		void CreateRegistryV1(RegistryKey&);
@@ -60,17 +60,17 @@ namespace hnrt
 		static SpinLock::Type m_lockPointer;
 
 		SpinLock::Type m_lockSelf;
-		PWSTR m_pszServiceName;
+		String m_szServiceName;
 		DWORD m_dwError;
 		SERVICE_STATUS_HANDLE m_hServiceStatus;
 		DWORD m_dwCurrentState;
 		DWORD m_dwCheckPoint;
 		LONG m_ExclusiveOperation;
 		WindowsHandle m_hEventMain;
-		PCWSTR m_pszAppDir;
-		PWSTR m_pszLogFile;
+		String m_szAppDir;
+		String m_szLogFile;
 		WindowsHandle m_hLogFile;
-		PWSTR m_pszHostsFile;
+		String m_szHostsFile;
 		KeyValueMap m_Mappings;
 		bool m_bReadOnly;
 	};

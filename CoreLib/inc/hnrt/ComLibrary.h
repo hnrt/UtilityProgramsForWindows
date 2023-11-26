@@ -2,6 +2,7 @@
 
 
 #include <combaseapi.h>
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -17,7 +18,7 @@ namespace hnrt
         HRESULT get_InitResult() const;
         __declspec(property(get = get_InitResult)) HRESULT InitResult;
 
-        static PCWSTR ToString(HRESULT hr);
+        static String ToString(HRESULT hr);
 
     private:
 

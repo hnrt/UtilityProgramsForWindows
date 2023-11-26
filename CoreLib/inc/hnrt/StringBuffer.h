@@ -2,7 +2,6 @@
 
 
 #include <Windows.h>
-#include <stdarg.h>
 
 
 namespace hnrt

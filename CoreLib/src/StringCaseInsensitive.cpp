@@ -1,10 +1,7 @@
 #include "pch.h"
 #include "hnrt/StringCaseInsensitive.h"
 #include "hnrt/RefStr.h"
-#include "hnrt/Interlocked.h"
 #include "hnrt/String.h"
-#include "hnrt/StringBuffer.h"
-#include "hnrt/Exception.h"
 
 
 using namespace hnrt;
@@ -23,31 +20,7 @@ StringCaseInsensitive::StringCaseInsensitive()
 }
 
 
-StringCaseInsensitive::StringCaseInsensitive(PCWSTR psz)
-    : m_ptr(psz ? new RefStr(Clone(psz)) : nullptr)
-{
-}
-
-
-StringCaseInsensitive::StringCaseInsensitive(PCWSTR psz, size_t cb)
-    : m_ptr(psz ? new RefStr(Clone(psz, cb)) : nullptr)
-{
-}
-
-
-StringCaseInsensitive::StringCaseInsensitive(StringBuffer& buf)
-    : m_ptr(new RefStr(buf))
-{
-}
-
-
-StringCaseInsensitive::StringCaseInsensitive(RefStr* ptr)
-    : m_ptr(ptr)
-{
-}
-
-
-StringCaseInsensitive::StringCaseInsensitive(const String& other)
+StringCaseInsensitive::StringCaseInsensitive(const StringCaseInsensitive& other)
     : m_ptr(other.m_ptr)
 {
     if (m_ptr)
@@ -57,7 +30,13 @@ StringCaseInsensitive::StringCaseInsensitive(const String& other)
 }
 
 
-StringCaseInsensitive::StringCaseInsensitive(const StringCaseInsensitive& other)
+StringCaseInsensitive::StringCaseInsensitive(PCWSTR psz, INT_PTR cch)
+    : m_ptr(psz && cch ? new RefStr(psz, cch) : nullptr)
+{
+}
+
+
+StringCaseInsensitive::StringCaseInsensitive(const String& other)
     : m_ptr(other.m_ptr)
 {
     if (m_ptr)
@@ -77,6 +56,21 @@ StringCaseInsensitive::~StringCaseInsensitive()
 }
 
 
+StringCaseInsensitive& StringCaseInsensitive::operator =(const StringCaseInsensitive& other)
+{
+    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, other.m_ptr);
+    if (m_ptr)
+    {
+        m_ptr->AddRef();
+    }
+    if (ptr)
+    {
+        ptr->Release();
+    }
+    return *this;
+}
+
+
 StringCaseInsensitive& StringCaseInsensitive::operator =(const String& other)
 {
     RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, other.m_ptr);
@@ -92,16 +86,51 @@ StringCaseInsensitive& StringCaseInsensitive::operator =(const String& other)
 }
 
 
-StringCaseInsensitive& StringCaseInsensitive::operator =(const StringCaseInsensitive& other)
+StringCaseInsensitive& StringCaseInsensitive::operator +=(const StringCaseInsensitive& other)
 {
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, other.m_ptr);
-    if (m_ptr)
+    if (other.Len)
     {
-        m_ptr->AddRef();
+        if (m_ptr && m_ptr->RefCnt == 1)
+        {
+            m_ptr->Append(other.Ptr);
+        }
+        else
+        {
+            PWSTR psz2 = Allocate<WCHAR>(Len + other.Len + 1);
+            wmemcpy_s(psz2, Len, Ptr, Len);
+            wmemcpy_s(psz2 + Len, other.Len, other.Ptr, other.Len);
+            psz2[Len + other.Len] = L'\0';
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(IMMEDIATE_TEXT, psz2));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
     }
-    if (ptr)
+    return *this;
+}
+
+
+StringCaseInsensitive& StringCaseInsensitive::operator +=(const String& other)
+{
+    if (other.Len)
     {
-        ptr->Release();
+        if (m_ptr && m_ptr->RefCnt == 1)
+        {
+            m_ptr->Append(other.Ptr);
+        }
+        else
+        {
+            PWSTR psz2 = Allocate<WCHAR>(Len + other.Len + 1);
+            wmemcpy_s(psz2, Len, Ptr, Len);
+            wmemcpy_s(psz2 + Len, other.Len, other.Ptr, other.Len);
+            psz2[Len + other.Len] = L'\0';
+            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(IMMEDIATE_TEXT, psz2));
+            if (ptr)
+            {
+                ptr->Release();
+            }
+        }
     }
     return *this;
 }
@@ -145,18 +174,13 @@ bool StringCaseInsensitive::operator >=(const StringCaseInsensitive& other) cons
 
 StringCaseInsensitive StringCaseInsensitive::operator +(const StringCaseInsensitive& other) const
 {
-    return StringCaseInsensitive(new RefStr(Ptr, other.Ptr));
+    return StringCaseInsensitive(String(Ptr, other.Ptr));
 }
 
 
-StringCaseInsensitive& StringCaseInsensitive::operator +=(const StringCaseInsensitive& other)
+StringCaseInsensitive StringCaseInsensitive::operator +(const String& other) const
 {
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(Ptr, other.Ptr));
-    if (ptr)
-    {
-        ptr->Release();
-    }
-    return *this;
+    return StringCaseInsensitive(String(Ptr, other.Ptr));
 }
 
 
@@ -172,7 +196,7 @@ size_t StringCaseInsensitive::get_len() const
 }
 
 
-int StringCaseInsensitive::Compare(PCWSTR psz1, LONG_PTR cch1, PCWSTR psz2, LONG_PTR cch2)
+int StringCaseInsensitive::Compare(PCWSTR psz1, INT_PTR cch1, PCWSTR psz2, INT_PTR cch2)
 {
     switch (CompareStringW(LOCALE_INVARIANT, LINGUISTIC_IGNORECASE, psz1, static_cast<int>(cch1), psz2, static_cast<int>(cch2)))
     {
@@ -183,6 +207,6 @@ int StringCaseInsensitive::Compare(PCWSTR psz1, LONG_PTR cch1, PCWSTR psz2, LONG
     case CSTR_GREATER_THAN:
         return 1;
     default:
-        throw Exception(L"Compare failed.");
+        throw Exception(L"StringCaseInsensitive::Compare failed.");
     }
 }
