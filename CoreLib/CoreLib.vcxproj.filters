@@ -452,5 +452,8 @@
     <ClCompile Include="src\StringCaseInsensitiveAcp.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="src\RefStr.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

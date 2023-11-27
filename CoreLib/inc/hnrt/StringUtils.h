@@ -24,8 +24,10 @@ namespace hnrt
 		static PSTR Trim(PSTR);
 		static PWSTR Concat(StringOptions, PCWSTR, ...);
 		static PSTR Concat(StringOptions, PCSTR, ...);
-		static PWSTR VaConcat(StringOptions, PCWSTR, va_list);
-		static PSTR VaConcat(StringOptions, PCSTR, va_list);
+		static size_t VaConcatSize(StringOptions option, PCWSTR psz, va_list argList);
+		static size_t VaConcatSize(StringOptions option, PCSTR psz, va_list argList);
+		static PWSTR VaConcat(StringOptions, PCWSTR, va_list, PWCHAR);
+		static PSTR VaConcat(StringOptions, PCSTR, va_list, PCHAR);
 		static size_t Length(const WCHAR* psz);
 		static size_t Length(const CHAR* psz);
 		static size_t Copy(WCHAR* pDst, const WCHAR* pSrc);

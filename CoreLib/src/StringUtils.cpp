@@ -153,7 +153,7 @@ PWSTR StringUtils::Concat(StringOptions option, PCWSTR psz, ...)
 {
     va_list argList;
     va_start(argList, psz);
-    PWSTR pszReturn = VaConcat(option, psz, argList);
+    PWSTR pszReturn = VaConcat(option, psz, argList, Allocate<WCHAR>(VaConcatSize(option, psz, argList)));
     va_end(argList);
     return pszReturn;
 }
@@ -163,14 +163,14 @@ PSTR StringUtils::Concat(StringOptions option, PCSTR psz, ...)
 {
     va_list argList;
     va_start(argList, psz);
-    PSTR pszReturn = VaConcat(option, psz, argList);
+    PSTR pszReturn = VaConcat(option, psz, argList, Allocate<CHAR>(VaConcatSize(option, psz, argList)));
     va_end(argList);
     return pszReturn;
 }
 
 
 template<typename T>
-T* DoVaConcat(StringOptions option, const T* psz, va_list argList)
+size_t DoVaConcatSize(StringOptions option, const T* psz, va_list argList)
 {
     size_t required = StringUtils::Length(psz);
     va_list argList2;
@@ -214,8 +214,26 @@ T* DoVaConcat(StringOptions option, const T* psz, va_list argList)
         break;
     }
     va_end(argList2);
-    T* psz1 = Allocate<T>(++required);
-    T* pCur = psz1 + StringUtils::Copy(psz1, psz);
+    return required + 1;
+}
+
+
+size_t StringUtils::VaConcatSize(StringOptions option, PCWSTR psz, va_list argList)
+{
+    return DoVaConcatSize(option, psz, argList);
+}
+
+
+size_t StringUtils::VaConcatSize(StringOptions option, PCSTR psz, va_list argList)
+{
+    return DoVaConcatSize(option, psz, argList);
+}
+
+
+template<typename T>
+T* DoVaConcat(StringOptions option, const T* psz, va_list argList, T* pBuf)
+{
+    T* pCur = pBuf + StringUtils::Copy(pBuf, psz);
     switch (option)
     {
     case CONCAT9:
@@ -254,17 +272,17 @@ T* DoVaConcat(StringOptions option, const T* psz, va_list argList)
         }
         break;
     }
-    return psz1;
+    return pBuf;
 }
 
 
-PWSTR StringUtils::VaConcat(StringOptions option, PCWSTR psz, va_list argList)
+PWSTR StringUtils::VaConcat(StringOptions option, PCWSTR psz, va_list argList, PWCHAR pBuf)
 {
-    return DoVaConcat(option, psz, argList);
+    return DoVaConcat(option, psz, argList, pBuf);
 }
 
 
-PSTR StringUtils::VaConcat(StringOptions option, PCSTR psz, va_list argList)
+PSTR StringUtils::VaConcat(StringOptions option, PCSTR psz, va_list argList, PCHAR pBuf)
 {
-    return DoVaConcat(option, psz, argList);
+    return DoVaConcat(option, psz, argList, pBuf);
 }

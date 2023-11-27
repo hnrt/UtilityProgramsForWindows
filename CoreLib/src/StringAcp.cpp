@@ -63,8 +63,10 @@ StringAcp::StringAcp(StringOptions option, PCSTR psz, ...)
     case CONCAT7:
     case CONCAT8:
     case CONCAT9:
-        m_ptr = new RefMbs(IMMEDIATE_TEXT, StringUtils::VaConcat(option, psz, argList));
+    {
+        m_ptr = new RefMbs(IMMEDIATE_TEXT, StringUtils::VaConcat(option, psz, argList, Allocate<CHAR>(StringUtils::VaConcatSize(option, psz, argList))));
         break;
+    }
     case UPPERCASE:
     case LOWERCASE:
     case TRIM:

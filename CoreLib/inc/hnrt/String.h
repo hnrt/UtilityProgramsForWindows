@@ -7,8 +7,6 @@
 
 namespace hnrt
 {
-    class RefStr;
-
     class String
     {
     public:
@@ -19,9 +17,6 @@ namespace hnrt
         String(PCWSTR, va_list);
         String(StringOptions, PCWSTR, ...);
         String(PCWSTR, PCWSTR);
-        String(PCWSTR, PCWSTR, PCWSTR);
-        String(PCWSTR, PCWSTR, PCWSTR, PCWSTR);
-        String(PCWSTR, PCWSTR, PCWSTR, PCWSTR, PCWSTR);
         String(UINT, PCSTR, INT_PTR = -1);
         ~String();
         String& ZeroFill();
@@ -58,7 +53,7 @@ namespace hnrt
 
     private:
 
-        RefStr* m_ptr;
+        PCWSTR m_psz;
 
         friend class StringCaseInsensitive;
 
@@ -78,7 +73,7 @@ namespace hnrt
 
     inline String::operator bool() const
     {
-        return m_ptr != nullptr;
+        return m_psz != nullptr;
     }
 
     inline String& String::operator =(const String& other)

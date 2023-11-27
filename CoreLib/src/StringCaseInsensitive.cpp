@@ -2,6 +2,8 @@
 #include "hnrt/StringCaseInsensitive.h"
 #include "hnrt/RefStr.h"
 #include "hnrt/String.h"
+#include "hnrt/Interlocked.h"
+#include "hnrt/Exception.h"
 
 
 using namespace hnrt;
@@ -15,57 +17,57 @@ using namespace hnrt;
 
 
 StringCaseInsensitive::StringCaseInsensitive()
-    : m_ptr(nullptr)
+    : m_psz(nullptr)
 {
 }
 
 
 StringCaseInsensitive::StringCaseInsensitive(const StringCaseInsensitive& other)
-    : m_ptr(other.m_ptr)
+    : m_psz(other.m_psz)
 {
-    if (m_ptr)
+    if (m_psz)
     {
-        m_ptr->AddRef();
+        RefStr::Get(m_psz).AddRef();
     }
 }
 
 
 StringCaseInsensitive::StringCaseInsensitive(PCWSTR psz, INT_PTR cch)
-    : m_ptr(psz && cch ? new RefStr(psz, cch) : nullptr)
+    : m_psz(psz&& cch ? RefStr::Create(psz, cch) : nullptr)
 {
 }
 
 
 StringCaseInsensitive::StringCaseInsensitive(const String& other)
-    : m_ptr(other.m_ptr)
+    : m_psz(other.m_psz)
 {
-    if (m_ptr)
+    if (m_psz)
     {
-        m_ptr->AddRef();
+        RefStr::Get(m_psz).AddRef();
     }
 }
 
 
 StringCaseInsensitive::~StringCaseInsensitive()
 {
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, nullptr);
-    if (ptr)
+    PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, nullptr);
+    if (psz)
     {
-        ptr->Release();
+        RefStr::Get(psz).Release();
     }
 }
 
 
 StringCaseInsensitive& StringCaseInsensitive::operator =(const StringCaseInsensitive& other)
 {
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, other.m_ptr);
-    if (m_ptr)
+    PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, other.m_psz);
+    if (m_psz)
     {
-        m_ptr->AddRef();
+        RefStr::Get(m_psz).AddRef();
     }
-    if (ptr)
+    if (psz)
     {
-        ptr->Release();
+        RefStr::Get(psz).Release();
     }
     return *this;
 }
@@ -73,14 +75,14 @@ StringCaseInsensitive& StringCaseInsensitive::operator =(const StringCaseInsensi
 
 StringCaseInsensitive& StringCaseInsensitive::operator =(const String& other)
 {
-    RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, other.m_ptr);
-    if (m_ptr)
+    PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, other.m_psz);
+    if (m_psz)
     {
-        m_ptr->AddRef();
+        RefStr::Get(m_psz).AddRef();
     }
-    if (ptr)
+    if (psz)
     {
-        ptr->Release();
+        RefStr::Get(psz).Release();
     }
     return *this;
 }
@@ -90,21 +92,10 @@ StringCaseInsensitive& StringCaseInsensitive::operator +=(const StringCaseInsens
 {
     if (other.Len)
     {
-        if (m_ptr && m_ptr->RefCnt == 1)
+        PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, RefStr::Create(Ptr, other.Ptr));
+        if (psz)
         {
-            m_ptr->Append(other.Ptr);
-        }
-        else
-        {
-            PWSTR psz2 = Allocate<WCHAR>(Len + other.Len + 1);
-            wmemcpy_s(psz2, Len, Ptr, Len);
-            wmemcpy_s(psz2 + Len, other.Len, other.Ptr, other.Len);
-            psz2[Len + other.Len] = L'\0';
-            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(IMMEDIATE_TEXT, psz2));
-            if (ptr)
-            {
-                ptr->Release();
-            }
+            RefStr::Get(psz).Release();
         }
     }
     return *this;
@@ -115,21 +106,10 @@ StringCaseInsensitive& StringCaseInsensitive::operator +=(const String& other)
 {
     if (other.Len)
     {
-        if (m_ptr && m_ptr->RefCnt == 1)
+        PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, RefStr::Create(Ptr, other.Ptr));
+        if (psz)
         {
-            m_ptr->Append(other.Ptr);
-        }
-        else
-        {
-            PWSTR psz2 = Allocate<WCHAR>(Len + other.Len + 1);
-            wmemcpy_s(psz2, Len, Ptr, Len);
-            wmemcpy_s(psz2 + Len, other.Len, other.Ptr, other.Len);
-            psz2[Len + other.Len] = L'\0';
-            RefStr* ptr = Interlocked<RefStr*>::ExchangePointer(&m_ptr, new RefStr(IMMEDIATE_TEXT, psz2));
-            if (ptr)
-            {
-                ptr->Release();
-            }
+            RefStr::Get(psz).Release();
         }
     }
     return *this;
@@ -186,13 +166,13 @@ StringCaseInsensitive StringCaseInsensitive::operator +(const String& other) con
 
 PCWSTR StringCaseInsensitive::get_ptr() const
 {
-    return m_ptr ? m_ptr->Ptr : L"";
+    return m_psz ? m_psz : L"";
 }
 
 
 size_t StringCaseInsensitive::get_len() const
 {
-    return m_ptr ? m_ptr->Len : 0;
+    return m_psz ? RefStr::Get(m_psz).Len : 0;
 }
 
 
