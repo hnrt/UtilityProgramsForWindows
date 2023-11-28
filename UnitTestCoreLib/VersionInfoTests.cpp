@@ -24,7 +24,7 @@ namespace UnitTestCoreLib
 	    Debug::Put(L"FileVersion=%u.%u.%u.%u", v->FileVersionMajor, v->FileVersionMinor, v->FileVersionPatch, v->FileVersionBuild);
 	    v->Select();
 	    Debug::Put(L"ProductName=%s", v->ProductName);
-	    Assert::AreEqual(L"Microsoft.TestHost", v->ProductName);
+	    Assert::AreEqual(L"testhost", v->ProductName);
 	}
 
 	TEST_METHOD(Test3)

@@ -6,7 +6,6 @@
 
 namespace hnrt
 {
-    class RefMbs;
     class StringAcp;
 
     class StringCaseInsensitiveAcp
@@ -40,7 +39,7 @@ namespace hnrt
 
     private:
 
-        RefMbs* m_ptr;
+        PCSTR m_psz;
 
     public:
 
@@ -56,7 +55,7 @@ namespace hnrt
 
     inline StringCaseInsensitiveAcp::operator bool() const
     {
-        return m_ptr != nullptr;
+        return m_psz != nullptr;
     }
 
     inline int StringCaseInsensitiveAcp::Compare(PCSTR psz1, PCSTR psz2)

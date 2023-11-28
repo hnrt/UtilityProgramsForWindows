@@ -16,6 +16,25 @@ using namespace hnrt;
 //////////////////////////////////////////////////////////////////////
 
 
+inline PCWSTR AddRef(PCWSTR psz)
+{
+    if (psz)
+    {
+        RefStr::Get(psz).AddRef();
+    }
+    return psz;
+}
+
+
+inline void Release(PCWSTR psz)
+{
+    if (psz)
+    {
+        RefStr::Get(psz).Release();
+    }
+}
+
+
 const String String::Empty = String();
 
 
@@ -26,17 +45,13 @@ String::String()
 
 
 String::String(const String& other)
-    : m_psz(other.m_psz)
+    : m_psz(AddRef(other.m_psz))
 {
-    if (m_psz)
-    {
-        RefStr::Get(m_psz).AddRef();
-    }
 }
 
 
 String::String(PCWSTR psz, INT_PTR cch)
-    : m_psz(psz && cch ? RefStr::Create(psz, cch) : nullptr)
+    : m_psz(RefStr::Create(psz, cch))
 {
 }
 
@@ -69,22 +84,12 @@ String::String(StringOptions option, PCWSTR psz, ...)
         m_psz = RefStr::Create(option, psz, argList);
         break;
     case UPPERCASE:
-        m_psz = RefStr::Create(UPPERCASE, psz);
-        break;
     case LOWERCASE:
-        m_psz = RefStr::Create(LOWERCASE, psz);
-        break;
     case TRIM:
     case TRIM_HEAD:
     case TRIM_TAIL:
-    {
-        int start = 0;
-        int end = 0;
-        StringUtils::TrimScan(option, psz, start, end);
-        int cch = end - start;
-        m_psz = RefStr::Create(psz + start, cch);
+        m_psz = RefStr::Create(option, psz);
         break;
-    }
     default:
         throw Exception(L"String::ctor: Bad option.");
     }
@@ -99,24 +104,20 @@ String::String(PCWSTR psz1, PCWSTR psz2)
 
 
 String::String(UINT cp, PCSTR psz, INT_PTR cb)
-    : m_psz(psz && cb ? RefStr::Create(cp, psz, cb) : nullptr)
+    : m_psz(RefStr::Create(cp, psz, cb))
 {
 }
 
 
 String::~String()
 {
-    PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, nullptr);
-    if (psz)
-    {
-        RefStr::Get(psz).Release();
-    }
+    Release(InterlockedExchangePCWSTR(&m_psz, nullptr));
 }
 
 
 String& String::ZeroFill()
 {
-    if (m_psz)
+    if (Len)
     {
         RefStr::Get(m_psz).ZeroFill();
     }
@@ -124,29 +125,11 @@ String& String::ZeroFill()
 }
 
 
-String& String::Uppercase()
+String& String::Lettercase(StringOptions option)
 {
     if (Len)
     {
-        PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, RefStr::Create(UPPERCASE, m_psz));
-        if (psz)
-        {
-            RefStr::Get(psz).Release();
-        }
-    }
-    return *this;
-}
-
-
-String& String::Lowercase()
-{
-    if (Len)
-    {
-        PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, RefStr::Create(LOWERCASE, m_psz));
-        if (psz)
-        {
-            RefStr::Get(psz).Release();
-        }
+        Release(InterlockedExchangePCWSTR(&m_psz, RefStr::Create(option, Ptr)));
     }
     return *this;
 }
@@ -156,15 +139,7 @@ String& String::Trim(StringOptions option)
 {
     if (Len)
     {
-        int start = 0;
-        int end = 0;
-        StringUtils::TrimScan(option, m_psz, start, end);
-        int cch = end - start;
-        PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, RefStr::Create(m_psz + start, cch));
-        if (psz)
-        {
-            RefStr::Get(psz).Release();
-        }
+        Release(InterlockedExchangePCWSTR(&m_psz, RefStr::Create(option, Ptr)));
     }
     return *this;
 }
@@ -172,37 +147,14 @@ String& String::Trim(StringOptions option)
 
 String& String::Assign(const String& other)
 {
-    PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, other.m_psz);
-    if (m_psz)
-    {
-        RefStr::Get(m_psz).AddRef();
-    }
-    if (psz)
-    {
-        RefStr::Get(psz).Release();
-    }
+    Release(InterlockedExchangePCWSTR(&m_psz, AddRef(other.m_psz)));
     return *this;
 }
 
 
 String& String::Assign(PCWSTR psz, INT_PTR cch)
 {
-    if (psz && cch)
-    {
-        psz = InterlockedExchangePCWSTR(&m_psz, RefStr::Create(psz, cch));
-        if (psz)
-        {
-            RefStr::Get(psz).Release();
-        }
-    }
-    else
-    {
-        psz = InterlockedExchangePCWSTR(&m_psz, nullptr);
-        if (psz)
-        {
-            RefStr::Get(psz).Release();
-        }
-    }
+    Release(InterlockedExchangePCWSTR(&m_psz, RefStr::Create(psz, cch)));
     return *this;
 }
 
@@ -211,11 +163,7 @@ String& String::Append(const String& other)
 {
     if (other.Len)
     {
-        PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, RefStr::Create(Ptr, other.Ptr));
-        if (psz)
-        {
-            RefStr::Get(psz).Release();
-        }
+        Release(InterlockedExchangePCWSTR(&m_psz, RefStr::Create(Ptr, other.Ptr)));
     }
     return *this;
 }
@@ -225,11 +173,7 @@ String& String::Append(PCWSTR psz, INT_PTR cch)
 {
     if (psz && cch)
     {
-        psz = InterlockedExchangePCWSTR(&m_psz, RefStr::Create(m_psz, psz, cch));
-        if (psz)
-        {
-            RefStr::Get(psz).Release();
-        }
+        Release(InterlockedExchangePCWSTR(&m_psz, RefStr::Create(Ptr, psz, cch)));
     }
     return *this;
 }
@@ -239,11 +183,7 @@ String& String::Format(PCWSTR pszFormat, ...)
 {
     va_list argList;
     va_start(argList, pszFormat);
-    PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, RefStr::Create(pszFormat, argList));
-    if (psz)
-    {
-        RefStr::Get(psz).Release();
-    }
+    Release(InterlockedExchangePCWSTR(&m_psz, RefStr::Create(pszFormat, argList)));
     va_end(argList);
     return *this;
 }
@@ -251,11 +191,7 @@ String& String::Format(PCWSTR pszFormat, ...)
 
 String& String::VaFormat(PCWSTR pszFormat, va_list argList)
 {
-    PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, RefStr::Create(pszFormat, argList));
-    if (psz)
-    {
-        RefStr::Get(psz).Release();
-    }
+    Release(InterlockedExchangePCWSTR(&m_psz, RefStr::Create(pszFormat, argList)));
     return *this;
 }
 
@@ -264,11 +200,7 @@ String& String::AppendFormat(PCWSTR pszFormat, ...)
 {
     va_list argList;
     va_start(argList, pszFormat);
-    PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, m_psz ? RefStr::Create(m_psz, pszFormat, argList) : RefStr::Create(pszFormat, argList));
-    if (psz)
-    {
-        RefStr::Get(psz).Release();
-    }
+    Release(InterlockedExchangePCWSTR(&m_psz, RefStr::Create(Ptr, pszFormat, argList)));
     va_end(argList);
     return *this;
 }
@@ -276,21 +208,55 @@ String& String::AppendFormat(PCWSTR pszFormat, ...)
 
 String& String::VaAppendFormat(PCWSTR pszFormat, va_list argList)
 {
-    PCWSTR psz = InterlockedExchangePCWSTR(&m_psz, m_psz ? RefStr::Create(m_psz, pszFormat, argList) : RefStr::Create(pszFormat, argList));
-    if (psz)
-    {
-        RefStr::Get(psz).Release();
-    }
+    Release(InterlockedExchangePCWSTR(&m_psz, RefStr::Create(Ptr, pszFormat, argList)));
     return *this;
 }
 
 
-int String::IndexOf(WCHAR c, INT_PTR fromIndex)
+int String::IndexOf(WCHAR c, INT_PTR fromIndex) const
 {
     if (m_psz && static_cast<size_t>(fromIndex) < Len)
     {
-        const WCHAR* pCur = wmemchr(m_psz + fromIndex, c, Len - fromIndex);
+        PCWSTR pCur = wmemchr(m_psz + fromIndex, c, Len - fromIndex);
         return pCur ? static_cast<int>(pCur - m_psz) : -1;
+    }
+    return -1;
+}
+
+
+int String::IndexOf(const String& s, INT_PTR fromIndex) const
+{
+    if (m_psz && static_cast<size_t>(fromIndex) < Len)
+    {
+        PCWSTR psz = s.Ptr;
+        INT_PTR cch = s.Len;
+        if (cch)
+        {
+            cch--;
+            WCHAR c = *psz++;
+            PCWSTR pCur = wmemchr(m_psz + fromIndex, c, Len - fromIndex);
+            if (cch)
+            {
+                PCWSTR pEnd = m_psz + Len;
+                while (pCur)
+                {
+                    pCur++;
+                    if (pEnd < pCur + cch)
+                    {
+                        break;
+                    }
+                    if (!Compare(psz, cch, pCur, cch))
+                    {
+                        return static_cast<int>((pCur - 1) - m_psz);
+                    }
+                    pCur = wmemchr(pCur, c, pEnd - pCur);
+                }
+            }
+            else if (pCur)
+            {
+                return static_cast<int>(pCur - m_psz);
+            }
+        }
     }
     return -1;
 }
@@ -298,37 +264,37 @@ int String::IndexOf(WCHAR c, INT_PTR fromIndex)
 
 bool String::operator ==(const String& other) const
 {
-    return Compare(*this, other) == 0;
+    return Compare(Ptr, other.Ptr) == 0;
 }
 
 
 bool String::operator !=(const String& other) const
 {
-    return Compare(*this, other) != 0;
+    return Compare(Ptr, other.Ptr) != 0;
 }
 
 
 bool String::operator <(const String& other) const
 {
-    return Compare(*this, other) < 0;
+    return Compare(Ptr, other.Ptr) < 0;
 }
 
 
 bool String::operator <=(const String& other) const
 {
-    return Compare(*this, other) <= 0;
+    return Compare(Ptr, other.Ptr) <= 0;
 }
 
 
 bool String::operator >(const String& other) const
 {
-    return Compare(*this, other) > 0;
+    return Compare(Ptr, other.Ptr) > 0;
 }
 
 
 bool String::operator >=(const String& other) const
 {
-    return Compare(*this, other) >= 0;
+    return Compare(Ptr, other.Ptr) >= 0;
 }
 
 

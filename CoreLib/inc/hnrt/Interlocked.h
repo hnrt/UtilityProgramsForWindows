@@ -32,4 +32,9 @@ namespace hnrt
 	{
 		return const_cast<PCWSTR>(reinterpret_cast<PWSTR>(_InterlockedExchangePointer(reinterpret_cast<PVOID*>(const_cast<PWSTR*>(target)), const_cast<PWSTR>(value))));
 	}
+
+	inline PCSTR InterlockedExchangePCSTR(PCSTR* target, PCSTR value)
+	{
+		return const_cast<PCSTR>(reinterpret_cast<PSTR>(_InterlockedExchangePointer(reinterpret_cast<PVOID*>(const_cast<PSTR*>(target)), const_cast<PSTR>(value))));
+	}
 }

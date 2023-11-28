@@ -177,6 +177,7 @@
     </ClCompile>
     <ClCompile Include="PathTests.cpp" />
     <ClCompile Include="SecretTests.cpp" />
+    <ClCompile Include="StringTests.cpp" />
     <ClCompile Include="VersionInfoTests.cpp" />
   </ItemGroup>
   <ItemGroup>

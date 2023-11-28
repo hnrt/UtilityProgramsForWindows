@@ -18,8 +18,6 @@ namespace hnrt
         LOWERCASE,
         TRIM,
         TRIM_HEAD,
-        TRIM_TAIL,
-        IMMEDIATE_TEXT,
-        STATIC_TEXT
+        TRIM_TAIL
     };
 }

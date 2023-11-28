@@ -58,7 +58,7 @@ String ComLibrary::ToString(HRESULT hr)
 {
     switch (hr)
     {
-#define CASE(x) case x: return String(STATIC_TEXT, L#x)
+#define CASE(x) case x: return String(L#x)
         CASE(S_OK);
         CASE(S_FALSE);
         CASE(RPC_E_CHANGED_MODE);

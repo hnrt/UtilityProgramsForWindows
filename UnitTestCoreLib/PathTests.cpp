@@ -14,229 +14,229 @@ namespace UnitTestCoreLib
 
 	TEST_METHOD(TestGetFileName)
 	{
-	    PCWSTR psz;
+	    String s;
 
-	    psz = Path::GetFileName(L"abc.xyz");
-	    Assert::AreEqual(L"abc.xyz", psz);
-	    psz = Path::GetFileName(L"def\\abc.xyz");
-	    Assert::AreEqual(L"abc.xyz", psz);
-	    psz = Path::GetFileName(L".\\abc.xyz");
-	    Assert::AreEqual(L"abc.xyz", psz);
-	    psz = Path::GetFileName(L"..\\abc.xyz");
-	    Assert::AreEqual(L"abc.xyz", psz);
-	    psz = Path::GetFileName(L"ghi\\def\\abc.xyz");
-	    Assert::AreEqual(L"abc.xyz", psz);
-	    psz = Path::GetFileName(L".\\def\\abc.xyz");
-	    Assert::AreEqual(L"abc.xyz", psz);
-	    psz = Path::GetFileName(L"..\\def\\abc.xyz");
-	    Assert::AreEqual(L"abc.xyz", psz);
-	    psz = Path::GetFileName(L"\\ghi\\def\\abc.xyz");
-	    Assert::AreEqual(L"abc.xyz", psz);
-	    psz = Path::GetFileName(L"C:\\ghi\\def\\abc.xyz");
-	    Assert::AreEqual(L"abc.xyz", psz);
-	    psz = Path::GetFileName(L"\\\\remote\\share\\ghi\\def\\abc.xyz");
-	    Assert::AreEqual(L"abc.xyz", psz);
-	    psz = Path::GetFileName(L"");
-	    Assert::AreEqual(L"", psz);
+	    s = Path::GetFileName(L"abc.xyz");
+	    Assert::AreEqual(L"abc.xyz", s);
+	    s = Path::GetFileName(L"def\\abc.xyz");
+	    Assert::AreEqual(L"abc.xyz", s);
+	    s = Path::GetFileName(L".\\abc.xyz");
+	    Assert::AreEqual(L"abc.xyz", s);
+	    s = Path::GetFileName(L"..\\abc.xyz");
+	    Assert::AreEqual(L"abc.xyz", s);
+	    s = Path::GetFileName(L"ghi\\def\\abc.xyz");
+	    Assert::AreEqual(L"abc.xyz", s);
+	    s = Path::GetFileName(L".\\def\\abc.xyz");
+	    Assert::AreEqual(L"abc.xyz", s);
+	    s = Path::GetFileName(L"..\\def\\abc.xyz");
+	    Assert::AreEqual(L"abc.xyz", s);
+	    s = Path::GetFileName(L"\\ghi\\def\\abc.xyz");
+	    Assert::AreEqual(L"abc.xyz", s);
+	    s = Path::GetFileName(L"C:\\ghi\\def\\abc.xyz");
+	    Assert::AreEqual(L"abc.xyz", s);
+	    s = Path::GetFileName(L"\\\\remote\\share\\ghi\\def\\abc.xyz");
+	    Assert::AreEqual(L"abc.xyz", s);
+	    s = Path::GetFileName(L"");
+	    Assert::AreEqual(L"", s);
 	}
 
 	TEST_METHOD(TestGetFileNameWithoutExtension)
 	{
-	    PCWSTR psz;
+	    String s;
 
-	    psz = Path::GetFileNameWithoutExtension(L"abc.xyz");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"def\\abc.xyz");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L".\\abc.xyz");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"..\\abc.xyz");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"ghi\\def\\abc.xyz");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L".\\def\\abc.xyz");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"..\\def\\abc.xyz");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"\\ghi\\def\\abc.xyz");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"C:\\ghi\\def\\abc.xyz");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"\\\\remote\\share\\ghi\\def\\abc.xyz");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"abc");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"def\\abc");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"abc.uvw.xyz");
-	    Assert::AreEqual(L"abc.uvw", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"def.uvw.xyz\\abc.uvw.xyz");
-	    Assert::AreEqual(L"abc.uvw", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"abc.");
-	    Assert::AreEqual(L"abc", psz);
-	    psz = Path::GetFileNameWithoutExtension(L"");
-	    Assert::AreEqual(L"", psz);
+	    s = Path::GetFileNameWithoutExtension(L"abc.xyz");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L"def\\abc.xyz");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L".\\abc.xyz");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L"..\\abc.xyz");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L"ghi\\def\\abc.xyz");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L".\\def\\abc.xyz");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L"..\\def\\abc.xyz");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L"\\ghi\\def\\abc.xyz");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L"C:\\ghi\\def\\abc.xyz");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L"\\\\remote\\share\\ghi\\def\\abc.xyz");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L"abc");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L"def\\abc");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L"abc.uvw.xyz");
+	    Assert::AreEqual(L"abc.uvw", s);
+	    s = Path::GetFileNameWithoutExtension(L"def.uvw.xyz\\abc.uvw.xyz");
+	    Assert::AreEqual(L"abc.uvw", s);
+	    s = Path::GetFileNameWithoutExtension(L"abc.");
+	    Assert::AreEqual(L"abc", s);
+	    s = Path::GetFileNameWithoutExtension(L"");
+	    Assert::AreEqual(L"", s);
 	}
 
 	TEST_METHOD(TestGetExtension)
 	{
-	    PCWSTR psz;
+	    String s;
 
-	    psz = Path::GetExtension(L"abc.xyz");
-	    Assert::AreEqual(L".xyz", psz);
-	    psz = Path::GetExtension(L"abc.");
-	    Assert::AreEqual(L".", psz);
-	    psz = Path::GetExtension(L"abc");
-	    Assert::AreEqual(L"", psz);
-	    psz = Path::GetExtension(L"ghi.rst\\def.uvw\\abc.xyz");
-	    Assert::AreEqual(L".xyz", psz);
-	    psz = Path::GetExtension(L"");
-	    Assert::AreEqual(L"", psz);
+	    s = Path::GetExtension(L"abc.xyz");
+	    Assert::AreEqual(L".xyz", s);
+	    s = Path::GetExtension(L"abc.");
+	    Assert::AreEqual(L".", s);
+	    s = Path::GetExtension(L"abc");
+	    Assert::AreEqual(L"", s);
+	    s = Path::GetExtension(L"ghi.rst\\def.uvw\\abc.xyz");
+	    Assert::AreEqual(L".xyz", s);
+	    s = Path::GetExtension(L"");
+	    Assert::AreEqual(L"", s);
 	}
 
 	TEST_METHOD(TestGetDirectoryName)
 	{
-	    PCWSTR psz;
+	    String s;
 
 	    // DOS
-	    psz = Path::GetDirectoryName(L"");
-	    Assert::AreEqual(L".", psz);
-	    psz = Path::GetDirectoryName(L".");
-	    Assert::AreEqual(L"..", psz);
-	    psz = Path::GetDirectoryName(L"abc.xyz");
-	    Assert::AreEqual(L".", psz);
-	    psz = Path::GetDirectoryName(L"\\abc.xyz");
-	    Assert::AreEqual(L"\\", psz);
-	    psz = Path::GetDirectoryName(L"C:\\abc.xyz");
-	    Assert::AreEqual(L"C:\\", psz);
-	    psz = Path::GetDirectoryName(L"def\\abc.xyz");
-	    Assert::AreEqual(L"def", psz);
-	    psz = Path::GetDirectoryName(L"\\def\\abc.xyz");
-	    Assert::AreEqual(L"\\def", psz);
-	    psz = Path::GetDirectoryName(L"C:\\def\\abc.xyz");
-	    Assert::AreEqual(L"C:\\def", psz);
-	    psz = Path::GetDirectoryName(L"ghi\\def\\abc.xyz");
-	    Assert::AreEqual(L"ghi\\def", psz);
-	    psz = Path::GetDirectoryName(L"\\ghi\\def\\abc.xyz");
-	    Assert::AreEqual(L"\\ghi\\def", psz);
-	    psz = Path::GetDirectoryName(L"C:\\ghi\\def\\abc.xyz");
-	    Assert::AreEqual(L"C:\\ghi\\def", psz);
-	    psz = Path::GetDirectoryName(L"abc.xyz\\");
-	    Assert::AreEqual(L".", psz);
-	    psz = Path::GetDirectoryName(L"\\abc.xyz\\");
-	    Assert::AreEqual(L"\\", psz);
-	    psz = Path::GetDirectoryName(L"C:\\abc.xyz\\");
-	    Assert::AreEqual(L"C:\\", psz);
-	    psz = Path::GetDirectoryName(L"def\\abc.xyz\\");
-	    Assert::AreEqual(L"def", psz);
-	    psz = Path::GetDirectoryName(L"\\def\\abc.xyz\\");
-	    Assert::AreEqual(L"\\def", psz);
-	    psz = Path::GetDirectoryName(L"C:\\def\\abc.xyz\\");
-	    Assert::AreEqual(L"C:\\def", psz);
-	    psz = Path::GetDirectoryName(L"ghi\\def\\abc.xyz\\");
-	    Assert::AreEqual(L"ghi\\def", psz);
-	    psz = Path::GetDirectoryName(L"\\ghi\\def\\abc.xyz\\");
-	    Assert::AreEqual(L"\\ghi\\def", psz);
-	    psz = Path::GetDirectoryName(L"C:\\ghi\\def\\abc.xyz\\");
-	    Assert::AreEqual(L"C:\\ghi\\def", psz);
+	    s = Path::GetDirectoryName(L"");
+	    Assert::AreEqual(L".", s);
+	    s = Path::GetDirectoryName(L".");
+	    Assert::AreEqual(L"..", s);
+	    s = Path::GetDirectoryName(L"abc.xyz");
+	    Assert::AreEqual(L".", s);
+	    s = Path::GetDirectoryName(L"\\abc.xyz");
+	    Assert::AreEqual(L"\\", s);
+	    s = Path::GetDirectoryName(L"C:\\abc.xyz");
+	    Assert::AreEqual(L"C:\\", s);
+	    s = Path::GetDirectoryName(L"def\\abc.xyz");
+	    Assert::AreEqual(L"def", s);
+	    s = Path::GetDirectoryName(L"\\def\\abc.xyz");
+	    Assert::AreEqual(L"\\def", s);
+	    s = Path::GetDirectoryName(L"C:\\def\\abc.xyz");
+	    Assert::AreEqual(L"C:\\def", s);
+	    s = Path::GetDirectoryName(L"ghi\\def\\abc.xyz");
+	    Assert::AreEqual(L"ghi\\def", s);
+	    s = Path::GetDirectoryName(L"\\ghi\\def\\abc.xyz");
+	    Assert::AreEqual(L"\\ghi\\def", s);
+	    s = Path::GetDirectoryName(L"C:\\ghi\\def\\abc.xyz");
+	    Assert::AreEqual(L"C:\\ghi\\def", s);
+	    s = Path::GetDirectoryName(L"abc.xyz\\");
+	    Assert::AreEqual(L".", s);
+	    s = Path::GetDirectoryName(L"\\abc.xyz\\");
+	    Assert::AreEqual(L"\\", s);
+	    s = Path::GetDirectoryName(L"C:\\abc.xyz\\");
+	    Assert::AreEqual(L"C:\\", s);
+	    s = Path::GetDirectoryName(L"def\\abc.xyz\\");
+	    Assert::AreEqual(L"def", s);
+	    s = Path::GetDirectoryName(L"\\def\\abc.xyz\\");
+	    Assert::AreEqual(L"\\def", s);
+	    s = Path::GetDirectoryName(L"C:\\def\\abc.xyz\\");
+	    Assert::AreEqual(L"C:\\def", s);
+	    s = Path::GetDirectoryName(L"ghi\\def\\abc.xyz\\");
+	    Assert::AreEqual(L"ghi\\def", s);
+	    s = Path::GetDirectoryName(L"\\ghi\\def\\abc.xyz\\");
+	    Assert::AreEqual(L"\\ghi\\def", s);
+	    s = Path::GetDirectoryName(L"C:\\ghi\\def\\abc.xyz\\");
+	    Assert::AreEqual(L"C:\\ghi\\def", s);
 	    // UNC
-	    psz = Path::GetDirectoryName(L"\\\\remote\\share");
-	    Assert::AreEqual(L"\\\\remote\\share", psz);
-	    psz = Path::GetDirectoryName(L"\\\\remote\\share\\");
-	    Assert::AreEqual(L"\\\\remote\\share", psz);
-	    psz = Path::GetDirectoryName(L"\\\\remote\\share\\abc.xyz");
-	    Assert::AreEqual(L"\\\\remote\\share", psz);
-	    psz = Path::GetDirectoryName(L"\\\\remote\\share\\def\\abc.xyz");
-	    Assert::AreEqual(L"\\\\remote\\share\\def", psz);
-	    psz = Path::GetDirectoryName(L"\\\\remote\\share\\ghi\\def\\abc.xyz");
-	    Assert::AreEqual(L"\\\\remote\\share\\ghi\\def", psz);
+	    s = Path::GetDirectoryName(L"\\\\remote\\share");
+	    Assert::AreEqual(L"\\\\remote\\share", s);
+	    s = Path::GetDirectoryName(L"\\\\remote\\share\\");
+	    Assert::AreEqual(L"\\\\remote\\share", s);
+	    s = Path::GetDirectoryName(L"\\\\remote\\share\\abc.xyz");
+	    Assert::AreEqual(L"\\\\remote\\share", s);
+	    s = Path::GetDirectoryName(L"\\\\remote\\share\\def\\abc.xyz");
+	    Assert::AreEqual(L"\\\\remote\\share\\def", s);
+	    s = Path::GetDirectoryName(L"\\\\remote\\share\\ghi\\def\\abc.xyz");
+	    Assert::AreEqual(L"\\\\remote\\share\\ghi\\def", s);
 	    // DOS with bEndsWithSeparator = true
-	    psz = Path::GetDirectoryName(L"", true);
-	    Assert::AreEqual(L".\\", psz);
-	    psz = Path::GetDirectoryName(L".", true);
-	    Assert::AreEqual(L"..\\", psz);
-	    psz = Path::GetDirectoryName(L"abc.xyz", true);
-	    Assert::AreEqual(L".\\", psz);
-	    psz = Path::GetDirectoryName(L"\\abc.xyz", true);
-	    Assert::AreEqual(L"\\", psz);
-	    psz = Path::GetDirectoryName(L"C:\\abc.xyz", true);
-	    Assert::AreEqual(L"C:\\", psz);
-	    psz = Path::GetDirectoryName(L"def\\abc.xyz", true);
-	    Assert::AreEqual(L"def\\", psz);
-	    psz = Path::GetDirectoryName(L"\\def\\abc.xyz", true);
-	    Assert::AreEqual(L"\\def\\", psz);
-	    psz = Path::GetDirectoryName(L"C:\\def\\abc.xyz", true);
-	    Assert::AreEqual(L"C:\\def\\", psz);
-	    psz = Path::GetDirectoryName(L"ghi\\def\\abc.xyz", true);
-	    Assert::AreEqual(L"ghi\\def\\", psz);
-	    psz = Path::GetDirectoryName(L"\\ghi\\def\\abc.xyz", true);
-	    Assert::AreEqual(L"\\ghi\\def\\", psz);
-	    psz = Path::GetDirectoryName(L"C:\\ghi\\def\\abc.xyz", true);
-	    Assert::AreEqual(L"C:\\ghi\\def\\", psz);
-	    psz = Path::GetDirectoryName(L"abc.xyz\\", true);
-	    Assert::AreEqual(L".\\", psz);
-	    psz = Path::GetDirectoryName(L"\\abc.xyz\\", true);
-	    Assert::AreEqual(L"\\", psz);
-	    psz = Path::GetDirectoryName(L"C:\\abc.xyz\\", true);
-	    Assert::AreEqual(L"C:\\", psz);
-	    psz = Path::GetDirectoryName(L"def\\abc.xyz\\", true);
-	    Assert::AreEqual(L"def\\", psz);
-	    psz = Path::GetDirectoryName(L"\\def\\abc.xyz\\", true);
-	    Assert::AreEqual(L"\\def\\", psz);
-	    psz = Path::GetDirectoryName(L"C:\\def\\abc.xyz\\", true);
-	    Assert::AreEqual(L"C:\\def\\", psz);
-	    psz = Path::GetDirectoryName(L"ghi\\def\\abc.xyz\\", true);
-	    Assert::AreEqual(L"ghi\\def\\", psz);
-	    psz = Path::GetDirectoryName(L"\\ghi\\def\\abc.xyz\\", true);
-	    Assert::AreEqual(L"\\ghi\\def\\", psz);
-	    psz = Path::GetDirectoryName(L"C:\\ghi\\def\\abc.xyz\\", true);
-	    Assert::AreEqual(L"C:\\ghi\\def\\", psz);
+	    s = Path::GetDirectoryName(L"", true);
+	    Assert::AreEqual(L".\\", s);
+	    s = Path::GetDirectoryName(L".", true);
+	    Assert::AreEqual(L"..\\", s);
+	    s = Path::GetDirectoryName(L"abc.xyz", true);
+	    Assert::AreEqual(L".\\", s);
+	    s = Path::GetDirectoryName(L"\\abc.xyz", true);
+	    Assert::AreEqual(L"\\", s);
+	    s = Path::GetDirectoryName(L"C:\\abc.xyz", true);
+	    Assert::AreEqual(L"C:\\", s);
+	    s = Path::GetDirectoryName(L"def\\abc.xyz", true);
+	    Assert::AreEqual(L"def\\", s);
+	    s = Path::GetDirectoryName(L"\\def\\abc.xyz", true);
+	    Assert::AreEqual(L"\\def\\", s);
+	    s = Path::GetDirectoryName(L"C:\\def\\abc.xyz", true);
+	    Assert::AreEqual(L"C:\\def\\", s);
+	    s = Path::GetDirectoryName(L"ghi\\def\\abc.xyz", true);
+	    Assert::AreEqual(L"ghi\\def\\", s);
+	    s = Path::GetDirectoryName(L"\\ghi\\def\\abc.xyz", true);
+	    Assert::AreEqual(L"\\ghi\\def\\", s);
+	    s = Path::GetDirectoryName(L"C:\\ghi\\def\\abc.xyz", true);
+	    Assert::AreEqual(L"C:\\ghi\\def\\", s);
+	    s = Path::GetDirectoryName(L"abc.xyz\\", true);
+	    Assert::AreEqual(L".\\", s);
+	    s = Path::GetDirectoryName(L"\\abc.xyz\\", true);
+	    Assert::AreEqual(L"\\", s);
+	    s = Path::GetDirectoryName(L"C:\\abc.xyz\\", true);
+	    Assert::AreEqual(L"C:\\", s);
+	    s = Path::GetDirectoryName(L"def\\abc.xyz\\", true);
+	    Assert::AreEqual(L"def\\", s);
+	    s = Path::GetDirectoryName(L"\\def\\abc.xyz\\", true);
+	    Assert::AreEqual(L"\\def\\", s);
+	    s = Path::GetDirectoryName(L"C:\\def\\abc.xyz\\", true);
+	    Assert::AreEqual(L"C:\\def\\", s);
+	    s = Path::GetDirectoryName(L"ghi\\def\\abc.xyz\\", true);
+	    Assert::AreEqual(L"ghi\\def\\", s);
+	    s = Path::GetDirectoryName(L"\\ghi\\def\\abc.xyz\\", true);
+	    Assert::AreEqual(L"\\ghi\\def\\", s);
+	    s = Path::GetDirectoryName(L"C:\\ghi\\def\\abc.xyz\\", true);
+	    Assert::AreEqual(L"C:\\ghi\\def\\", s);
 	    // UNC with bEndsWithSeparator = true
-	    psz = Path::GetDirectoryName(L"\\\\remote\\share", true);
-	    Assert::AreEqual(L"\\\\remote\\share\\", psz);
-	    psz = Path::GetDirectoryName(L"\\\\remote\\share\\", true);
-	    Assert::AreEqual(L"\\\\remote\\share\\", psz);
-	    psz = Path::GetDirectoryName(L"\\\\remote\\share\\abc.xyz", true);
-	    Assert::AreEqual(L"\\\\remote\\share\\", psz);
-	    psz = Path::GetDirectoryName(L"\\\\remote\\share\\def\\abc.xyz", true);
-	    Assert::AreEqual(L"\\\\remote\\share\\def\\", psz);
-	    psz = Path::GetDirectoryName(L"\\\\remote\\share\\ghi\\def\\abc.xyz", true);
-	    Assert::AreEqual(L"\\\\remote\\share\\ghi\\def\\", psz);
+	    s = Path::GetDirectoryName(L"\\\\remote\\share", true);
+	    Assert::AreEqual(L"\\\\remote\\share\\", s);
+	    s = Path::GetDirectoryName(L"\\\\remote\\share\\", true);
+	    Assert::AreEqual(L"\\\\remote\\share\\", s);
+	    s = Path::GetDirectoryName(L"\\\\remote\\share\\abc.xyz", true);
+	    Assert::AreEqual(L"\\\\remote\\share\\", s);
+	    s = Path::GetDirectoryName(L"\\\\remote\\share\\def\\abc.xyz", true);
+	    Assert::AreEqual(L"\\\\remote\\share\\def\\", s);
+	    s = Path::GetDirectoryName(L"\\\\remote\\share\\ghi\\def\\abc.xyz", true);
+	    Assert::AreEqual(L"\\\\remote\\share\\ghi\\def\\", s);
 	}
 
 	TEST_METHOD(TestCombine)
 	{
-	    PCWSTR psz;
+	    String s;
 
-	    psz = Path::Combine(L"a", L"bcd");
-	    Assert::AreEqual(L"a\\bcd", psz);
-	    psz = Path::Combine(L"a", L"bcd", 1);
-	    Assert::AreEqual(L"a\\b", psz);
-	    psz = Path::Combine(L"a", L"b", L"cde");
-	    Assert::AreEqual(L"a\\b\\cde", psz);
-	    psz = Path::Combine(L"a", L"b", L"cde", 1);
-	    Assert::AreEqual(L"a\\b\\c", psz);
-	    psz = Path::Combine(L"a", L"b", L"c", L"def");
-	    Assert::AreEqual(L"a\\b\\c\\def", psz);
-	    psz = Path::Combine(L"a", L"b", L"c", L"def", 1);
-	    Assert::AreEqual(L"a\\b\\c\\d", psz);
-	    psz = Path::Combine(L"a", L"b", L"c", L"d", L"efg");
-	    Assert::AreEqual(L"a\\b\\c\\d\\efg", psz);
-	    psz = Path::Combine(L"a", L"b", L"c", L"d", L"efg", 1);
-	    Assert::AreEqual(L"a\\b\\c\\d\\e", psz);
+	    s = Path::Combine(L"a", L"bcd");
+	    Assert::AreEqual(L"a\\bcd", s);
+	    s = Path::Combine(L"a", L"bcd", 1);
+	    Assert::AreEqual(L"a\\b", s);
+	    s = Path::Combine(L"a", L"b", L"cde");
+	    Assert::AreEqual(L"a\\b\\cde", s);
+	    s = Path::Combine(L"a", L"b", L"cde", 1);
+	    Assert::AreEqual(L"a\\b\\c", s);
+	    s = Path::Combine(L"a", L"b", L"c", L"def");
+	    Assert::AreEqual(L"a\\b\\c\\def", s);
+	    s = Path::Combine(L"a", L"b", L"c", L"def", 1);
+	    Assert::AreEqual(L"a\\b\\c\\d", s);
+	    s = Path::Combine(L"a", L"b", L"c", L"d", L"efg");
+	    Assert::AreEqual(L"a\\b\\c\\d\\efg", s);
+	    s = Path::Combine(L"a", L"b", L"c", L"d", L"efg", 1);
+	    Assert::AreEqual(L"a\\b\\c\\d\\e", s);
 	}
 
 	TEST_METHOD(TestGetKnownFolder)
 	{
-	    PCWSTR psz;
+	    String s;
 	    WCHAR buf[260];
 
-	    psz = Path::GetKnownFolder(FOLDERID_Windows);
-	    Assert::AreEqual(L"C:\\WINDOWS", ToUpper(psz, buf));
-	    psz = Path::GetKnownFolder(FOLDERID_ProgramFilesX64);
-	    Assert::AreEqual(L"C:\\PROGRAM FILES", ToUpper(psz, buf));
-	    psz = Path::GetKnownFolder(FOLDERID_ProgramFilesX86);
-	    Assert::AreEqual(L"C:\\PROGRAM FILES (X86)", ToUpper(psz, buf));
+	    s = Path::GetKnownFolder(FOLDERID_Windows);
+	    Assert::AreEqual(L"C:\\WINDOWS", ToUpper(s, buf));
+	    s = Path::GetKnownFolder(FOLDERID_ProgramFilesX64);
+	    Assert::AreEqual(L"C:\\PROGRAM FILES", ToUpper(s, buf));
+	    s = Path::GetKnownFolder(FOLDERID_ProgramFilesX86);
+	    Assert::AreEqual(L"C:\\PROGRAM FILES (X86)", ToUpper(s, buf));
 	}
 
 	TEST_METHOD(TestCompare)
@@ -378,9 +378,9 @@ namespace UnitTestCoreLib
     private:
 
 	template<size_t N>
-	PWSTR ToUpper(PCWSTR psz, WCHAR (&szBuf)[N])
+	PWSTR ToUpper(PCWSTR s, WCHAR (&szBuf)[N])
 	{
-	    wcscpy_s(szBuf, psz);
+	    wcscpy_s(szBuf, s);
 	    errno_t err = _wcsupr_s(szBuf);
 	    if (err)
 	    {

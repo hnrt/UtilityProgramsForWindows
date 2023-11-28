@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hnrt/StringUTF8.h"
 #include "hnrt/RefMbs.h"
+#include "hnrt/StringAcp.h"
 #include "hnrt/Interlocked.h"
 #include "hnrt/Exception.h"
 
@@ -15,61 +16,64 @@ using namespace hnrt;
 //////////////////////////////////////////////////////////////////////
 
 
+inline PCSTR AddRef(PCSTR psz)
+{
+    if (psz)
+    {
+        RefMbs::Get(psz).AddRef();
+    }
+    return psz;
+}
+
+
+inline void Release(PCSTR psz)
+{
+    if (psz)
+    {
+        RefMbs::Get(psz).Release();
+    }
+}
+
+
 StringUTF8::StringUTF8()
-    : m_ptr(nullptr)
+    : m_psz(nullptr)
 {
 }
 
 
 StringUTF8::StringUTF8(const StringUTF8& other)
-    : m_ptr(other.m_ptr)
-{
-    if (m_ptr)
-    {
-        m_ptr->AddRef();
-    }
-}
-
-
-StringUTF8::StringUTF8(RefMbs* ptr)
-    : m_ptr(ptr)
+    : m_psz(AddRef(other.m_psz))
 {
 }
 
 
 StringUTF8::StringUTF8(PCSTR psz, INT_PTR cb)
-    : m_ptr(psz && cb ? new RefMbs(psz, cb) : nullptr)
+    : m_psz(RefMbs::Create(psz, cb))
 {
 }
 
 
-StringUTF8::StringUTF8(PCWSTR psz, INT_PTR cb)
-    : m_ptr(psz && cb ? new RefMbs(CP_UTF8, psz, cb) : nullptr)
+StringUTF8::StringUTF8(PCWSTR psz, INT_PTR cch)
+    : m_psz(RefMbs::Create(CP_UTF8, psz, cch))
+{
+}
+
+
+StringUTF8::StringUTF8(RefMbs* ptr)
+    : m_psz(RefMbs::Get(ptr))
 {
 }
 
 
 StringUTF8::~StringUTF8()
 {
-    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, nullptr);
-    if (ptr)
-    {
-        ptr->Release();
-    }
+    Release(InterlockedExchangePCSTR(&m_psz, nullptr));
 }
 
 
 StringUTF8& StringUTF8::operator =(const StringUTF8& other)
 {
-    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, other.m_ptr);
-    if (m_ptr)
-    {
-        m_ptr->AddRef();
-    }
-    if (ptr)
-    {
-        ptr->Release();
-    }
+    Release(InterlockedExchangePCSTR(&m_psz, AddRef(other.m_psz)));
     return *this;
 }
 
@@ -78,22 +82,7 @@ StringUTF8& StringUTF8::operator +=(const StringUTF8& other)
 {
     if (other.Len)
     {
-        if (m_ptr && m_ptr->RefCnt == 1)
-        {
-            m_ptr->Append(other.Ptr);
-        }
-        else
-        {
-            PSTR psz2 = Allocate<CHAR>(Len + other.Len + 1);
-            memcpy_s(psz2, Len, Ptr, Len);
-            memcpy_s(psz2 + Len, other.Len, other.Ptr, other.Len);
-            psz2[Len + other.Len] = '\0';
-            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(IMMEDIATE_TEXT, psz2));
-            if (ptr)
-            {
-                ptr->Release();
-            }
-        }
+        Release(InterlockedExchangePCSTR(&m_psz, RefMbs::Create(Ptr, other.Ptr)));
     }
     return *this;
 }
@@ -137,17 +126,17 @@ bool StringUTF8::operator >=(const StringUTF8& other) const
 
 StringUTF8 StringUTF8::operator +(const StringUTF8& other) const
 {
-    return StringUTF8(new RefMbs(Ptr, other.Ptr));
+    return StringUTF8(RefMbs::Create(Ptr, other.Ptr));
 }
 
 
 PCSTR StringUTF8::get_ptr() const
 {
-    return m_ptr ? m_ptr->Ptr : "";
+    return m_psz ? m_psz : "";
 }
 
 
 size_t StringUTF8::get_len() const
 {
-    return m_ptr ? m_ptr->Len : 0;
+    return m_psz ? RefMbs::Get(m_psz).Len : 0;
 }

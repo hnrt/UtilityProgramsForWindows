@@ -38,7 +38,7 @@ namespace hnrt
 
         StringUTF8(RefMbs*);
 
-        RefMbs* m_ptr;
+        PCSTR m_psz;
     };
 
     inline StringUTF8::operator PCSTR() const
@@ -48,6 +48,6 @@ namespace hnrt
 
     inline StringUTF8::operator bool() const
     {
-        return m_ptr != nullptr;
+        return m_psz != nullptr;
     }
 }

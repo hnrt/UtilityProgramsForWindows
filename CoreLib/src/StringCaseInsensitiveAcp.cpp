@@ -2,6 +2,8 @@
 #include "hnrt/StringCaseInsensitiveAcp.h"
 #include "hnrt/RefMbs.h"
 #include "hnrt/StringAcp.h"
+#include "hnrt/Interlocked.h"
+#include "hnrt/Exception.h"
 
 
 using namespace hnrt;
@@ -14,74 +16,65 @@ using namespace hnrt;
 //////////////////////////////////////////////////////////////////////
 
 
+inline PCSTR AddRef(PCSTR psz)
+{
+    if (psz)
+    {
+        RefMbs::Get(psz).AddRef();
+    }
+    return psz;
+}
+
+
+inline void Release(PCSTR psz)
+{
+    if (psz)
+    {
+        RefMbs::Get(psz).Release();
+    }
+}
+
+
 StringCaseInsensitiveAcp::StringCaseInsensitiveAcp()
-    : m_ptr(nullptr)
+    : m_psz(nullptr)
 {
 }
 
 
 StringCaseInsensitiveAcp::StringCaseInsensitiveAcp(const StringCaseInsensitiveAcp& other)
-    : m_ptr(other.m_ptr)
+    : m_psz(AddRef(other.m_psz))
 {
-    if (m_ptr)
-    {
-        m_ptr->AddRef();
-    }
 }
 
 
-StringCaseInsensitiveAcp::StringCaseInsensitiveAcp(PCSTR psz, INT_PTR cch)
-    : m_ptr(psz&& cch ? new RefMbs(psz, cch) : nullptr)
+StringCaseInsensitiveAcp::StringCaseInsensitiveAcp(PCSTR psz, INT_PTR cb)
+    : m_psz(RefMbs::Create(psz, cb))
 {
 }
 
 
 StringCaseInsensitiveAcp::StringCaseInsensitiveAcp(const StringAcp& other)
-    : m_ptr(other.m_ptr)
+    : m_psz(AddRef(other.m_psz))
 {
-    if (m_ptr)
-    {
-        m_ptr->AddRef();
-    }
 }
 
 
 StringCaseInsensitiveAcp::~StringCaseInsensitiveAcp()
 {
-    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, nullptr);
-    if (ptr)
-    {
-        ptr->Release();
-    }
+    Release(InterlockedExchangePCSTR(&m_psz, nullptr));
 }
 
 
 StringCaseInsensitiveAcp& StringCaseInsensitiveAcp::operator =(const StringCaseInsensitiveAcp& other)
 {
-    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, other.m_ptr);
-    if (m_ptr)
-    {
-        m_ptr->AddRef();
-    }
-    if (ptr)
-    {
-        ptr->Release();
-    }
+    Release(InterlockedExchangePCSTR(&m_psz, AddRef(other.m_psz)));
     return *this;
 }
 
 
 StringCaseInsensitiveAcp& StringCaseInsensitiveAcp::operator =(const StringAcp& other)
 {
-    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, other.m_ptr);
-    if (m_ptr)
-    {
-        m_ptr->AddRef();
-    }
-    if (ptr)
-    {
-        ptr->Release();
-    }
+    Release(InterlockedExchangePCSTR(&m_psz, AddRef(other.m_psz)));
     return *this;
 }
 
@@ -90,22 +83,7 @@ StringCaseInsensitiveAcp& StringCaseInsensitiveAcp::operator +=(const StringCase
 {
     if (other.Len)
     {
-        if (m_ptr && m_ptr->RefCnt == 1)
-        {
-            m_ptr->Append(other.Ptr);
-        }
-        else
-        {
-            PSTR psz2 = Allocate<CHAR>(Len + other.Len + 1);
-            memcpy_s(psz2, Len, Ptr, Len);
-            memcpy_s(psz2 + Len, other.Len, other.Ptr, other.Len);
-            psz2[Len + other.Len] = '\0';
-            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(IMMEDIATE_TEXT, psz2));
-            if (ptr)
-            {
-                ptr->Release();
-            }
-        }
+        Release(InterlockedExchangePCSTR(&m_psz, RefMbs::Create(Ptr, other.Ptr)));
     }
     return *this;
 }
@@ -115,22 +93,7 @@ StringCaseInsensitiveAcp& StringCaseInsensitiveAcp::operator +=(const StringAcp&
 {
     if (other.Len)
     {
-        if (m_ptr && m_ptr->RefCnt == 1)
-        {
-            m_ptr->Append(other.Ptr);
-        }
-        else
-        {
-            PSTR psz2 = Allocate<CHAR>(Len + other.Len + 1);
-            memcpy_s(psz2, Len, Ptr, Len);
-            memcpy_s(psz2 + Len, other.Len, other.Ptr, other.Len);
-            psz2[Len + other.Len] = '\0';
-            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(IMMEDIATE_TEXT, psz2));
-            if (ptr)
-            {
-                ptr->Release();
-            }
-        }
+        Release(InterlockedExchangePCSTR(&m_psz, RefMbs::Create(Ptr, other.Ptr)));
     }
     return *this;
 }
@@ -138,37 +101,37 @@ StringCaseInsensitiveAcp& StringCaseInsensitiveAcp::operator +=(const StringAcp&
 
 bool StringCaseInsensitiveAcp::operator ==(const StringCaseInsensitiveAcp& other) const
 {
-    return Compare(*this, other) == 0;
+    return Compare(Ptr, other.Ptr) == 0;
 }
 
 
 bool StringCaseInsensitiveAcp::operator !=(const StringCaseInsensitiveAcp& other) const
 {
-    return Compare(*this, other) != 0;
+    return Compare(Ptr, other.Ptr) != 0;
 }
 
 
 bool StringCaseInsensitiveAcp::operator <(const StringCaseInsensitiveAcp& other) const
 {
-    return Compare(*this, other) < 0;
+    return Compare(Ptr, other.Ptr) < 0;
 }
 
 
 bool StringCaseInsensitiveAcp::operator <=(const StringCaseInsensitiveAcp& other) const
 {
-    return Compare(*this, other) <= 0;
+    return Compare(Ptr, other.Ptr) <= 0;
 }
 
 
 bool StringCaseInsensitiveAcp::operator >(const StringCaseInsensitiveAcp& other) const
 {
-    return Compare(*this, other) > 0;
+    return Compare(Ptr, other.Ptr) > 0;
 }
 
 
 bool StringCaseInsensitiveAcp::operator >=(const StringCaseInsensitiveAcp& other) const
 {
-    return Compare(*this, other) >= 0;
+    return Compare(Ptr, other.Ptr) >= 0;
 }
 
 
@@ -186,13 +149,13 @@ StringCaseInsensitiveAcp StringCaseInsensitiveAcp::operator +(const StringAcp& o
 
 PCSTR StringCaseInsensitiveAcp::get_ptr() const
 {
-    return m_ptr ? m_ptr->Ptr : "";
+    return m_psz ? m_psz : "";
 }
 
 
 size_t StringCaseInsensitiveAcp::get_len() const
 {
-    return m_ptr ? m_ptr->Len : 0;
+    return m_psz ? RefMbs::Get(m_psz).Len : 0;
 }
 
 

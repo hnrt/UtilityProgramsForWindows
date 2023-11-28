@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "hnrt/StringAcp.h"
 #include "hnrt/RefMbs.h"
+#include "hnrt/StringUtils.h"
+#include "hnrt/Interlocked.h"
+#include "hnrt/Exception.h"
 
 
 using namespace hnrt;
@@ -13,46 +16,61 @@ using namespace hnrt;
 //////////////////////////////////////////////////////////////////////
 
 
+inline PCSTR AddRef(PCSTR psz)
+{
+    if (psz)
+    {
+        RefMbs::Get(psz).AddRef();
+    }
+    return psz;
+}
+
+
+inline void Release(PCSTR psz)
+{
+    if (psz)
+    {
+        RefMbs::Get(psz).Release();
+    }
+}
+
+
 const StringAcp StringAcp::Empty = StringAcp();
 
 
 StringAcp::StringAcp()
-    : m_ptr(nullptr)
+    : m_psz(nullptr)
 {
 }
 
 
 StringAcp::StringAcp(const StringAcp& other)
-    : m_ptr(other.m_ptr)
+    : m_psz(AddRef(other.m_psz))
 {
-    if (m_ptr)
-    {
-        m_ptr->AddRef();
-    }
 }
 
 
 StringAcp::StringAcp(PCSTR psz, INT_PTR cb)
-    : m_ptr(psz && cb ? new RefMbs(psz, cb) : nullptr)
+    : m_psz(RefMbs::Create(psz, cb))
 {
 }
 
 
-StringAcp::StringAcp(PCSTR psz, va_list argList)
-    : m_ptr(new RefMbs(psz, argList))
+StringAcp::StringAcp(PCSTR pszFormat, va_list argList)
+    : m_psz(RefMbs::Create(pszFormat, argList))
 {
 }
 
 
 StringAcp::StringAcp(StringOptions option, PCSTR psz, ...)
-    : m_ptr(nullptr)
+    : m_psz(nullptr)
 {
     va_list argList;
     va_start(argList, psz);
     switch (option)
     {
     case PRINTF:
-        m_ptr = new RefMbs(psz, argList);
+        m_psz = RefMbs::Create(psz, argList);
         break;
     case CONCAT:
     case CONCAT2:
@@ -63,18 +81,14 @@ StringAcp::StringAcp(StringOptions option, PCSTR psz, ...)
     case CONCAT7:
     case CONCAT8:
     case CONCAT9:
-    {
-        m_ptr = new RefMbs(IMMEDIATE_TEXT, StringUtils::VaConcat(option, psz, argList, Allocate<CHAR>(StringUtils::VaConcatSize(option, psz, argList))));
+        m_psz = RefMbs::Create(option, psz, argList);
         break;
-    }
     case UPPERCASE:
     case LOWERCASE:
     case TRIM:
     case TRIM_HEAD:
     case TRIM_TAIL:
-    case IMMEDIATE_TEXT:
-    case STATIC_TEXT:
-        m_ptr = new RefMbs(option, psz);
+        m_psz = RefMbs::Create(option, psz);
         break;
     default:
         throw Exception(L"StringAcp::ctor: Bad option.");
@@ -84,94 +98,38 @@ StringAcp::StringAcp(StringOptions option, PCSTR psz, ...)
 
 
 StringAcp::StringAcp(PCSTR psz1, PCSTR psz2)
-    : m_ptr(new RefMbs(psz1, psz2))
-{
-}
-
-
-StringAcp::StringAcp(PCSTR psz1, PCSTR psz2, PCSTR psz3)
-    : m_ptr(new RefMbs(psz1, psz2, psz3))
-{
-}
-
-
-StringAcp::StringAcp(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4)
-    : m_ptr(new RefMbs(psz1, psz2, psz3, psz4))
-{
-}
-
-
-StringAcp::StringAcp(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4, PCSTR psz5)
-    : m_ptr(new RefMbs(psz1, psz2, psz3, psz4, psz5))
+    : m_psz(RefMbs::Create(psz1, psz2))
 {
 }
 
 
 StringAcp::StringAcp(PCWSTR psz, INT_PTR cch)
-    : m_ptr(psz && cch ? new RefMbs(CP_ACP, psz, cch) : nullptr)
+    : m_psz(RefMbs::Create(CP_ACP, psz, cch))
 {
 }
 
 
 StringAcp::~StringAcp()
 {
-    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, nullptr);
-    if (ptr)
-    {
-        ptr->Release();
-    }
+    Release(InterlockedExchangePCSTR(&m_psz, nullptr));
 }
 
 
 StringAcp& StringAcp::ZeroFill()
 {
-    if (m_ptr)
+    if (Len)
     {
-        m_ptr->ZeroFill();
+        RefMbs::Get(m_psz).ZeroFill();
     }
     return *this;
 }
 
 
-StringAcp& StringAcp::Uppercase()
+StringAcp& StringAcp::Lettercase(StringOptions option)
 {
     if (Len)
     {
-        if (m_ptr->RefCnt == 1)
-        {
-            size_t size = Len + 1;
-            m_ptr->Exchange(StringUtils::Uppercase(m_ptr->Detach(), size));
-        }
-        else
-        {
-            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(UPPERCASE, Ptr));
-            if (ptr)
-            {
-                ptr->Release();
-            }
-        }
-    }
-    return *this;
-}
-
-
-StringAcp& StringAcp::Lowercase()
-{
-    if (Len)
-    {
-        if (m_ptr->RefCnt == 1)
-        {
-            size_t size = Len + 1;
-            m_ptr->Exchange(StringUtils::Lowercase(m_ptr->Detach(), size));
-        }
-        else
-        {
-            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(LOWERCASE, Ptr));
-            if (ptr)
-            {
-                ptr->Release();
-            }
-        }
+        Release(InterlockedExchangePCSTR(&m_psz, RefMbs::Create(option, Ptr)));
     }
     return *this;
 }
@@ -181,18 +139,7 @@ StringAcp& StringAcp::Trim(StringOptions option)
 {
     if (Len)
     {
-        if (m_ptr->RefCnt == 1)
-        {
-            m_ptr->Exchange(StringUtils::Trim(option, m_ptr->Detach()));
-        }
-        else
-        {
-            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(option, Ptr));
-            if (ptr)
-            {
-                ptr->Release();
-            }
-        }
+        Release(InterlockedExchangePCSTR(&m_psz, RefMbs::Create(option, Ptr)));
     }
     return *this;
 }
@@ -200,44 +147,14 @@ StringAcp& StringAcp::Trim(StringOptions option)
 
 StringAcp& StringAcp::Assign(const StringAcp& other)
 {
-    RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, other.m_ptr);
-    if (m_ptr)
-    {
-        m_ptr->AddRef();
-    }
-    if (ptr)
-    {
-        ptr->Release();
-    }
+    Release(InterlockedExchangePCSTR(&m_psz, AddRef(other.m_psz)));
     return *this;
 }
 
 
 StringAcp& StringAcp::Assign(PCSTR psz, INT_PTR cb)
 {
-    if (psz && cb)
-    {
-        if (m_ptr && m_ptr->RefCnt == 1)
-        {
-            m_ptr->Assign(psz, cb);
-        }
-        else
-        {
-            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(psz, cb));
-            if (ptr)
-            {
-                ptr->Release();
-            }
-        }
-    }
-    else
-    {
-        RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, nullptr);
-        if (ptr)
-        {
-            ptr->Release();
-        }
-    }
+    Release(InterlockedExchangePCSTR(&m_psz, RefMbs::Create(psz, cb)));
     return *this;
 }
 
@@ -246,22 +163,7 @@ StringAcp& StringAcp::Append(const StringAcp& other)
 {
     if (other.Len)
     {
-        if (m_ptr && m_ptr->RefCnt == 1)
-        {
-            m_ptr->Append(other.Ptr);
-        }
-        else
-        {
-            PSTR psz2 = Allocate<CHAR>(Len + other.Len + 1);
-            memcpy_s(psz2, Len, Ptr, Len);
-            memcpy_s(psz2 + Len, other.Len, other.Ptr, other.Len);
-            psz2[Len + other.Len] = '\0';
-            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(IMMEDIATE_TEXT, psz2));
-            if (ptr)
-            {
-                ptr->Release();
-            }
-        }
+        Release(InterlockedExchangePCSTR(&m_psz, RefMbs::Create(Ptr, other.Ptr)));
     }
     return *this;
 }
@@ -271,114 +173,90 @@ StringAcp& StringAcp::Append(PCSTR psz, INT_PTR cb)
 {
     if (psz && cb)
     {
-        if (m_ptr && m_ptr->RefCnt == 1)
+        Release(InterlockedExchangePCSTR(&m_psz, RefMbs::Create(Ptr, psz, cb)));
+    }
+    return *this;
+}
+
+
+StringAcp& StringAcp::Format(PCSTR pszFormat, ...)
+{
+    va_list argList;
+    va_start(argList, pszFormat);
+    Release(InterlockedExchangePCSTR(&m_psz, RefMbs::Create(pszFormat, argList)));
+    va_end(argList);
+    return *this;
+}
+
+
+StringAcp& StringAcp::VaFormat(PCSTR pszFormat, va_list argList)
+{
+    Release(InterlockedExchangePCSTR(&m_psz, RefMbs::Create(pszFormat, argList)));
+    return *this;
+}
+
+
+StringAcp& StringAcp::AppendFormat(PCSTR pszFormat, ...)
+{
+    va_list argList;
+    va_start(argList, pszFormat);
+    Release(InterlockedExchangePCSTR(&m_psz, RefMbs::Create(Ptr, pszFormat, argList)));
+    va_end(argList);
+    return *this;
+}
+
+
+StringAcp& StringAcp::VaAppendFormat(PCSTR pszFormat, va_list argList)
+{
+    Release(InterlockedExchangePCSTR(&m_psz, RefMbs::Create(Ptr, pszFormat, argList)));
+    return *this;
+}
+
+
+int StringAcp::IndexOf(CHAR c, INT_PTR fromIndex) const
+{
+    if (m_psz && static_cast<size_t>(fromIndex) < Len)
+    {
+        PCSTR pCur = reinterpret_cast<PCSTR>(memchr(m_psz + fromIndex, c, Len - fromIndex));
+        return pCur ? static_cast<int>(pCur - m_psz) : -1;
+    }
+    return -1;
+}
+
+
+int StringAcp::IndexOf(const StringAcp& s, INT_PTR fromIndex) const
+{
+    if (m_psz && static_cast<size_t>(fromIndex) < Len)
+    {
+        PCSTR psz = s.Ptr;
+        INT_PTR cb = s.Len;
+        if (cb)
         {
-            m_ptr->Append(psz, cb);
-        }
-        else
-        {
-            cb = cb > 0 ? strnlen(psz, cb) : strlen(psz);
-            PSTR psz2 = Allocate<CHAR>(Len + cb + 1);
-            memcpy_s(psz2, Len, Ptr, Len);
-            memcpy_s(psz2 + Len, cb, psz, cb);
-            psz2[Len + cb] = '\0';
-            RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(IMMEDIATE_TEXT, psz2));
-            if (ptr)
+            cb--;
+            CHAR c = *psz++;
+            PCSTR pCur = reinterpret_cast<PCSTR>(memchr(m_psz + fromIndex, c, Len - fromIndex));
+            if (cb)
             {
-                ptr->Release();
+                PCSTR pEnd = m_psz + Len;
+                while (pCur)
+                {
+                    pCur++;
+                    if (pEnd < pCur + cb)
+                    {
+                        break;
+                    }
+                    if (!Compare(psz, cb, pCur, cb))
+                    {
+                        return static_cast<int>((pCur - 1) - m_psz);
+                    }
+                    pCur = reinterpret_cast<PCSTR>(memchr(pCur, c, pEnd - pCur));
+                }
+            }
+            else if (pCur)
+            {
+                return static_cast<int>(pCur - m_psz);
             }
         }
-    }
-    return *this;
-}
-
-
-StringAcp& StringAcp::Format(PCSTR psz, ...)
-{
-    va_list argList;
-    va_start(argList, psz);
-    if (m_ptr && m_ptr->RefCnt == 1)
-    {
-        m_ptr->Exchange(::VaAppendFormat(m_ptr->Detach(), 0, psz, argList));
-    }
-    else
-    {
-        RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(psz, argList));
-        if (ptr)
-        {
-            ptr->Release();
-        }
-    }
-    va_end(argList);
-    return *this;
-}
-
-
-StringAcp& StringAcp::VaFormat(PCSTR psz, va_list argList)
-{
-    if (m_ptr && m_ptr->RefCnt == 1)
-    {
-        m_ptr->Exchange(::VaAppendFormat(m_ptr->Detach(), 0, psz, argList));
-    }
-    else
-    {
-        RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(psz, argList));
-        if (ptr)
-        {
-            ptr->Release();
-        }
-    }
-    return *this;
-}
-
-
-StringAcp& StringAcp::AppendFormat(PCSTR psz, ...)
-{
-    va_list argList;
-    va_start(argList, psz);
-    if (m_ptr && m_ptr->RefCnt == 1)
-    {
-        INT_PTR cb = m_ptr->Len;
-        m_ptr->Exchange(::VaAppendFormat(m_ptr->Detach(), cb, psz, argList));
-    }
-    else
-    {
-        RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(IMMEDIATE_TEXT, VaConcatFormat(Ptr, Len, psz, argList)));
-        if (ptr)
-        {
-            ptr->Release();
-        }
-    }
-    va_end(argList);
-    return *this;
-}
-
-
-StringAcp& StringAcp::VaAppendFormat(PCSTR psz, va_list argList)
-{
-    if (m_ptr && m_ptr->RefCnt == 1)
-    {
-        INT_PTR cb = m_ptr->Len;
-        m_ptr->Exchange(::VaAppendFormat(m_ptr->Detach(), cb, psz, argList));
-    }
-    else
-    {
-        RefMbs* ptr = Interlocked<RefMbs*>::ExchangePointer(&m_ptr, new RefMbs(IMMEDIATE_TEXT, VaConcatFormat(Ptr, Len, psz, argList)));
-        if (ptr)
-        {
-            ptr->Release();
-        }
-    }
-    return *this;
-}
-
-
-int StringAcp::IndexOf(CHAR c, INT_PTR fromIndex)
-{
-    if (m_ptr && static_cast<size_t>(fromIndex) < m_ptr->Len)
-    {
-        const CHAR* pCur = reinterpret_cast<const CHAR*>(memchr(m_ptr->Ptr + fromIndex, c, m_ptr->Len - fromIndex));
-        return pCur ? static_cast<int>(pCur - m_ptr->Ptr) : -1;
     }
     return -1;
 }
@@ -386,37 +264,37 @@ int StringAcp::IndexOf(CHAR c, INT_PTR fromIndex)
 
 bool StringAcp::operator ==(const StringAcp& other) const
 {
-    return Compare(*this, other) == 0;
+    return Compare(Ptr, other.Ptr) == 0;
 }
 
 
 bool StringAcp::operator !=(const StringAcp& other) const
 {
-    return Compare(*this, other) != 0;
+    return Compare(Ptr, other.Ptr) != 0;
 }
 
 
 bool StringAcp::operator <(const StringAcp& other) const
 {
-    return Compare(*this, other) < 0;
+    return Compare(Ptr, other.Ptr) < 0;
 }
 
 
 bool StringAcp::operator <=(const StringAcp& other) const
 {
-    return Compare(*this, other) <= 0;
+    return Compare(Ptr, other.Ptr) <= 0;
 }
 
 
 bool StringAcp::operator >(const StringAcp& other) const
 {
-    return Compare(*this, other) > 0;
+    return Compare(Ptr, other.Ptr) > 0;
 }
 
 
 bool StringAcp::operator >=(const StringAcp& other) const
 {
-    return Compare(*this, other) >= 0;
+    return Compare(Ptr, other.Ptr) >= 0;
 }
 
 
@@ -428,13 +306,13 @@ StringAcp StringAcp::operator +(const StringAcp& other) const
 
 PCSTR StringAcp::get_ptr() const
 {
-    return m_ptr ? m_ptr->Ptr : "";
+    return m_psz ? m_psz : "";
 }
 
 
 size_t StringAcp::get_len() const
 {
-    return m_ptr ? m_ptr->Len : 0;
+    return m_psz ? RefMbs::Get(m_psz).Len : 0;
 }
 
 

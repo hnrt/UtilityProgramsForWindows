@@ -29,7 +29,8 @@ namespace hnrt
         RefStr(PCWSTR, size_t, PCWSTR, size_t);
         RefStr(PCWSTR, size_t, PCWSTR, va_list, size_t);
         RefStr(UINT, PCSTR, int, int);
-        RefStr(StringOptions, va_list, size_t);
+        RefStr(StringOptions, PCWSTR, size_t);
+        RefStr(StringOptions, PCWSTR, va_list, size_t);
 
         size_t m_len;
         WCHAR m_buf[1];
@@ -43,7 +44,8 @@ namespace hnrt
         static PCWSTR Create(PCWSTR, PCWSTR, INT_PTR = -1);
         static PCWSTR Create(PCWSTR, PCWSTR, va_list);
         static PCWSTR Create(UINT, PCSTR, INT_PTR = -1);
-        static PCWSTR Create(StringOptions, ...);
+        static PCWSTR Create(StringOptions, PCWSTR);
+        static PCWSTR Create(StringOptions, PCWSTR, va_list);
     };
 
     inline size_t RefStr::get_len() const

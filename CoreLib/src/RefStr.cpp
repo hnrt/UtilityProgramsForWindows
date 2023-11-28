@@ -6,10 +6,10 @@
 #include "hnrt/Debug.h"
 
 
-using namespace hnrt;
-
-
 #pragma warning(disable:4291)
+
+
+using namespace hnrt;
 
 
 void* RefStr::operator new(size_t size, size_t cch)
@@ -39,8 +39,15 @@ RefStr& RefStr::Get(PCWSTR psz)
 
 PCWSTR RefStr::Create(PCWSTR psz, INT_PTR cch)
 {
-    cch = cch > 0 ? wcsnlen(psz, cch) : cch < 0 ? wcslen(psz) : 0;
-	return Get(new (cch) RefStr(psz, cch));
+    if (psz && cch)
+    {
+        cch = cch < 0 ? wcslen(psz) : wcsnlen(psz, cch);
+        return Get(new (cch) RefStr(psz, cch));
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 
 
@@ -60,9 +67,16 @@ PCWSTR RefStr::Create(PCWSTR pszFormat, va_list argList)
 
 PCWSTR RefStr::Create(PCWSTR psz1, PCWSTR psz2, INT_PTR cch)
 {
-    size_t cch1 = wcslen(psz1);
-    size_t cch2 = cch > 0 ? wcsnlen(psz2, cch) : cch < 0 ? wcslen(psz2) : 0;
-    return Get(new (cch1 + cch2) RefStr(psz1, cch1, psz2, cch2));
+    if (psz1 && psz2 && cch)
+    {
+        size_t cch1 = wcslen(psz1);
+        size_t cch2 = cch < 0 ? wcslen(psz2) : wcsnlen(psz2, cch);
+        return Get(new (cch1 + cch2) RefStr(psz1, cch1, psz2, cch2));
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 
 
@@ -83,20 +97,47 @@ PCWSTR RefStr::Create(PCWSTR psz1, PCWSTR pszFormat, va_list argList)
 
 PCWSTR RefStr::Create(UINT cp, PCSTR psz, INT_PTR cb)
 {
-    if (cb < 0)
+    if (psz && cb)
     {
-        cb = strlen(psz);
+        cb = cb < 0 ? strlen(psz) : strnlen(psz, cb);
+        int cch = MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, static_cast<int>(cb), NULL, 0);
+        return Get(new (cch) RefStr(cp, psz, static_cast<int>(cb), cch));
     }
-    int cch = MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, static_cast<int>(cb), NULL, 0);
-    return Get(new (cch) RefStr(cp, psz, static_cast<int>(cb), cch));
+    else
+    {
+        return nullptr;
+    }
 }
 
 
-PCWSTR RefStr::Create(StringOptions option, ...)
+PCWSTR RefStr::Create(StringOptions option, PCWSTR psz)
 {
-    RefStr* ptr;
-    va_list argList;
-    va_start(argList, option);
+    switch (option)
+    {
+    case UPPERCASE:
+    case LOWERCASE:
+    {
+        size_t cch = wcslen(psz);
+        return Get(new (cch) RefStr(option, psz, cch));
+    }
+    case TRIM:
+    case TRIM_HEAD:
+    case TRIM_TAIL:
+    {
+        int start = 0;
+        int end = 0;
+        StringUtils::TrimScan(option, psz, start, end);
+        int cch = end - start;
+        return Get(new (cch) RefStr(psz + start, cch));
+    }
+    default:
+        throw Exception(L"RefStr::Create(StringOptions,PCWSTR) failed.");
+    }
+}
+
+
+PCWSTR RefStr::Create(StringOptions option, PCWSTR psz, va_list argList)
+{
     switch (option)
     {
     case CONCAT:
@@ -109,29 +150,12 @@ PCWSTR RefStr::Create(StringOptions option, ...)
     case CONCAT8:
     case CONCAT9:
     {
-        va_list argList2;
-        va_copy(argList2, argList);
-        PCWSTR psz = va_arg(argList2, PCWSTR);
-        size_t cch = StringUtils::VaConcatSize(option, psz, va_arg(argList2, va_list));
-        va_end(argList2);
-        ptr = new (cch) RefStr(option, argList, cch);
-        break;
-    }
-    case UPPERCASE:
-    case LOWERCASE:
-    {
-        va_list argList2;
-        va_copy(argList2, argList);
-        size_t cch = wcslen(va_arg(argList2, PCWSTR));
-        va_end(argList2);
-        ptr = new (cch) RefStr(option, argList, cch);
-        break;
+        size_t cch = StringUtils::VaConcatSize(option, psz, argList);
+        return Get(new (cch) RefStr(option, psz, argList, cch));
     }
     default:
-        throw Exception(L"RefStr::Create(StringOptions) failed.");
+        throw Exception(L"RefStr::Create(StringOptions,PCWSTR,va_list) failed.");
     }
-    va_end(argList);
-    return Get(ptr);
 }
 
 
@@ -194,7 +218,34 @@ RefStr::RefStr(UINT cp, PCSTR psz, int cb, int cch)
 }
 
 
-RefStr::RefStr(StringOptions option, va_list argList, size_t cch)
+RefStr::RefStr(StringOptions option, PCWSTR psz, size_t cch)
+    : RefObj()
+    , m_len(cch)
+    , m_buf()
+{
+    switch (option)
+    {
+    case UPPERCASE:
+    {
+        wmemcpy_s(&m_buf[0], m_len, psz, m_len);
+        m_buf[m_len] = L'\0';
+        StringUtils::Uppercase(&m_buf[0], m_len + 1);
+        break;
+    }
+    case LOWERCASE:
+    {
+        wmemcpy_s(&m_buf[0], m_len, psz, m_len);
+        m_buf[m_len] = L'\0';
+        StringUtils::Lowercase(&m_buf[0], m_len + 1);
+        break;
+    }
+    default:
+        throw Exception(L"RefStr::Create(StringOptions,PCWSTR,size_t) failed.");
+    }
+}
+
+
+RefStr::RefStr(StringOptions option, PCWSTR psz, va_list argList, size_t cch)
     : RefObj()
     , m_len(cch)
     , m_buf()
@@ -211,27 +262,11 @@ RefStr::RefStr(StringOptions option, va_list argList, size_t cch)
     case CONCAT8:
     case CONCAT9:
     {
-        PCWSTR psz = va_arg(argList, PCWSTR);
-        va_list argList2 = va_arg(argList, va_list);
-        StringUtils::VaConcat(option, psz, argList2, &m_buf[0]);
-        break;
-    }
-    case UPPERCASE:
-    {
-        wmemcpy_s(&m_buf[0], m_len, va_arg(argList, PCWSTR), m_len);
-        m_buf[m_len] = L'\0';
-        StringUtils::Uppercase(&m_buf[0]);
-        break;
-    }
-    case LOWERCASE:
-    {
-        wmemcpy_s(&m_buf[0], m_len, va_arg(argList, PCWSTR), m_len);
-        m_buf[m_len] = L'\0';
-        StringUtils::Lowercase(&m_buf[0]);
+        StringUtils::VaConcat(option, psz, argList, &m_buf[0]);
         break;
     }
     default:
-        throw Exception(L"RefStr::Create(StringOptions) failed.");
+        throw Exception(L"RefStr::Create(StringOptions,PCWSTR,va_list,size_t) failed.");
     }
 }
 

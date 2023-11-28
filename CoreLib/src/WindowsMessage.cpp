@@ -11,7 +11,7 @@ PCWSTR WindowsMessage::get_Name() const
     {
         switch (m_value)
         {
-#define C(x) case x: m_sz = String(STATIC_TEXT, L#x); break
+#define C(x) case x: m_sz = String(L#x); break
             C(WM_NULL);
             C(WM_CREATE);
             C(WM_DESTROY);

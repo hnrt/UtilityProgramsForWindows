@@ -7,8 +7,6 @@
 
 namespace hnrt
 {
-    class RefMbs;
-
     class StringAcp
     {
     public:
@@ -19,12 +17,10 @@ namespace hnrt
         StringAcp(PCSTR, va_list);
         StringAcp(StringOptions, PCSTR, ...);
         StringAcp(PCSTR, PCSTR);
-        StringAcp(PCSTR, PCSTR, PCSTR);
-        StringAcp(PCSTR, PCSTR, PCSTR, PCSTR);
-        StringAcp(PCSTR, PCSTR, PCSTR, PCSTR, PCSTR);
         StringAcp(PCWSTR, INT_PTR = -1);
         ~StringAcp();
         StringAcp& ZeroFill();
+        StringAcp& Lettercase(StringOptions);
         StringAcp& Uppercase();
         StringAcp& Lowercase();
         StringAcp& Trim(StringOptions = TRIM);
@@ -36,7 +32,8 @@ namespace hnrt
         StringAcp& VaFormat(PCSTR, va_list);
         StringAcp& AppendFormat(PCSTR, ...);
         StringAcp& VaAppendFormat(PCSTR, va_list);
-        int IndexOf(CHAR, INT_PTR = 0);
+        int IndexOf(CHAR, INT_PTR = 0) const;
+        int IndexOf(const StringAcp&, INT_PTR = 0) const;
         operator PCSTR() const;
         operator bool() const;
         StringAcp& operator =(const StringAcp&);
@@ -58,7 +55,7 @@ namespace hnrt
 
     private:
 
-        RefMbs* m_ptr;
+        PCSTR m_psz;
 
         friend class StringCaseInsensitiveAcp;
 
@@ -71,6 +68,16 @@ namespace hnrt
         static int Compare(PCSTR psz1, INT_PTR cb1, PCSTR psz2, INT_PTR cb2);
     };
 
+    inline StringAcp& StringAcp::Uppercase()
+    {
+        return Lettercase(UPPERCASE);
+    }
+
+    inline StringAcp& StringAcp::Lowercase()
+    {
+        return Lettercase(LOWERCASE);
+    }
+
     inline StringAcp::operator PCSTR() const
     {
         return Ptr;
@@ -78,7 +85,7 @@ namespace hnrt
 
     inline StringAcp::operator bool() const
     {
-        return m_ptr != nullptr;
+        return m_psz != nullptr;
     }
 
     inline StringAcp& StringAcp::operator =(const StringAcp& other)

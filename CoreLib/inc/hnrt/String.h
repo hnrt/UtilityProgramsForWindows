@@ -20,6 +20,7 @@ namespace hnrt
         String(UINT, PCSTR, INT_PTR = -1);
         ~String();
         String& ZeroFill();
+        String& Lettercase(StringOptions);
         String& Uppercase();
         String& Lowercase();
         String& Trim(StringOptions = TRIM);
@@ -31,7 +32,8 @@ namespace hnrt
         String& VaFormat(PCWSTR, va_list);
         String& AppendFormat(PCWSTR, ...);
         String& VaAppendFormat(PCWSTR, va_list);
-        int IndexOf(WCHAR, INT_PTR = 0);
+        int IndexOf(WCHAR, INT_PTR = 0) const;
+        int IndexOf(const String&, INT_PTR = 0) const;
         operator PCWSTR() const;
         operator bool() const;
         String& operator =(const String&);
@@ -65,6 +67,16 @@ namespace hnrt
         static int Compare(PCWSTR psz1, PCWSTR psz2, INT_PTR cch2);
         static int Compare(PCWSTR psz1, INT_PTR cch1, PCWSTR psz2, INT_PTR cch2);
     };
+
+    inline String& String::Uppercase()
+    {
+        return Lettercase(UPPERCASE);
+    }
+
+    inline String& String::Lowercase()
+    {
+        return Lettercase(LOWERCASE);
+    }
 
     inline String::operator PCWSTR() const
     {
