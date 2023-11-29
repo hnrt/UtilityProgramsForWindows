@@ -1,7 +1,6 @@
 #include "pch.h"
-#include "hnrt/String.h"
-#include "hnrt/ComException.h"
 #include "hnrt/ZipArchive.h"
+#include "hnrt/ComException.h"
 
 
 using namespace hnrt;
@@ -13,15 +12,15 @@ ZipArchive::~ZipArchive()
 }
 
 
-ZipArchive::ZipArchive(PCWSTR pszFileName, Folder* pFolder)
-    : m_FileName(pszFileName)
+ZipArchive::ZipArchive(const String& szFileName, Folder* pFolder)
+    : m_szFileName(szFileName)
     , m_pFolder(pFolder)
 {
 }
 
 
 ZipArchive::ZipArchive(const ZipArchive& src)
-    : m_FileName(src.m_FileName)
+    : m_szFileName(src.m_szFileName)
     , m_pFolder(src.m_pFolder)
 {
     m_pFolder->AddRef();
@@ -30,7 +29,7 @@ ZipArchive::ZipArchive(const ZipArchive& src)
 
 ZipArchive& ZipArchive::operator =(const ZipArchive& src)
 {
-    m_FileName = src.m_FileName;
+    m_szFileName = src.m_szFileName;
     if (m_pFolder)
     {
         m_pFolder->Release();

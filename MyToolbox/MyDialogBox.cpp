@@ -295,7 +295,7 @@ bool MyDialogBox::ApplyToInputCodePage(UINT uId)
 	}
 	if (m_uInputCodePage != uInputCodePage)
 	{
-		m_menuSettings[ResourceString(IDS_MENU_IENCODING)]
+		m_menuSettings[(PCWSTR)ResourceString(IDS_MENU_IENCODING)]
 			.Modify(
 				GetInputCodePageMenuCommand(uInputCodePage), MF_UNCHECKED,
 				GetInputCodePageMenuCommand(uInputCodePage), GetCodePageMenuString(uInputCodePage))
@@ -373,7 +373,7 @@ bool MyDialogBox::ApplyToOutputCodePage(UINT uId)
 	}
 	if (m_uOutputCodePage != uOutputCodePage || m_bOutputBOM != bOutputBOM)
 	{
-		m_menuSettings[ResourceString(IDS_MENU_OENCODING)]
+		m_menuSettings[(PCWSTR)ResourceString(IDS_MENU_OENCODING)]
 			.Modify(
 				GetOutputCodePageMenuCommand(uOutputCodePage, bOutputBOM), MF_UNCHECKED,
 				GetOutputCodePageMenuCommand(uOutputCodePage, bOutputBOM), GetCodePageMenuString(uOutputCodePage, bOutputBOM))

@@ -71,8 +71,8 @@ BOOL WindowFinder::Put(HWND hwnd)
             return TRUE;
         }
         wprintf(L"\"%s\" %s %08lX %08lX%s\n",
-            w.WindowText ? w.WindowText : L"",
-            w.ClassName,
+            w.WindowText.Ptr,
+            w.ClassName.Ptr,
             w.Style,
             w.ExStyle,
             w.IsDisabled && !w.IsVisible ? L" [DISABLED+INVISIBLE]" :
@@ -87,8 +87,8 @@ BOOL WindowFinder::Put(HWND hwnd)
             wprintf(L"    ");
         }
         wprintf(L"\"%s\" %s %08lX %08lX %ld\n",
-            w.WindowText ? w.WindowText : L"",
-            w.ClassName,
+            w.WindowText.Ptr,
+            w.ClassName.Ptr,
             w.Style,
             w.ExStyle,
             w.Id);

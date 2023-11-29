@@ -21,11 +21,11 @@ namespace hnrt
 
     protected:
 
-        String m_Message;
+        String m_szMessage;
     };
 
     inline PCWSTR Exception::get_Message() const
     {
-        return m_Message;
+        return m_szMessage;
     }
 }

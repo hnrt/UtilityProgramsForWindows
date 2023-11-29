@@ -176,6 +176,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="PathTests.cpp" />
+    <ClCompile Include="ResourceStringTests.cpp" />
     <ClCompile Include="SecretTests.cpp" />
     <ClCompile Include="StringTests.cpp" />
     <ClCompile Include="VersionInfoTests.cpp" />

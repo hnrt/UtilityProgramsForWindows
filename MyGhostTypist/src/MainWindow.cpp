@@ -226,26 +226,26 @@ HMENU MainWindow::CreateMenuBar()
 void MainWindow::RecreateEditMenus(HWND hwnd)
 {
     Menu menuBar(hwnd);
-    Menu menuEdit(menuBar[ResourceString(IDS_EDIT)]);
-    Menu menuEditCopy(menuEdit[ResourceString(IDS_COPY_MENU)]);
+    Menu menuEdit(menuBar[(PCWSTR)ResourceString(IDS_EDIT)]);
+    Menu menuEditCopy(menuEdit[(PCWSTR)ResourceString(IDS_COPY_MENU)]);
     menuEditCopy.RemoveAll();
     for (UINT index = 0; index < m_pCfg->CredentialsList.Count; index++)
     {
-        String strFormatU, strFormatP;
+        String szFormatU, szFormatP;
         if (index < 10)
         {
-            strFormatU = String(PRINTF, L"%s (&%%d)", ResourceString(IDS_COPY_UN).Ptr);
-            strFormatP = String(PRINTF, L"%s (&%%d)", ResourceString(IDS_COPY_PW).Ptr);
+            szFormatU = String(PRINTF, L"%s (&%%d)", ResourceString(IDS_COPY_UN));
+            szFormatP = String(PRINTF, L"%s (&%%d)", ResourceString(IDS_COPY_PW));
         }
         else
         {
-            strFormatU = ResourceString(IDS_COPY_UN).Ptr;
-            strFormatP = ResourceString(IDS_COPY_PW).Ptr;
+            szFormatU = ResourceString(IDS_COPY_UN);
+            szFormatP = ResourceString(IDS_COPY_PW);
         }
         RefPtr<Credentials> pCredentials = m_pCfg->CredentialsList[index];
         menuEditCopy
-            .Add(String(PRINTF, strFormatU, pCredentials->Username, (index * 2 + 1) % 10), IDM_EDIT_USERNAME_BASE + index)
-            .Add(String(PRINTF, strFormatP, pCredentials->Username, (index * 2 + 2) % 10), IDM_EDIT_PASSWORD_BASE + index);
+            .Add(String(PRINTF, szFormatU, pCredentials->Username, (index * 2 + 1) % 10), IDM_EDIT_USERNAME_BASE + index)
+            .Add(String(PRINTF, szFormatP, pCredentials->Username, (index * 2 + 2) % 10), IDM_EDIT_PASSWORD_BASE + index);
     }
 }
 
@@ -253,7 +253,7 @@ void MainWindow::RecreateEditMenus(HWND hwnd)
 void MainWindow::RecreateViewMenus(HWND hwnd)
 {
     Menu menuBar(hwnd);
-    Menu menuView(menuBar[ResourceString(IDS_VIEW)]);
+    Menu menuView(menuBar[(PCWSTR)ResourceString(IDS_VIEW)]);
     menuView.RemoveAll();
     for (UINT index = 0; index < m_pCfg->TargetList.Count; index++)
     {
@@ -297,7 +297,7 @@ void MainWindow::ToggleButtonVisibility(HWND hwnd, UINT uIndex)
     ForceLayout(hwnd);
     InvalidateRect(hwnd, NULL, TRUE);
     Menu menuBar(hwnd);
-    Menu menuView(menuBar[ResourceString(IDS_VIEW)]);
+    Menu menuView(menuBar[(PCWSTR)ResourceString(IDS_VIEW)]);
     menuView.Modify(IDM_VIEW_TARGET_BASE + uIndex, pTarget->IsVisible ? MF_CHECKED : MF_UNCHECKED, IDM_VIEW_TARGET_BASE + uIndex, pTarget->Name);
 }
 

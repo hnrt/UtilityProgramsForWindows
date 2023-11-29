@@ -122,7 +122,7 @@ CabinetException::CabinetException(const CabinetException& src)
 
 CabinetException& CabinetException::operator =(const CabinetException& src)
 {
-    m_Message = src.m_Message;
+    m_szMessage = src.m_szMessage;
     m_type = src.m_type;
     m_code = src.m_code;
     return *this;

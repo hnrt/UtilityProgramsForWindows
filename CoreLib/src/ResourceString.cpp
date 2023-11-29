@@ -1,7 +1,5 @@
 #include "pch.h"
-#include <wchar.h>
 #include "hnrt/ResourceString.h"
-#include "hnrt/Heap.h"
 
 
 using namespace hnrt;
@@ -11,20 +9,30 @@ HINSTANCE ResourceString::m_hInstance = NULL;
 
 
 ResourceString::ResourceString(UINT uId)
-    : m_psz(nullptr)
+    : String()
 {
     LPWSTR psz = nullptr;
     size_t len = LoadStringW(m_hInstance, uId, reinterpret_cast<LPWSTR>(&psz), 0);
     if (len)
     {
-        m_psz = Allocate<WCHAR>(len + 1);
-        wmemcpy_s(m_psz, len + 1, psz, len);
-        m_psz[len] = L'\0';
+        (void)Assign(psz, len);
     }
+}
+
+
+ResourceString::ResourceString(const ResourceString& other)
+    : String(other)
+{
 }
 
 
 ResourceString::~ResourceString()
 {
-    free(m_psz);
+    String::~String();
+}
+
+
+ResourceString& ResourceString::operator =(const ResourceString& other)
+{
+    return reinterpret_cast<ResourceString&>(Assign(other));
 }

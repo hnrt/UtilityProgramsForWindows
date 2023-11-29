@@ -333,7 +333,7 @@
     <ClCompile Include="src\VirtualKey.cpp" />
     <ClCompile Include="src\Win32Exception.cpp" />
     <ClCompile Include="src\WindowsHandle.cpp" />
-    <ClCompile Include="src\WindowsHelper.cpp" />
+    <ClCompile Include="src\WindowHelper.cpp" />
     <ClCompile Include="src\WindowsMessage.cpp" />
     <ClCompile Include="src\WindowsPlatform.cpp" />
     <ClCompile Include="src\ZipArchive.cpp" />

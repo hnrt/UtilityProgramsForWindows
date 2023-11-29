@@ -1,8 +1,7 @@
 #pragma once
 
 
-#include <Windows.h>
-#include "hnrt/Buffer.h"
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -21,10 +20,10 @@ namespace hnrt
         DWORD get_ProcessId() const;
         void set_ProcessId(DWORD dwProcessId);
         DWORD get_ThreadId() const;
-        PCWSTR get_ClassName() const;
-        void set_ClassName(PCWSTR pszClassName);
-        PCWSTR get_WindowText() const;
-        void set_WindowText(PCWSTR pszWindowText);
+        const String& get_ClassName() const;
+        void set_ClassName(const String& pszClassName);
+        const String& get_WindowText() const;
+        void set_WindowText(const String& pszWindowText);
         WindowHelper get_Parent() const;
         DWORD get_Style() const;
         DWORD get_ExStyle() const;
@@ -34,8 +33,8 @@ namespace hnrt
         bool get_IsChild() const;
         __declspec(property(get = get_ProcessId, put = set_ProcessId)) DWORD ProcessId;
         __declspec(property(get = get_ThreadId)) DWORD ThreadId;
-        __declspec(property(get = get_ClassName, put = set_ClassName)) PCWSTR ClassName;
-        __declspec(property(get = get_WindowText, put = set_WindowText)) PCWSTR WindowText;
+        __declspec(property(get = get_ClassName, put = set_ClassName)) const String& ClassName;
+        __declspec(property(get = get_WindowText, put = set_WindowText)) const String& WindowText;
         __declspec(property(get = get_Parent)) WindowHelper Parent;
         __declspec(property(get = get_Style)) DWORD Style;
         __declspec(property(get = get_ExStyle)) DWORD ExStyle;
@@ -44,9 +43,9 @@ namespace hnrt
         __declspec(property(get = get_IsVisible)) bool IsVisible;
         __declspec(property(get = get_IsChild)) bool IsChild;
 
-        static HWND FindTopLevelWindow(PCWSTR pszClassName, PCWSTR pszWindowText, DWORD dwProcessId);
-        HWND FindChildWindow(PCWSTR pszClassName, PCWSTR pszWindowText);
-        HWND FindChildWindow2(PCWSTR pszClassName, PCWSTR pszWindowText);
+        static HWND FindTopLevelWindow(const String& szClassName, const String& szWindowText, DWORD dwProcessId);
+        HWND FindChildWindow(const String& szClassName, const String& szWindowText);
+        HWND FindChildWindow2(const String& szClassName, const String& szWindowText);
         HWND FindImeWindow() const;
 
     private:
@@ -54,16 +53,16 @@ namespace hnrt
         HWND m_hwnd;
         mutable DWORD m_dwProcessId;
         mutable DWORD m_dwThreadId;
-        mutable Buffer<WCHAR> m_ClassName;
-        mutable Buffer<WCHAR> m_WindowText;
+        mutable String m_szClassName;
+        mutable String m_szWindowText;
     };
 
     inline WindowHelper::WindowHelper(HWND hwnd)
         : m_hwnd(hwnd)
         , m_dwProcessId(0)
         , m_dwThreadId(0)
-        , m_ClassName()
-        , m_WindowText()
+        , m_szClassName()
+        , m_szWindowText()
     {
     }
 
@@ -71,8 +70,8 @@ namespace hnrt
         : m_hwnd(GetDlgItem(hwnd, nDlgItem))
         , m_dwProcessId(0)
         , m_dwThreadId(0)
-        , m_ClassName()
-        , m_WindowText()
+        , m_szClassName()
+        , m_szWindowText()
     {
     }
 
@@ -80,17 +79,9 @@ namespace hnrt
         : m_hwnd(rhs.m_hwnd)
         , m_dwProcessId(rhs.m_dwProcessId)
         , m_dwThreadId(rhs.m_dwThreadId)
-        , m_ClassName(rhs.m_ClassName.Len)
-        , m_WindowText(rhs.m_WindowText.Len)
+        , m_szClassName(rhs.m_szClassName)
+        , m_szWindowText(rhs.m_szWindowText)
     {
-        if (m_ClassName.Len)
-        {
-            wcscpy_s(m_ClassName, m_ClassName.Len, rhs.m_ClassName);
-        }
-        if (m_WindowText.Len)
-        {
-            wcscpy_s(m_WindowText, m_WindowText.Len, rhs.m_WindowText);
-        }
     }
 
     inline WindowHelper& WindowHelper::operator =(const WindowHelper& rhs)
@@ -98,16 +89,8 @@ namespace hnrt
         m_hwnd = rhs.m_hwnd;
         m_dwProcessId = rhs.m_dwProcessId;
         m_dwThreadId = rhs.m_dwThreadId;
-        m_ClassName.Resize(rhs.m_ClassName.Len);
-        m_WindowText.Resize(rhs.m_WindowText.Len);
-        if (m_ClassName.Len)
-        {
-            wcscpy_s(m_ClassName, m_ClassName.Len, rhs.m_ClassName);
-        }
-        if (m_WindowText.Len)
-        {
-            wcscpy_s(m_WindowText, m_WindowText.Len, rhs.m_WindowText);
-        }
+        m_szClassName = rhs.m_szClassName;
+        m_szWindowText = rhs.m_szWindowText;
         return *this;
     }
 
@@ -116,8 +99,8 @@ namespace hnrt
         m_hwnd = hwnd;
         m_dwProcessId = 0;
         m_dwThreadId = 0;
-        m_ClassName.Resize(0);
-        m_WindowText.Resize(0);
+        m_szClassName = String::Empty;
+        m_szWindowText = String::Empty;
         return *this;
     }
 
@@ -147,36 +130,6 @@ namespace hnrt
             m_dwThreadId = GetWindowThreadProcessId(m_hwnd, &m_dwProcessId);
         }
         return m_dwThreadId;
-    }
-
-    inline PCWSTR WindowHelper::get_ClassName() const
-    {
-        if (!m_ClassName.Len)
-        {
-            m_ClassName.Resize(16);
-            memset(m_ClassName, 0, m_ClassName.Len * sizeof(WCHAR));
-            while (true)
-            {
-                int rc = GetClassNameW(m_hwnd, m_ClassName, static_cast<int>(m_ClassName.Len));
-                if (rc < static_cast<int>(m_ClassName.Len) - 1)
-                {
-                    break;
-                }
-                m_ClassName.Resize(m_ClassName.Len * 2);
-            }
-        }
-        return m_ClassName;
-    }
-
-    inline PCWSTR WindowHelper::get_WindowText() const
-    {
-        if (m_hwnd)
-        {
-            m_WindowText.Resize(0);
-            m_WindowText.Resize(static_cast<size_t>(GetWindowTextLengthW(m_hwnd)) + 1);
-            GetWindowTextW(m_hwnd, m_WindowText, static_cast<int>(m_WindowText.Len));
-        }
-        return m_WindowText;
     }
 
     inline WindowHelper WindowHelper::get_Parent() const

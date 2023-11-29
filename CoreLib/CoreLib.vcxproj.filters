@@ -401,7 +401,7 @@
     <ClCompile Include="src\String.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\WindowsHelper.cpp">
+    <ClCompile Include="src\WindowHelper.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\SyntheticInput.cpp">

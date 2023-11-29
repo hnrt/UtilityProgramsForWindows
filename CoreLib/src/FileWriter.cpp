@@ -6,17 +6,17 @@
 using namespace hnrt;
 
 
-FileWriter::FileWriter(PCWSTR pszPath, DWORD dwCreationDisposition)
-    : m_Path(pszPath)
+FileWriter::FileWriter(const String& szPath, DWORD dwCreationDisposition)
+    : m_szPath(szPath)
     , m_h()
     , m_count(0)
 {
-    if (m_Path)
+    if (m_szPath.Len)
     {
-        m_h = CreateFileW(pszPath, GENERIC_WRITE, 0, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
+        m_h = CreateFileW(m_szPath, GENERIC_WRITE, 0, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
         if (m_h == INVALID_HANDLE_VALUE)
         {
-            throw Win32Exception(GetLastError(), L"Failed to open \"%s\".", m_Path.Ptr);
+            throw Win32Exception(GetLastError(), L"Failed to open \"%s\".", m_szPath);
         }
     }
 }
@@ -24,15 +24,15 @@ FileWriter::FileWriter(PCWSTR pszPath, DWORD dwCreationDisposition)
 
 void FileWriter::Open(DWORD dwCreationDisposition)
 {
-    if (!m_Path.Ptr)
+    if (!m_szPath.Len)
     {
         throw Win32Exception(ERROR_INVALID_DATA, L"Failed to open a file due to no path specified.");
     }
-    m_h = CreateFileW(m_Path, GENERIC_WRITE, 0, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
+    m_h = CreateFileW(m_szPath, GENERIC_WRITE, 0, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
     m_count = 0;
     if (m_h == INVALID_HANDLE_VALUE)
     {
-        throw Win32Exception(GetLastError(), L"Failed to open \"%s\".", m_Path.Ptr);
+        throw Win32Exception(GetLastError(), L"Failed to open \"%s\".", m_szPath);
     }
 }
 
@@ -52,7 +52,7 @@ void FileWriter::Write(LPCVOID pData, SIZE_T cbLen)
         else
         {
             m_count += pCur - pStart;
-            throw Win32Exception(GetLastError(), L"Failed to write to \"%s\".", m_Path.Ptr);
+            throw Win32Exception(GetLastError(), L"Failed to write to \"%s\".", m_szPath);
         }
     }
     m_count += pCur - pStart;

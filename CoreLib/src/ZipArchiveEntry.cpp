@@ -14,6 +14,7 @@ ZipArchiveEntry::ZipArchiveEntry()
     , m_bstrName(nullptr)
     , m_bstrType(nullptr)
     , m_Size(0)
+    , m_bIsFolder(FALSE)
 {
 }
 

@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "hnrt/WindowHelper.h"
-#include "hnrt/String.h"
 #include "hnrt/WindowsHandle.h"
+#include "hnrt/Buffer.h"
 #include <TlHelp32.h>
 #include <list>
 
@@ -9,17 +9,55 @@
 using namespace hnrt;
 
 
-void WindowHelper::set_ClassName(PCWSTR pszClassName)
+const String& WindowHelper::get_ClassName() const
 {
-    m_ClassName.Resize(wcslen(pszClassName) + 1);
-    wcscpy_s(m_ClassName, m_ClassName.Len, pszClassName);
+    if (!m_szClassName.Len)
+    {
+        if (m_hwnd)
+        {
+            for (int size = 16; ; size *= 2)
+            {
+                Buffer<WCHAR> buf(size);
+                wmemset(buf, 0, size);
+                int rc = GetClassNameW(m_hwnd, buf, size);
+                if (rc < static_cast<int>(buf.Len) - 1)
+                {
+                    m_szClassName = buf;
+                    break;
+                }
+            }
+        }
+    }
+    return m_szClassName;
 }
 
 
-void WindowHelper::set_WindowText(PCWSTR pszWindowText)
+void WindowHelper::set_ClassName(const String& szClassName)
 {
-    m_WindowText.Resize(wcslen(pszWindowText) + 1);
-    wcscpy_s(m_WindowText, m_WindowText.Len, pszWindowText);
+    m_szClassName = szClassName;
+}
+
+
+const String& WindowHelper::get_WindowText() const
+{
+    if (!m_szWindowText.Len)
+    {
+        if (m_hwnd)
+        {
+            int size = GetWindowTextLengthW(m_hwnd) + 1;
+            Buffer<WCHAR> buf(size);
+            wmemset(buf, 0, size);
+            GetWindowTextW(m_hwnd, buf, size);
+            m_szWindowText = String(buf);
+        }
+    }
+    return m_szWindowText;
+}
+
+
+void WindowHelper::set_WindowText(const String& szWindowText)
+{
+    m_szWindowText = szWindowText;
 }
 
 
@@ -27,7 +65,7 @@ static BOOL CALLBACK EnumTopLevelCallback(HWND hwnd, LPARAM lParam)
 {
     WindowHelper* pThis = reinterpret_cast<WindowHelper*>(lParam);
     WindowHelper cur = hwnd;
-    if (!String::Compare(cur.ClassName, pThis->ClassName) && !String::Compare(cur.WindowText, pThis->WindowText))
+    if (cur.ClassName == pThis->ClassName && cur.WindowText == pThis->WindowText)
     {
         if (cur.ProcessId == pThis->ProcessId)
         {
@@ -39,11 +77,11 @@ static BOOL CALLBACK EnumTopLevelCallback(HWND hwnd, LPARAM lParam)
 }
 
 
-HWND WindowHelper::FindTopLevelWindow(PCWSTR pszClassName, PCWSTR pszWindowText, DWORD dwProcessId)
+HWND WindowHelper::FindTopLevelWindow(const String& szClassName, const String& szWindowText, DWORD dwProcessId)
 {
     WindowHelper w;
-    w.ClassName = pszClassName;
-    w.WindowText = pszWindowText;
+    w.ClassName = szClassName;
+    w.WindowText = szWindowText;
     w.ProcessId = dwProcessId;
     EnumWindows(EnumTopLevelCallback, reinterpret_cast<LPARAM>(&w));
     return w;
@@ -54,7 +92,7 @@ static BOOL CALLBACK EnumChildCallback(HWND hwnd, LPARAM lParam)
 {
     WindowHelper* pThis = reinterpret_cast<WindowHelper*>(lParam);
     WindowHelper cur = hwnd;
-    if (!String::Compare(cur.ClassName, pThis->ClassName) && !String::Compare(cur.WindowText, pThis->WindowText))
+    if (cur.ClassName == pThis->ClassName && cur.WindowText == pThis->WindowText)
     {
         *pThis = hwnd;
         return FALSE;
@@ -63,11 +101,11 @@ static BOOL CALLBACK EnumChildCallback(HWND hwnd, LPARAM lParam)
 }
 
 
-HWND WindowHelper::FindChildWindow(PCWSTR pszClassName, PCWSTR pszWindowText)
+HWND WindowHelper::FindChildWindow(const String& szClassName, const String& szWindowText)
 {
     WindowHelper w;
-    w.ClassName = pszClassName;
-    w.WindowText = pszWindowText;
+    w.ClassName = szClassName;
+    w.WindowText = szWindowText;
     EnumChildWindows(m_hwnd, EnumChildCallback, reinterpret_cast<LPARAM>(&w));
     return w;
 }
@@ -84,7 +122,7 @@ static BOOL CALLBACK EnumChildCallback2(HWND hwnd, LPARAM lParam)
 {
     EnumChildCallback2Context* pCC = reinterpret_cast<EnumChildCallback2Context*>(lParam);
     WindowHelper cur = hwnd;
-    if (!String::Compare(cur.ClassName, pCC->w.ClassName) && !String::Compare(cur.WindowText, pCC->w.WindowText))
+    if (cur.ClassName == pCC->w.ClassName && cur.WindowText == pCC->w.WindowText)
     {
         pCC->w = hwnd;
         return FALSE;
@@ -94,11 +132,11 @@ static BOOL CALLBACK EnumChildCallback2(HWND hwnd, LPARAM lParam)
 }
 
 
-HWND WindowHelper::FindChildWindow2(PCWSTR pszClassName, PCWSTR pszWindowText)
+HWND WindowHelper::FindChildWindow2(const String& szClassName, const String& szWindowText)
 {
     EnumChildCallback2Context cc;
-    cc.w.ClassName = pszClassName;
-    cc.w.WindowText = pszWindowText;
+    cc.w.ClassName = szClassName;
+    cc.w.WindowText = szWindowText;
     EnumChildWindows(m_hwnd, EnumChildCallback2, reinterpret_cast<LPARAM>(&cc));
     while (!cc.w.m_hwnd && cc.hh.size())
     {

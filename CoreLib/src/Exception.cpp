@@ -6,29 +6,29 @@ using namespace hnrt;
 
 
 Exception::Exception()
-    : m_Message()
+    : m_szMessage()
 {
 }
 
 
 Exception::Exception(PCWSTR pszFormat, ...)
-    : m_Message()
+    : m_szMessage()
 {
     va_list argList;
     va_start(argList, pszFormat);
-    m_Message = String(pszFormat, argList);
+    m_szMessage = String(pszFormat, argList);
     va_end(argList);
 }
 
 
 Exception::Exception(const Exception& src)
-    : m_Message(src.m_Message)
+    : m_szMessage(src.m_szMessage)
 {
 }
 
 
 Exception& Exception::operator =(const Exception& src)
 {
-    m_Message = src.m_Message;
+    m_szMessage = src.m_szMessage;
     return *this;
 }
