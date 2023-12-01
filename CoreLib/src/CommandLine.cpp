@@ -29,7 +29,7 @@ CommandLine::~CommandLine()
 }
 
 
-PCWSTR CommandLine::operator [](int index) const
+PCWSTR CommandLine::operator [](INT_PTR index) const
 {
 	if (index < 0)
 	{
@@ -46,7 +46,7 @@ PCWSTR CommandLine::operator [](int index) const
 }
 
 
-void CommandLine::Remove(int index)
+void CommandLine::Remove(INT_PTR index)
 {
 	if (index < 0)
 	{
@@ -54,7 +54,7 @@ void CommandLine::Remove(int index)
 	}
 	if (0 <= index && index < m_count)
 	{
-		int n = m_count - (index + 1);
+		INT_PTR n = static_cast<INT_PTR>(m_count) - (index + 1);
 		if (n > 0)
 		{
 			memmove(&m_ppsz[index], &m_ppsz[index + 1], n * sizeof(m_ppsz[0]));

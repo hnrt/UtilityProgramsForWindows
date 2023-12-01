@@ -14,8 +14,8 @@ namespace hnrt
 		CommandLine(const CommandLine&) = delete;
 		virtual ~CommandLine();
 		void operator =(const CommandLine&) = delete;
-		PCWSTR operator [](int index) const;
-		void Remove(int index);
+		PCWSTR operator [](INT_PTR index) const;
+		void Remove(INT_PTR index);
 
 		int get_Count() const;
 
