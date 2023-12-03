@@ -6,8 +6,9 @@
 using namespace hnrt;
 
 
-SecretBuffer::SecretBuffer(size_t len)
-    : Buffer<unsigned char>(len)
+SecretBuffer::SecretBuffer(size_t size)
+    : RefObj()
+    , Buffer<unsigned char>(size)
 {
 }
 
@@ -21,11 +22,11 @@ SecretBuffer::~SecretBuffer()
 }
 
 
-void SecretBuffer::Resize(size_t len)
+void SecretBuffer::Resize(size_t size)
 {
     if (m_ptr)
     {
         memset(m_ptr, 0, m_len);
     }
-    Buffer::Resize(len);
+    Buffer::Resize(size);
 }

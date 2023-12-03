@@ -31,6 +31,7 @@ namespace hnrt
         RefStr(UINT, PCSTR, int, int);
         RefStr(StringOptions, PCWSTR, size_t);
         RefStr(StringOptions, PCWSTR, va_list, size_t);
+        RefStr(size_t, WCHAR);
 
         size_t m_len;
         WCHAR m_buf[1];
@@ -46,6 +47,7 @@ namespace hnrt
         static PCWSTR Create(UINT, PCSTR, INT_PTR = -1);
         static PCWSTR Create(StringOptions, PCWSTR);
         static PCWSTR Create(StringOptions, PCWSTR, va_list);
+        static PCWSTR Create(size_t, WCHAR);
     };
 
     inline size_t RefStr::get_len() const

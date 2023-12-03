@@ -159,8 +159,15 @@ PCSTR RefMbs::Create(StringOptions option, PCSTR psz, va_list argList)
 }
 
 
+PCSTR RefMbs::Create(size_t cb, CHAR fill)
+{
+    return Get(new (cb) RefMbs(cb, fill));
+}
+
+
 RefMbs::RefMbs(PCSTR psz, size_t cb)
     : RefObj()
+    , m_cp(CP_ACP)
     , m_len(cb)
     , m_buf()
 {
@@ -171,6 +178,7 @@ RefMbs::RefMbs(PCSTR psz, size_t cb)
 
 RefMbs::RefMbs(PCSTR pszFormat, va_list argList, size_t cb)
     : RefObj()
+    , m_cp(CP_ACP)
     , m_len(cb)
     , m_buf()
 {
@@ -183,6 +191,7 @@ RefMbs::RefMbs(PCSTR pszFormat, va_list argList, size_t cb)
 
 RefMbs::RefMbs(PCSTR psz1, size_t cb1, PCSTR psz2, size_t cb2)
     : RefObj()
+    , m_cp(CP_ACP)
     , m_len(cb1 + cb2)
     , m_buf()
 {
@@ -194,6 +203,7 @@ RefMbs::RefMbs(PCSTR psz1, size_t cb1, PCSTR psz2, size_t cb2)
 
 RefMbs::RefMbs(PCSTR psz1, size_t cb1, PCSTR pszFormat, va_list argList, size_t cb2)
     : RefObj()
+    , m_cp(CP_ACP)
     , m_len(cb1 + cb2)
     , m_buf()
 {
@@ -207,6 +217,7 @@ RefMbs::RefMbs(PCSTR psz1, size_t cb1, PCSTR pszFormat, va_list argList, size_t 
 
 RefMbs::RefMbs(UINT cp, PCWSTR psz, int cch, int cb)
     : RefObj()
+    , m_cp(cp)
     , m_len(cb)
     , m_buf()
 {
@@ -220,6 +231,7 @@ RefMbs::RefMbs(UINT cp, PCWSTR psz, int cch, int cb)
 
 RefMbs::RefMbs(StringOptions option, PCSTR psz, size_t cb)
     : RefObj()
+    , m_cp(CP_ACP)
     , m_len(cb)
     , m_buf()
 {
@@ -247,6 +259,7 @@ RefMbs::RefMbs(StringOptions option, PCSTR psz, size_t cb)
 
 RefMbs::RefMbs(StringOptions option, PCSTR psz, va_list argList, size_t cb)
     : RefObj()
+    , m_cp(CP_ACP)
     , m_len(cb)
     , m_buf()
 {
@@ -271,9 +284,20 @@ RefMbs::RefMbs(StringOptions option, PCSTR psz, va_list argList, size_t cb)
 }
 
 
+RefMbs::RefMbs(size_t cb, CHAR fill)
+    : RefObj()
+    , m_cp(CP_ACP)
+    , m_len(cb)
+    , m_buf()
+{
+    memset(&m_buf[0], fill, m_len);
+    m_buf[m_len] = '\0';
+}
+
+
 RefMbs::~RefMbs()
 {
-    DBGPUT(L"RefMbs::dtor@%p: %s", this, m_buf);
+    DBGPUT(m_cp, "RefMbs::dtor@%p: %s", this, m_buf);
 }
 
 
@@ -281,4 +305,10 @@ void RefMbs::ZeroFill()
 {
     memset(&m_buf[0], '\0', m_len);
     m_len = 0;
+}
+
+
+void RefMbs::SetCodePage(UINT uCodePage)
+{
+    m_cp = uCodePage;
 }

@@ -17,6 +17,7 @@ namespace hnrt
         StringAcp(PCSTR, va_list);
         StringAcp(StringOptions, PCSTR, ...);
         StringAcp(PCSTR, PCSTR);
+        StringAcp(size_t, CHAR);
         StringAcp(PCWSTR, INT_PTR = -1);
         ~StringAcp();
         StringAcp& ZeroFill();

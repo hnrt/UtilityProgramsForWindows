@@ -18,6 +18,7 @@ namespace hnrt
         virtual ~RefMbs();
         void operator =(const RefMbs&) = delete;
         void ZeroFill();
+        void SetCodePage(UINT);
         size_t get_len() const;
 
         __declspec(property(get = get_len)) size_t Len;
@@ -31,7 +32,9 @@ namespace hnrt
         RefMbs(UINT, PCWSTR, int, int);
         RefMbs(StringOptions, PCSTR, size_t);
         RefMbs(StringOptions, PCSTR, va_list, size_t);
+        RefMbs(size_t, CHAR);
 
+        UINT m_cp;
         size_t m_len;
         CHAR m_buf[1];
 
@@ -46,6 +49,7 @@ namespace hnrt
         static PCSTR Create(UINT, PCWSTR, INT_PTR = -1);
         static PCSTR Create(StringOptions, PCSTR);
         static PCSTR Create(StringOptions, PCSTR, va_list);
+        static PCSTR Create(size_t, CHAR);
     };
 
     inline size_t RefMbs::get_len() const

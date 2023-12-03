@@ -192,6 +192,7 @@
     <ClInclude Include="inc\hnrt\Array.h" />
     <ClInclude Include="inc\hnrt\Base64.h" />
     <ClInclude Include="inc\hnrt\BCryptAlgHandle.h" />
+    <ClInclude Include="inc\hnrt\BCryptHandle.h" />
     <ClInclude Include="inc\hnrt\BCryptHashHandle.h" />
     <ClInclude Include="inc\hnrt\BCryptKeyHandle.h" />
     <ClInclude Include="inc\hnrt\Buffer.h" />
@@ -202,6 +203,7 @@
     <ClInclude Include="inc\hnrt\CommandLine.h" />
     <ClInclude Include="inc\hnrt\CommandTemplate.h" />
     <ClInclude Include="inc\hnrt\CoreLibrary.h" />
+    <ClInclude Include="inc\hnrt\CryptographyException.h" />
     <ClInclude Include="inc\hnrt\DataFeeder.h" />
     <ClInclude Include="inc\hnrt\Debug.h" />
     <ClInclude Include="inc\hnrt\DirectoryEntry.h" />
@@ -219,6 +221,7 @@
     <ClInclude Include="inc\hnrt\KeyboardBitMap.h" />
     <ClInclude Include="inc\hnrt\KeystrokeMessageFlags.h" />
     <ClInclude Include="inc\hnrt\KeyValueMap.h" />
+    <ClInclude Include="inc\hnrt\NoDataFeeder.h" />
     <ClInclude Include="inc\hnrt\NumberText.h" />
     <ClInclude Include="inc\hnrt\PasswordHolder.h" />
     <ClInclude Include="inc\hnrt\Path.h" />
@@ -277,12 +280,17 @@
     <ClCompile Include="src\AdapterAddressCollection.cpp" />
     <ClCompile Include="src\Args.cpp" />
     <ClCompile Include="src\Base64.cpp" />
+    <ClCompile Include="src\BCryptAlgHandle.cpp" />
+    <ClCompile Include="src\BCryptHandle.cpp" />
+    <ClCompile Include="src\BCryptHashHandle.cpp" />
+    <ClCompile Include="src\BCryptKeyHandle.cpp" />
     <ClCompile Include="src\ByteString.cpp" />
     <ClCompile Include="src\ComException.cpp" />
     <ClCompile Include="src\ComLibrary.cpp" />
     <ClCompile Include="src\CommandLine.cpp" />
     <ClCompile Include="src\CommandTemplate.cpp" />
     <ClCompile Include="src\CoreLibrary.cpp" />
+    <ClCompile Include="src\CryptographyException.cpp" />
     <ClCompile Include="src\Debug.cpp" />
     <ClCompile Include="src\DoubleNullTerminatedStringArray.cpp" />
     <ClCompile Include="src\ErrorMessage.cpp" />

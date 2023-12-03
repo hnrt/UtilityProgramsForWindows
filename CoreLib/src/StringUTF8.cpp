@@ -26,6 +26,16 @@ inline PCSTR AddRef(PCSTR psz)
 }
 
 
+inline PCSTR SetUTF8(PCSTR psz)
+{
+    if (psz)
+    {
+        RefMbs::Get(psz).SetCodePage(CP_UTF8);
+    }
+    return psz;
+}
+
+
 inline void Release(PCSTR psz)
 {
     if (psz)
@@ -42,25 +52,19 @@ StringUTF8::StringUTF8()
 
 
 StringUTF8::StringUTF8(const StringUTF8& other)
-    : m_psz(AddRef(other.m_psz))
+    : m_psz(SetUTF8(AddRef(other.m_psz)))
 {
 }
 
 
 StringUTF8::StringUTF8(PCSTR psz, INT_PTR cb)
-    : m_psz(RefMbs::Create(psz, cb))
+    : m_psz(SetUTF8(RefMbs::Create(psz, cb)))
 {
 }
 
 
 StringUTF8::StringUTF8(PCWSTR psz, INT_PTR cch)
     : m_psz(RefMbs::Create(CP_UTF8, psz, cch))
-{
-}
-
-
-StringUTF8::StringUTF8(RefMbs* ptr)
-    : m_psz(RefMbs::Get(ptr))
 {
 }
 

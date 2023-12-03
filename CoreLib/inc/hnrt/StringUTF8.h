@@ -36,8 +36,6 @@ namespace hnrt
 
     private:
 
-        StringUTF8(RefMbs*);
-
         PCSTR m_psz;
     };
 

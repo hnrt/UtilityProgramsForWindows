@@ -159,6 +159,12 @@ PCWSTR RefStr::Create(StringOptions option, PCWSTR psz, va_list argList)
 }
 
 
+PCWSTR RefStr::Create(size_t cch, WCHAR fill)
+{
+    return Get(new (cch) RefStr(cch, fill));
+}
+
+
 RefStr::RefStr(PCWSTR psz, size_t cch)
     : RefObj()
     , m_len(cch)
@@ -268,6 +274,16 @@ RefStr::RefStr(StringOptions option, PCWSTR psz, va_list argList, size_t cch)
     default:
         throw Exception(L"RefStr::Create(StringOptions,PCWSTR,va_list,size_t) failed.");
     }
+}
+
+
+RefStr::RefStr(size_t cch, WCHAR fill)
+    : RefObj()
+    , m_len(cch)
+    , m_buf()
+{
+    wmemset(&m_buf[0], fill, m_len);
+    m_buf[m_len] = L'\0';
 }
 
 

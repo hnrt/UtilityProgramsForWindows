@@ -13,6 +13,10 @@ namespace hnrt
 
         static void Put(PCWSTR pszFormat, ...);
         static void VaPut(PCWSTR pszFormat, va_list argList);
+        static void Put(PCSTR pszFormat, ...);
+        static void VaPut(PCSTR pszFormat, va_list argList);
+        static void Put(UINT cp, PCSTR pszFormat, ...);
+        static void VaPut(INT cp, PCSTR pszFormat, va_list argList);
     };
 
     class DebugFunc

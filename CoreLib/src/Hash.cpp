@@ -1,212 +1,137 @@
 #include "pch.h"
 #include "hnrt/Hash.h"
-#include "hnrt/Exception.h"
+#include "hnrt/BCryptAlgHandle.h"
+#include "hnrt/BCryptHashHandle.h"
+#include "hnrt/CryptographyException.h"
+#include "hnrt/Interlocked.h"
 #include "hnrt/Heap.h"
 #include "hnrt/StringBuffer.h"
-
-
-#ifndef STATUS_SUCCESS
-#define STATUS_SUCCESS                   ((NTSTATUS)0x00000000L)
-#endif
-
-
-#pragma comment(lib, "Bcrypt")
 
 
 using namespace hnrt;
 
 
 Hash::Hash()
-    : m_pszAlgId(L"")
-    , m_hAlg()
-    , m_hHash()
-    , m_pValue(nullptr)
+    : m_pszAlgorithm(nullptr)
+    , m_pDataFeeder(nullptr)
     , m_dwValueLength(0UL)
-    , m_psz(nullptr)
-{
-}
-
-
-Hash::Hash(PCWSTR pszAlgId)
-	: m_pszAlgId(pszAlgId)
-    , m_hAlg()
-    , m_hHash()
-	, m_pValue(nullptr)
-	, m_dwValueLength(0UL)
-	, m_psz(nullptr)
-{
-    NTSTATUS status = BCryptOpenAlgorithmProvider(&m_hAlg, pszAlgId, NULL, 0);
-    if (status != STATUS_SUCCESS)
-    {
-        throw Exception(L"BCryptOpenAlgorithmProvider(%s) failed(%ld).", pszAlgId, status);
-    }
-
-    DWORD dwObjectLength = 0UL;
-    ULONG objectLength = 0UL;
-    status = BCryptGetProperty(m_hAlg, BCRYPT_OBJECT_LENGTH, reinterpret_cast<PUCHAR>(&dwObjectLength), sizeof(dwObjectLength), &objectLength, 0);
-    if (status != STATUS_SUCCESS)
-    {
-        m_hAlg.Close();
-        throw Exception(L"BCryptGetProperty(%s,BCRYPT_OBJECT_LENGTH) failed(%ld).", pszAlgId, status);
-    }
-
-    ULONG valueLength = 0UL;
-    status = BCryptGetProperty(m_hAlg, BCRYPT_HASH_LENGTH, reinterpret_cast<PUCHAR>(&m_dwValueLength), sizeof(m_dwValueLength), &valueLength, 0);
-    if (status != STATUS_SUCCESS)
-    {
-        m_hAlg.Close();
-        throw Exception(L"BCryptGetProperty(%s,BCRYPT_HASH_LENGTH) failed(%ld).", pszAlgId, status);
-    }
-
-    status = BCryptCreateHash(m_hAlg, &m_hHash, m_hHash.AllocateObject(dwObjectLength), dwObjectLength, NULL, 0, 0);
-    if (status != STATUS_SUCCESS)
-    {
-        m_hAlg.Close();
-        m_hHash.AllocateObject(0UL);
-        throw Exception(L"BCryptCreateHash(%s) failed(%ld).", pszAlgId, status);
-    }
-}
-
-
-Hash::Hash(const Hash& src)
-    : m_pszAlgId(src.m_pszAlgId)
-    , m_hAlg()
-    , m_hHash()
     , m_pValue(nullptr)
-    , m_dwValueLength(src.m_dwValueLength)
-    , m_psz(nullptr)
+    , m_sz()
 {
-    if (!src.m_pValue)
-    {
-        throw Exception(L"Hash(%s)::Hash: Source not computed yet.", m_pszAlgId);
-    }
+}
 
-    m_pValue = new BYTE[src.m_dwValueLength];
-    memcpy_s(m_pValue, m_dwValueLength, src.m_pValue, src.m_dwValueLength);
 
-    if (src.m_psz)
-    {
-        size_t size = wcslen(src.m_psz) + 1;
-        m_psz = Allocate<WCHAR>(size);
-        wmemcpy_s(m_psz, size, src.m_psz, size);
-    }
+Hash::Hash(PCWSTR pszAlgorithm, DataFeeder& dataFeeder)
+	: m_pszAlgorithm(pszAlgorithm)
+    , m_pDataFeeder(&dataFeeder)
+    , m_dwValueLength(0UL)
+    , m_pValue(nullptr)
+	, m_sz()
+{
+}
+
+
+Hash::Hash(const Hash& other)
+    : m_pszAlgorithm(other.m_pszAlgorithm)
+    , m_pDataFeeder(other.m_pDataFeeder)
+    , m_dwValueLength(other.m_dwValueLength)
+    , m_pValue(other.m_dwValueLength ? new BYTE[other.m_dwValueLength] : nullptr)
+    , m_sz(other.m_sz)
+{
+    memcpy_s(m_pValue, m_dwValueLength, other.m_pValue, other.m_dwValueLength);
 }
 
 
 Hash::~Hash()
 {
-	delete[] m_pValue;
-
-    free(m_psz);
+    delete[] Interlocked<PUCHAR>::ExchangePointer(&m_pValue, nullptr);
 }
 
 
-void Hash::operator =(const Hash& src)
+void Hash::operator =(const Hash& other)
 {
-    if (!src.m_pValue)
-    {
-        throw Exception(L"Hash(%s)::operator =: Source not computed yet.", m_pszAlgId);
-    }
-
-    if (wcscmp(m_pszAlgId, src.m_pszAlgId))
-    {
-        m_pszAlgId = src.m_pszAlgId;
-        if (m_dwValueLength != src.m_dwValueLength)
-        {
-            delete[] m_pValue;
-            m_pValue = new BYTE[src.m_dwValueLength];
-            m_dwValueLength = src.m_dwValueLength;
-        }
-    }
-
-    memcpy_s(m_pValue, m_dwValueLength, src.m_pValue, src.m_dwValueLength);
-
-    if (src.m_psz)
-    {
-        size_t size = wcslen(src.m_psz) + 1;
-        m_psz = Allocate(m_psz, size);
-        wmemcpy_s(m_psz, size, src.m_psz, size);
-    }
-    else
-    {
-        free(m_psz);
-        m_psz = nullptr;
-    }
+    m_pszAlgorithm = other.m_pszAlgorithm;
+    m_pDataFeeder = other.m_pDataFeeder;
+    m_dwValueLength = other.m_dwValueLength;
+    delete[] Interlocked<PUCHAR>::ExchangePointer(&m_pValue, other.m_dwValueLength ? new BYTE[other.m_dwValueLength] : nullptr);
+    m_sz = other.m_sz;
+    memcpy_s(m_pValue, m_dwValueLength, other.m_pValue, other.m_dwValueLength);
 }
 
 
 void Hash::Close()
 {
-    m_pszAlgId = L"";
-    m_hAlg.Close();
-    m_hHash.Close();
-    m_hHash.AllocateObject(0UL);
-    delete[] m_pValue;
-    m_pValue = nullptr;
     m_dwValueLength = 0UL;
-    free(m_psz);
-    m_psz = nullptr;
+    delete[] Interlocked<PUCHAR>::ExchangePointer(&m_pValue, nullptr);
+    m_sz = String::Empty;
 }
 
 
-void Hash::Compute(DataFeeder& rDataFeeder)
+void Hash::Compute() const
 {
-    if (m_pValue)
+    BCryptAlgHandle hAlg;
+    BCryptHashHandle hHash;
+    hAlg.Open(m_pszAlgorithm);
+    DWORD dwValueLength = hAlg.HashLength;
+    delete[] Interlocked<PUCHAR>::ExchangePointer(&m_pValue, new BYTE[dwValueLength]);
+    hHash.Open(hAlg);
+    if (m_pDataFeeder)
     {
-        throw Exception(L"Hash(%s)::Compute: Already computed.", m_pszAlgId);
-    }
-    NTSTATUS status;
-    while (rDataFeeder.HasNext())
-    {
-        status = BCryptHashData(m_hHash, rDataFeeder.Data, rDataFeeder.DataLength, 0);
-        if (status != STATUS_SUCCESS)
+        while (m_pDataFeeder->HasNext())
         {
-            throw Exception(L"BCryptHashData(%s) failed(%ld).", m_pszAlgId, status);
+            hHash.Feed(m_pDataFeeder->Data, m_pDataFeeder->DataLength);
         }
     }
-    m_pValue = new BYTE[m_dwValueLength];
-    status = BCryptFinishHash(m_hHash, m_pValue, m_dwValueLength, 0);
-    if (status != STATUS_SUCCESS)
-    {
-        memset(m_pValue, 0, m_dwValueLength);
-        throw Exception(L"BCryptFinishHash(%s) failed(%ld).", m_pszAlgId, status);
-    }
-
+    hHash.Finalize(m_pValue, dwValueLength);
+    m_dwValueLength = dwValueLength;
 }
 
 
-PCWSTR Hash::get_Text() const
+const BYTE* Hash::get_Value() const
 {
-    if (!m_psz)
+    if (!m_dwValueLength)
     {
-        if (!m_pValue)
+        Compute();
+    }
+    return m_pValue;
+}
+
+
+DWORD Hash::get_ValueLength() const
+{
+    if (!m_dwValueLength)
+    {
+        Compute();
+    }
+    return m_dwValueLength;
+}
+
+
+const String& Hash::get_Text() const
+{
+    if (!m_sz.Len)
+    {
+        if (!m_dwValueLength)
         {
-            throw Exception(L"Hash(%s)::Compute: Not computed yet.", m_pszAlgId);
+            Compute();
         }
-        StringBuffer sb(m_dwValueLength * 2ULL + 1ULL);
+        DWORD dwLength = m_dwValueLength * 2;
+        m_sz = String(dwLength, L' ');
+        PWSTR psz = const_cast<PWSTR>(m_sz.Ptr);
         for (DWORD dwIndex = 0; dwIndex < m_dwValueLength; dwIndex++)
         {
             static const WCHAR hex[] = L"0123456789abcdef";
-            sb.AppendFormat(L"%c%c", hex[(m_pValue[dwIndex] >> (4 * 1)) & 0xF], hex[(m_pValue[dwIndex] >> (4 * 0)) & 0xF]);
+            psz[dwIndex * 2 + 0] = hex[(m_pValue[dwIndex] >> (4 * 1)) & 0xF];
+            psz[dwIndex * 2 + 1] = hex[(m_pValue[dwIndex] >> (4 * 0)) & 0xF];
         }
-        const_cast<Hash*>(this)->m_psz = sb.Detach();
     }
-	return m_psz;
+	return m_sz;
 }
 
 
 MD5Hash::MD5Hash(DataFeeder& rDataFeeder)
-    : Hash(BCRYPT_MD5_ALGORITHM)
+    : Hash(BCRYPT_MD5_ALGORITHM, rDataFeeder)
 {
-    try
-    {
-        Compute(rDataFeeder);
-    }
-    catch (Exception e)
-    {
-        Close();
-        throw e;
-    }
 }
 
 
@@ -223,17 +148,8 @@ void MD5Hash::operator =(const MD5Hash& src)
 
 
 SHA1Hash::SHA1Hash(DataFeeder& rDataFeeder)
-    : Hash(BCRYPT_SHA1_ALGORITHM)
+    : Hash(BCRYPT_SHA1_ALGORITHM, rDataFeeder)
 {
-    try
-    {
-        Compute(rDataFeeder);
-    }
-    catch (Exception e)
-    {
-        Close();
-        throw e;
-    }
 }
 
 
@@ -250,17 +166,8 @@ void SHA1Hash::operator =(const SHA1Hash& src)
 
 
 SHA256Hash::SHA256Hash(DataFeeder& rDataFeeder)
-    : Hash(BCRYPT_SHA256_ALGORITHM)
+    : Hash(BCRYPT_SHA256_ALGORITHM, rDataFeeder)
 {
-    try
-    {
-        Compute(rDataFeeder);
-    }
-    catch (Exception e)
-    {
-        Close();
-        throw e;
-    }
 }
 
 
@@ -277,17 +184,8 @@ void SHA256Hash::operator =(const SHA256Hash& src)
 
 
 SHA384Hash::SHA384Hash(DataFeeder& rDataFeeder)
-    : Hash(BCRYPT_SHA384_ALGORITHM)
+    : Hash(BCRYPT_SHA384_ALGORITHM, rDataFeeder)
 {
-    try
-    {
-        Compute(rDataFeeder);
-    }
-    catch (Exception e)
-    {
-        Close();
-        throw e;
-    }
 }
 
 
@@ -304,17 +202,8 @@ void SHA384Hash::operator =(const SHA384Hash& src)
 
 
 SHA512Hash::SHA512Hash(DataFeeder& rDataFeeder)
-    : Hash(BCRYPT_SHA512_ALGORITHM)
+    : Hash(BCRYPT_SHA512_ALGORITHM, rDataFeeder)
 {
-    try
-    {
-        Compute(rDataFeeder);
-    }
-    catch (Exception e)
-    {
-        Close();
-        throw e;
-    }
 }
 
 

@@ -65,16 +65,8 @@ namespace hnrt
     inline void Buffer<T>::Resize(size_t len)
     {
         delete[] m_ptr;
-        if (len)
-        {
-            m_ptr = new T[len];
-            m_len = len;
-        }
-        else
-        {
-            m_ptr = nullptr;
-            m_len = 0;
-        }
+        m_ptr = len ? new T[len] : nullptr;
+        m_len = len;
     }
 
     template<typename T>

@@ -4,6 +4,7 @@
 #include "hnrt/Secret.h"
 #include "hnrt/SecretBuffer.h"
 #include "hnrt/BCryptAlgHandle.h"
+#include "hnrt/RefPtr.h"
 
 
 namespace hnrt
@@ -37,8 +38,7 @@ namespace hnrt
 
         unsigned char m_IV[SECRET_IV_LENGTH];
         BCryptAlgHandle m_hAlg;
-        SecretBuffer m_Object;
-        SecretBuffer m_KeyBlob;
-        SecretBuffer m_Processed;
+        RefPtr<SecretBuffer> m_pKeyBlob;
+        RefPtr<SecretBuffer> m_Processed;
     };
 }

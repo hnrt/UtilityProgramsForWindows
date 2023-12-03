@@ -310,7 +310,7 @@ void ClipDialogBox::OnSelectionChange()
 		}
 		String szItem = ListBoxGetText(IDC_CLIP_FILENAME_LIST, index);
 		int nameLen = szItem.IndexOf(L' ');
-		String szName(szItem, nameLen >= 0 ? nameLen : szItem.Len);
+		String szName(szItem.Ptr, nameLen >= 0 ? nameLen : szItem.Len);
 		String szFilePath = Path::Combine(m_szDirectoryPath, szName.Ptr);
 		ClipFile file(szFilePath);
 		String item(PRINTF, L"%s %s", szName.Ptr, file.Header.Ptr);

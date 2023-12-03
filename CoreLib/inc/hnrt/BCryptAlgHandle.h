@@ -1,37 +1,49 @@
 #pragma once
 
-
-#include <Windows.h>
-#include <bcrypt.h>
-
+#include "hnrt/BCryptHandle.h"
 
 namespace hnrt
 {
     class BCryptAlgHandle
+        : protected BCryptHandle
     {
     public:
 
-        BCryptAlgHandle(BCRYPT_ALG_HANDLE h = nullptr);
+        BCryptAlgHandle();
         BCryptAlgHandle(const BCryptAlgHandle&) = delete;
-        ~BCryptAlgHandle();
+        virtual ~BCryptAlgHandle();
         void operator =(const BCryptAlgHandle&) = delete;
-        void Close();
         operator BCRYPT_ALG_HANDLE() const;
-        BCRYPT_ALG_HANDLE* operator &();
+        void Open(PCWSTR);
+        void Close();
+        String get_AlgorithmName() const;
+        DWORD get_ObjectLength() const;
+        DWORD get_HashLength() const;
+        DWORD get_BlockLength() const;
+        std::vector<DWORD> get_BlockSizeList() const;
+        std::vector<DWORD> get_KeyLengths() const;
+        void set_ChainingMode(PCWSTR) const;
 
-    private:
-
-        BCRYPT_ALG_HANDLE m_h;
+        __declspec(property(get = get_AlgorithmName)) String AlgorithmName;
+        __declspec(property(get = get_ObjectLength)) DWORD ObjectLength;
+        __declspec(property(get = get_HashLength)) DWORD HashLength;
+        __declspec(property(get = get_BlockLength)) DWORD BlockLength;
+        __declspec(property(get = get_BlockSizeList)) std::vector<DWORD> BlockSizeList;
+        __declspec(property(get = get_KeyLengths)) std::vector<DWORD> KeyLengths;
+        __declspec(property(put = set_ChainingMode)) PCWSTR ChainingMode;
     };
 
-    inline BCryptAlgHandle::BCryptAlgHandle(BCRYPT_ALG_HANDLE h)
-        : m_h(h)
+    inline BCryptAlgHandle::BCryptAlgHandle()
+        : BCryptHandle()
     {
     }
 
     inline BCryptAlgHandle::~BCryptAlgHandle()
     {
-        Close();
+        if (m_h)
+        {
+            Close();
+        }
     }
 
     inline BCryptAlgHandle::operator BCRYPT_ALG_HANDLE() const
@@ -39,18 +51,38 @@ namespace hnrt
         return m_h;
     }
 
-    inline BCRYPT_ALG_HANDLE* BCryptAlgHandle::operator &()
+    inline String BCryptAlgHandle::get_AlgorithmName() const
     {
-        Close();
-        return &m_h;
+        return GetPropertyString(BCRYPT_ALGORITHM_NAME);
     }
 
-    inline void BCryptAlgHandle::Close()
+    inline DWORD BCryptAlgHandle::get_ObjectLength() const
     {
-        if (m_h)
-        {
-            BCryptCloseAlgorithmProvider(m_h, 0);
-            m_h = nullptr;
-        }
+        return GetPropertyDWORD(BCRYPT_OBJECT_LENGTH);
+    }
+
+    inline DWORD BCryptAlgHandle::get_HashLength() const
+    {
+        return GetPropertyDWORD(BCRYPT_HASH_LENGTH);
+    }
+
+    inline DWORD BCryptAlgHandle::get_BlockLength() const
+    {
+        return GetPropertyDWORD(BCRYPT_BLOCK_LENGTH);
+    }
+
+    inline std::vector<DWORD> BCryptAlgHandle::get_BlockSizeList() const
+    {
+        return GetPropertyArrayDWORD(BCRYPT_BLOCK_SIZE_LIST);
+    }
+
+    inline std::vector<DWORD> BCryptAlgHandle::get_KeyLengths() const
+    {
+        return GetPropertyKeyLengths();
+    }
+
+    inline void BCryptAlgHandle::set_ChainingMode(PCWSTR pszChainingMode) const
+    {
+        SetProperty(BCRYPT_CHAINING_MODE, pszChainingMode);
     }
 }

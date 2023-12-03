@@ -27,7 +27,7 @@ namespace hnrt
 	};
 
 	inline DataFeeder::DataFeeder(DWORD dwCapacity)
-		: m_pBuffer(new BYTE[dwCapacity])
+		: m_pBuffer(dwCapacity ? new BYTE[dwCapacity] : nullptr)
 		, m_dwCapacity(dwCapacity)
 		, m_dwRead(0)
 	{

@@ -17,6 +17,7 @@ namespace hnrt
         String(PCWSTR, va_list);
         String(StringOptions, PCWSTR, ...);
         String(PCWSTR, PCWSTR);
+        String(size_t, WCHAR);
         String(UINT, PCSTR, INT_PTR = -1);
         ~String();
         String& ZeroFill();

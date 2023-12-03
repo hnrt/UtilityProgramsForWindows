@@ -1,7 +1,6 @@
 #pragma once
 
-#include "hnrt/BCryptAlgHandle.h"
-#include "hnrt/BCryptHashHandle.h"
+#include "hnrt/String.h"
 #include "hnrt/DataFeeder.h"
 
 namespace hnrt
@@ -11,40 +10,29 @@ namespace hnrt
 	public:
 
 		Hash();
-		Hash(PCWSTR pszAlgId);
-		Hash(const Hash& src);
-		~Hash();
-		void operator =(const Hash& src);
+		Hash(const Hash&);
+		virtual ~Hash();
+		void operator =(const Hash&);
 		void Close();
 		const BYTE* get_Value() const;
 		DWORD get_ValueLength() const;
-		PCWSTR get_Text() const;
+		const String& get_Text() const;
 
 		__declspec(property(get = get_Value)) const BYTE* Value;
 		__declspec(property(get = get_ValueLength)) DWORD ValueLength;
-		__declspec(property(get = get_Text)) PCWSTR Text;
+		__declspec(property(get = get_Text)) const String& Text;
 
 	protected:
 
-		void Compute(DataFeeder& rDataFeeder);
+		Hash(PCWSTR, DataFeeder&);
+		void Compute() const;
 
-		PCWSTR m_pszAlgId;
-		BCryptAlgHandle m_hAlg;
-		BCryptHashHandle m_hHash;
-		PBYTE m_pValue;
-		DWORD m_dwValueLength;
-		PWSTR m_psz;
+		PCWSTR m_pszAlgorithm;
+		DataFeeder* m_pDataFeeder;
+		mutable DWORD m_dwValueLength;
+		mutable PBYTE m_pValue;
+		mutable String m_sz;
 	};
-
-	inline const BYTE* Hash::get_Value() const
-	{
-		return m_pValue;
-	}
-
-	inline DWORD Hash::get_ValueLength() const
-	{
-		return m_dwValueLength;
-	}
 
 	class MD5Hash
 		: public Hash

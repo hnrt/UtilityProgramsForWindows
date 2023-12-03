@@ -1,5 +1,9 @@
 #include "pch.h"
-#include <atlbase.h>
+#ifndef _NTDEF_
+typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
+typedef NTSTATUS* PNTSTATUS;
+#endif
+#include <atlcomcli.h>
 #include <list>
 #include "UiAutomationInternal.h"
 #include "hnrt/String.h"

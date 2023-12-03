@@ -103,6 +103,12 @@ String::String(PCWSTR psz1, PCWSTR psz2)
 }
 
 
+String::String(size_t cch, WCHAR fill)
+    : m_psz(RefStr::Create(cch, fill))
+{
+}
+
+
 String::String(UINT cp, PCSTR psz, INT_PTR cb)
     : m_psz(RefStr::Create(cp, psz, cb))
 {

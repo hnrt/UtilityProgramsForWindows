@@ -103,6 +103,12 @@ StringAcp::StringAcp(PCSTR psz1, PCSTR psz2)
 }
 
 
+StringAcp::StringAcp(size_t cb, CHAR fill)
+    : m_psz(RefMbs::Create(cb, fill))
+{
+}
+
+
 StringAcp::StringAcp(PCWSTR psz, INT_PTR cch)
     : m_psz(RefMbs::Create(CP_ACP, psz, cch))
 {

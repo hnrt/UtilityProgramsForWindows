@@ -169,6 +169,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Base64Tests.cpp" />
+    <ClCompile Include="CryptographyTests.cpp" />
+    <ClCompile Include="HashTests.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -177,6 +179,7 @@
     </ClCompile>
     <ClCompile Include="PathTests.cpp" />
     <ClCompile Include="ResourceStringTests.cpp" />
+    <ClCompile Include="SecretBufferTests.cpp" />
     <ClCompile Include="SecretTests.cpp" />
     <ClCompile Include="StringTests.cpp" />
     <ClCompile Include="VersionInfoTests.cpp" />

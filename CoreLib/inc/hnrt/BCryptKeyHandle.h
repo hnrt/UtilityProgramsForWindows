@@ -1,38 +1,47 @@
 #pragma once
 
-
-#include <Windows.h>
-#include <bcrypt.h>
-
+#include "hnrt/BCryptHandle.h"
+#include "hnrt/RefPtr.h"
+#include "hnrt/SecretBuffer.h"
 
 namespace hnrt
 {
+    class BCryptAlgHandle;
+
     class BCryptKeyHandle
+        : protected BCryptHandle
     {
     public:
 
-        BCryptKeyHandle(BCRYPT_KEY_HANDLE h = nullptr);
+        BCryptKeyHandle();
         BCryptKeyHandle(const BCryptKeyHandle&) = delete;
-        ~BCryptKeyHandle();
+        virtual ~BCryptKeyHandle();
         void operator =(const BCryptKeyHandle&) = delete;
         operator BCRYPT_KEY_HANDLE() const;
-        BCRYPT_KEY_HANDLE* operator &();
+        void Generate(const BCryptAlgHandle&, void*, size_t);
+        void Import(const BCryptAlgHandle&, RefPtr<SecretBuffer>);
+        void Close();
+        RefPtr<SecretBuffer> Export() const;
+        RefPtr<SecretBuffer> Encrypt(void*, size_t, void*, size_t);
+        RefPtr<SecretBuffer> Decrypt(void*, size_t, void*, size_t);
+        DWORD get_KeyLength() const;
 
-    private:
+        __declspec(property(get = get_KeyLength)) DWORD KeyLength;
 
-        BCRYPT_KEY_HANDLE m_h;
+        PUCHAR m_pObject;
     };
 
-    inline BCryptKeyHandle::BCryptKeyHandle(BCRYPT_KEY_HANDLE h)
-        : m_h(h)
+    inline BCryptKeyHandle::BCryptKeyHandle()
+        : BCryptHandle()
+        , m_pObject(nullptr)
     {
     }
 
     inline BCryptKeyHandle::~BCryptKeyHandle()
     {
-        if (m_h)
+        if (m_h || m_pObject)
         {
-            BCryptDestroyKey(m_h);
+            Close();
         }
     }
 
@@ -41,13 +50,8 @@ namespace hnrt
         return m_h;
     }
 
-    inline BCRYPT_KEY_HANDLE* BCryptKeyHandle::operator &()
+    inline DWORD BCryptKeyHandle::get_KeyLength() const
     {
-        if (m_h)
-        {
-            BCryptDestroyKey(m_h);
-            m_h = nullptr;
-        }
-        return &m_h;
+        return GetPropertyDWORD(BCRYPT_KEY_LENGTH);
     }
 }
