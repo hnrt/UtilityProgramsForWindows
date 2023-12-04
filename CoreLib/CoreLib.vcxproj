@@ -225,6 +225,7 @@
     <ClInclude Include="inc\hnrt\NumberText.h" />
     <ClInclude Include="inc\hnrt\PasswordHolder.h" />
     <ClInclude Include="inc\hnrt\Path.h" />
+    <ClInclude Include="inc\hnrt\RefBin.h" />
     <ClInclude Include="inc\hnrt\RefMbs.h" />
     <ClInclude Include="inc\hnrt\RefObj.h" />
     <ClInclude Include="inc\hnrt\RefStr.h" />
@@ -233,7 +234,6 @@
     <ClInclude Include="inc\hnrt\ResourceReader.h" />
     <ClInclude Include="inc\hnrt\ResourceString.h" />
     <ClInclude Include="inc\hnrt\Secret.h" />
-    <ClInclude Include="inc\hnrt\SecretBuffer.h" />
     <ClInclude Include="inc\hnrt\SecretFactory.h" />
     <ClInclude Include="inc\hnrt\Service.h" />
     <ClInclude Include="inc\hnrt\SharedMemory.h" />
@@ -311,13 +311,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\RefBin.cpp" />
     <ClCompile Include="src\RefMbs.cpp" />
     <ClCompile Include="src\RefStr.cpp" />
     <ClCompile Include="src\RegistryKey.cpp" />
     <ClCompile Include="src\RegistryValue.cpp" />
     <ClCompile Include="src\ResourceReader.cpp" />
     <ClCompile Include="src\ResourceString.cpp" />
-    <ClCompile Include="src\SecretBuffer.cpp" />
     <ClCompile Include="src\SecretFactory.cpp" />
     <ClCompile Include="src\SecretInternal.cpp" />
     <ClCompile Include="src\Service.cpp" />

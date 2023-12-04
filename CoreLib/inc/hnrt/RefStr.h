@@ -14,6 +14,7 @@ namespace hnrt
 
         void* operator new(size_t, size_t);
         void operator delete(void*);
+        void operator delete(void*, size_t);
         RefStr(const RefStr&) = delete;
         virtual ~RefStr();
         void operator =(const RefStr&) = delete;
@@ -34,7 +35,7 @@ namespace hnrt
         RefStr(size_t, WCHAR);
 
         size_t m_len;
-        WCHAR m_buf[1];
+        WCHAR m_buf[4];
 
     public:
 

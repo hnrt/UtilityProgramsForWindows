@@ -103,9 +103,9 @@ namespace UnitTestCoreLib
 				StringUTF8 src("May the Force be with you!");
 				Buffer<BYTE> buf(src.Len);
 				memcpy_s(buf, buf.Len, src, src.Len);
-				RefPtr<SecretBuffer> encrypted = hKey.Encrypt(buf, buf.Len, iv, iv.Len);
+				ByteString encrypted = hKey.Encrypt(buf, buf.Len, iv, iv.Len);
 				Base64Encoder e;
-				e.Append(encrypted->Ptr, encrypted->Len);
+				e.Append(encrypted, encrypted.Len);
 				e.End();
 				Debug::Put(L"CryptographyTest03: encrypted=%s", e.Ptr);
 				// echo -n "May the Force be with you!" | openssl aes-256-cbc -K KEY -iv IV -base64
@@ -113,8 +113,8 @@ namespace UnitTestCoreLib
 				Base64Decoder d;
 				Assert::IsTrue(d.Parse(e));
 				memcpy_s(iv, iv.Len, ivHash.Value, ivHash.ValueLength);
-				RefPtr<SecretBuffer> decrypted = hKey.Decrypt(d.Ptr, d.Len, iv, iv.Len);
-				String dst(CP_UTF8, reinterpret_cast<PSTR>(decrypted->Ptr), src.Len);
+				ByteString decrypted = hKey.Decrypt(d.Ptr, d.Len, iv, iv.Len);
+				String dst(CP_UTF8, decrypted, src.Len);
 				Debug::Put(L"CryptographyTest03: decrypted=%s", dst);
 				Assert::AreEqual(L"May the Force be with you!", dst);
 				Debug::Put(L"CryptographyTest03: OK!");
@@ -150,9 +150,9 @@ namespace UnitTestCoreLib
 				hKey.Generate(hAlg, key, key.Len);
 				Buffer<BYTE> iv(ivHash.ValueLength);
 				memcpy_s(iv, iv.Len, ivHash.Value, ivHash.ValueLength);
-				RefPtr<SecretBuffer> decrypted = hKey.Decrypt(d.Ptr, d.Len, iv, iv.Len);
+				ByteString decrypted = hKey.Decrypt(d.Ptr, d.Len, iv, iv.Len);
 				UINT len = 5 * 3 + 1 + 6 * 3 + 1;
-				String dst(CP_UTF8, reinterpret_cast<PSTR>(decrypted->Ptr), len);
+				String dst(CP_UTF8, decrypted, len);
 				Debug::Put(L"CryptographyTest04: decrypted=%s", dst);
 				Assert::AreEqual(L"澤岻奈々子(タクシナナコ)", dst);
 				Debug::Put(L"CryptographyTest04: OK!");

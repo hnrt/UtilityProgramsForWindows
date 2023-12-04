@@ -6,19 +6,23 @@
 #include "hnrt/Debug.h"
 
 
-#pragma warning(disable:4291)
-
-
 using namespace hnrt;
 
 
 void* RefMbs::operator new(size_t size, size_t cb)
 {
-    return Malloc(size + cb);
+    size_t required = (size_t)(((RefMbs*)0)->m_buf) + (cb + 1) * sizeof(CHAR);
+    return Malloc(required > size ? required : size);
 }
 
 
 void RefMbs::operator delete(void* ptr)
+{
+    free(ptr);
+}
+
+
+void RefMbs::operator delete(void* ptr, size_t)
 {
     free(ptr);
 }

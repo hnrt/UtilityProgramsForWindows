@@ -42,7 +42,7 @@
     <ClCompile Include="CryptographyTests.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="SecretBufferTests.cpp">
+    <ClCompile Include="ByteStringTests.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

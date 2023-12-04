@@ -19,7 +19,7 @@ SecretInternal::SecretInternal()
     : Secret()
     , m_IV()
     , m_hAlg()
-    , m_pKeyBlob()
+    , m_KeyBlob()
     , m_Processed()
 {
     Initialize();
@@ -31,7 +31,7 @@ SecretInternal::SecretInternal(const unsigned char key[SECRET_KEY_LENGTH], const
     : Secret()
     , m_IV()
     , m_hAlg()
-    , m_pKeyBlob()
+    , m_KeyBlob()
     , m_Processed()
 {
     Initialize();
@@ -44,7 +44,7 @@ SecretInternal::SecretInternal(PCWSTR pszKey, PCWSTR pszIV)
     : Secret()
     , m_IV()
     , m_hAlg()
-    , m_pKeyBlob()
+    , m_KeyBlob()
     , m_Processed()
 {
     Initialize();
@@ -71,7 +71,7 @@ void SecretInternal::InitializeKeyBlob(unsigned char key[SECRET_KEY_LENGTH])
     AddSalt(key, SECRET_KEY_LENGTH, KEY_SALT);
     BCryptKeyHandle hKey;
     hKey.Generate(m_hAlg, key, SECRET_KEY_LENGTH);
-    m_pKeyBlob = hKey.Export();
+    m_KeyBlob = hKey.Export();
     memset(key, 0, SECRET_KEY_LENGTH);
 }
 
@@ -152,48 +152,48 @@ void SecretInternal::SetIV(PCWSTR psz)
 
 void SecretInternal::ClearBuffer()
 {
-    m_Processed = RefPtr<SecretBuffer>(new SecretBuffer(0));
+    m_Processed = ByteString();
 }
 
 
 void SecretInternal::Encrypt(const void* ptr, size_t len)
 {
-    SecretBuffer src(sizeof(ULONG) + len);
+    ByteString src(sizeof(ULONG) + len);
     *reinterpret_cast<ULONG*>(src.Ptr) = static_cast<ULONG>(len);
-    memcpy_s(src.Ptr + sizeof(ULONG), src.Len - sizeof(ULONG), ptr, len);
+    memcpy_s((char*)src + sizeof(ULONG), src.Len - sizeof(ULONG), ptr, len);
 
-    SecretBuffer iv(SECRET_IV_LENGTH);
-    memcpy_s(iv.Ptr, iv.Len, m_IV, SECRET_IV_LENGTH);
-    AddSalt(iv.Ptr, iv.Len, IV_SALT);
+    ByteString iv(SECRET_IV_LENGTH);
+    memcpy_s(iv, iv.Len, m_IV, SECRET_IV_LENGTH);
+    AddSalt(iv, iv.Len, IV_SALT);
 
     BCryptKeyHandle key;
-    key.Import(m_hAlg, m_pKeyBlob);
+    key.Import(m_hAlg, m_KeyBlob);
     m_Processed = key.Encrypt(src.Ptr, src.Len, iv, SECRET_IV_LENGTH);
 }
 
 
 void SecretInternal::Decrypt(const void* ptr, size_t len)
 {
-    SecretBuffer iv(SECRET_IV_LENGTH);
-    memcpy_s(iv.Ptr, iv.Len, m_IV, SECRET_IV_LENGTH);
-    AddSalt(iv.Ptr, iv.Len, IV_SALT);
+    ByteString iv(SECRET_IV_LENGTH);
+    memcpy_s(iv, iv.Len, m_IV, SECRET_IV_LENGTH);
+    AddSalt(iv, iv.Len, IV_SALT);
 
     BCryptKeyHandle key;
-    key.Import(m_hAlg, m_pKeyBlob);
-    RefPtr<SecretBuffer> pDecrypted = key.Decrypt(const_cast<void*>(ptr), len, iv, SECRET_IV_LENGTH);
+    key.Import(m_hAlg, m_KeyBlob);
+    ByteString decrypted = key.Decrypt(const_cast<void*>(ptr), len, iv, SECRET_IV_LENGTH);
 
-    m_Processed = RefPtr<SecretBuffer>(new SecretBuffer(*reinterpret_cast<ULONG*>(pDecrypted->Ptr)));
-    memcpy_s(m_Processed->Ptr, m_Processed->Len, pDecrypted->Ptr + sizeof(ULONG), m_Processed->Len);
+    m_Processed = ByteString(*reinterpret_cast<ULONG*>(decrypted.Ptr));
+    memcpy_s(m_Processed, m_Processed.Len, (char*)decrypted + sizeof(ULONG), m_Processed.Len);
 }
 
 
 const void* SecretInternal::get_Ptr() const
 {
-    return m_Processed->Ptr;
+    return m_Processed;
 }
 
 
 size_t SecretInternal::get_Len() const
 {
-    return m_Processed->Len;
+    return m_Processed.Len;
 }

@@ -179,7 +179,7 @@
     </ClCompile>
     <ClCompile Include="PathTests.cpp" />
     <ClCompile Include="ResourceStringTests.cpp" />
-    <ClCompile Include="SecretBufferTests.cpp" />
+    <ClCompile Include="ByteStringTests.cpp" />
     <ClCompile Include="SecretTests.cpp" />
     <ClCompile Include="StringTests.cpp" />
     <ClCompile Include="VersionInfoTests.cpp" />

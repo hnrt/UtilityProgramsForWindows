@@ -14,6 +14,7 @@ namespace hnrt
 
         void* operator new(size_t, size_t);
         void operator delete(void*);
+        void operator delete(void*, size_t);
         RefMbs(const RefMbs&) = delete;
         virtual ~RefMbs();
         void operator =(const RefMbs&) = delete;
@@ -36,7 +37,7 @@ namespace hnrt
 
         UINT m_cp;
         size_t m_len;
-        CHAR m_buf[1];
+        CHAR m_buf[8];
 
     public:
 
