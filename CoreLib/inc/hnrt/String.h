@@ -67,6 +67,7 @@ namespace hnrt
         static int Compare(PCWSTR psz1, PCWSTR psz2);
         static int Compare(PCWSTR psz1, PCWSTR psz2, INT_PTR cch2);
         static int Compare(PCWSTR psz1, INT_PTR cch1, PCWSTR psz2, INT_PTR cch2);
+        static String ToHex(const void*, size_t, StringOptions = LOWERCASE);
     };
 
     inline String& String::Uppercase()

@@ -17,12 +17,12 @@ namespace hnrt
         virtual ~BCryptKeyHandle();
         void operator =(const BCryptKeyHandle&) = delete;
         operator BCRYPT_KEY_HANDLE() const;
-        void Generate(const BCryptAlgHandle&, void*, size_t, ULONG = 0);
-        void Import(const BCryptAlgHandle&, const ByteString&, ULONG = 0);
+        void Generate(const BCryptAlgHandle&, void*, size_t);
+        void Import(const BCryptAlgHandle&, const ByteString&);
         void Close();
         ByteString Export() const;
-        ByteString Encrypt(void*, size_t, void*, size_t, ULONG = BCRYPT_BLOCK_PADDING);
-        ByteString Decrypt(void*, size_t, void*, size_t, ULONG = BCRYPT_BLOCK_PADDING);
+        ByteString Encrypt(void*, size_t, void* = nullptr, size_t = 0, ULONG = BCRYPT_BLOCK_PADDING);
+        ByteString Decrypt(void*, size_t, void* = nullptr, size_t = 0, ULONG = BCRYPT_BLOCK_PADDING);
         DWORD get_KeyLength() const;
 
         __declspec(property(get = get_KeyLength)) DWORD KeyLength;

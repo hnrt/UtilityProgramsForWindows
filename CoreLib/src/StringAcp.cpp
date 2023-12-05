@@ -336,3 +336,25 @@ int StringAcp::Compare(PCSTR psz1, INT_PTR cb1, PCSTR psz2, INT_PTR cb2)
         throw Exception(L"String::Compare failed.");
     }
 }
+
+
+StringAcp StringAcp::ToHex(const void* ptr, size_t len, StringOptions option)
+{
+    static const CHAR HexLU[2][16] = {
+        { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' },
+        { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' }
+    };
+    const CHAR* hex = HexLU[option == UPPERCASE ? 1 : 0];
+    StringAcp sz(len * 2, '*');
+    PCHAR pW = const_cast<PCHAR>(sz.m_psz);
+    const unsigned char* pCur = reinterpret_cast<const unsigned char*>(ptr);
+    const unsigned char* pEnd = pCur + len;
+    while (pCur < pEnd)
+    {
+        unsigned char c = *pCur++;
+        pW[0] = hex[(c >> 4) & 0xF];
+        pW[1] = hex[(c >> 0) & 0xF];
+        pW += 2;
+    }
+    return sz;
+}

@@ -180,12 +180,12 @@ ByteString ByteString::FromHex(PCWSTR psz)
         }
     }
     ByteString bs(((pCur - 1) - psz) / 2ULL);
-    unsigned char* pWrt = bs;
+    unsigned char* pW = bs;
     pCur = psz;
     c = *pCur++;
     while (c)
     {
-        unsigned short int d;
+        unsigned char d;
         if (L'A' <= c && c <= L'F')
         {
             d = 10 + c - L'A';
@@ -212,7 +212,74 @@ ByteString ByteString::FromHex(PCWSTR psz)
         {
             d |= c - L'0';
         }
-        *pWrt++ = static_cast<unsigned char>(d);
+        *pW++ = d;
+        c = *pCur++;
+    }
+    return bs;
+}
+
+
+ByteString ByteString::FromHex(PCSTR psz)
+{
+    const CHAR* pCur = psz;
+    CHAR c = *pCur++;
+    while (c)
+    {
+        if (isxdigit(c))
+        {
+            c = *pCur++;
+        }
+        else
+        {
+            throw Exception(L"ByteString::FromHex(\"%S\"): Illegal character at %zu.", psz, (pCur - 1) - psz);
+        }
+        if (isxdigit(c))
+        {
+            c = *pCur++;
+        }
+        else if (c)
+        {
+            throw Exception(L"ByteString::FromHex(\"%S\"): Illegal character at %zu.", psz, (pCur - 1) - psz);
+        }
+        else
+        {
+            throw Exception(L"ByteString::FromHex(\"%S\"): Unexpected end of string.", psz);
+        }
+    }
+    ByteString bs(((pCur - 1) - psz) / 2ULL);
+    unsigned char* pW = bs;
+    pCur = psz;
+    c = *pCur++;
+    while (c)
+    {
+        unsigned char d;
+        if ('A' <= c && c <= 'F')
+        {
+            d = 10 + c - 'A';
+        }
+        else if ('a' <= c && c <= 'f')
+        {
+            d = 10 + c - 'a';
+        }
+        else // if ('0' <= c && c <= '9')
+        {
+            d = c - '0';
+        }
+        d <<= 4;
+        c = *pCur++;
+        if ('A' <= c && c <= 'F')
+        {
+            d |= 10 + c - 'A';
+        }
+        else if ('a' <= c && c <= 'f')
+        {
+            d |= 10 + c - 'a';
+        }
+        else // if ('0' <= c && c <= '9')
+        {
+            d |= c - '0';
+        }
+        *pW++ = d;
         c = *pCur++;
     }
     return bs;

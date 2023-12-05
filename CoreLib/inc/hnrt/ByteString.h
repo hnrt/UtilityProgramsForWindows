@@ -44,6 +44,7 @@ namespace hnrt
 
         static int Compare(const ByteString&, const ByteString&);
         static ByteString FromHex(PCWSTR);
+        static ByteString FromHex(PCSTR);
     };
 
     inline bool ByteString::operator ==(const ByteString& other) const

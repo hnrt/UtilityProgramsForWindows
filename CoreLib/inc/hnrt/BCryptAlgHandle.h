@@ -22,7 +22,8 @@ namespace hnrt
         DWORD get_BlockLength() const;
         std::vector<DWORD> get_BlockSizeList() const;
         std::vector<DWORD> get_KeyLengths() const;
-        void set_ChainingMode(PCWSTR) const;
+        String get_ChainingMode() const;
+        void set_ChainingMode(String) const;
 
         __declspec(property(get = get_AlgorithmName)) String AlgorithmName;
         __declspec(property(get = get_ObjectLength)) DWORD ObjectLength;
@@ -30,7 +31,7 @@ namespace hnrt
         __declspec(property(get = get_BlockLength)) DWORD BlockLength;
         __declspec(property(get = get_BlockSizeList)) std::vector<DWORD> BlockSizeList;
         __declspec(property(get = get_KeyLengths)) std::vector<DWORD> KeyLengths;
-        __declspec(property(put = set_ChainingMode)) PCWSTR ChainingMode;
+        __declspec(property(get = get_ChainingMode, put = set_ChainingMode)) String ChainingMode;
     };
 
     inline BCryptAlgHandle::BCryptAlgHandle()
@@ -81,8 +82,13 @@ namespace hnrt
         return GetPropertyKeyLengths();
     }
 
-    inline void BCryptAlgHandle::set_ChainingMode(PCWSTR pszChainingMode) const
+    inline String BCryptAlgHandle::get_ChainingMode() const
     {
-        SetProperty(BCRYPT_CHAINING_MODE, pszChainingMode);
+        return GetPropertyString(BCRYPT_CHAINING_MODE);
+    }
+
+    inline void BCryptAlgHandle::set_ChainingMode(String szChainingMode) const
+    {
+        SetProperty(BCRYPT_CHAINING_MODE, szChainingMode);
     }
 }

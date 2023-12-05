@@ -12,7 +12,7 @@
 using namespace hnrt;
 
 
-void BCryptKeyHandle::Generate(const BCryptAlgHandle& hAlg, void* pKey, size_t cbKey, ULONG dwFlags)
+void BCryptKeyHandle::Generate(const BCryptAlgHandle& hAlg, void* pKey, size_t cbKey)
 {
     if (m_h)
     {
@@ -23,7 +23,7 @@ void BCryptKeyHandle::Generate(const BCryptAlgHandle& hAlg, void* pKey, size_t c
 
     delete[] Interlocked<PUCHAR>::ExchangePointer(&m_pObject, new BYTE[dwObjectLength]);
 
-    NTSTATUS status = BCryptGenerateSymmetricKey(hAlg, &m_h, m_pObject, dwObjectLength, reinterpret_cast<PUCHAR>(pKey), static_cast<ULONG>(cbKey), dwFlags);
+    NTSTATUS status = BCryptGenerateSymmetricKey(hAlg, &m_h, m_pObject, dwObjectLength, reinterpret_cast<PUCHAR>(pKey), static_cast<ULONG>(cbKey), 0);
     if (status != STATUS_SUCCESS)
     {
         throw CryptographyException(status, L"BCryptGenerateSymmetricKey(%p,%zu) failed with status of %s.", pKey, cbKey, BCryptErrorLabel(status));
@@ -33,7 +33,7 @@ void BCryptKeyHandle::Generate(const BCryptAlgHandle& hAlg, void* pKey, size_t c
 }
 
 
-void BCryptKeyHandle::Import(const BCryptAlgHandle& hAlg, const ByteString& keyBlob, ULONG dwFlags)
+void BCryptKeyHandle::Import(const BCryptAlgHandle& hAlg, const ByteString& keyBlob)
 {
     if (m_h)
     {
@@ -44,7 +44,7 @@ void BCryptKeyHandle::Import(const BCryptAlgHandle& hAlg, const ByteString& keyB
 
     delete[] Interlocked<PUCHAR>::ExchangePointer(&m_pObject, new UCHAR[dwObjectLength]);
 
-    NTSTATUS status = BCryptImportKey(hAlg, NULL, BCRYPT_OPAQUE_KEY_BLOB, &m_h, m_pObject, dwObjectLength, const_cast<PUCHAR>((const unsigned char*)keyBlob), static_cast<ULONG>(keyBlob.Len), dwFlags);
+    NTSTATUS status = BCryptImportKey(hAlg, NULL, BCRYPT_OPAQUE_KEY_BLOB, &m_h, m_pObject, dwObjectLength, const_cast<PUCHAR>((const unsigned char*)keyBlob), static_cast<ULONG>(keyBlob.Len), 0);
     if (status != STATUS_SUCCESS)
     {
         throw CryptographyException(status, L"BCryptImportKey failed with status of %s.", BCryptErrorLabel(status));

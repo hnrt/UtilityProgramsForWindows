@@ -316,6 +316,24 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(16, o6);
 			Assert::AreEqual(-1, o9);
 		}
+
+		TEST_METHOD(Test15)
+		{
+			String sz1 = String::ToHex("", 0);
+			Assert::AreEqual(L"", sz1);
+			Debug::Put(L"StringTest15: ZERO=\"%s\" Len=%zu", sz1, sz1.Len);
+			unsigned char d[] = { 0x43, 0xFA, 0x07 };
+			String sz2 = String::ToHex(d, 3);
+			Debug::Put(L"StringTest15: DEFAULT=\"%s\" Len=%zu", sz2, sz2.Len);
+			Assert::AreEqual(L"43fa07", sz2);
+			String sz3 = String::ToHex(d, 3, LOWERCASE);
+			Debug::Put(L"StringTest15: LOWERCASE=\"%s\" Len=%zu", sz3, sz3.Len);
+			Assert::AreEqual(L"43fa07", sz3);
+			String sz4 = String::ToHex(d, 3, UPPERCASE);
+			Debug::Put(L"StringTest15: UPPERCASE=\"%s\" Len=%zu", sz4, sz4.Len);
+			Assert::AreEqual(L"43FA07", sz4);
+		}
+
 	private:
 
 		String* Sprintf(PCWSTR pszFormat, ...)

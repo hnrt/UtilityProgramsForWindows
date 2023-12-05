@@ -336,3 +336,25 @@ int String::Compare(PCWSTR psz1, INT_PTR cch1, PCWSTR psz2, INT_PTR cch2)
         throw Exception(L"String::Compare failed.");
     }
 }
+
+
+String String::ToHex(const void* ptr, size_t len, StringOptions option)
+{
+    static const WCHAR HexLU[2][16] = {
+        { L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7', L'8', L'9', L'a', L'b', L'c', L'd', L'e', L'f' },
+        { L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7', L'8', L'9', L'A', L'B', L'C', L'D', L'E', L'F' }
+    };
+    const WCHAR* hex = HexLU[option == UPPERCASE ? 1 : 0];
+    String sz(len * 2, L'*');
+    PWCHAR pW = const_cast<PWCHAR>(sz.m_psz);
+    const unsigned char* pCur = reinterpret_cast<const unsigned char*>(ptr);
+    const unsigned char* pEnd = pCur + len;
+    while (pCur < pEnd)
+    {
+        unsigned char c = *pCur++;
+        pW[0] = hex[(c >> 4) & 0xF];
+        pW[1] = hex[(c >> 0) & 0xF];
+        pW += 2;
+    }
+    return sz;
+}
