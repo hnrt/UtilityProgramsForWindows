@@ -3,6 +3,7 @@
 #include "hnrt/Heap.h"
 #include "hnrt/StringUtils.h"
 #include "hnrt/Exception.h"
+#undef _DEBUG
 #include "hnrt/Debug.h"
 
 
@@ -294,6 +295,12 @@ RefStr::RefStr(size_t cch, WCHAR fill)
 RefStr::~RefStr()
 {
     DBGPUT(L"RefStr::dtor@%p: %s", this, m_buf);
+}
+
+
+void RefStr::SetLength(INT_PTR cch)
+{
+    m_len = cch < 0 ? wcslen(&m_buf[0]) : wcsnlen(&m_buf[0], cch);
 }
 
 

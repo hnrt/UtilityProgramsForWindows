@@ -6,9 +6,6 @@
 #include "hnrt/Debug.h"
 
 
-#pragma comment(lib, "Bcrypt")
-
-
 using namespace hnrt;
 
 
@@ -29,7 +26,7 @@ void BCryptHashHandle::Open(const BCryptAlgHandle& hAlg)
         throw CryptographyException(status, L"BCryptCreateHash failed with status of %s.", BCryptErrorLabel(status));
     }
 
-    DBGPUT(L"BCryptHashHandle@%p::Open(%s): Done.", this, hAlg.AlgorithmName);
+    DBGPUT(L"BCryptHashHandle@%p::Open(%s)", this, hAlg.AlgorithmName);
 }
 
 
@@ -47,7 +44,7 @@ void BCryptHashHandle::Close()
 
     delete[] Interlocked<PUCHAR>::ExchangePointer(&m_pObject, nullptr);
 
-    DBGPUT(L"BCryptHashHandle@%p::Close: Done.", this);
+    DBGPUT(L"BCryptHashHandle@%p::Close", this);
 }
 
 

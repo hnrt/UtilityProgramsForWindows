@@ -1,9 +1,7 @@
 #pragma once
 
-
 #include <Windows.h>
 #include "hnrt/StringOptions.h"
-
 
 namespace hnrt
 {
@@ -33,8 +31,12 @@ namespace hnrt
         String& VaFormat(PCWSTR, va_list);
         String& AppendFormat(PCWSTR, ...);
         String& VaAppendFormat(PCWSTR, va_list);
+        String& TruncateHead(size_t);
+        String& TruncateTail(size_t);
         int IndexOf(WCHAR, INT_PTR = 0) const;
         int IndexOf(const String&, INT_PTR = 0) const;
+        bool StartsWith(PCWSTR, INT_PTR = -1) const;
+        bool EndsWith(PCWSTR, INT_PTR = -1) const;
         operator PCWSTR() const;
         operator bool() const;
         String& operator =(const String&);

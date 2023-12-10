@@ -2,6 +2,7 @@
 #include "CppUnitTest.h"
 #include "hnrt/BCryptAlgHandle.h"
 #include "hnrt/BCryptKeyHandle.h"
+#include "hnrt/BCryptAuthenticatedCipherModeInfo.h"
 #include "hnrt/CryptographyException.h"
 #include "hnrt/Hash.h"
 #include "hnrt/ByteDataFeeder.h"
@@ -9,6 +10,7 @@
 #include "hnrt/Buffer.h"
 #include "hnrt/Base64.h"
 #include "hnrt/StringBuffer.h"
+#include "hnrt/StringHelpers.h"
 #include "hnrt/Debug.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -31,23 +33,11 @@ namespace UnitTestCoreLib
 				Debug::Put(L"CryptographyTest01: BlockLength=%lu", hAlg.BlockLength);
 				Assert::AreEqual(16UL, hAlg.BlockLength);
 				std::vector<DWORD> bsList = hAlg.BlockSizeList;
-				String ss;
-				for (size_t index = 0; index < bsList.size(); index++)
-				{
-					ss.AppendFormat(L",%lu", bsList[index]);
-				}
-				if (!ss.Len) ss = L",";
-				Debug::Put(L"CryptographyTest01: BlockSizeList=[%zu]{%s}", bsList.size(), &ss[1]);
+				Debug::Put(L"CryptographyTest01: BlockSizeList=[%zu]{%s}", bsList.size(), StringHelpers::JoinBy(bsList, L","));
 				Assert::AreEqual(1ULL, bsList.size());
 				Assert::AreEqual(16UL, bsList[0]);
 				std::vector<DWORD> kList = hAlg.KeyLengths;
-				ss = L"";
-				for (size_t index = 0; index < kList.size(); index++)
-				{
-					ss.AppendFormat(L",%lu", kList[index]);
-				}
-				if (!ss.Len) ss = L",";
-				Debug::Put(L"CryptographyTest01: KeyLengths=[%zu]{%s}", kList.size(), &ss[1]);
+				Debug::Put(L"CryptographyTest01: KeyLengths=[%zu]{%s}", kList.size(), StringHelpers::JoinBy(kList, L","));
 				Assert::AreEqual(3ULL, kList.size());
 				Assert::AreEqual(128UL, kList[0]);
 				Assert::AreEqual(192UL, kList[1]);
@@ -369,6 +359,412 @@ namespace UnitTestCoreLib
 				Assert::Fail(String(PRINTF, L"Test_AES_256_ECB_Decrypt: %s", ce.Message));
 			}
 			Debug::Put(L"Test_AES_256_ECB_Decrypt: Ended.");
+		}
+
+		TEST_METHOD(Test_AES_128_CFB)
+		{
+			Debug::Put(L"Test_AES_128_CFB: Started.");
+			try
+			{
+				StringUTF8 text(L"ëÂíJ„ƒïΩ17");
+				Debug::Put(L"Test_AES_128_CFB: text=%s (%s)", String(CP_UTF8, text), String::ToHex(text, text.Len));
+				StringUTF8 keyHint("BENI");
+				ByteDataFeeder bdf1(keyHint.Ptr, keyHint.Len, 32);
+				SHA256Hash keyHash(bdf1); // 256 bits (32 bytes)
+				Buffer<BYTE> key(16);
+				memcpy_s(key, key.Len, keyHash.Value, key.Len);
+				Debug::Put(L"Test_AES_128_CFB: key=%s", String::ToHex(key, key.Len));
+				StringUTF8 ivHint("20231208");
+				ByteDataFeeder bdf2(ivHint.Ptr, ivHint.Len, 32);
+				MD5Hash ivHash(bdf2); // 128 bits (16 bytes)
+				Buffer<BYTE> iv(16);
+				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
+				Debug::Put(L"Test_AES_128_CFB: iv=%s", String::ToHex(iv, iv.Len));
+				BCryptAlgHandle hAlg;
+				hAlg.Open(BCRYPT_AES_ALGORITHM);
+				hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CFB; // Cipher Feedback Mode
+				BCryptKeyHandle hKey;
+				hKey.Generate(hAlg, key, key.Len);
+				Debug::Put(L"Test_AES_128_CFB: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
+				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(text.Ptr), text.Len, iv, iv.Len);
+				Debug::Put(L"Test_AES_128_CFB: encrypted=%s", String::ToHex(encrypted.Ptr, encrypted.Len));
+				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
+				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, iv, iv.Len);
+				Debug::Put(L"Test_AES_128_CFB: decrypted=%s", String::ToHex(decrypted.Ptr, decrypted.Len));
+				StringUTF8 result((PCSTR)decrypted.Ptr, decrypted.Len);
+				Assert::IsTrue(result == text);
+				Debug::Put(L"Test_AES_128_CFB: OK!");
+			}
+			catch (CryptographyException ce)
+			{
+				Assert::Fail(String(PRINTF, L"Test_AES_128_CFB: %s", ce.Message));
+			}
+			Debug::Put(L"Test_AES_128_CFB: Ended.");
+		}
+
+		TEST_METHOD(Test_AES_192_CFB)
+		{
+			Debug::Put(L"Test_AES_192_CFB: Started.");
+			try
+			{
+				StringUTF8 text(L"ëÂíJ„ƒïΩ17");
+				Debug::Put(L"Test_AES_192_CFB: text=%s (%s)", String(CP_UTF8, text), String::ToHex(text, text.Len));
+				StringUTF8 keyHint("BENI");
+				ByteDataFeeder bdf1(keyHint.Ptr, keyHint.Len, 32);
+				SHA256Hash keyHash(bdf1); // 256 bits (32 bytes)
+				Buffer<BYTE> key(24);
+				memcpy_s(key, key.Len, keyHash.Value, key.Len);
+				Debug::Put(L"Test_AES_192_CFB: key=%s", String::ToHex(key, key.Len));
+				StringUTF8 ivHint("20231208");
+				ByteDataFeeder bdf2(ivHint.Ptr, ivHint.Len, 32);
+				MD5Hash ivHash(bdf2); // 128 bits (16 bytes)
+				Buffer<BYTE> iv(16);
+				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
+				Debug::Put(L"Test_AES_192_CFB: iv=%s", String::ToHex(iv, iv.Len));
+				BCryptAlgHandle hAlg;
+				hAlg.Open(BCRYPT_AES_ALGORITHM);
+				hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CFB; // Cipher Feedback Mode
+				BCryptKeyHandle hKey;
+				hKey.Generate(hAlg, key, key.Len);
+				Debug::Put(L"Test_AES_192_CFB: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
+				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(text.Ptr), text.Len, iv, iv.Len);
+				Debug::Put(L"Test_AES_192_CFB: encrypted=%s", String::ToHex(encrypted.Ptr, encrypted.Len));
+				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
+				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, iv, iv.Len);
+				Debug::Put(L"Test_AES_192_CFB: decrypted=%s", String::ToHex(decrypted.Ptr, decrypted.Len));
+				StringUTF8 result((PCSTR)decrypted.Ptr, decrypted.Len);
+				Assert::IsTrue(result == text);
+				Debug::Put(L"Test_AES_192_CFB: OK!");
+			}
+			catch (CryptographyException ce)
+			{
+				Assert::Fail(String(PRINTF, L"Test_AES_192_CFB: %s", ce.Message));
+			}
+			Debug::Put(L"Test_AES_192_CFB: Ended.");
+		}
+
+		TEST_METHOD(Test_AES_256_CFB)
+		{
+			Debug::Put(L"Test_AES_256_CFB: Started.");
+			try
+			{
+				StringUTF8 text(L"ëÂíJ„ƒïΩ17");
+				Debug::Put(L"Test_AES_256_CFB: text=%s (%s)", String(CP_UTF8, text), String::ToHex(text, text.Len));
+				StringUTF8 keyHint("BENI");
+				ByteDataFeeder bdf1(keyHint.Ptr, keyHint.Len, 32);
+				SHA256Hash keyHash(bdf1); // 256 bits (32 bytes)
+				Buffer<BYTE> key(32);
+				memcpy_s(key, key.Len, keyHash.Value, key.Len);
+				Debug::Put(L"Test_AES_256_CFB: key=%s", String::ToHex(key, key.Len));
+				StringUTF8 ivHint("20231208");
+				ByteDataFeeder bdf2(ivHint.Ptr, ivHint.Len, 32);
+				MD5Hash ivHash(bdf2); // 128 bits (16 bytes)
+				Buffer<BYTE> iv(16);
+				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
+				Debug::Put(L"Test_AES_256_CFB: iv=%s", String::ToHex(iv, iv.Len));
+				BCryptAlgHandle hAlg;
+				hAlg.Open(BCRYPT_AES_ALGORITHM);
+				hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CFB; // Cipher Feedback Mode
+				BCryptKeyHandle hKey;
+				hKey.Generate(hAlg, key, key.Len);
+				Debug::Put(L"Test_AES_256_CFB: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
+				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(text.Ptr), text.Len, iv, iv.Len);
+				Debug::Put(L"Test_AES_256_CFB: encrypted=%s", String::ToHex(encrypted.Ptr, encrypted.Len));
+				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
+				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, iv, iv.Len);
+				Debug::Put(L"Test_AES_256_CFB: decrypted=%s", String::ToHex(decrypted.Ptr, decrypted.Len));
+				StringUTF8 result((PCSTR)decrypted.Ptr, decrypted.Len);
+				Assert::IsTrue(result == text);
+				Debug::Put(L"Test_AES_256_CFB: OK!");
+			}
+			catch (CryptographyException ce)
+			{
+				Assert::Fail(String(PRINTF, L"Test_AES_256_CFB: %s", ce.Message));
+			}
+			Debug::Put(L"Test_AES_256_CFB: Ended.");
+		}
+
+		TEST_METHOD(Test_AES_128_CCM)
+		{
+			Debug::Put(L"Test_AES_128_CCM: Started.");
+			try
+			{
+				StringUTF8 text(L"ëÂíJ„ƒïΩ17ìÒìÅó¨");
+				Debug::Put(L"Test_AES_128_CCM: text=%s (%s)", String(CP_UTF8, text), String::ToHex(text, text.Len));
+				StringUTF8 keyHint("BENI");
+				ByteDataFeeder bdf(keyHint.Ptr, keyHint.Len, 32);
+				SHA256Hash keyHash(bdf); // 256 bits (32 bytes)
+				Buffer<BYTE> key(16);
+				memcpy_s(key, key.Len, keyHash.Value, key.Len);
+				Debug::Put(L"Test_AES_128_CCM: key=%s", String::ToHex(key, key.Len));
+				BCryptAlgHandle hAlg;
+				hAlg.Open(BCRYPT_AES_ALGORITHM);
+				hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CCM; // Counter with CBC-MAC Mode
+				BCryptKeyHandle hKey;
+				hKey.Generate(hAlg, key, key.Len);
+				Debug::Put(L"Test_AES_128_CCM: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
+				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
+				Debug::Put(L"Test_AES_128_CCM: AuthTagLengths[%zu]=%s", tagLengths.size(), StringHelpers::JoinBy(tagLengths, L","));
+				StringUTF8 nonceHint("20231208");
+				ByteDataFeeder bdf2(nonceHint.Ptr, nonceHint.Len, 32);
+				MD5Hash nonceHash(bdf2); // 128 bits (16 bytes)
+				BCryptAuthenticatedCipherModeInfo infoE;
+				BCryptAuthenticatedCipherModeInfo infoD;
+				infoE
+					.SetNonce(nonceHash.Value, 12)
+					.SetTagSize(tagLengths[0]);
+				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(text.Ptr), text.Len, infoE, NULL, 0);
+				Debug::Put(L"Test_AES_128_CCM: encrypted=%s", String::ToHex(encrypted, encrypted.Len));
+				Debug::Put(L"Test_AES_128_CCM: tag=%s", String::ToHex(infoE.pbTag, infoE.cbTag));
+				infoD
+					.SetNonce(nonceHash.Value, 12)
+					.SetTag(infoE.pbTag, infoE.cbTag);
+				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, infoD, NULL, 0);
+				Debug::Put(L"Test_AES_128_CCM: decrypted=%s", String::ToHex(decrypted.Ptr, decrypted.Len));
+				Assert::IsTrue(StringUTF8((PCSTR)decrypted.Ptr, decrypted.Len) == text);
+				Debug::Put(L"Test_AES_128_CCM: OK!");
+			}
+			catch (CryptographyException ce)
+			{
+				Assert::Fail(String(PRINTF, L"Test_AES_128_CCM: %s", ce.Message));
+			}
+			Debug::Put(L"Test_AES_128_CCM: Ended.");
+		}
+
+#if 0
+		TEST_METHOD(Test_AES_128_CCM_CHAIN_CALLS)
+		{
+			Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: Started.");
+			try
+			{
+				StringUTF8 text(L"ìÒìÅó¨ëÂíJ„ƒïΩÉhÉWÉÉÅ[ÉXÇ…10îNëçäz7â≠ÉhÉãÇ≈à⁄ê–");
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: text=%s (%s)", String(CP_UTF8, text), String::ToHex(text, text.Len));
+				Buffer<BYTE> src(((text.Len + 15) / 16) * 16);
+				memcpy_s(src, src.Len, text, text.Len);
+				memset(src + text.Len, 0, src.Len - text.Len);
+				ByteString src1(src + 16 * 0, 16);
+				ByteString src2(src + 16 * 1, 16);
+				ByteString src3(src + 16 * 2, src.Len - 16 * 2);
+				StringUTF8 keyHint("BENI");
+				ByteDataFeeder bdf1(keyHint.Ptr, keyHint.Len, 32);
+				SHA256Hash keyHash(bdf1); // 256 bits (32 bytes)
+				Buffer<BYTE> key(16);
+				memcpy_s(key, key.Len, keyHash.Value, key.Len);
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: key=%s", String::ToHex(key, key.Len));
+				BCryptAlgHandle hAlg;
+				hAlg.Open(BCRYPT_AES_ALGORITHM);
+				hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CCM; // Counter with CBC-MAC Mode
+				BCryptKeyHandle hKey;
+				hKey.Generate(hAlg, key, key.Len);
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
+				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: AuthTagLengths[%zu]={%s}", tagLengths.size(), StringHelpers::JoinBy(tagLengths, L","));
+				StringUTF8 nonceHint("20231208");
+				ByteDataFeeder bdf2(nonceHint.Ptr, nonceHint.Len, 32);
+				MD5Hash nonceHash(bdf2); // 128 bits (16 bytes)
+				Buffer<BYTE> ivE(16);
+				Buffer<BYTE> ivD(16);
+				memset(ivE, 0, ivE.Len);
+				memset(ivD, 0, ivD.Len);
+				BCryptAuthenticatedCipherModeInfo infoE;
+				BCryptAuthenticatedCipherModeInfo infoD;
+				// ENCRYPTION #1
+				infoE
+					.SetNonce(nonceHash.Value, 12)
+					.SetTagSize(tagLengths[tagLengths.size() - 1])
+					.SetMacContextSize(tagLengths[tagLengths.size() - 1])
+					.SetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
+				ByteString encrypted1 = hKey.Encrypt(src1, src1.Len, infoE, ivE, ivE.Len);
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: encrypted1=%s", String::ToHex(encrypted1, encrypted1.Len));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: tag=%s", String::ToHex(infoE.pbTag, infoE.cbTag));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: iv=%s", String::ToHex(ivE, ivE.Len));
+				// ENCRYPTION #2
+				ByteString encrypted2 = hKey.Encrypt(src2, src2.Len, infoE, ivE, ivE.Len);
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: encrypted1=%s", String::ToHex(encrypted2, encrypted2.Len));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: tag=%s", String::ToHex(infoE.pbTag, infoE.cbTag));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: iv=%s", String::ToHex(ivE, ivE.Len));
+				// ENCRYPTION #3
+				infoE
+					.ResetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
+				ByteString encrypted3 = hKey.Encrypt(src3, src3.Len, infoE, ivE, ivE.Len);
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: encrypted1=%s", String::ToHex(encrypted3, encrypted3.Len));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: tag=%s", String::ToHex(infoE.pbTag, infoE.cbTag));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: iv=%s", String::ToHex(ivE, ivE.Len));
+				// DECRYPTION #1
+				infoD
+					.SetNonce(nonceHash.Value, 12)
+					.SetTagSize(infoE.cbTag)
+					.SetMacContextSize(tagLengths[tagLengths.size() - 1])
+					.SetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
+				ByteString decrypted1 = hKey.Decrypt((PUCHAR)encrypted1, encrypted1.Len, infoD, ivD, ivD.Len);
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: decrypted1=%s", String::ToHex(decrypted1.Ptr, decrypted1.Len));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: tag=%s", String::ToHex(infoD.pbTag, infoD.cbTag));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: iv=%s", String::ToHex(ivD, ivD.Len));
+				// DECRYPTION #2
+				ByteString decrypted2 = hKey.Decrypt((PUCHAR)encrypted2, encrypted2.Len, infoD, ivD, ivD.Len);
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: decrypted2=%s", String::ToHex(decrypted2.Ptr, decrypted2.Len));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: tag=%s", String::ToHex(infoD.pbTag, infoD.cbTag));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: iv=%s", String::ToHex(ivD, ivD.Len));
+				// DECRYPTION #3
+				infoD
+					.SetTag(infoE.pbTag, infoE.cbTag)
+					.ResetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
+				ByteString decrypted3 = hKey.Decrypt((PUCHAR)encrypted3, encrypted3.Len, infoD, ivD, ivD.Len);
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: decrypted3=%s", String::ToHex(decrypted3.Ptr, decrypted3.Len));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: tag=%s", String::ToHex(infoD.pbTag, infoD.cbTag));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: iv=%s", String::ToHex(ivD, ivD.Len));
+				ByteString decrypted = decrypted1;
+				decrypted += decrypted2;
+				decrypted += decrypted3;
+				Assert::IsTrue(StringUTF8(decrypted, decrypted.Len) == text);
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: OK!");
+			}
+			catch (CryptographyException ce)
+			{
+				Assert::Fail(String(PRINTF, L"Test_AES_128_CCM_CHAIN_CALLS: %s", ce.Message));
+			}
+			Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: Ended.");
+		}
+#endif
+
+		TEST_METHOD(Test_AES_128_GCM)
+		{
+			Debug::Put(L"Test_AES_128_GCM: Started.");
+			try
+			{
+				StringUTF8 text(L"ëÂíJ„ƒïΩ17ìÒìÅó¨");
+				Debug::Put(L"Test_AES_128_GCM: text=%s (%s)", String(CP_UTF8, text), String::ToHex(text, text.Len));
+				StringUTF8 keyHint("BENI");
+				ByteDataFeeder bdf(keyHint.Ptr, keyHint.Len, 32);
+				SHA256Hash keyHash(bdf); // 256 bits (32 bytes)
+				Buffer<BYTE> key(16);
+				memcpy_s(key, key.Len, keyHash.Value, key.Len);
+				Debug::Put(L"Test_AES_128_GCM: key=%s", String::ToHex(key, key.Len));
+				BCryptAlgHandle hAlg;
+				hAlg.Open(BCRYPT_AES_ALGORITHM);
+				hAlg.ChainingMode = BCRYPT_CHAIN_MODE_GCM; // Galois/Counter Mode
+				BCryptKeyHandle hKey;
+				hKey.Generate(hAlg, key, key.Len);
+				Debug::Put(L"Test_AES_128_GCM: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
+				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
+				Debug::Put(L"Test_AES_128_GCM: AuthTagLengths[%zu]=%s", tagLengths.size(), StringHelpers::JoinBy(tagLengths, L","));
+				StringUTF8 nonceHint("20231208");
+				ByteDataFeeder bdf2(nonceHint.Ptr, nonceHint.Len, 32);
+				MD5Hash nonceHash(bdf2); // 128 bits (16 bytes)
+				BCryptAuthenticatedCipherModeInfo infoE;
+				BCryptAuthenticatedCipherModeInfo infoD;
+				infoE
+					.SetNonce(nonceHash.Value, 12)
+					.SetTagSize(tagLengths[tagLengths.size() - 1]);
+				Debug::Put(L"Test_AES_128_GCM: nonce=%s", String::ToHex(infoE.pbNonce, infoE.cbNonce));
+				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(text.Ptr), text.Len, infoE, NULL, 0);
+				Debug::Put(L"Test_AES_128_GCM: encrypted=%s", String::ToHex(encrypted, encrypted.Len));
+				Debug::Put(L"Test_AES_128_GCM: tag=%s", String::ToHex(infoE.pbTag, infoE.cbTag));
+				infoD
+					.SetNonce(nonceHash.Value, 12)
+					.SetTag(infoE.pbTag, infoE.cbTag);
+				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, infoD, NULL, 0);
+				Debug::Put(L"Test_AES_128_GCM: decrypted[%zu]=%s", decrypted.Len, String::ToHex(decrypted.Ptr, decrypted.Len));
+				Assert::IsTrue(StringUTF8((PCSTR)decrypted.Ptr, decrypted.Len) == text);
+				Debug::Put(L"Test_AES_128_GCM: OK!");
+			}
+			catch (CryptographyException ce)
+			{
+				Assert::Fail(String(PRINTF, L"Test_AES_128_GCM: %s", ce.Message));
+			}
+			Debug::Put(L"Test_AES_128_GCM: Ended.");
+		}
+
+		TEST_METHOD(Test_AES_128_GCM_CHAIN_CALLS)
+		{
+			Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: Started.");
+			try
+			{
+				StringUTF8 text(L"ìÒìÅó¨ëÂíJ„ƒïΩÉhÉWÉÉÅ[ÉXÇ…10îNëçäz7â≠ÉhÉãÇ≈à⁄ê–");
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: text=%s (%s)", String(CP_UTF8, text), String::ToHex(text, text.Len));
+				StringUTF8 keyHint("BENI");
+				ByteDataFeeder bdf1(keyHint.Ptr, keyHint.Len, 32);
+				SHA256Hash keyHash(bdf1); // 256 bits (32 bytes)
+				Buffer<BYTE> key(16);
+				memcpy_s(key, key.Len, keyHash.Value, key.Len);
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: key=%s", String::ToHex(key, key.Len));
+				BCryptAlgHandle hAlg;
+				hAlg.Open(BCRYPT_AES_ALGORITHM);
+				hAlg.ChainingMode = BCRYPT_CHAIN_MODE_GCM; // Galois/Counter Mode
+				BCryptKeyHandle hKey;
+				hKey.Generate(hAlg, key, key.Len);
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
+				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: AuthTagLengths[%zu]=%s", tagLengths.size(), StringHelpers::JoinBy(tagLengths, L","));
+				StringUTF8 nonceHint("20231208");
+				ByteDataFeeder bdf2(nonceHint.Ptr, nonceHint.Len, 32);
+				MD5Hash nonceHash(bdf2); // 128 bits (16 bytes)
+				Buffer<BYTE> ivE(16);
+				Buffer<BYTE> ivD(16);
+				memset(ivE, 0, ivE.Len);
+				memset(ivD, 0, ivD.Len);
+				BCryptAuthenticatedCipherModeInfo infoE;
+				BCryptAuthenticatedCipherModeInfo infoD;
+				// ENCRYPTION #1
+				infoE
+					.SetNonce(nonceHash.Value, 12)
+					.SetTagSize(tagLengths[0])
+					.SetMacContextSize(tagLengths[tagLengths.size() - 1])
+					.SetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: nonce=%s", String::ToHex(infoE.pbNonce, infoE.cbNonce));
+				ByteString encrypted1 = hKey.Encrypt(const_cast<PSTR>(text.Ptr) + 16 * 0, 16, infoE, ivE, ivE.Len);
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: encrypted1=%s", String::ToHex(encrypted1, encrypted1.Len));
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: tag=%s", String::ToHex(infoE.pbTag, infoE.cbTag));
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", String::ToHex(ivE, ivE.Len));
+				ByteString tag1(infoE.pbTag, infoE.cbTag);
+				// ENCRYPTION #2
+				ByteString encrypted2 = hKey.Encrypt(const_cast<PSTR>(text.Ptr) + 16 * 1, 16, infoE, ivE, ivE.Len);
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: encrypted2=%s", String::ToHex(encrypted2, encrypted2.Len));
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: tag=%s", String::ToHex(infoE.pbTag, infoE.cbTag));
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", String::ToHex(ivE, ivE.Len));
+				ByteString tag2(infoE.pbTag, infoE.cbTag);
+				// ENCRYPTION #3
+				infoE
+					.ResetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
+				ByteString encrypted3 = hKey.Encrypt(const_cast<PSTR>(text.Ptr) + 16 * 2, text.Len - 16 * 2, infoE, ivE, ivE.Len);
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: encrypted3=%s", String::ToHex(encrypted3, encrypted3.Len));
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: tag=%s", String::ToHex(infoE.pbTag, infoE.cbTag));
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", String::ToHex(ivE, ivE.Len));
+				ByteString tag3(infoE.pbTag, infoE.cbTag);
+				ByteString encrypted = encrypted1;
+				encrypted += encrypted2;
+				encrypted += encrypted3;
+				// DECRYPTION #1
+				infoD
+					.SetNonce(nonceHash.Value, 12)
+					.SetTagSize(infoE.cbTag) // all-zeroes
+					.SetMacContextSize(tagLengths[tagLengths.size() - 1])
+					.SetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
+				ByteString decrypted1 = hKey.Decrypt((PUCHAR)encrypted + 16 * 0, 16, infoD, ivD, ivD.Len);
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: decrypted1=%s", String::ToHex(decrypted1.Ptr, decrypted1.Len));
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", String::ToHex(ivD.Ptr, ivD.Len));
+				// DECRYPTION #2
+				ByteString decrypted2 = hKey.Decrypt((PUCHAR)encrypted + 16 * 1, 16, infoD, ivD, ivD.Len);
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: decrypted2=%s", String::ToHex(decrypted2.Ptr, decrypted2.Len));
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", String::ToHex(ivD.Ptr, ivD.Len));
+				// DECRYPTION #3
+				infoD
+					.SetTag(tag3, tag3.Len)
+					.ResetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
+				ByteString decrypted3 = hKey.Decrypt((PUCHAR)encrypted + 16 * 2, encrypted.Len - 16 * 2, infoD, ivD, ivD.Len);
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: decrypted3[%zu]=%s", decrypted3.Len, String::ToHex(decrypted3.Ptr, decrypted3.Len));
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", String::ToHex(ivD.Ptr, ivD.Len));
+				ByteString decrypted = decrypted1;
+				decrypted += decrypted2;
+				decrypted += decrypted3;
+				Assert::IsTrue(StringUTF8(decrypted, decrypted.Len) == text);
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: OK!");
+			}
+			catch (CryptographyException ce)
+			{
+				Assert::Fail(String(PRINTF, L"Test_AES_128_GCM_CHAIN_CALLS: %s", ce.Message));
+			}
+			Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: Ended.");
 		}
 	};
 }

@@ -219,6 +219,57 @@ StringAcp& StringAcp::VaAppendFormat(PCSTR pszFormat, va_list argList)
 }
 
 
+StringAcp& StringAcp::TruncateHead(size_t cb)
+{
+    if (m_psz)
+    {
+        RefMbs& rs = RefMbs::Get(m_psz);
+        if (rs.RefCnt > 1)
+        {
+            Release(InterlockedExchangePCSTR(&m_psz, cb < rs.Len ? RefMbs::Create(&m_psz[cb]) : nullptr));
+        }
+        else if (cb < rs.Len)
+        {
+            size_t newLen = rs.Len - cb;
+            PSTR psz = const_cast<PSTR>(m_psz);
+            memmove_s(&psz[0], newLen, &psz[cb], newLen);
+            memset(&psz[newLen], '\0', cb);
+            rs.SetLength(newLen);
+        }
+        else
+        {
+            rs.ZeroFill();
+        }
+    }
+    return *this;
+}
+
+
+StringAcp& StringAcp::TruncateTail(size_t cb)
+{
+    if (m_psz)
+    {
+        RefMbs& rs = RefMbs::Get(m_psz);
+        if (rs.RefCnt > 1)
+        {
+            Release(InterlockedExchangePCSTR(&m_psz, cb < rs.Len ? RefMbs::Create(m_psz, rs.Len - cb) : nullptr));
+        }
+        else if (cb < rs.Len)
+        {
+            size_t newLen = rs.Len - cb;
+            PSTR psz = const_cast<PSTR>(m_psz);
+            memset(&psz[newLen], '\0', cb);
+            rs.SetLength(newLen);
+        }
+        else
+        {
+            rs.ZeroFill();
+        }
+    }
+    return *this;
+}
+
+
 int StringAcp::IndexOf(CHAR c, INT_PTR fromIndex) const
 {
     if (m_psz && static_cast<size_t>(fromIndex) < Len)
@@ -265,6 +316,42 @@ int StringAcp::IndexOf(const StringAcp& s, INT_PTR fromIndex) const
         }
     }
     return -1;
+}
+
+
+bool StringAcp::StartsWith(PCSTR psz, INT_PTR cb) const
+{
+    size_t cbActual = cb > 0 ? strnlen(psz, cb) : cb < 0 ? strlen(psz) : 0;
+    if (cbActual == 0)
+    {
+        return true;
+    }
+    else if (cbActual <= Len)
+    {
+        return Compare(m_psz, cbActual, psz, cbActual) == 0;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+bool StringAcp::EndsWith(PCSTR psz, INT_PTR cb) const
+{
+    size_t cbActual = cb > 0 ? strnlen(psz, cb) : cb < 0 ? strlen(psz) : 0;
+    if (cbActual == 0)
+    {
+        return true;
+    }
+    else if (cbActual <= Len)
+    {
+        return Compare(m_psz + Len - cbActual, cbActual, psz, cbActual) == 0;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 

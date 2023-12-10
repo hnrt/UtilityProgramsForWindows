@@ -22,7 +22,7 @@ namespace hnrt
 		String GetPropertyString(PCWSTR) const;
 		DWORD GetPropertyDWORD(PCWSTR) const;
 		std::vector<DWORD> GetPropertyArrayDWORD(PCWSTR) const;
-		std::vector<DWORD> GetPropertyKeyLengths() const;
+		std::vector<DWORD> GetPropertyKeyLengths(PCWSTR) const;
 		void SetProperty(PCWSTR, PCWSTR) const;
 
 		BCRYPT_HANDLE m_h;

@@ -27,6 +27,8 @@ namespace hnrt
         operator char*();
         operator const unsigned char*() const;
         operator unsigned char*();
+        const unsigned char& operator [](INT_PTR) const;
+        unsigned char& operator [](INT_PTR);
         ByteString& Resize(size_t);
         ByteString& Fill(int);
         ByteString Clone() const;

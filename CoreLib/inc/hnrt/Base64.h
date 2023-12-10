@@ -2,7 +2,7 @@
 
 
 #include "hnrt/StringBuffer.h"
-#include "hnrt/Buffer.h"
+#include "hnrt/ByteString.h"
 
 
 namespace hnrt
@@ -16,8 +16,8 @@ namespace hnrt
         Base64Encoder(const Base64Encoder&) = delete;
         ~Base64Encoder() = default;
         void operator =(const Base64Encoder&) = delete;
-        StringBuffer& Append(const void* ptr, size_t len);
-        StringBuffer& End();
+        Base64Encoder& Append(const void* ptr, size_t len);
+        Base64Encoder& End();
 
     protected:
 
@@ -26,7 +26,7 @@ namespace hnrt
     };
 
     class Base64Decoder
-        : public Buffer<unsigned char>
+        : public ByteString
     {
     public:
 

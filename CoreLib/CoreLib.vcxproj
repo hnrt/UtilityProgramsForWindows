@@ -192,6 +192,7 @@
     <ClInclude Include="inc\hnrt\Array.h" />
     <ClInclude Include="inc\hnrt\Base64.h" />
     <ClInclude Include="inc\hnrt\BCryptAlgHandle.h" />
+    <ClInclude Include="inc\hnrt\BCryptAuthenticatedCipherModeInfo.h" />
     <ClInclude Include="inc\hnrt\BCryptHandle.h" />
     <ClInclude Include="inc\hnrt\BCryptHashHandle.h" />
     <ClInclude Include="inc\hnrt\BCryptKeyHandle.h" />
@@ -242,6 +243,7 @@
     <ClInclude Include="inc\hnrt\StringCaseInsensitive.h" />
     <ClInclude Include="inc\hnrt\StringCaseInsensitiveAcp.h" />
     <ClInclude Include="inc\hnrt\StringCollection.h" />
+    <ClInclude Include="inc\hnrt\StringHelpers.h" />
     <ClInclude Include="inc\hnrt\StringOptions.h" />
     <ClInclude Include="inc\hnrt\StringStore.h" />
     <ClInclude Include="inc\hnrt\StringUTF8.h" />
@@ -281,6 +283,7 @@
     <ClCompile Include="src\Args.cpp" />
     <ClCompile Include="src\Base64.cpp" />
     <ClCompile Include="src\BCryptAlgHandle.cpp" />
+    <ClCompile Include="src\BCryptAuthenticatedCipherModeInfo.cpp" />
     <ClCompile Include="src\BCryptHandle.cpp" />
     <ClCompile Include="src\BCryptHashHandle.cpp" />
     <ClCompile Include="src\BCryptKeyHandle.cpp" />
@@ -327,6 +330,7 @@
     <ClCompile Include="src\StringCaseInsensitive.cpp" />
     <ClCompile Include="src\StringCaseInsensitiveAcp.cpp" />
     <ClCompile Include="src\StringCollection.cpp" />
+    <ClCompile Include="src\StringHelpers.cpp" />
     <ClCompile Include="src\StringStore.cpp" />
     <ClCompile Include="src\StringStoreInternal.cpp" />
     <ClCompile Include="src\String.cpp" />

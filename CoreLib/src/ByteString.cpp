@@ -93,6 +93,44 @@ ByteString ByteString::operator +(const ByteString& other)
 }
 
 
+const unsigned char& ByteString::operator [](INT_PTR index) const
+{
+    INT_PTR len = Len;
+    if (0 <= index && index < len)
+    {
+        return reinterpret_cast<const unsigned char*>(m_ptr)[index];
+    }
+    index += len;
+    if (0 <= index && index < len)
+    {
+        return reinterpret_cast<const unsigned char*>(m_ptr)[index];
+    }
+    else
+    {
+        throw Exception(L"ByteString::operator []: Index out of range. Len=%zu Index=%zd", len, index - len);
+    }
+}
+
+
+unsigned char& ByteString::operator [](INT_PTR index)
+{
+    INT_PTR len = Len;
+    if (0 <= index && index < len)
+    {
+        return reinterpret_cast<unsigned char*>(m_ptr)[index];
+    }
+    index += len;
+    if (0 <= index && index < len)
+    {
+        return reinterpret_cast<unsigned char*>(m_ptr)[index];
+    }
+    else
+    {
+        throw Exception(L"ByteString::operator []: Index out of range. Len=%zu Index=%zd", len, index - len);
+    }
+}
+
+
 ByteString& ByteString::Resize(size_t len)
 {
     size_t len0 = Len;

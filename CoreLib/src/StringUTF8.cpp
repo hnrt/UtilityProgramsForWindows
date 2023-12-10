@@ -75,6 +75,16 @@ StringUTF8::~StringUTF8()
 }
 
 
+StringUTF8& StringUTF8::ZeroFill()
+{
+    if (Len)
+    {
+        RefMbs::Get(m_psz).ZeroFill();
+    }
+    return *this;
+}
+
+
 StringUTF8& StringUTF8::operator =(const StringUTF8& other)
 {
     Release(InterlockedExchangePCSTR(&m_psz, AddRef(other.m_psz)));

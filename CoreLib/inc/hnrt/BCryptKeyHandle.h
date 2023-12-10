@@ -7,6 +7,8 @@ namespace hnrt
 {
     class BCryptAlgHandle;
 
+    class BCryptAuthenticatedCipherModeInfo;
+
     class BCryptKeyHandle
         : protected BCryptHandle
     {
@@ -23,6 +25,8 @@ namespace hnrt
         ByteString Export() const;
         ByteString Encrypt(void*, size_t, void* = nullptr, size_t = 0, ULONG = BCRYPT_BLOCK_PADDING);
         ByteString Decrypt(void*, size_t, void* = nullptr, size_t = 0, ULONG = BCRYPT_BLOCK_PADDING);
+        ByteString Encrypt(void*, size_t, BCryptAuthenticatedCipherModeInfo&, void*, size_t);
+        ByteString Decrypt(void*, size_t, BCryptAuthenticatedCipherModeInfo&, void*, size_t);
         DWORD get_KeyLength() const;
 
         __declspec(property(get = get_KeyLength)) DWORD KeyLength;

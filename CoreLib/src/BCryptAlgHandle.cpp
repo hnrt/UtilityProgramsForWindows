@@ -5,9 +5,6 @@
 #include "hnrt/Debug.h"
 
 
-#pragma comment(lib, "Bcrypt")
-
-
 using namespace hnrt;
 
 
@@ -24,7 +21,7 @@ void BCryptAlgHandle::Open(PCWSTR pszAlgorithm)
         throw CryptographyException(status, L"BCryptOpenAlgorithmProvider(%s) failed with status of %s.", pszAlgorithm, BCryptErrorLabel(status));
     }
 
-    DBGPUT(L"BCryptAlgHandle@%p::Open(%s): Done.", this, pszAlgorithm);
+    DBGPUT(L"BCryptAlgHandle@%p::Open(%s)", this, pszAlgorithm);
 }
 
 
@@ -40,5 +37,13 @@ void BCryptAlgHandle::Close()
         }
     }
 
-    DBGPUT(L"BCryptAlgHandle@%p::Close: Done.", this);
+    DBGPUT(L"BCryptAlgHandle@%p::Close", this);
+}
+
+
+String BCryptAlgHandle::get_ChainingModeShort() const
+{
+    static const WCHAR szLeader[] = { L"ChainingMode" };
+    String value = GetPropertyString(BCRYPT_CHAINING_MODE);
+    return value.StartsWith(szLeader) ? String(value.Ptr + wcslen(szLeader)) : value;
 }

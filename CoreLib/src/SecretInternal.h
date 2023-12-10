@@ -4,6 +4,7 @@
 #include "hnrt/Secret.h"
 #include "hnrt/ByteString.h"
 #include "hnrt/BCryptAlgHandle.h"
+#include "hnrt/BCryptKeyHandle.h"
 
 
 namespace hnrt
@@ -31,13 +32,11 @@ namespace hnrt
 
     private:
 
-        void Initialize();
-        void InitializeKeyBlob(unsigned char key[SECRET_KEY_LENGTH]);
         void AddSalt(unsigned char* ptr, size_t len, unsigned char salt);
 
-        unsigned char m_IV[SECRET_IV_LENGTH];
+        ByteString m_IV;
         BCryptAlgHandle m_hAlg;
-        ByteString m_KeyBlob;
+        BCryptKeyHandle m_hKey;
         ByteString m_Processed;
     };
 }

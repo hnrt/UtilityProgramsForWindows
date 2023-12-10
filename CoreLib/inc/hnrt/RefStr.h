@@ -18,6 +18,7 @@ namespace hnrt
         RefStr(const RefStr&) = delete;
         virtual ~RefStr();
         void operator =(const RefStr&) = delete;
+        void SetLength(INT_PTR = -1);
         void ZeroFill();
         size_t get_len() const;
 

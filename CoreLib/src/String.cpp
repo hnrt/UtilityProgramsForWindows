@@ -219,6 +219,57 @@ String& String::VaAppendFormat(PCWSTR pszFormat, va_list argList)
 }
 
 
+String& String::TruncateHead(size_t cch)
+{
+    if (m_psz)
+    {
+        RefStr& rs = RefStr::Get(m_psz);
+        if (rs.RefCnt > 1)
+        {
+            Release(InterlockedExchangePCWSTR(&m_psz, cch < rs.Len ? RefStr::Create(&m_psz[cch]) : nullptr));
+        }
+        else if (cch < rs.Len)
+        {
+            size_t newLen = rs.Len - cch;
+            PWSTR psz = const_cast<PWSTR>(m_psz);
+            wmemmove_s(&psz[0], newLen, &psz[cch], newLen);
+            wmemset(&psz[newLen], L'\0', cch);
+            rs.SetLength(newLen);
+        }
+        else
+        {
+            rs.ZeroFill();
+        }
+    }
+    return *this;
+}
+
+
+String& String::TruncateTail(size_t cch)
+{
+    if (m_psz)
+    {
+        RefStr& rs = RefStr::Get(m_psz);
+        if (rs.RefCnt > 1)
+        {
+            Release(InterlockedExchangePCWSTR(&m_psz, cch < rs.Len ? RefStr::Create(m_psz, rs.Len - cch) : nullptr));
+        }
+        else if (cch < rs.Len)
+        {
+            size_t newLen = rs.Len - cch;
+            PWSTR psz = const_cast<PWSTR>(m_psz);
+            wmemset(&psz[newLen], L'\0', cch);
+            rs.SetLength(newLen);
+        }
+        else
+        {
+            rs.ZeroFill();
+        }
+    }
+    return *this;
+}
+
+
 int String::IndexOf(WCHAR c, INT_PTR fromIndex) const
 {
     if (m_psz && static_cast<size_t>(fromIndex) < Len)
@@ -265,6 +316,42 @@ int String::IndexOf(const String& s, INT_PTR fromIndex) const
         }
     }
     return -1;
+}
+
+
+bool String::StartsWith(PCWSTR psz, INT_PTR cch) const
+{
+    size_t cchActual = cch > 0 ? wcsnlen(psz, cch) : cch < 0 ? wcslen(psz) : 0;
+    if (cchActual == 0)
+    {
+        return true;
+    }
+    else if (cchActual <= Len)
+    {
+        return Compare(m_psz, cchActual, psz, cchActual) == 0;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+bool String::EndsWith(PCWSTR psz, INT_PTR cch) const
+{
+    size_t cchActual = cch > 0 ? wcsnlen(psz, cch) : cch < 0 ? wcslen(psz) : 0;
+    if (cchActual == 0)
+    {
+        return true;
+    }
+    else if (cchActual <= Len)
+    {
+        return Compare(m_psz + Len - cchActual, cchActual, psz, cchActual) == 0;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 

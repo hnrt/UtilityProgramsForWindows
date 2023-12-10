@@ -2,6 +2,7 @@
 #include "hnrt/PasswordHolder.h"
 #include "hnrt/SecretFactory.h"
 #include "hnrt/Base64.h"
+#include "hnrt/StringUTF8.h"
 #include "hnrt/Win32Exception.h"
 
 
@@ -65,15 +66,9 @@ const String& PasswordHolder::get_PlainText() const
 void PasswordHolder::set_PlainText(const String& sz)
 {
     ClearPlainText();
-    int cb = WideCharToMultiByte(CP_UTF8, 0, sz, -1, NULL, 0, NULL, NULL);
-    if (cb < 0)
-    {
-        throw Win32Exception(GetLastError(), L"PasswordHolder failed text encoding conversion to UTF-8.");
-    }
-    Buffer<char> tmp(cb);
-    WideCharToMultiByte(CP_UTF8, 0, sz, -1, tmp, cb, NULL, NULL);
-    m_pSecret->Encrypt(tmp.Ptr, tmp.Len);
-    memset(tmp.Ptr, 0, tmp.Len);
+    StringUTF8 deserialized(sz);
+    m_pSecret->Encrypt(deserialized.Ptr, deserialized.Len + 1);
+    deserialized.ZeroFill();
     Base64Encoder enc;
     enc.Append(m_pSecret->Ptr, m_pSecret->Len);
     enc.End();

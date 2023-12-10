@@ -33,8 +33,12 @@ namespace hnrt
         StringAcp& VaFormat(PCSTR, va_list);
         StringAcp& AppendFormat(PCSTR, ...);
         StringAcp& VaAppendFormat(PCSTR, va_list);
+        StringAcp& TruncateHead(size_t);
+        StringAcp& TruncateTail(size_t);
         int IndexOf(CHAR, INT_PTR = 0) const;
         int IndexOf(const StringAcp&, INT_PTR = 0) const;
+        bool StartsWith(PCSTR, INT_PTR = -1) const;
+        bool EndsWith(PCSTR, INT_PTR = -1) const;
         operator PCSTR() const;
         operator bool() const;
         StringAcp& operator =(const StringAcp&);

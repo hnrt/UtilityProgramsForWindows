@@ -79,18 +79,18 @@ std::vector<DWORD> BCryptHandle::GetPropertyArrayDWORD(PCWSTR pszName) const
 }
 
 
-std::vector<DWORD> BCryptHandle::GetPropertyKeyLengths() const
+std::vector<DWORD> BCryptHandle::GetPropertyKeyLengths(PCWSTR pszName) const
 {
     BCRYPT_KEY_LENGTHS_STRUCT keyLengths = { 0 };
     ULONG valueLength = 0UL;
-    NTSTATUS status = BCryptGetProperty(m_h, BCRYPT_KEY_LENGTHS, reinterpret_cast<PUCHAR>(&keyLengths), sizeof(keyLengths), &valueLength, 0);
+    NTSTATUS status = BCryptGetProperty(m_h, pszName, reinterpret_cast<PUCHAR>(&keyLengths), sizeof(keyLengths), &valueLength, 0);
     if (status != STATUS_SUCCESS)
     {
-        throw CryptographyException(status, L"BCryptGetProperty(BCRYPT_KEY_LENGTHS) failed with status of %s.", BCryptErrorLabel(status));
+        throw CryptographyException(status, L"BCryptGetProperty(%s) failed with status of %s.", pszName, BCryptErrorLabel(status));
     }
     else if (valueLength != sizeof(keyLengths))
     {
-        throw CryptographyException(status, L"BCryptGetProperty(BCRYPT_KEY_LENGTHS) returned an unexpected value; actual=%lu expected=%zu", valueLength, sizeof(keyLengths));
+        throw CryptographyException(status, L"BCryptGetProperty(%s) returned an unexpected value; actual=%lu expected=%zu", pszName, valueLength, sizeof(keyLengths));
     }
     std::vector<DWORD> list;
     for (DWORD length = keyLengths.dwMinLength; length <= keyLengths.dwMaxLength; length += keyLengths.dwIncrement)

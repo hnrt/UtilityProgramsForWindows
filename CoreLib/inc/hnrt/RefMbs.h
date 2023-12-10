@@ -18,6 +18,7 @@ namespace hnrt
         RefMbs(const RefMbs&) = delete;
         virtual ~RefMbs();
         void operator =(const RefMbs&) = delete;
+        void SetLength(INT_PTR = -1);
         void ZeroFill();
         void SetCodePage(UINT);
         size_t get_len() const;

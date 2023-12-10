@@ -3,6 +3,7 @@
 #include "hnrt/Heap.h"
 #include "hnrt/StringUtils.h"
 #include "hnrt/Exception.h"
+#undef _DEBUG
 #include "hnrt/Debug.h"
 
 
@@ -302,6 +303,12 @@ RefMbs::RefMbs(size_t cb, CHAR fill)
 RefMbs::~RefMbs()
 {
     DBGPUT(m_cp, "RefMbs::dtor@%p: %s", this, m_buf);
+}
+
+
+void RefMbs::SetLength(INT_PTR cb)
+{
+    m_len = cb < 0 ? strlen(&m_buf[0]) : strnlen(&m_buf[0], cb);
 }
 
 

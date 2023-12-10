@@ -1,9 +1,7 @@
 #pragma once
 
-
 #include <Windows.h>
 #include "hnrt/StringOptions.h"
-
 
 namespace hnrt
 {
