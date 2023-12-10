@@ -223,10 +223,10 @@ void HashDialogBox::OnCalculate()
         {
             WCHAR szPath[MAX_PATH] = { 0 };
             GetText(IDC_HASH_PATH, szPath, MAX_PATH);
-            MyFileDataFeeder feeder;
-            feeder.Open(szPath);
-            Calculate(feeder);
-            nBytesIn = feeder.TotalLength;
+            RefPtr<MyFileDataFeeder> pFeeder(new MyFileDataFeeder());
+            pFeeder->Open(szPath);
+            Calculate(RefPtr<DataFeeder>::Cast(pFeeder.Ptr));
+            nBytesIn = pFeeder->TotalLength;
         }
         else
         {
@@ -242,8 +242,7 @@ void HashDialogBox::OnCalculate()
             if (uCodePage == 1200)
             {
                 length2 *= sizeof(WCHAR);
-                ByteDataFeeder feeder(&buf2, length2);
-                Calculate(feeder);
+                Calculate(RefPtr<DataFeeder>(new ByteDataFeeder(&buf2, length2)));
                 nBytesIn = length2;
             }
             else
@@ -251,8 +250,7 @@ void HashDialogBox::OnCalculate()
                 int length1 = static_cast<int>(length2 * 4);
                 Buffer<CHAR> buf1(length1);
                 length1 = WideCharToMultiByte(uCodePage, 0, &buf2, length2, &buf1, length1, NULL, NULL);
-                ByteDataFeeder feeder(&buf1, length1);
-                Calculate(feeder);
+                Calculate(RefPtr<DataFeeder>(new ByteDataFeeder(&buf1, length1)));
                 nBytesIn = length1;
             }
         }
@@ -327,15 +325,7 @@ void HashDialogBox::OnCopy()
     {
         return;
     }
-    String szHash = m_hash.Text;
-    if (m_uLettercase == UPPERCASE_LETTER)
-    {
-        szHash.Uppercase();
-    }
-    else
-    {
-        szHash.Lowercase();
-    }
+    String szHash = String::ToHex(m_hash.Value, m_hash.ValueLength, m_uLettercase == UPPERCASE_LETTER ? UPPERCASE : LOWERCASE);
     if (!Clipboard::Write(hwnd, szHash, szHash.Len))
     {
         MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
@@ -567,38 +557,38 @@ void HashDialogBox::SwitchMenu()
 }
 
 
-void HashDialogBox::Calculate(DataFeeder& rDataFeeder)
+void HashDialogBox::Calculate(RefPtr<DataFeeder> pDataFeeder)
 {
     SetResult();
     switch (m_uMethod)
     {
     case IDC_HASH_MD5:
     {
-        MD5Hash hash(rDataFeeder);
+        MD5Hash hash(pDataFeeder);
         SetResult(hash);
         break;
     }
     case IDC_HASH_SHA1:
     {
-        SHA1Hash hash(rDataFeeder);
+        SHA1Hash hash(pDataFeeder);
         SetResult(hash);
         break;
     }
     case IDC_HASH_SHA256:
     {
-        SHA256Hash hash(rDataFeeder);
+        SHA256Hash hash(pDataFeeder);
         SetResult(hash);
         break;
     }
     case IDC_HASH_SHA384:
     {
-        SHA384Hash hash(rDataFeeder);
+        SHA384Hash hash(pDataFeeder);
         SetResult(hash);
         break;
     }
     case IDC_HASH_SHA512:
     {
-        SHA512Hash hash(rDataFeeder);
+        SHA512Hash hash(pDataFeeder);
         SetResult(hash);
         break;
     }
@@ -682,16 +672,7 @@ void HashDialogBox::SetResult(PCWSTR psz)
 void HashDialogBox::SetResult(Hash& rHash)
 {
     m_hash = rHash;
-    String szValue = m_hash.Text;
-    if (m_uLettercase == UPPERCASE_LETTER)
-    {
-        szValue.Uppercase();
-    }
-    else
-    {
-        szValue.Lowercase();
-    }
-    SetResult(szValue);
+    SetResult(String::ToHex(m_hash.Value, m_hash.ValueLength, m_uLettercase == UPPERCASE_LETTER ? UPPERCASE : LOWERCASE));
 }
 
 

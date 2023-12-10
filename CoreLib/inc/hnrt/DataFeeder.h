@@ -1,10 +1,11 @@
 #pragma once
 
-#include <Windows.h>
+#include "hnrt/RefObj.h"
 
 namespace hnrt
 {
 	class DataFeeder
+		: public RefObj
 	{
 	public:
 
@@ -27,7 +28,8 @@ namespace hnrt
 	};
 
 	inline DataFeeder::DataFeeder(DWORD dwCapacity)
-		: m_pBuffer(dwCapacity ? new BYTE[dwCapacity] : nullptr)
+		: RefObj()
+		, m_pBuffer(dwCapacity ? new BYTE[dwCapacity] : nullptr)
 		, m_dwCapacity(dwCapacity)
 		, m_dwRead(0)
 	{

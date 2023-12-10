@@ -43,7 +43,7 @@ namespace hnrt
 		void OnSelectMethod(UINT uMethod);
 		void OnUppercase();
 		void SwitchMenu();
-		void Calculate(DataFeeder& rDataFeeder);
+		void Calculate(RefPtr<DataFeeder> pDataFeeder);
 		bool CanCalculate() const;
 		bool HasResult() const;
 		void ClearResult();

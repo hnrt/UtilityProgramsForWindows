@@ -11,7 +11,6 @@
 #include "hnrt/Win32Exception.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/Buffer.h"
-#include "hnrt/ByteDataFeeder.h"
 #include "hnrt/Unicode.h"
 
 
@@ -240,20 +239,20 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 		return;
 	}
 	size_t cch = wcslen(psz);
-	ByteDataFeeder bdf(psz, cch * sizeof(WCHAR));
-	MD5Hash hash(bdf);
+	MD5Hash hash(psz, cch * sizeof(WCHAR));
 	SYSTEMTIME t = { 0 };
 	GetLocalTime(&t);
 	String szName(PRINTF, L"%04d%02d%02d_%02d%02d%02d", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 	try
 	{
 		bool bSelect = false;
-		ClipMap::const_iterator iter = m_mapHash.find(hash.Text);
+		String szHash = String::ToHex(hash.Value, hash.ValueLength);
+		ClipMap::const_iterator iter = m_mapHash.find(szHash);
 		if (iter == m_mapHash.cend())
 		{
 			if (!Path::IsFile(Path::Combine(m_szDirectoryPath, szName)))
 			{
-				ClipFile(Path::Combine(m_szDirectoryPath, szName)).Save(hash.Text, psz);
+				ClipFile(Path::Combine(m_szDirectoryPath, szName)).Save(szHash, psz);
 			}
 		}
 		else
@@ -276,7 +275,7 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 				SendMessage(IDC_CLIP_FILENAME_LIST, LB_DELETESTRING, index, 0);
 			}
 		}
-		m_mapHash.insert(ClipEntry(hash.Text, szName));
+		m_mapHash.insert(ClipEntry(szHash, szName));
 		ClipFile file(Path::Combine(m_szDirectoryPath, szName));
 		String item(PRINTF, L"%s %s", szName.Ptr, file.Header.Ptr);
 		SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(item.Ptr));

@@ -25,6 +25,10 @@ namespace hnrt
     private:
 
         T* m_ptr;
+
+    public:
+
+        static RefPtr<T> Cast(T* ptr);
     };
 
     template<typename T>
@@ -135,5 +139,19 @@ namespace hnrt
     inline bool operator > (const RefPtr<T>& a, const RefPtr<T>& b)
     {
         return a.Ptr > b.Ptr;
+    }
+
+    template<typename T>
+    inline RefPtr<T> RefPtr<T>::Cast(T* ptr)
+    {
+        if (ptr)
+        {
+            ptr->AddRef();
+            return RefPtr<T>(ptr);
+        }
+        else
+        {
+            return RefPtr<T>();
+        }
     }
 }

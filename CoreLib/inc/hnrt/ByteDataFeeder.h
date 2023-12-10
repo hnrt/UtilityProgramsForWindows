@@ -2,7 +2,7 @@
 
 #include "hnrt/DataFeeder.h"
 
-#define BYTEDATAFEEDER_DEFAULT_CAPACITY 65536UL
+#define BYTEDATAFEEDER_DEFAULT_CAPACITY 4096UL
 
 namespace hnrt
 {
@@ -35,7 +35,7 @@ namespace hnrt
 		if (m_pCur < m_pEnd)
 		{
 			ptrdiff_t cbRemaining = m_pEnd - m_pCur;
-			m_dwRead = (cbRemaining < m_dwCapacity) ? static_cast<DWORD>(cbRemaining) : m_dwCapacity;
+			m_dwRead = (static_cast<DWORD>(cbRemaining) < m_dwCapacity) ? static_cast<DWORD>(cbRemaining) : m_dwCapacity;
 			memcpy_s(m_pBuffer, m_dwRead, m_pCur, m_dwRead);
 			m_pCur += m_dwRead;
 			return true;

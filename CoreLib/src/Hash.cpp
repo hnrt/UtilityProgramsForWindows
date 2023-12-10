@@ -2,31 +2,39 @@
 #include "hnrt/Hash.h"
 #include "hnrt/BCryptAlgHandle.h"
 #include "hnrt/BCryptHashHandle.h"
-#include "hnrt/CryptographyException.h"
 #include "hnrt/Interlocked.h"
-#include "hnrt/Heap.h"
-#include "hnrt/StringBuffer.h"
+#include "hnrt/ByteDataFeeder.h"
 
 
 using namespace hnrt;
 
 
+#define BYTEDATAFEEDER(ptr, cb) ByteDataFeeder(ptr, cb, static_cast<DWORD>(cb) < 65536UL ? static_cast<DWORD>(cb) : 65536UL)
+
+
 Hash::Hash()
     : m_pszAlgorithm(nullptr)
-    , m_pDataFeeder(nullptr)
+    , m_pDataFeeder()
     , m_dwValueLength(0UL)
     , m_pValue(nullptr)
-    , m_sz()
 {
 }
 
 
-Hash::Hash(PCWSTR pszAlgorithm, DataFeeder& dataFeeder)
+Hash::Hash(PCWSTR pszAlgorithm)
 	: m_pszAlgorithm(pszAlgorithm)
-    , m_pDataFeeder(&dataFeeder)
+    , m_pDataFeeder()
     , m_dwValueLength(0UL)
     , m_pValue(nullptr)
-	, m_sz()
+{
+}
+
+
+Hash::Hash(PCWSTR pszAlgorithm, RefPtr<DataFeeder> pDataFeeder)
+    : m_pszAlgorithm(pszAlgorithm)
+    , m_pDataFeeder(pDataFeeder)
+    , m_dwValueLength(0UL)
+    , m_pValue(nullptr)
 {
 }
 
@@ -36,7 +44,6 @@ Hash::Hash(const Hash& other)
     , m_pDataFeeder(other.m_pDataFeeder)
     , m_dwValueLength(other.m_dwValueLength)
     , m_pValue(other.m_dwValueLength ? new BYTE[other.m_dwValueLength] : nullptr)
-    , m_sz(other.m_sz)
 {
     memcpy_s(m_pValue, m_dwValueLength, other.m_pValue, other.m_dwValueLength);
 }
@@ -44,7 +51,7 @@ Hash::Hash(const Hash& other)
 
 Hash::~Hash()
 {
-    delete[] Interlocked<PUCHAR>::ExchangePointer(&m_pValue, nullptr);
+    delete[] Interlocked<PBYTE>::ExchangePointer(&m_pValue, nullptr);
 }
 
 
@@ -53,8 +60,7 @@ void Hash::operator =(const Hash& other)
     m_pszAlgorithm = other.m_pszAlgorithm;
     m_pDataFeeder = other.m_pDataFeeder;
     m_dwValueLength = other.m_dwValueLength;
-    delete[] Interlocked<PUCHAR>::ExchangePointer(&m_pValue, other.m_dwValueLength ? new BYTE[other.m_dwValueLength] : nullptr);
-    m_sz = other.m_sz;
+    delete[] Interlocked<PBYTE>::ExchangePointer(&m_pValue, other.m_dwValueLength ? new BYTE[other.m_dwValueLength] : nullptr);
     memcpy_s(m_pValue, m_dwValueLength, other.m_pValue, other.m_dwValueLength);
 }
 
@@ -62,8 +68,22 @@ void Hash::operator =(const Hash& other)
 void Hash::Close()
 {
     m_dwValueLength = 0UL;
-    delete[] Interlocked<PUCHAR>::ExchangePointer(&m_pValue, nullptr);
-    m_sz = String::Empty;
+    delete[] Interlocked<PBYTE>::ExchangePointer(&m_pValue, nullptr);
+    m_pDataFeeder = RefPtr<DataFeeder>();
+}
+
+
+Hash& Hash::Set(RefPtr<DataFeeder> pDataFeeder)
+{
+    m_pDataFeeder = pDataFeeder;
+    return *this;
+}
+
+
+Hash& Hash::Set(const void* ptr, size_t cb)
+{
+    m_pDataFeeder = RefPtr<DataFeeder>(new BYTEDATAFEEDER(ptr, cb));
+    return *this;
 }
 
 
@@ -73,7 +93,7 @@ void Hash::Compute() const
     BCryptHashHandle hHash;
     hAlg.Open(m_pszAlgorithm);
     DWORD dwValueLength = hAlg.HashLength;
-    delete[] Interlocked<PUCHAR>::ExchangePointer(&m_pValue, new BYTE[dwValueLength]);
+    delete[] Interlocked<PBYTE>::ExchangePointer(&m_pValue, new BYTE[dwValueLength]);
     hHash.Open(hAlg);
     if (m_pDataFeeder)
     {
@@ -107,30 +127,14 @@ DWORD Hash::get_ValueLength() const
 }
 
 
-const String& Hash::get_Text() const
+MD5Hash::MD5Hash(RefPtr<DataFeeder> pDataFeeder)
+    : Hash(BCRYPT_MD5_ALGORITHM, pDataFeeder)
 {
-    if (!m_sz.Len)
-    {
-        if (!m_dwValueLength)
-        {
-            Compute();
-        }
-        DWORD dwLength = m_dwValueLength * 2;
-        m_sz = String(dwLength, L' ');
-        PWSTR psz = const_cast<PWSTR>(m_sz.Ptr);
-        for (DWORD dwIndex = 0; dwIndex < m_dwValueLength; dwIndex++)
-        {
-            static const WCHAR hex[] = L"0123456789abcdef";
-            psz[dwIndex * 2 + 0] = hex[(m_pValue[dwIndex] >> (4 * 1)) & 0xF];
-            psz[dwIndex * 2 + 1] = hex[(m_pValue[dwIndex] >> (4 * 0)) & 0xF];
-        }
-    }
-	return m_sz;
 }
 
 
-MD5Hash::MD5Hash(DataFeeder& rDataFeeder)
-    : Hash(BCRYPT_MD5_ALGORITHM, rDataFeeder)
+MD5Hash::MD5Hash(const void* ptr, size_t cb)
+    : Hash(BCRYPT_MD5_ALGORITHM, RefPtr<DataFeeder>(new BYTEDATAFEEDER(ptr, cb)))
 {
 }
 
@@ -147,8 +151,14 @@ void MD5Hash::operator =(const MD5Hash& src)
 }
 
 
-SHA1Hash::SHA1Hash(DataFeeder& rDataFeeder)
-    : Hash(BCRYPT_SHA1_ALGORITHM, rDataFeeder)
+SHA1Hash::SHA1Hash(RefPtr<DataFeeder> pDataFeeder)
+    : Hash(BCRYPT_SHA1_ALGORITHM, pDataFeeder)
+{
+}
+
+
+SHA1Hash::SHA1Hash(const void* ptr, size_t cb)
+    : Hash(BCRYPT_SHA1_ALGORITHM, RefPtr<DataFeeder>(new BYTEDATAFEEDER(ptr, cb)))
 {
 }
 
@@ -165,8 +175,14 @@ void SHA1Hash::operator =(const SHA1Hash& src)
 }
 
 
-SHA256Hash::SHA256Hash(DataFeeder& rDataFeeder)
-    : Hash(BCRYPT_SHA256_ALGORITHM, rDataFeeder)
+SHA256Hash::SHA256Hash(RefPtr<DataFeeder> pDataFeeder)
+    : Hash(BCRYPT_SHA256_ALGORITHM, pDataFeeder)
+{
+}
+
+
+SHA256Hash::SHA256Hash(const void* ptr, size_t cb)
+    : Hash(BCRYPT_SHA256_ALGORITHM, RefPtr<DataFeeder>(new BYTEDATAFEEDER(ptr, cb)))
 {
 }
 
@@ -183,8 +199,14 @@ void SHA256Hash::operator =(const SHA256Hash& src)
 }
 
 
-SHA384Hash::SHA384Hash(DataFeeder& rDataFeeder)
-    : Hash(BCRYPT_SHA384_ALGORITHM, rDataFeeder)
+SHA384Hash::SHA384Hash(RefPtr<DataFeeder> pDataFeeder)
+    : Hash(BCRYPT_SHA384_ALGORITHM, pDataFeeder)
+{
+}
+
+
+SHA384Hash::SHA384Hash(const void* ptr, size_t cb)
+    : Hash(BCRYPT_SHA384_ALGORITHM, RefPtr<DataFeeder>(new BYTEDATAFEEDER(ptr, cb)))
 {
 }
 
@@ -201,8 +223,14 @@ void SHA384Hash::operator =(const SHA384Hash& src)
 }
 
 
-SHA512Hash::SHA512Hash(DataFeeder& rDataFeeder)
-    : Hash(BCRYPT_SHA512_ALGORITHM, rDataFeeder)
+SHA512Hash::SHA512Hash(RefPtr<DataFeeder> pDataFeeder)
+    : Hash(BCRYPT_SHA512_ALGORITHM, pDataFeeder)
+{
+}
+
+
+SHA512Hash::SHA512Hash(const void* ptr, size_t cb)
+    : Hash(BCRYPT_SHA512_ALGORITHM, RefPtr<DataFeeder>(new BYTEDATAFEEDER(ptr, cb)))
 {
 }
 
