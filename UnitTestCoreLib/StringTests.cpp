@@ -15,7 +15,6 @@ namespace UnitTestCoreLib
 		TEST_METHOD(Test01)
 		{
 			String s;
-			Assert::AreEqual(false, (bool)s == true);
 			Assert::AreEqual(0, wcscmp(s, L""));
 		}
 
@@ -23,7 +22,6 @@ namespace UnitTestCoreLib
 		{
 			String s(L"XYZ");
 			Debug::Put(L"StringTest2: %s", s);
-			Assert::AreEqual(true, (bool)s == true);
 			Assert::AreEqual(0, wcscmp(s, L"XYZ"));
 		}
 

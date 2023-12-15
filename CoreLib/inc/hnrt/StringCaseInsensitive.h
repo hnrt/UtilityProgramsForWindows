@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include <Windows.h>
-
 
 namespace hnrt
 {
@@ -14,7 +12,7 @@ namespace hnrt
 
         StringCaseInsensitive();
         StringCaseInsensitive(const StringCaseInsensitive&);
-        StringCaseInsensitive(PCWSTR, INT_PTR = -1);
+        StringCaseInsensitive(PCWSTR, SSIZE_T = -1);
         StringCaseInsensitive(const String&);
         ~StringCaseInsensitive();
         operator PCWSTR() const;
@@ -32,20 +30,20 @@ namespace hnrt
         StringCaseInsensitive operator +(const StringCaseInsensitive&) const;
         StringCaseInsensitive operator +(const String&) const;
         PCWSTR get_ptr() const;
-        size_t get_len() const;
+        SIZE_T get_len() const;
 
         __declspec(property(get = get_ptr)) PCWSTR Ptr;
-        __declspec(property(get = get_len)) size_t Len;
+        __declspec(property(get = get_len)) SIZE_T Len;
 
     private:
 
-        PCWSTR m_psz;
+        PWSTR m_psz;
 
     public:
 
         static int Compare(PCWSTR psz1, PCWSTR psz2);
-        static int Compare(PCWSTR psz1, PCWSTR psz2, INT_PTR cch2);
-        static int Compare(PCWSTR psz1, INT_PTR cch1, PCWSTR psz2, INT_PTR cch2);
+        static int Compare(PCWSTR psz1, PCWSTR psz2, SSIZE_T cch2);
+        static int Compare(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2);
     };
 
     inline StringCaseInsensitive::operator PCWSTR() const
@@ -58,12 +56,17 @@ namespace hnrt
         return m_psz != nullptr;
     }
 
+    inline PCWSTR StringCaseInsensitive::get_ptr() const
+    {
+        return m_psz ? m_psz : L"";
+    }
+
     inline int StringCaseInsensitive::Compare(PCWSTR psz1, PCWSTR psz2)
     {
         return Compare(psz1, -1, psz2, -1);
     }
 
-    inline int StringCaseInsensitive::Compare(PCWSTR psz1, PCWSTR psz2, INT_PTR cch2)
+    inline int StringCaseInsensitive::Compare(PCWSTR psz1, PCWSTR psz2, SSIZE_T cch2)
     {
         return Compare(psz1, -1, psz2, cch2);
     }

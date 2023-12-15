@@ -11,12 +11,13 @@ namespace hnrt
 
         String();
         String(const String&);
-        String(PCWSTR, INT_PTR = -1);
+        String(PCWSTR, SSIZE_T = -1);
         String(PCWSTR, va_list);
         String(StringOptions, PCWSTR, ...);
         String(PCWSTR, PCWSTR);
-        String(size_t, WCHAR);
-        String(UINT, PCSTR, INT_PTR = -1);
+        String(SIZE_T);
+        String(SIZE_T, WCHAR);
+        String(UINT, PCSTR, SSIZE_T = -1);
         ~String();
         String& ZeroFill();
         String& Lettercase(StringOptions);
@@ -24,21 +25,20 @@ namespace hnrt
         String& Lowercase();
         String& Trim(StringOptions = TRIM);
         String& Assign(const String&);
-        String& Assign(PCWSTR, INT_PTR = -1);
+        String& Assign(PCWSTR, SSIZE_T = -1);
         String& Append(const String&);
-        String& Append(PCWSTR, INT_PTR = -1);
+        String& Append(PCWSTR, SSIZE_T = -1);
         String& Format(PCWSTR, ...);
         String& VaFormat(PCWSTR, va_list);
         String& AppendFormat(PCWSTR, ...);
         String& VaAppendFormat(PCWSTR, va_list);
-        String& TruncateHead(size_t);
-        String& TruncateTail(size_t);
-        int IndexOf(WCHAR, INT_PTR = 0) const;
-        int IndexOf(const String&, INT_PTR = 0) const;
-        bool StartsWith(PCWSTR, INT_PTR = -1) const;
-        bool EndsWith(PCWSTR, INT_PTR = -1) const;
+        String& TruncateHead(SIZE_T);
+        String& TruncateTail(SIZE_T);
+        int IndexOf(WCHAR, SIZE_T = 0) const;
+        int IndexOf(const String&, SIZE_T = 0) const;
+        bool StartsWith(PCWSTR, SSIZE_T = -1) const;
+        bool EndsWith(PCWSTR, SSIZE_T = -1) const;
         operator PCWSTR() const;
-        operator bool() const;
         String& operator =(const String&);
         String& operator =(PCWSTR);
         String& operator +=(const String&);
@@ -51,14 +51,16 @@ namespace hnrt
         bool operator >=(const String&) const;
         String operator +(const String&) const;
         PCWSTR get_ptr() const;
-        size_t get_len() const;
+        SIZE_T get_len() const;
+        PWCHAR get_buf() const;
 
         __declspec(property(get = get_ptr)) PCWSTR Ptr;
-        __declspec(property(get = get_len)) size_t Len;
+        __declspec(property(get = get_len)) SIZE_T Len;
+        __declspec(property(get = get_buf)) PWCHAR Buf;
 
     private:
 
-        PCWSTR m_psz;
+        PWSTR m_psz;
 
         friend class StringCaseInsensitive;
 
@@ -67,9 +69,9 @@ namespace hnrt
         static const String Empty;
 
         static int Compare(PCWSTR psz1, PCWSTR psz2);
-        static int Compare(PCWSTR psz1, PCWSTR psz2, INT_PTR cch2);
-        static int Compare(PCWSTR psz1, INT_PTR cch1, PCWSTR psz2, INT_PTR cch2);
-        static String ToHex(const void*, size_t, StringOptions = LOWERCASE);
+        static int Compare(PCWSTR psz1, PCWSTR psz2, SSIZE_T cch2);
+        static int Compare(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2);
+        static String ToHex(const void*, SIZE_T, StringOptions = LOWERCASE);
     };
 
     inline String& String::Uppercase()
@@ -82,14 +84,19 @@ namespace hnrt
         return Lettercase(LOWERCASE);
     }
 
+    inline PCWSTR String::get_ptr() const
+    {
+        return m_psz ? m_psz : L"";
+    }
+
+    inline PWCHAR String::get_buf() const
+    {
+        return m_psz;
+    }
+
     inline String::operator PCWSTR() const
     {
         return Ptr;
-    }
-
-    inline String::operator bool() const
-    {
-        return m_psz != nullptr;
     }
 
     inline String& String::operator =(const String& other)
@@ -117,7 +124,7 @@ namespace hnrt
         return Compare(psz1, -1, psz2, -1);
     }
 
-    inline int String::Compare(PCWSTR psz1, PCWSTR psz2, INT_PTR cch2)
+    inline int String::Compare(PCWSTR psz1, PCWSTR psz2, SSIZE_T cch2)
     {
         return Compare(psz1, -1, psz2, cch2);
     }

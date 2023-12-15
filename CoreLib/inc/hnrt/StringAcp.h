@@ -1,9 +1,7 @@
 #pragma once
 
-
 #include <Windows.h>
 #include "hnrt/StringOptions.h"
-
 
 namespace hnrt
 {
@@ -13,12 +11,13 @@ namespace hnrt
 
         StringAcp();
         StringAcp(const StringAcp&);
-        StringAcp(PCSTR, INT_PTR = -1);
+        StringAcp(PCSTR, SSIZE_T = -1);
         StringAcp(PCSTR, va_list);
         StringAcp(StringOptions, PCSTR, ...);
         StringAcp(PCSTR, PCSTR);
-        StringAcp(size_t, CHAR);
-        StringAcp(PCWSTR, INT_PTR = -1);
+        StringAcp(SIZE_T);
+        StringAcp(SIZE_T, CHAR);
+        StringAcp(PCWSTR, SSIZE_T = -1);
         ~StringAcp();
         StringAcp& ZeroFill();
         StringAcp& Lettercase(StringOptions);
@@ -26,21 +25,20 @@ namespace hnrt
         StringAcp& Lowercase();
         StringAcp& Trim(StringOptions = TRIM);
         StringAcp& Assign(const StringAcp&);
-        StringAcp& Assign(PCSTR, INT_PTR = -1);
+        StringAcp& Assign(PCSTR, SSIZE_T = -1);
         StringAcp& Append(const StringAcp&);
-        StringAcp& Append(PCSTR, INT_PTR = -1);
+        StringAcp& Append(PCSTR, SSIZE_T = -1);
         StringAcp& Format(PCSTR, ...);
         StringAcp& VaFormat(PCSTR, va_list);
         StringAcp& AppendFormat(PCSTR, ...);
         StringAcp& VaAppendFormat(PCSTR, va_list);
-        StringAcp& TruncateHead(size_t);
-        StringAcp& TruncateTail(size_t);
-        int IndexOf(CHAR, INT_PTR = 0) const;
-        int IndexOf(const StringAcp&, INT_PTR = 0) const;
-        bool StartsWith(PCSTR, INT_PTR = -1) const;
-        bool EndsWith(PCSTR, INT_PTR = -1) const;
+        StringAcp& TruncateHead(SIZE_T);
+        StringAcp& TruncateTail(SIZE_T);
+        int IndexOf(CHAR, SIZE_T = 0) const;
+        int IndexOf(const StringAcp&, SIZE_T = 0) const;
+        bool StartsWith(PCSTR, SSIZE_T = -1) const;
+        bool EndsWith(PCSTR, SSIZE_T = -1) const;
         operator PCSTR() const;
-        operator bool() const;
         StringAcp& operator =(const StringAcp&);
         StringAcp& operator =(PCSTR);
         StringAcp& operator +=(const StringAcp&);
@@ -53,14 +51,16 @@ namespace hnrt
         bool operator >=(const StringAcp&) const;
         StringAcp operator +(const StringAcp&) const;
         PCSTR get_ptr() const;
-        size_t get_len() const;
+        SIZE_T get_len() const;
+        PCHAR get_buf() const;
 
         __declspec(property(get = get_ptr)) PCSTR Ptr;
-        __declspec(property(get = get_len)) size_t Len;
+        __declspec(property(get = get_len)) SIZE_T Len;
+        __declspec(property(get = get_buf)) PCHAR Buf;
 
     private:
 
-        PCSTR m_psz;
+        PSTR m_psz;
 
         friend class StringCaseInsensitiveAcp;
 
@@ -69,9 +69,9 @@ namespace hnrt
         static const StringAcp Empty;
 
         static int Compare(PCSTR psz1, PCSTR psz2);
-        static int Compare(PCSTR psz1, PCSTR psz2, INT_PTR cb2);
-        static int Compare(PCSTR psz1, INT_PTR cb1, PCSTR psz2, INT_PTR cb2);
-        static StringAcp ToHex(const void*, size_t, StringOptions = LOWERCASE);
+        static int Compare(PCSTR psz1, PCSTR psz2, SSIZE_T cb2);
+        static int Compare(PCSTR psz1, SSIZE_T cb1, PCSTR psz2, SSIZE_T cb2);
+        static StringAcp ToHex(const void*, SIZE_T, StringOptions = LOWERCASE);
     };
 
     inline StringAcp& StringAcp::Uppercase()
@@ -84,14 +84,19 @@ namespace hnrt
         return Lettercase(LOWERCASE);
     }
 
+    inline PCSTR StringAcp::get_ptr() const
+    {
+        return m_psz ? m_psz : "";
+    }
+
+    inline PCHAR StringAcp::get_buf() const
+    {
+        return m_psz;
+    }
+
     inline StringAcp::operator PCSTR() const
     {
         return Ptr;
-    }
-
-    inline StringAcp::operator bool() const
-    {
-        return m_psz != nullptr;
     }
 
     inline StringAcp& StringAcp::operator =(const StringAcp& other)
@@ -119,7 +124,7 @@ namespace hnrt
         return Compare(psz1, -1, psz2, -1);
     }
 
-    inline int StringAcp::Compare(PCSTR psz1, PCSTR psz2, INT_PTR cb2)
+    inline int StringAcp::Compare(PCSTR psz1, PCSTR psz2, SSIZE_T cb2)
     {
         return Compare(psz1, -1, psz2, cb2);
     }

@@ -230,6 +230,7 @@
     <ClInclude Include="inc\hnrt\RefMbs.h" />
     <ClInclude Include="inc\hnrt\RefObj.h" />
     <ClInclude Include="inc\hnrt\RefStr.h" />
+    <ClInclude Include="inc\hnrt\RefString.h" />
     <ClInclude Include="inc\hnrt\RegistryKey.h" />
     <ClInclude Include="inc\hnrt\RegistryValue.h" />
     <ClInclude Include="inc\hnrt\ResourceReader.h" />
@@ -243,6 +244,7 @@
     <ClInclude Include="inc\hnrt\StringCaseInsensitive.h" />
     <ClInclude Include="inc\hnrt\StringCaseInsensitiveAcp.h" />
     <ClInclude Include="inc\hnrt\StringCollection.h" />
+    <ClInclude Include="inc\hnrt\StringCommons.h" />
     <ClInclude Include="inc\hnrt\StringHelpers.h" />
     <ClInclude Include="inc\hnrt\StringOptions.h" />
     <ClInclude Include="inc\hnrt\StringStore.h" />
@@ -272,6 +274,8 @@
     <ClInclude Include="inc\hnrt\SpinLock.h" />
     <ClInclude Include="inc\hnrt\StringBuffer.h" />
     <ClInclude Include="src\SecretInternal.h" />
+    <ClInclude Include="src\StringCaseInsensitiveGeneric.h" />
+    <ClInclude Include="src\StringGeneric.h" />
     <ClInclude Include="src\StringStoreInternal.h" />
     <ClInclude Include="inc\hnrt\String.h" />
     <ClInclude Include="src\UiAutomationInternal.h" />
@@ -330,6 +334,7 @@
     <ClCompile Include="src\StringCaseInsensitive.cpp" />
     <ClCompile Include="src\StringCaseInsensitiveAcp.cpp" />
     <ClCompile Include="src\StringCollection.cpp" />
+    <ClCompile Include="src\StringCommons.cpp" />
     <ClCompile Include="src\StringHelpers.cpp" />
     <ClCompile Include="src\StringStore.cpp" />
     <ClCompile Include="src\StringStoreInternal.cpp" />
