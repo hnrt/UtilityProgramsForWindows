@@ -37,7 +37,7 @@ namespace hnrt
 		void Parse();
 		void Format();
 		void ClearExpression() const;
-		void AppendToExpression(PCWSTR) const;
+		void AppendToExpression(const String&) const;
 		void UpdateIndividualControls();
 		void UpdateValueControls(const CronValue& value, int idAll, int idAny, int idLast, int idWeek, int idExpr, int idEdit, int idStatic);
 		void SetEvalText(int, const CronValue&);

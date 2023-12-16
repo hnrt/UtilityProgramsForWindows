@@ -39,7 +39,6 @@ namespace hnrt
 		void SetFocus(int id) const;
 		LRESULT SendMessage(int id, UINT msg, WPARAM wParam = 0, LPARAM lParam = 0) const;
 		UINT GetTextLength(int id) const;
-		PWCHAR GetText(int id, PWCHAR pBuf, size_t cch) const;
 		String GetText(int id) const;
 		void SetText(int id, PCWSTR psz = L"") const;
 		void CopyAllText(int id) const;

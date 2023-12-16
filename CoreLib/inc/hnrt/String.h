@@ -52,11 +52,14 @@ namespace hnrt
         String operator +(const String&) const;
         PCWSTR get_ptr() const;
         SIZE_T get_len() const;
+        void set_len(SIZE_T);
         PWCHAR get_buf() const;
+        BOOL is_set() const;
 
         __declspec(property(get = get_ptr)) PCWSTR Ptr;
-        __declspec(property(get = get_len)) SIZE_T Len;
+        __declspec(property(get = get_len, put = set_len)) SIZE_T Len;
         __declspec(property(get = get_buf)) PWCHAR Buf;
+        __declspec(property(get = is_set)) BOOL IsSet;
 
     private:
 
@@ -92,6 +95,11 @@ namespace hnrt
     inline PWCHAR String::get_buf() const
     {
         return m_psz;
+    }
+
+    inline BOOL String::is_set() const
+    {
+        return m_psz ? TRUE : FALSE;
     }
 
     inline String::operator PCWSTR() const

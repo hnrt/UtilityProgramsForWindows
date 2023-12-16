@@ -704,37 +704,28 @@ void MyDialogBox::SaveTextAsFile(int id, String& szPath) const
 	{
 		return;
 	}
-	int cch = GetTextLength(id);
-	int cchSize = cch + 2;
-	Buffer<WCHAR> wcs(cchSize);
+	String wcs = GetText(id);
 	if ((m_uOutputCodePage == CP_UTF8 || m_uOutputCodePage == CP_UTF16) && m_bOutputBOM)
 	{
-		wcs[0] = BYTE_ORDER_MARK;
-		GetText(id, &wcs[1], wcs.Len - 1);
-		cch++;
-	}
-	else
-	{
-		GetText(id, wcs, wcs.Len);
+		wcs.Format(L"%c%s", BYTE_ORDER_MARK, wcs);
 	}
 	try
 	{
-		if (!cch)
+		if (!wcs.Len)
 		{
 			FileWriter(ofn.lpstrFile).Write("", 0);
 		}
 		else if (m_uOutputCodePage == CP_UTF16)
 		{
-			int cb = cch * sizeof(WCHAR);
-			FileWriter(ofn.lpstrFile).Write(wcs, cb);
+			FileWriter(ofn.lpstrFile).Write(wcs, wcs.Len * sizeof(WCHAR));
 		}
 		else
 		{
-			int cb = WideCharToMultiByte(m_uOutputCodePage, 0, wcs, cch, NULL, 0, NULL, NULL);
+			int cb = WideCharToMultiByte(m_uOutputCodePage, 0, wcs, static_cast<int>(wcs.Len), NULL, 0, NULL, NULL);
 			if (cb)
 			{
 				Buffer<CHAR> mbs(cb);
-				WideCharToMultiByte(m_uOutputCodePage, 0, wcs, cch, mbs, cb, NULL, NULL);
+				WideCharToMultiByte(m_uOutputCodePage, 0, wcs, static_cast<int>(wcs.Len), mbs, cb, NULL, NULL);
 				FileWriter(ofn.lpstrFile).Write(mbs, cb);
 			}
 			else

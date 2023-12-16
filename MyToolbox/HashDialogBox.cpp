@@ -221,37 +221,31 @@ void HashDialogBox::OnCalculate()
         ULONGLONG nBytesIn;
         if (m_uSource == IDC_HASH_FILE)
         {
-            WCHAR szPath[MAX_PATH] = { 0 };
-            GetText(IDC_HASH_PATH, szPath, MAX_PATH);
             RefPtr<MyFileDataFeeder> pFeeder(new MyFileDataFeeder());
-            pFeeder->Open(szPath);
+            pFeeder->Open(GetText(IDC_HASH_PATH));
             Calculate(RefPtr<DataFeeder>::Cast(pFeeder.Ptr));
             nBytesIn = pFeeder->TotalLength;
         }
         else
         {
-            int length2 = static_cast<int>(GetTextLength(IDC_HASH_CONTENT));
-            Buffer<WCHAR> buf2(length2 + 1);
-            GetText(IDC_HASH_CONTENT, buf2, buf2.Len);
+            String szContent = GetText(IDC_HASH_CONTENT);
             UINT uLineBreak = GetLineBreak();
-            if (uLineBreak == 0x0a && length2 > 0)
+            if (uLineBreak == 0x0a && szContent.Len > 0)
             {
-                length2 = ConvertToLF(&buf2, length2);
+                szContent.Len = ConvertToLF(szContent.Buf, static_cast<UINT>(szContent.Len));
             }
             UINT uCodePage = GetCodePage();
             if (uCodePage == 1200)
             {
-                length2 *= sizeof(WCHAR);
-                Calculate(RefPtr<DataFeeder>(new ByteDataFeeder(&buf2, length2)));
-                nBytesIn = length2;
+                Calculate(RefPtr<DataFeeder>(new ByteDataFeeder(szContent, szContent.Len * sizeof(WCHAR))));
+                nBytesIn = szContent.Len * sizeof(WCHAR);
             }
             else
             {
-                int length1 = static_cast<int>(length2 * 4);
-                Buffer<CHAR> buf1(length1);
-                length1 = WideCharToMultiByte(uCodePage, 0, &buf2, length2, &buf1, length1, NULL, NULL);
-                Calculate(RefPtr<DataFeeder>(new ByteDataFeeder(&buf1, length1)));
-                nBytesIn = length1;
+                Buffer<CHAR> buf(szContent.Len * 4ULL);
+                int length = WideCharToMultiByte(uCodePage, 0, szContent, static_cast<int>(szContent.Len), &buf, static_cast<int>(buf.Len), NULL, NULL);
+                Calculate(RefPtr<DataFeeder>(new ByteDataFeeder(&buf, length)));
+                nBytesIn = length;
             }
         }
         SetResultHeader(nBytesIn, m_hash.ValueLength);
@@ -610,14 +604,12 @@ bool HashDialogBox::CanCalculate() const
 {
     if (m_uSource == IDC_HASH_FILE)
     {
-        int cch = GetTextLength(IDC_HASH_PATH) + 1;
-        if (cch == 1)
+        String szPath = GetText(IDC_HASH_PATH).Trim();
+        if (!szPath.Len)
         {
             return false;
         }
-        Buffer<WCHAR> path(cch);
-        GetText(IDC_HASH_PATH, path, path.Len);
-        DWORD dwAttr = GetFileAttributesW(path);
+        DWORD dwAttr = GetFileAttributesW(szPath);
         return dwAttr != INVALID_FILE_ATTRIBUTES && dwAttr != FILE_ATTRIBUTE_DIRECTORY;
     }
     else

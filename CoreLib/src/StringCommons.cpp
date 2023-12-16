@@ -83,7 +83,7 @@ SIZE_T StringCommons::FormatLength(const WCHAR* pszFormat, ...)
 {
 	va_list argList;
 	va_start(argList, pszFormat);
-	int cch = _vcwprintf_s(pszFormat, argList);
+	int cch = _vscwprintf(pszFormat, argList);
 	va_end(argList);
 	if (cch < 0)
 	{
@@ -97,7 +97,7 @@ SIZE_T StringCommons::FormatLength(const CHAR* pszFormat, ...)
 {
 	va_list argList;
 	va_start(argList, pszFormat);
-	int cch = _vcprintf_s(pszFormat, argList);
+	int cch = _vscprintf(pszFormat, argList);
 	va_end(argList);
 	if (cch < 0)
 	{
@@ -111,7 +111,7 @@ SIZE_T StringCommons::VaFormatLength(const WCHAR* pszFormat, va_list argList)
 {
 	va_list argList2;
 	va_copy(argList2, argList);
-	int cch = _vcwprintf_s(pszFormat, argList2);
+	int cch = _vscwprintf(pszFormat, argList2);
 	va_end(argList2);
 	if (cch < 0)
 	{
@@ -125,7 +125,7 @@ SIZE_T StringCommons::VaFormatLength(const CHAR* pszFormat, va_list argList)
 {
 	va_list argList2;
 	va_copy(argList2, argList);
-	int cch = _vcprintf_s(pszFormat, argList2);
+	int cch = _vscprintf(pszFormat, argList2);
 	va_end(argList2);
 	if (cch < 0)
 	{

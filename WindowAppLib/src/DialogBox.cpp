@@ -4,7 +4,6 @@
 #include "hnrt/WindowHandle.h"
 #include "hnrt/WindowDesign.h"
 #include "hnrt/Clipboard.h"
-#include "hnrt/Buffer.h"
 #include "hnrt/Debug.h"
 #include <map>
 
@@ -124,19 +123,12 @@ UINT DialogBox::GetTextLength(int id) const
 }
 
 
-PWCHAR DialogBox::GetText(int id, PWCHAR pBuf, size_t cch) const
-{
-    SendMessage(id, WM_GETTEXT, cch, reinterpret_cast<LPARAM>(pBuf));
-    return pBuf;
-}
-
-
 String DialogBox::GetText(int id) const
 {
     LRESULT cch = SendMessage(id, WM_GETTEXTLENGTH);
-    Buffer<WCHAR> buf(cch + 1);
-    SendMessage(id, WM_GETTEXT, buf.Len, reinterpret_cast<LPARAM>(&buf));
-    return String(buf);
+    String text(cch);
+    SendMessage(id, WM_GETTEXT, cch + 1, reinterpret_cast<LPARAM>(text.Buf));
+    return text;
 }
 
 
@@ -183,26 +175,27 @@ void DialogBox::EditCut(int id) const
     //
     // |<--- off2 --->|<--- cch3 --->|
     //
-    int cch = GetTextLength(id) + 1;
+    int cch = GetTextLength(id);
     int off2 = 0;
     int off3 = 0;
     EditGetSelection(id, off2, off3);
-    if (off2 > off3 || off3 >= cch)
+    if (off2 > off3 || off3 > cch)
     {
         Debug::Put(L"DialogBox::EditCut: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
         return;
     }
-    Buffer<WCHAR> buf(cch);
-    GetText(id, buf, buf.Len);
+    String szText = GetText(id);
     int cch2 = off3 - off2;
-    if (!Clipboard::Write(hwnd, &buf[off2], cch2))
+    if (!Clipboard::Write(hwnd, &szText[off2], cch2))
     {
         MessageBoxW(hwnd, L"Unable to write text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
         return;
     }
     int cch3 = cch - off3;
-    wmemmove_s(&buf[off2], cch3, &buf[off3], cch3);
-    SetText(id, buf);
+    String szText2;
+    szText2.Append(&szText[0], off2);
+    szText2.Append(&szText[off3], cch3);
+    SetText(id, szText2);
     EditSetSelection(id, off2, off2);
     SetFocus(id);
 }
@@ -215,19 +208,18 @@ void DialogBox::EditCopy(int id) const
     // |<--- off2 --->|<--- SELECTION --->|<--- cch3 --->|
     // |<----------- off3 --------------->|
     //
-    int cch = GetTextLength(id) + 1;
+    int cch = GetTextLength(id);
     int off2 = 0;
     int off3 = 0;
     EditGetSelection(id, off2, off3);
-    if (off2 > off3 || off3 >= cch)
+    if (off2 > off3 || off3 > cch)
     {
         Debug::Put(L"DialogBox::EditCopy: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
         return;
     }
-    Buffer<WCHAR> buf(cch);
-    GetText(id, buf, buf.Len);
+    String szText = GetText(id);
     int cch2 = off3 - off2;
-    if (!Clipboard::Write(hwnd, &buf[off2], cch2))
+    if (!Clipboard::Write(hwnd, &szText[off2], cch2))
     {
         MessageBoxW(hwnd, L"Unable to write text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
         return;
@@ -247,30 +239,28 @@ void DialogBox::EditPaste(int id) const
     // |<----------- off4 ---------->|
     // |<--- off2 --->|<--- cch2 --->|<--- cch3 --->|
     //
-    String szText = Clipboard::Read(hwnd);
-    if (!szText)
-    {
-        MessageBoxW(hwnd, L"Unable to read text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
-        return;
-    }
-    int cch2 = static_cast<int>(szText.Len);
-    int cch = GetTextLength(id) + 1;
+    String szText1 = GetText(id);
+    int cch = static_cast<int>(szText1.Len);
     int off2 = 0;
     int off3 = 0;
     EditGetSelection(id, off2, off3);
-    if (off2 > off3 || off3 >= cch)
+    if (off2 > off3 || off3 > cch)
     {
         Debug::Put(L"DialogBox::EditPaste: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
         return;
     }
-    int size = cch + cch2;
-    Buffer<WCHAR> buf(size);
-    GetText(id, buf, buf.Len);
-    int cch3 = cch - off3;
-    int off4 = off2 + cch2;
-    wmemmove_s(&buf[off4], cch3, &buf[off3], cch3);
-    wmemcpy_s(&buf[off2], cch2, szText, cch2);
-    SetText(id, buf);
+    String szText2 = Clipboard::Read(hwnd);
+    if (!szText2.IsSet)
+    {
+        MessageBoxW(hwnd, L"Unable to read text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
+        return;
+    }
+    String szText3;
+    szText3.Append(&szText1[0], off2);
+    szText3.Append(szText2);
+    szText3.Append(&szText1[off3]);
+    SetText(id, szText3);
+    int off4 = off2 + static_cast<int>(szText2.Len);
     EditSetSelection(id, off4, off4);
     SetFocus(id);
 }
@@ -285,28 +275,24 @@ void DialogBox::EditDelete(int id) const
     //
     // |<--- off2 --->|<--- cch3 --->|
     //
-    int cch = GetTextLength(id) + 1;
+    String szText1 = GetText(id);
+    int cch = static_cast<int>(szText1.Len);
     int off2 = 0;
     int off3 = 0;
     EditGetSelection(id, off2, off3);
-    if (off2 > off3 || off3 >= cch)
+    if (off2 > off3 || off3 > cch)
     {
         Debug::Put(L"DialogBox::DeleteText: Unexpected state: cch=%d off2=%d off3=%d", cch, off2, off3);
         return;
     }
-    if (off2 == off3)
+    if (off2 == off3 && off3 == cch)
     {
-        if (++off3 == cch)
-        {
-            return;
-        }
+        return;
     }
-    Buffer<WCHAR> buf(cch);
-    GetText(id, buf, buf.Len);
-    int cch2 = off3 - off2;
-    int cch3 = cch - off3;
-    wmemmove_s(&buf[off2], cch3, &buf[off3], cch3);
-    SetText(id, buf);
+    String szText2;
+    szText2.Append(&szText1[0], off2);
+    szText2.Append(&szText1[off3]);
+    SetText(id, szText2);
     EditSetSelection(id, off2, off2);
     SetFocus(id);
 }
@@ -490,13 +476,13 @@ String DialogBox::ComboBoxGetText(int id, int index, const String& szDefault) co
     {
         return String(szDefault);
     }
-    Buffer<WCHAR> buf(cch + 1);
-    LRESULT length = SendMessage(id, CB_GETLBTEXT, index, reinterpret_cast<LPARAM>(buf.Ptr));
+    String szText(cch);
+    LRESULT length = SendMessage(id, CB_GETLBTEXT, index, reinterpret_cast<LPARAM>(szText.Buf));
     if (length == CB_ERR)
     {
         return String(szDefault);
     }
-    return String(buf, cch);
+    return szText;
 }
 
 
@@ -552,12 +538,12 @@ String DialogBox::ListBoxGetText(int id, int index, const String& szDefault) con
     {
         return String(szDefault);
     }
-    Buffer<WCHAR> buf(cch + 1);
-    if (SendMessage(id, LB_GETTEXT, index, reinterpret_cast<LPARAM>(buf.Ptr)) == LB_ERR)
+    String szText(cch);
+    if (SendMessage(id, LB_GETTEXT, index, reinterpret_cast<LPARAM>(szText.Buf)) == LB_ERR)
     {
         return String(szDefault);
     }
-    return String(buf, cch);
+    return szText;
 }
 
 

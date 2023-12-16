@@ -155,6 +155,10 @@ XSTRING::XSTRING(UINT cp, PCSTR psz, SSIZE_T cb)
         MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, static_cast<int>(cb), m_psz, cch);
         m_psz[cch] = L'\0';
     }
+    else
+    {
+        m_psz = RefStr::Create(L"");
+    }
 }
 #endif //STRINGUCS
 
@@ -174,6 +178,10 @@ XSTRING::XSTRING(PCWSTR psz, SSIZE_T cch)
         m_psz = RefStr::Create(cb);
         WideCharToMultiByte(XCODEPAGE, WC_ERR_INVALID_CHARS, psz, static_cast<int>(cch), m_psz, cb, NULL, NULL);
         m_psz[cb] = '\0';
+    }
+    else
+    {
+        m_psz = RefStr::Create("");
     }
 }
 #endif //STRINGACP
@@ -296,12 +304,12 @@ XSTRING& XSTRING::TruncateHead(SIZE_T cch)
         {
             SIZE_T newLen = pThis->Len - cch;
             StringCommons::Move(&m_psz[0], &m_psz[cch], newLen);
-            StringCommons::Fill(&m_psz[newLen], 0, cch);
+            StringCommons::Fill(&m_psz[newLen], XLITERAL('\0'), cch);
             pThis->SetLength(newLen);
         }
         else
         {
-            pThis->Fill(0);
+            pThis->Fill(XLITERAL('\0'));
         }
     }
     return *this;
@@ -469,6 +477,15 @@ SIZE_T XSTRING::get_len() const
 }
 
 
+void XSTRING::set_len(SIZE_T len)
+{
+    if (m_psz)
+    {
+        RefStr::GetThis(m_psz)->SetLength(len);
+    }
+}
+
+
 int XSTRING::Compare(PCXSTR psz1, SSIZE_T cch1, PCXSTR psz2, SSIZE_T cch2)
 {
     return StringCommons::Compare(psz1, cch1, psz2, cch2);
@@ -478,8 +495,14 @@ int XSTRING::Compare(PCXSTR psz1, SSIZE_T cch1, PCXSTR psz2, SSIZE_T cch2)
 XSTRING XSTRING::ToHex(const void* ptr, SIZE_T len, StringOptions option)
 {
     static const XCHAR HexLU[2][16] = {
-        { XLITERAL('0'), XLITERAL('1'), XLITERAL('2'), XLITERAL('3'), XLITERAL('4'), XLITERAL('5'), XLITERAL('6'), XLITERAL('7'), XLITERAL('8'), XLITERAL('9'), XLITERAL('a'), XLITERAL('b'), XLITERAL('c'), XLITERAL('d'), XLITERAL('e'), XLITERAL('f') },
-        { XLITERAL('0'), XLITERAL('1'), XLITERAL('2'), XLITERAL('3'), XLITERAL('4'), XLITERAL('5'), XLITERAL('6'), XLITERAL('7'), XLITERAL('8'), XLITERAL('9'), XLITERAL('A'), XLITERAL('B'), XLITERAL('C'), XLITERAL('D'), XLITERAL('E'), XLITERAL('F') }
+        { XLITERAL('0'), XLITERAL('1'), XLITERAL('2'), XLITERAL('3'),
+          XLITERAL('4'), XLITERAL('5'), XLITERAL('6'), XLITERAL('7'),
+          XLITERAL('8'), XLITERAL('9'), XLITERAL('a'), XLITERAL('b'),
+          XLITERAL('c'), XLITERAL('d'), XLITERAL('e'), XLITERAL('f') },
+        { XLITERAL('0'), XLITERAL('1'), XLITERAL('2'), XLITERAL('3'),
+          XLITERAL('4'), XLITERAL('5'), XLITERAL('6'), XLITERAL('7'),
+          XLITERAL('8'), XLITERAL('9'), XLITERAL('A'), XLITERAL('B'),
+          XLITERAL('C'), XLITERAL('D'), XLITERAL('E'), XLITERAL('F') }
     };
     const XCHAR* hex = HexLU[option == UPPERCASE ? 1 : 0];
     XSTRING sz(len * 2, XLITERAL('*'));

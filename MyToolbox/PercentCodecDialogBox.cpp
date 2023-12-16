@@ -353,14 +353,11 @@ bool PercentCodecDialogBox::OnEncode()
 			m_bDecodingError = false;
 			SetText(IDC_PCTC_STATUS2, L"");
 		}
-		UINT cch = GetTextLength(IDC_PCTC_EDIT1) + 1;
-		Buffer<WCHAR> buf1(cch);
-		GetText(IDC_PCTC_EDIT1, buf1, cch);
+		String szText = GetText(IDC_PCTC_EDIT1);
 		UINT uCodePage = GetCodePage();
-		UINT size = cch * 4 * 3;
-		Buffer<WCHAR> buf2(size);
-		Encode(buf1, cch, uCodePage, buf2, static_cast<UINT>(buf2.Len), ButtonIsChecked(IDC_PCTC_USE_PLUS));
-		SetText(IDC_PCTC_EDIT2, buf2);
+		Buffer<WCHAR> buf((szText.Len + 1ULL) * 4ULL * 3ULL);
+		Encode(szText, static_cast<UINT>(szText.Len + 1ULL), uCodePage, buf, static_cast<UINT>(buf.Len), ButtonIsChecked(IDC_PCTC_USE_PLUS));
+		SetText(IDC_PCTC_EDIT2, buf);
 		m_bDecodingError = false;
 		return true;
 	}
@@ -387,13 +384,11 @@ bool PercentCodecDialogBox::OnDecode()
 			m_bDecodingError = false;
 			SetText(IDC_PCTC_STATUS2, L"");
 		}
-		UINT cch = GetTextLength(IDC_PCTC_EDIT2) + 1;
-		Buffer<WCHAR> buf2(cch);
-		GetText(IDC_PCTC_EDIT2, buf2, cch);
+		String szText = GetText(IDC_PCTC_EDIT2);
 		UINT uCodePage = GetCodePage();
-		Buffer<WCHAR> buf1(cch);
-		Decode(buf2, cch, uCodePage, buf1, cch);
-		SetText(IDC_PCTC_EDIT1, buf1);
+		Buffer<WCHAR> buf(szText.Len + 1ULL);
+		Decode(szText, static_cast<UINT>(szText.Len + 1ULL), uCodePage, buf, static_cast<UINT>(buf.Len));
+		SetText(IDC_PCTC_EDIT1, buf);
 		m_bDecodingError = false;
 		return true;
 	}

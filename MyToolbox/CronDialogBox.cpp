@@ -11,7 +11,7 @@
 #include "hnrt/Exception.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/StringBuffer.h"
-#include "hnrt/StringUtils.h"
+#include "hnrt/StringCommons.h"
 #include "hnrt/Time.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
@@ -198,10 +198,7 @@ void CronDialogBox::OnDestroy()
 		RegistryValue::SetDWORD(hKey, REG_NAME_SECOND, m_cron.SecondEnabled ? 1U : 0U);
 		RegistryValue::SetDWORD(hKey, REG_NAME_BASEOFFSET, ComboBoxGetSelection(IDC_CRON_EXPR_COMBO));
 		RegistryValue::SetDWORD(hKey, REG_NAME_DISPLAYOFFSET, ComboBoxGetSelection(IDC_CRON_OFFSET_COMBO));
-		int cch = GetTextLength(IDC_CRON_EXPR_EDIT) + 1;
-		Buffer<WCHAR> buf(cch);
-		GetText(IDC_CRON_EXPR_EDIT, buf, buf.Len);
-		RegistryValue::SetSZ(hKey, REG_NAME_EXPRESSION, buf);
+		RegistryValue::SetSZ(hKey, REG_NAME_EXPRESSION, GetText(IDC_CRON_EXPR_EDIT));
 	}
 	MyDialogBox::OnDestroy();
 }
@@ -791,10 +788,7 @@ void CronDialogBox::Parse()
 	try
 	{
 		m_bParse = false;
-		UINT cch = GetTextLength(IDC_CRON_EXPR_EDIT) + 1;
-		Buffer<WCHAR> buf(cch);
-		GetText(IDC_CRON_EXPR_EDIT, buf, cch);
-		m_cron.Parse(buf);
+		m_cron.Parse(GetText(IDC_CRON_EXPR_EDIT));
 		m_bParseSuccessful = true;
 		SetText(IDC_CRON_EXPR_STATIC, L"OK");
 	}
@@ -810,15 +804,12 @@ void CronDialogBox::Format()
 {
 	ClearExpression();
 
-	Buffer<WCHAR> buf;
-
-	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_SECOND_EDIT)) + 1);
-	GetText(IDC_CRON_SECOND_EDIT, buf, buf.Len);
+	String szSecond = GetText(IDC_CRON_SECOND_EDIT).Trim();
 	if ((m_bFormat & CRON_FORMAT_SECOND))
 	{
 		try
 		{
-			m_cron.ParseSecond(buf);
+			m_cron.ParseSecond(szSecond);
 			m_bFormatSuccessful |= CRON_FORMAT_SECOND;
 			SetEvalText(IDC_CRON_SECOND_EVAL_STATIC, m_cron.Second);
 		}
@@ -830,16 +821,15 @@ void CronDialogBox::Format()
 	}
 	if (ButtonIsChecked(IDC_CRON_SECOND_CHECK))
 	{
-		AppendToExpression(StringUtils::Trim(buf));
+		AppendToExpression(szSecond);
 	}
 
-	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_MINUTE_EDIT)) + 1);
-	GetText(IDC_CRON_MINUTE_EDIT, buf, buf.Len);
+	String szMinute = GetText(IDC_CRON_MINUTE_EDIT).Trim();
 	if ((m_bFormat & CRON_FORMAT_MINUTE))
 	{
 		try
 		{
-			m_cron.ParseMinute(buf);
+			m_cron.ParseMinute(szMinute);
 			m_bFormatSuccessful |= CRON_FORMAT_MINUTE;
 			SetEvalText(IDC_CRON_MINUTE_EVAL_STATIC, m_cron.Minute);
 		}
@@ -849,15 +839,14 @@ void CronDialogBox::Format()
 			SetText(IDC_CRON_MINUTE_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
-	AppendToExpression(StringUtils::Trim(buf));
+	AppendToExpression(szMinute);
 
-	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_HOUR_EDIT)) + 1);
-	GetText(IDC_CRON_HOUR_EDIT, buf, buf.Len);
+	String szHour = GetText(IDC_CRON_HOUR_EDIT).Trim();
 	if ((m_bFormat & CRON_FORMAT_HOUR))
 	{
 		try
 		{
-			m_cron.ParseHour(buf);
+			m_cron.ParseHour(szHour);
 			m_bFormatSuccessful |= CRON_FORMAT_HOUR;
 			SetEvalText(IDC_CRON_HOUR_EVAL_STATIC, m_cron.Hour);
 		}
@@ -867,15 +856,14 @@ void CronDialogBox::Format()
 			SetText(IDC_CRON_HOUR_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
-	AppendToExpression(StringUtils::Trim(buf));
+	AppendToExpression(szHour);
 
-	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_DAY_EDIT)) + 1);
-	GetText(IDC_CRON_DAY_EDIT, buf, buf.Len);
+	String szDay = GetText(IDC_CRON_DAY_EDIT).Trim();
 	if ((m_bFormat & CRON_FORMAT_DAYOFMONTH))
 	{
 		try
 		{
-			m_cron.ParseDayOfMonth(buf);
+			m_cron.ParseDayOfMonth(szDay);
 			m_bFormatSuccessful |= CRON_FORMAT_DAYOFMONTH;
 			SetEvalText(IDC_CRON_DAY_EVAL_STATIC, m_cron.DayOfMonth);
 		}
@@ -885,15 +873,14 @@ void CronDialogBox::Format()
 			SetText(IDC_CRON_DAY_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
-	AppendToExpression(StringUtils::Trim(buf));
+	AppendToExpression(szDay);
 
-	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_MONTH_EDIT)) + 1);
-	GetText(IDC_CRON_MONTH_EDIT, buf, buf.Len);
+	String szMonth = GetText(IDC_CRON_MONTH_EDIT).Trim();
 	if ((m_bFormat & CRON_FORMAT_MONTH))
 	{
 		try
 		{
-			m_cron.ParseMonth(buf);
+			m_cron.ParseMonth(szMonth);
 			m_bFormatSuccessful |= CRON_FORMAT_MONTH;
 			SetEvalText(IDC_CRON_MONTH_EVAL_STATIC, m_cron.Month);
 		}
@@ -903,15 +890,14 @@ void CronDialogBox::Format()
 			SetText(IDC_CRON_MONTH_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
-	AppendToExpression(StringUtils::Trim(buf));
+	AppendToExpression(szMonth);
 
-	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_DOW_EDIT)) + 1);
-	GetText(IDC_CRON_DOW_EDIT, buf, buf.Len);
+	String szDayOfWeek = GetText(IDC_CRON_DOW_EDIT).Trim();
 	if ((m_bFormat & CRON_FORMAT_DAYOFWEEK))
 	{
 		try
 		{
-			m_cron.ParseDayOfWeek(buf);
+			m_cron.ParseDayOfWeek(szDayOfWeek);
 			m_bFormatSuccessful |= CRON_FORMAT_DAYOFWEEK;
 			SetEvalText(IDC_CRON_DOW_EVAL_STATIC, m_cron.DayOfWeek);
 		}
@@ -921,15 +907,14 @@ void CronDialogBox::Format()
 			SetText(IDC_CRON_DOW_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
-	AppendToExpression(StringUtils::Trim(buf));
+	AppendToExpression(szDayOfWeek);
 
-	buf.Resize(static_cast<size_t>(GetTextLength(IDC_CRON_YEAR_EDIT)) + 1);
-	GetText(IDC_CRON_YEAR_EDIT, buf, buf.Len);
+	String szYear = GetText(IDC_CRON_YEAR_EDIT).Trim();
 	if ((m_bFormat & CRON_FORMAT_YEAR))
 	{
 		try
 		{
-			m_cron.ParseYear(buf);
+			m_cron.ParseYear(szYear);
 			m_bFormatSuccessful |= CRON_FORMAT_YEAR;
 			SetEvalText(IDC_CRON_YEAR_EVAL_STATIC, m_cron.Year);
 		}
@@ -939,7 +924,7 @@ void CronDialogBox::Format()
 			SetText(IDC_CRON_YEAR_EVAL_STATIC, GetCronErrorText(e));
 		}
 	}
-	AppendToExpression(StringUtils::Trim(buf));
+	AppendToExpression(szYear);
 
 	m_bFormat = 0;
 }
@@ -951,24 +936,11 @@ void CronDialogBox::ClearExpression() const
 }
 
 
-void CronDialogBox::AppendToExpression(PCWSTR psz) const
+void CronDialogBox::AppendToExpression(const String& sz) const
 {
-	size_t cch2 = wcslen(psz);
-	if (cch2)
+	if (sz.Len)
 	{
-		size_t cch1 = GetTextLength(IDC_CRON_EXPR_EDIT);
-		size_t cch = cch1 + 1 + cch2 + 1;
-		Buffer<WCHAR> buf(cch);
-		PWCHAR pCur = buf;
-		PWCHAR pEnd = buf + cch;
-		if (cch1)
-		{
-			GetText(IDC_CRON_EXPR_EDIT, pCur, cch);
-			pCur += cch1;
-			*pCur++ = L' ';
-		}
-		wcscpy_s(pCur, pEnd - pCur, psz);
-		SetText(IDC_CRON_EXPR_EDIT, buf);
+		SetText(IDC_CRON_EXPR_EDIT, String(PRINTF, L"%s %s", GetText(IDC_CRON_EXPR_EDIT), sz));
 	}
 }
 

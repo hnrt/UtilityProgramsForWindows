@@ -1,11 +1,11 @@
 #pragma once
 
 
-#include <Windows.h>
+#include "hnrt/String.h"
 
 
 namespace hnrt
 {
-	int FromNativeToAscii(PCWSTR psz, PWCHAR pOut = nullptr, bool bLowercase = false);
-	int FromAsciiToNative(PCWSTR psz, PWCHAR pOut = nullptr);
+	String FromNativeToAscii(PCWSTR psz, bool bLowercase = false);
+	String FromAsciiToNative(PCWSTR psz);
 }

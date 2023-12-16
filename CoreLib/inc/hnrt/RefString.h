@@ -191,11 +191,12 @@ namespace hnrt
         if (psz && cch)
         {
             cch = StringCommons::Length(psz, cch);
-            return cch ? GetString(new(cch) RefString<T>(psz, cch)) : nullptr;
+            return GetString(new(cch) RefString<T>(psz, cch));
         }
         else
         {
-            return nullptr;
+            T sz[1] = { (T)0 };
+            return GetString(new(0) RefString<T>(sz, 0));
         }
     }
 

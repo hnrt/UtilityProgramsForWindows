@@ -52,11 +52,14 @@ namespace hnrt
         StringAcp operator +(const StringAcp&) const;
         PCSTR get_ptr() const;
         SIZE_T get_len() const;
+        void set_len(SIZE_T);
         PCHAR get_buf() const;
+        BOOL is_set() const;
 
         __declspec(property(get = get_ptr)) PCSTR Ptr;
-        __declspec(property(get = get_len)) SIZE_T Len;
+        __declspec(property(get = get_len, put = set_len)) SIZE_T Len;
         __declspec(property(get = get_buf)) PCHAR Buf;
+        __declspec(property(get = is_set)) BOOL IsSet;
 
     private:
 
@@ -92,6 +95,11 @@ namespace hnrt
     inline PCHAR StringAcp::get_buf() const
     {
         return m_psz;
+    }
+
+    inline BOOL StringAcp::is_set() const
+    {
+        return m_psz ? TRUE : FALSE;
     }
 
     inline StringAcp::operator PCSTR() const

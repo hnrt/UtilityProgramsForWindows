@@ -265,25 +265,13 @@ void NativeToAsciiDialogBox::OnSelectSource(int id)
 
 void NativeToAsciiDialogBox::OnEncode() const
 {
-	int cch = GetTextLength(IDC_NTOA_NATIVE_EDIT) + 1;
-	Buffer<WCHAR> bufNative(cch);
-	GetText(IDC_NTOA_NATIVE_EDIT, bufNative, bufNative.Len);
-	cch = FromNativeToAscii(bufNative) + 1;
-	Buffer<WCHAR> bufAscii(cch);
-	FromNativeToAscii(bufNative, bufAscii);
-	SetText(IDC_NTOA_ASCII_EDIT, bufAscii);
+	SetText(IDC_NTOA_ASCII_EDIT, FromNativeToAscii(GetText(IDC_NTOA_NATIVE_EDIT)));
 }
 
 
 void NativeToAsciiDialogBox::OnDecode() const
 {
-	int cch = GetTextLength(IDC_NTOA_ASCII_EDIT) + 1;
-	Buffer<WCHAR> bufAscii(cch);
-	GetText(IDC_NTOA_ASCII_EDIT, bufAscii, bufAscii.Len);
-	cch = FromAsciiToNative(bufAscii) + 1;
-	Buffer<WCHAR> bufNative(cch);
-	FromAsciiToNative(bufAscii, bufNative);
-	SetText(IDC_NTOA_NATIVE_EDIT, bufNative);
+	SetText(IDC_NTOA_NATIVE_EDIT, FromAsciiToNative(GetText(IDC_NTOA_ASCII_EDIT)));
 }
 
 

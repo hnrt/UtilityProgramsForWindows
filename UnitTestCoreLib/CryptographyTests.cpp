@@ -9,7 +9,7 @@
 #include "hnrt/Buffer.h"
 #include "hnrt/Base64.h"
 #include "hnrt/StringBuffer.h"
-#include "hnrt/StringHelpers.h"
+#include "hnrt/StringUtils.h"
 #include "hnrt/Debug.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -32,11 +32,11 @@ namespace UnitTestCoreLib
 				Debug::Put(L"CryptographyTest01: BlockLength=%lu", hAlg.BlockLength);
 				Assert::AreEqual(16UL, hAlg.BlockLength);
 				std::vector<DWORD> bsList = hAlg.BlockSizeList;
-				Debug::Put(L"CryptographyTest01: BlockSizeList=[%zu]{%s}", bsList.size(), StringHelpers::JoinBy(bsList, L","));
+				Debug::Put(L"CryptographyTest01: BlockSizeList=[%zu]{%s}", bsList.size(), StringUtils::JoinBy(bsList, L","));
 				Assert::AreEqual(1ULL, bsList.size());
 				Assert::AreEqual(16UL, bsList[0]);
 				std::vector<DWORD> kList = hAlg.KeyLengths;
-				Debug::Put(L"CryptographyTest01: KeyLengths=[%zu]{%s}", kList.size(), StringHelpers::JoinBy(kList, L","));
+				Debug::Put(L"CryptographyTest01: KeyLengths=[%zu]{%s}", kList.size(), StringUtils::JoinBy(kList, L","));
 				Assert::AreEqual(3ULL, kList.size());
 				Assert::AreEqual(128UL, kList[0]);
 				Assert::AreEqual(192UL, kList[1]);
@@ -484,7 +484,7 @@ namespace UnitTestCoreLib
 				hKey.Generate(hAlg, key, key.Len);
 				Debug::Put(L"Test_AES_128_CCM: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
 				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
-				Debug::Put(L"Test_AES_128_CCM: AuthTagLengths[%zu]=%s", tagLengths.size(), StringHelpers::JoinBy(tagLengths, L","));
+				Debug::Put(L"Test_AES_128_CCM: AuthTagLengths[%zu]=%s", tagLengths.size(), StringUtils::JoinBy(tagLengths, L","));
 				StringUTF8 nonceHint("20231208");
 				MD5Hash nonceHash(nonceHint, nonceHint.Len); // 128 bits (16 bytes)
 				BCryptAuthenticatedCipherModeInfo infoE;
@@ -538,7 +538,7 @@ namespace UnitTestCoreLib
 				hKey.Generate(hAlg, key, key.Len);
 				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
 				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
-				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: AuthTagLengths[%zu]={%s}", tagLengths.size(), StringHelpers::JoinBy(tagLengths, L","));
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: AuthTagLengths[%zu]={%s}", tagLengths.size(), StringUtils::JoinBy(tagLengths, L","));
 				StringUTF8 nonceHint("20231208");
 				ByteDataFeeder bdf2(nonceHint, nonceHint.Len, 32);
 				MD5Hash nonceHash(nonceHint, nonceHint.Len); // 128 bits (16 bytes)
@@ -626,7 +626,7 @@ namespace UnitTestCoreLib
 				hKey.Generate(hAlg, key, key.Len);
 				Debug::Put(L"Test_AES_128_GCM: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
 				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
-				Debug::Put(L"Test_AES_128_GCM: AuthTagLengths[%zu]=%s", tagLengths.size(), StringHelpers::JoinBy(tagLengths, L","));
+				Debug::Put(L"Test_AES_128_GCM: AuthTagLengths[%zu]=%s", tagLengths.size(), StringUtils::JoinBy(tagLengths, L","));
 				StringUTF8 nonceHint("20231208");
 				MD5Hash nonceHash(nonceHint, nonceHint.Len); // 128 bits (16 bytes)
 				BCryptAuthenticatedCipherModeInfo infoE;
@@ -672,7 +672,7 @@ namespace UnitTestCoreLib
 				hKey.Generate(hAlg, key, key.Len);
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
 				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
-				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: AuthTagLengths[%zu]=%s", tagLengths.size(), StringHelpers::JoinBy(tagLengths, L","));
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: AuthTagLengths[%zu]=%s", tagLengths.size(), StringUtils::JoinBy(tagLengths, L","));
 				StringUTF8 nonceHint("20231208");
 				MD5Hash nonceHash(nonceHint, nonceHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> ivE(16);

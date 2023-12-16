@@ -143,7 +143,7 @@ String Clipboard::Read(HWND hwnd)
 			dwError = GetLastError();
 		}
 		CloseClipboard();
-		if (!szReturn)
+		if (!szReturn.IsSet)
 		{
 			SetLastError(dwError);
 		}

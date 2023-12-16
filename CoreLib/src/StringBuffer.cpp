@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/Heap.h"
+#include "hnrt/StringCommons.h"
 #include "hnrt/Exception.h"
 #include "hnrt/String.h"
 
@@ -16,12 +17,12 @@ StringBuffer::StringBuffer(const StringBuffer& other)
 {
     if (m_ptr)
     {
-        wmemcpy_s(m_ptr, m_cap, other.m_ptr, other.m_len + 1);
+        StringCommons::Copy(m_ptr, other.m_ptr, other.m_len);
     }
 }
 
 
-StringBuffer::StringBuffer(size_t capacity)
+StringBuffer::StringBuffer(SIZE_T capacity)
     : m_ptr(capacity ? Allocate<WCHAR>(capacity) : nullptr)
     , m_cap(capacity)
     , m_len(0)
@@ -34,7 +35,7 @@ StringBuffer::StringBuffer(size_t capacity)
 }
 
 
-StringBuffer::StringBuffer(INT_PTR capacity, PCWSTR psz)
+StringBuffer::StringBuffer(SSIZE_T capacity, PCWSTR psz)
     : m_ptr(nullptr)
     , m_cap(0)
     , m_len(0)
@@ -44,14 +45,14 @@ StringBuffer::StringBuffer(INT_PTR capacity, PCWSTR psz)
     {
         m_ptr = Allocate<WCHAR>(capacity);
         m_cap = capacity;
-        m_len = wcsnlen(psz, capacity);
+        m_len = StringCommons::Length(psz, capacity);
         if (m_len < m_cap)
         {
-            wmemcpy_s(m_ptr, m_cap, psz, m_len + 1);
+            StringCommons::Copy(m_ptr, psz, m_len);
         }
         else
         {
-            wmemcpy_s(m_ptr, m_cap, psz, m_len);
+            StringCommons::Copy(m_ptr, psz, m_len);
             set_Len(m_len - 1);
         }
     }
@@ -60,7 +61,7 @@ StringBuffer::StringBuffer(INT_PTR capacity, PCWSTR psz)
         m_len = wcslen(psz);
         m_cap = m_len + 1;
         m_ptr = Allocate<WCHAR>(m_cap);
-        wmemcpy_s(m_ptr, m_cap, psz, m_len + 1);
+        StringCommons::Copy(m_ptr, psz, m_len);
     }
 }
 
@@ -71,7 +72,7 @@ StringBuffer::StringBuffer(const String& other)
     , m_len(other.Len)
     , m_inc(1)
 {
-    wmemcpy_s(m_ptr, m_cap, other, other.Len + 1);
+    StringCommons::Copy(m_ptr, other.Ptr, other.Len);
 }
 
 
@@ -88,7 +89,7 @@ PWCHAR StringBuffer::Detach()
 }
 
 
-StringBuffer& StringBuffer::Resize(size_t capacity)
+StringBuffer& StringBuffer::Resize(SIZE_T capacity)
 {
     if (!capacity)
     {
@@ -132,7 +133,7 @@ StringBuffer& StringBuffer::Assign(const String& other)
 }
 
 
-StringBuffer& StringBuffer::Assign(PCWSTR psz, INT_PTR cch)
+StringBuffer& StringBuffer::Assign(PCWSTR psz, SSIZE_T cch)
 {
     if (m_ptr)
     {
@@ -174,8 +175,7 @@ StringBuffer& StringBuffer::Append(const StringBuffer& other)
     if (other.Len)
     {
         CheckCapacity(other.Len);
-        wmemcpy_s(m_ptr + m_len, m_cap - m_len, other, other.Len + 1);
-        m_len += other.Len;
+        m_len += StringCommons::Copy(m_ptr + m_len, other.Ptr, other.Len);
     }
     return *this;
 }
@@ -186,14 +186,13 @@ StringBuffer& StringBuffer::Append(const String& other)
     if (other.Len)
     {
         CheckCapacity(other.Len);
-        wmemcpy_s(m_ptr + m_len, m_cap - m_len, other, other.Len + 1);
-        m_len += other.Len;
+        m_len += StringCommons::Copy(m_ptr + m_len, other.Ptr, other.Len);
     }
     return *this;
 }
 
 
-StringBuffer& StringBuffer::Append(PCWSTR psz, INT_PTR cch)
+StringBuffer& StringBuffer::Append(PCWSTR psz, SSIZE_T cch)
 {
     if (cch)
     {
@@ -201,11 +200,8 @@ StringBuffer& StringBuffer::Append(PCWSTR psz, INT_PTR cch)
         {
             if (psz)
             {
-                size_t cchActual = wcsnlen(psz, cch);
                 CheckCapacity(cch);
-                wmemcpy_s(m_ptr + m_len, m_cap - m_len, psz, cchActual);
-                m_len += cchActual;
-                m_ptr[m_len] = L'\0';
+                m_len += StringCommons::Copy(m_ptr + m_len, psz, cch);
             }
             else
             {
@@ -214,10 +210,9 @@ StringBuffer& StringBuffer::Append(PCWSTR psz, INT_PTR cch)
         }
         else if (psz)
         {
-            size_t cchActual = wcslen(psz);
-            CheckCapacity(cchActual);
-            wmemcpy_s(m_ptr + m_len, m_cap - m_len, psz, cchActual + 1);
-            m_len += cchActual;
+            cch = StringCommons::Length(psz);
+            CheckCapacity(cch);
+            m_len += StringCommons::Copy(m_ptr + m_len, psz, cch);
         }
     }
     return *this;
@@ -236,31 +231,14 @@ StringBuffer& StringBuffer::AppendFormat(PCWSTR pszFormat, ...)
 
 StringBuffer& StringBuffer::VaAppendFormat(PCWSTR pszFormat, va_list argList)
 {
-    va_list argList2;
-    va_copy(argList2, argList);
-    INT_PTR cch = _vscwprintf(pszFormat, argList2);
-    va_end(argList2);
-    if (cch < 0)
-    {
-        throw Exception(L"StringBuffer::VaAppendFormat failed.");
-    }
-    CheckCapacity(cch);
-    _vsnwprintf_s(m_ptr + m_len, m_cap - m_len, _TRUNCATE, pszFormat, argList);
-    m_len += cch;
+    CheckCapacity(StringCommons::VaFormatLength(pszFormat, argList));
+    m_len += StringCommons::VaFormat(m_ptr + m_len, m_cap - m_len, pszFormat, argList);
     return *this;
 }
 
 
-StringBuffer& StringBuffer::Replace(WCHAR c1, WCHAR c2, size_t offset, int count, size_t* pOffset)
+StringBuffer& StringBuffer::Replace(WCHAR c1, WCHAR c2, SIZE_T offset, int count, SIZE_T* pOffset)
 {
-    if (m_len <= offset)
-    {
-        if (pOffset)
-        {
-            *pOffset = m_len;
-        }
-        return *this;
-    }
     if (count == 0)
     {
         if (pOffset)
@@ -269,19 +247,19 @@ StringBuffer& StringBuffer::Replace(WCHAR c1, WCHAR c2, size_t offset, int count
         }
         return *this;
     }
-    else if (count < 0)
+    if (count < 0)
     {
         count = INT_MAX;
     }
     PWCHAR pCur = m_ptr + offset;
     PWCHAR pEnd = m_ptr + m_len;
-    PWCHAR pLast = nullptr;
-    while ((pCur = wmemchr(pCur, c1, pEnd - pCur)))
+    int index;
+    while (pCur < pEnd && (index = StringCommons::IndexOf(pCur, c1, pEnd - pCur)) >= 0)
     {
-        *pCur = c2;
+        pCur[index] = c2;
         if (--count)
         {
-            pCur++;
+            pCur += index + 1;
         }
         else
         {
@@ -290,13 +268,13 @@ StringBuffer& StringBuffer::Replace(WCHAR c1, WCHAR c2, size_t offset, int count
     }
     if (pOffset)
     {
-        *pOffset = (pCur ? pCur : pEnd) - m_ptr;
+        *pOffset = (pCur < pEnd) ? (pCur - m_ptr) : m_len;
     }
     return *this;
 }
 
 
-void StringBuffer::set_Len(size_t value)
+void StringBuffer::set_Len(SIZE_T value)
 {
     if (m_len > value)
     {
@@ -320,11 +298,11 @@ void StringBuffer::set_Len(size_t value)
 }
 
 
-void StringBuffer::CheckCapacity(size_t delta)
+void StringBuffer::CheckCapacity(SIZE_T delta)
 {
     if (m_len + delta + 1 > m_cap)
     {
-        size_t capacity = m_len + delta + m_inc;
+        SIZE_T capacity = m_len + delta + m_inc;
         m_ptr = Allocate(m_ptr, capacity);
         m_cap = capacity;
     }

@@ -9,6 +9,5 @@ namespace hnrt
 	{
 	public:
 
-		static String JoinBy(const std::vector<DWORD>&, PCWSTR, PCWSTR = L"%lu");
 	};
 }
