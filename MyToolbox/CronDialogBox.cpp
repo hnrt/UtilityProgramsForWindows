@@ -139,18 +139,17 @@ CronDialogBox::CronDialogBox()
 void CronDialogBox::OnCreate()
 {
 	MyDialogBox::OnCreate();
-	RegistryValue valueBaseOffset;
-	RegistryValue valueDisplayOffset;
-	RegistryValue valueExpression;
+	DWORD dwBaseOffset = UINT_MAX;
+	DWORD dwDisplayOffset = UINT_MAX;
+	String szExpression = String::Empty;
 	RegistryKey hKey;
 	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY_(Cron));
 	if (rc == ERROR_SUCCESS)
 	{
-		RegistryValue value;
-		m_cron.SecondEnabled = value.GetDWORD(hKey, REG_NAME_SECOND, 1) != 0;
-		valueBaseOffset.GetDWORD(hKey, REG_NAME_BASEOFFSET);
-		valueDisplayOffset.GetDWORD(hKey, REG_NAME_DISPLAYOFFSET);
-		valueExpression.GetSZ(hKey, REG_NAME_EXPRESSION);
+		m_cron.SecondEnabled = RegistryValue::GetDWORD(hKey, REG_NAME_SECOND, 1) != 0;
+		dwBaseOffset = RegistryValue::GetDWORD(hKey, REG_NAME_BASEOFFSET, UINT_MAX);
+		dwDisplayOffset = RegistryValue::GetDWORD(hKey, REG_NAME_DISPLAYOFFSET, UINT_MAX);
+		szExpression = RegistryValue::GetSZ(hKey, REG_NAME_EXPRESSION);
 	}
 	ClearEvalStatics();
 	InitializeOffsetComboBox(IDC_CRON_EXPR_COMBO);
@@ -160,22 +159,22 @@ void CronDialogBox::OnCreate()
 	ButtonCheck(IDC_CRON_EXPR_RADIO);
 	OnSourceSelection(IDC_CRON_EXPR_RADIO);
 	ButtonCheck(IDC_CRON_SECOND_CHECK, m_cron.SecondEnabled);
-	if (valueBaseOffset.Type == REG_DWORD)
+	if (dwBaseOffset != UINT_MAX)
 	{
-		ComboBoxSetSelection(IDC_CRON_EXPR_COMBO, valueBaseOffset.Int32);
-		if (valueDisplayOffset.Type == REG_DWORD)
+		ComboBoxSetSelection(IDC_CRON_EXPR_COMBO, dwBaseOffset);
+		if (dwDisplayOffset != UINT_MAX)
 		{
-			ComboBoxSetSelection(IDC_CRON_OFFSET_COMBO, valueDisplayOffset.Int32);
-			m_offset = valueDisplayOffset.Int32 - valueBaseOffset.Int32;
+			ComboBoxSetSelection(IDC_CRON_OFFSET_COMBO, dwDisplayOffset);
+			m_offset = dwDisplayOffset - dwBaseOffset;
 		}
 		else
 		{
-			ComboBoxSetSelection(IDC_CRON_OFFSET_COMBO, valueBaseOffset.Int32);
+			ComboBoxSetSelection(IDC_CRON_OFFSET_COMBO, dwBaseOffset);
 		}
 	}
-	if (valueExpression.Type == REG_SZ)
+	if (szExpression.Len)
 	{
-		SetText(IDC_CRON_EXPR_EDIT, valueExpression);
+		SetText(IDC_CRON_EXPR_EDIT, szExpression);
 	}
 	else
 	{

@@ -41,12 +41,11 @@ void PercentCodecDialogBox::OnCreate()
 	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY_(PercentCodec));
 	if (rc == ERROR_SUCCESS)
 	{
-		RegistryValue value;
-		m_uInputCodePage = value.GetDWORD(hKey, REG_NAME_INPUT_CODEPAGE, CP_AUTODETECT);
-		m_uOutputCodePage = value.GetDWORD(hKey, REG_NAME_OUTPUT_CODEPAGE, CP_UTF8);
-		m_bOutputBOM = value.GetDWORD(hKey, REG_NAME_OUTPUT_BOM, 0) ? true : false;
-		m_szOriginalPath = value.GetSZ(hKey, REG_NAME_ORIGINAL_PATH, L"");
-		m_szEncodedPath = value.GetSZ(hKey, REG_NAME_ENCODED_PATH, L"");
+		m_uInputCodePage = RegistryValue::GetDWORD(hKey, REG_NAME_INPUT_CODEPAGE, CP_AUTODETECT);
+		m_uOutputCodePage = RegistryValue::GetDWORD(hKey, REG_NAME_OUTPUT_CODEPAGE, CP_UTF8);
+		m_bOutputBOM = RegistryValue::GetDWORD(hKey, REG_NAME_OUTPUT_BOM, 0) ? true : false;
+		m_szOriginalPath = RegistryValue::GetSZ(hKey, REG_NAME_ORIGINAL_PATH);
+		m_szEncodedPath = RegistryValue::GetSZ(hKey, REG_NAME_ENCODED_PATH);
 	}
 	InitializeCodePageComboBox(IDC_PCTC_ENCODING);
 	ComboBoxRemove(IDC_PCTC_ENCODING, CP_UTF16);

@@ -32,19 +32,19 @@ LSTATUS RegistryValue::SetEXPANDSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValue)
 }
 
 
-LSTATUS RegistryValue::SetMULTISZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValues[], size_t nValues)
+LSTATUS RegistryValue::SetMULTISZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValues[], SIZE_T nValues)
 {
 	if (nValues)
 	{
-		size_t cch = 0;
-		for (size_t index = 0; index < nValues; index++)
+		SIZE_T cch = 0;
+		for (SIZE_T index = 0; index < nValues; index++)
 		{
 			cch += wcslen(pszValues[index]) + 1;
 		}
 		cch++;
 		Buffer<WCHAR> buf(cch);
 		PWCHAR pCur = &buf;
-		for (size_t index = 0; index < nValues; index++)
+		for (SIZE_T index = 0; index < nValues; index++)
 		{
 			cch = wcslen(pszValues[index]) + 1;
 			wmemcpy_s(pCur, cch, pszValues[index], cch);
@@ -61,9 +61,48 @@ LSTATUS RegistryValue::SetMULTISZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValues[],
 }
 
 
-LSTATUS RegistryValue::SetBINARY(HKEY hKey, PCWSTR pszName, const void* pValue, size_t cbValue)
+LSTATUS RegistryValue::SetBINARY(HKEY hKey, PCWSTR pszName, const void* pValue, SIZE_T cbValue)
 {
 	return RegSetValueExW(hKey, pszName, 0, REG_BINARY, reinterpret_cast<const BYTE*>(pValue), static_cast<DWORD>(cbValue));
+}
+
+
+DWORD RegistryValue::GetDWORD(HKEY hKey, PCWSTR pszName, DWORD dwDefaultValue)
+{
+	RegistryValue value;
+	return value.Query(hKey, pszName) == ERROR_SUCCESS && value.Type == REG_DWORD ? (DWORD)value : dwDefaultValue;
+}
+
+
+ULONGLONG RegistryValue::GetQWORD(HKEY hKey, PCWSTR pszName, ULONGLONG qwDefaultValue)
+{
+	RegistryValue value;
+	return value.Query(hKey, pszName) == ERROR_SUCCESS && value.Type == REG_QWORD ? (ULONGLONG)value : qwDefaultValue;
+}
+
+
+String RegistryValue::GetSZ(HKEY hKey, PCWSTR pszName, const String& szDefaultValue)
+{
+	RegistryValue value;
+	return value.Query(hKey, pszName) == ERROR_SUCCESS && value.Type == REG_SZ ? String((PCWSTR)value) : String(szDefaultValue);
+}
+
+
+String RegistryValue::GetEXPANDSZ(HKEY hKey, PCWSTR pszName, const String& szDefaultValue)
+{
+	RegistryValue value;
+	return value.Query(hKey, pszName) == ERROR_SUCCESS && value.Type == REG_EXPAND_SZ ? String((PCWSTR)value) : String(szDefaultValue);
+}
+
+
+String RegistryValue::GetString(HKEY hKey, PCWSTR pszName, const String& szDefaultValue)
+{
+	RegistryValue value;
+	return value.Query(hKey, pszName) != ERROR_SUCCESS
+		? String(szDefaultValue)
+		: value.Type == REG_EXPAND_SZ ? String(value.Expand())
+		: value.Type == REG_SZ ? String((PCWSTR)value)
+		: String(szDefaultValue);
 }
 
 
@@ -100,7 +139,7 @@ RegistryValue::RegistryValue(PCWSTR pszValue, DWORD dwType)
 {
 	if (m_dwType == REG_SZ || m_dwType == REG_EXPAND_SZ || m_dwType == REG_LINK)
 	{
-		size_t cch = wcslen(pszValue) + 1;
+		SIZE_T cch = wcslen(pszValue) + 1;
 		m_value.psz = Allocate<WCHAR>(cch);
 		wmemcpy_s(m_value.psz, cch, pszValue, cch);
 		m_dwSize = static_cast<DWORD>(cch * sizeof(WCHAR));
@@ -165,14 +204,14 @@ RegistryValue::operator PCWSTR() const
 }
 
 
-PCWSTR RegistryValue::operator [](size_t index) const
+PCWSTR RegistryValue::operator [](SIZE_T index) const
 {
 	if (m_dwType == REG_MULTI_SZ)
 	{
 		if (index < m_dwSize)
 		{
 			PWCHAR pCur = m_value.psz;
-			for (size_t iCur = 0; iCur < index; iCur++)
+			for (SIZE_T iCur = 0; iCur < index; iCur++)
 			{
 				pCur += wcslen(pCur) + 1;
 			}
@@ -239,6 +278,7 @@ static DWORD CountMultiStrings(PWCHAR pszz)
 }
 
 
+#pragma warning(disable:28182)
 LSTATUS RegistryValue::Query(HKEY hKey, PCWSTR pszName)
 {
 	Clear();
@@ -271,7 +311,7 @@ LSTATUS RegistryValue::Query(HKEY hKey, PCWSTR pszName)
 		}
 		else if (dwType == REG_SZ || dwType == REG_EXPAND_SZ || dwType == REG_LINK)
 		{
-			size_t cch = dwSize / sizeof(WCHAR);
+			SIZE_T cch = dwSize / sizeof(WCHAR);
 			PWCHAR psz = Allocate<WCHAR>(cch + 1);
 			wmemcpy_s(psz, cch, reinterpret_cast<PWCHAR>(&value.qw), cch);
 			psz[cch] = L'\0'; // to guarantee the string null-terminated
@@ -282,7 +322,7 @@ LSTATUS RegistryValue::Query(HKEY hKey, PCWSTR pszName)
 		}
 		else if (dwType == REG_MULTI_SZ)
 		{
-			size_t cch = dwSize / sizeof(WCHAR);
+			SIZE_T cch = dwSize / sizeof(WCHAR);
 			PWCHAR psz = Allocate<WCHAR>(cch + 2);
 			wmemcpy_s(psz, cch, reinterpret_cast<PWCHAR>(&value.qw), cch);
 			psz[cch + 0] = L'\0'; // to guarantee the last string null-terminated
@@ -333,7 +373,7 @@ LSTATUS RegistryValue::Query(HKEY hKey, PCWSTR pszName)
 			}
 			else if (dwType == REG_SZ || dwType == REG_EXPAND_SZ || dwType == REG_LINK)
 			{
-				size_t cch = dwSize / sizeof(WCHAR);
+				SIZE_T cch = dwSize / sizeof(WCHAR);
 				PWCHAR psz = reinterpret_cast<PWCHAR>(ptr);
 				psz[cch] = L'\0'; // to guarantee the string null-terminated
 				m_dwType = dwType;
@@ -343,7 +383,7 @@ LSTATUS RegistryValue::Query(HKEY hKey, PCWSTR pszName)
 			}
 			else if (dwType == REG_MULTI_SZ)
 			{
-				size_t cch = dwSize / sizeof(WCHAR);
+				SIZE_T cch = dwSize / sizeof(WCHAR);
 				PWCHAR psz = reinterpret_cast<PWCHAR>(ptr);
 				psz[cch + 0] = L'\0'; // to guarantee the last string null-terminated
 				psz[cch + 1] = L'\0'; // to guarantee the multi-string null-terminated
@@ -365,36 +405,7 @@ LSTATUS RegistryValue::Query(HKEY hKey, PCWSTR pszName)
 	}
 	return status;
 }
-
-
-DWORD RegistryValue::GetDWORD(HKEY hKey, PCWSTR pszName, DWORD dwDefaultValue)
-{
-	return Query(hKey, pszName) == ERROR_SUCCESS && m_dwType == REG_DWORD ? m_value.dw : dwDefaultValue;
-}
-
-
-ULONGLONG RegistryValue::GetQWORD(HKEY hKey, PCWSTR pszName, ULONGLONG qwDefaultValue)
-{
-	return Query(hKey, pszName) == ERROR_SUCCESS && m_dwType == REG_QWORD ? m_value.qw : qwDefaultValue;
-}
-
-
-PCWSTR RegistryValue::GetSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultValue)
-{
-	return Query(hKey, pszName) == ERROR_SUCCESS && m_dwType == REG_SZ ? m_value.psz : pszDefaultValue;
-}
-
-
-PCWSTR RegistryValue::GetEXPANDSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultValue)
-{
-	return Query(hKey, pszName) == ERROR_SUCCESS && m_dwType == REG_EXPAND_SZ ? m_value.psz : pszDefaultValue;
-}
-
-
-PCWSTR RegistryValue::GetString(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultValue)
-{
-	return Query(hKey, pszName) != ERROR_SUCCESS ? pszDefaultValue : m_dwType == REG_EXPAND_SZ ? Expand() : m_dwType == REG_SZ ? m_value.psz : pszDefaultValue;
-}
+#pragma warning(default:28182)
 
 
 PCWSTR RegistryValue::Expand()

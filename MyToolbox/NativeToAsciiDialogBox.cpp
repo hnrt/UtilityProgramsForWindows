@@ -39,12 +39,11 @@ void NativeToAsciiDialogBox::OnCreate()
 	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY_(NativeToAscii));
 	if (rc == ERROR_SUCCESS)
 	{
-		RegistryValue value;
-		m_uInputCodePage = value.GetDWORD(hKey, REG_NAME_INPUT_CODEPAGE, CP_AUTODETECT);
-		m_uOutputCodePage = value.GetDWORD(hKey, REG_NAME_OUTPUT_CODEPAGE, CP_UTF8);
-		m_bOutputBOM = value.GetDWORD(hKey, REG_NAME_OUTPUT_BOM, 0) ? true : false;
-		m_szNativePath = value.GetSZ(hKey, REG_NAME_NATIVE_PATH, L"");
-		m_szAsciiPath = value.GetSZ(hKey, REG_NAME_ASCII_PATH, L"");
+		m_uInputCodePage = RegistryValue::GetDWORD(hKey, REG_NAME_INPUT_CODEPAGE, CP_AUTODETECT);
+		m_uOutputCodePage = RegistryValue::GetDWORD(hKey, REG_NAME_OUTPUT_CODEPAGE, CP_UTF8);
+		m_bOutputBOM = RegistryValue::GetDWORD(hKey, REG_NAME_OUTPUT_BOM, 0) ? true : false;
+		m_szNativePath = RegistryValue::GetSZ(hKey, REG_NAME_NATIVE_PATH);
+		m_szAsciiPath = RegistryValue::GetSZ(hKey, REG_NAME_ASCII_PATH);
 	}
 	m_menuView
 		.Add(ResourceString(IDS_MENU_NTOA), IDM_VIEW_NTOA);

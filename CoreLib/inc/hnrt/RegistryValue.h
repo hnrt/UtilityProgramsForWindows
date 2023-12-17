@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <Windows.h>
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -22,8 +22,13 @@ namespace hnrt
         static LSTATUS SetQWORD(HKEY hKey, PCWSTR pszName, ULONGLONG qwValue);
         static LSTATUS SetSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValue);
         static LSTATUS SetEXPANDSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValue);
-        static LSTATUS SetMULTISZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValues[], size_t nValues);
-        static LSTATUS SetBINARY(HKEY hKey, PCWSTR pszName, const void* pValue, size_t cbValue);
+        static LSTATUS SetMULTISZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValues[], SIZE_T nValues);
+        static LSTATUS SetBINARY(HKEY hKey, PCWSTR pszName, const void* pValue, SIZE_T cbValue);
+        static DWORD GetDWORD(HKEY hKey, PCWSTR pszName, DWORD dwDefaultValue = 0);
+        static ULONGLONG GetQWORD(HKEY hKey, PCWSTR pszName, ULONGLONG qwDefaultValue = 0);
+        static String GetSZ(HKEY hKey, PCWSTR pszName, const String& szDefaultValue = String::Empty);
+        static String GetEXPANDSZ(HKEY hKey, PCWSTR pszName, const String& szDefaultValue = String::Empty);
+        static String GetString(HKEY hKey, PCWSTR pszName, const String& szDefaultValue = String::Empty);
 
         RegistryValue();
         RegistryValue(DWORD);
@@ -35,15 +40,10 @@ namespace hnrt
         operator DWORD() const;
         operator ULONGLONG() const;
         operator PCWSTR() const;
-        PCWSTR operator [](size_t index) const;
+        PCWSTR operator [](SIZE_T index) const;
         operator const void*() const;
         void Clear();
         LSTATUS Query(HKEY hKey, PCWSTR pszName);
-        DWORD GetDWORD(HKEY hKey, PCWSTR pszName, DWORD dwDefaultValue = 0);
-        ULONGLONG GetQWORD(HKEY hKey, PCWSTR pszName, ULONGLONG qwDefaultValue = 0);
-        PCWSTR GetSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultValue = nullptr);
-        PCWSTR GetEXPANDSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultValue = nullptr);
-        PCWSTR GetString(HKEY hKey, PCWSTR pszName, PCWSTR pszDefaultValue = nullptr);
         PCWSTR Expand();
         DWORD get_Type() const;
         DWORD get_Size() const;

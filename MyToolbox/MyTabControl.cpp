@@ -108,7 +108,7 @@ void MyTabControl::LoadFromRegistry()
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
     if (rc == ERROR_SUCCESS)
     {
-        CurrentItem = static_cast<INT>(RegistryValue().GetDWORD(hKey, REG_NAME_CURRENTTAB));
+        CurrentItem = static_cast<INT>(RegistryValue::GetDWORD(hKey, REG_NAME_CURRENTTAB));
     }
     else
     {
@@ -117,7 +117,7 @@ void MyTabControl::LoadFromRegistry()
 }
 
 
-void MyTabControl::SaveToRegistry()
+void MyTabControl::SaveToRegistry() const
 {
     RegistryKey hKey;
     LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY);

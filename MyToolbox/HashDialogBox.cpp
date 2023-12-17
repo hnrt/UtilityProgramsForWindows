@@ -45,20 +45,20 @@ HashDialogBox::HashDialogBox()
 void HashDialogBox::OnCreate()
 {
     MyDialogBox::OnCreate();
-    RegistryValue source;
-    RegistryValue method;
-    RegistryValue lettercase;
+    UINT uSource = IDC_HASH_FILE;
+    UINT uMethod = IDC_HASH_MD5;
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY_(Hash));
     if (rc == ERROR_SUCCESS)
     {
-        source.GetDWORD(hKey, REG_NAME_SOURCE, 1);
-        method.GetDWORD(hKey, REG_NAME_METHOD, 1);
-        lettercase.GetDWORD(hKey, REG_NAME_LETTERCASE, UPPERCASE_LETTER);
+        uSource = RegistryValue::GetDWORD(hKey, REG_NAME_SOURCE, 1) == 2 ? IDC_HASH_TEXT : IDC_HASH_FILE;
+        uMethod = IDC_HASH_MD5 + (RegistryValue::GetDWORD(hKey, REG_NAME_METHOD, 1) - 1) % 5;
+        m_uLettercase = RegistryValue::GetDWORD(hKey, REG_NAME_LETTERCASE, UPPERCASE_LETTER);
     }
-    UINT uSource = source.Type == REG_DWORD ? ((DWORD)source == 2 ? IDC_HASH_TEXT : IDC_HASH_FILE) : IDC_HASH_FILE;
-    UINT uMethod = method.Type == REG_DWORD ? (IDC_HASH_MD5 + ((DWORD)method - 1) % 5) : IDC_HASH_MD5;
-    m_uLettercase = lettercase.Type == REG_DWORD ? (DWORD)lettercase : UPPERCASE_LETTER;
+    else
+    {
+        m_uLettercase = UPPERCASE_LETTER;
+    }
     ButtonCheck(uSource);
     ButtonCheck(uMethod);
     ButtonCheck(IDC_HASH_UPPERCASE, m_uLettercase == UPPERCASE_LETTER);

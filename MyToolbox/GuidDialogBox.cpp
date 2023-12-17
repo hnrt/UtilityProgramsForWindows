@@ -34,8 +34,7 @@ void GuidDialogBox::OnCreate()
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_KEY, 0, KEY_READ);
     if (rc == ERROR_SUCCESS)
     {
-        RegistryValue value;
-        m_uCurrentlySelected = value.GetDWORD(hKey, REG_NAME, 1) + IDC_GUID_RADIO_UPPERCASE - 1;
+        m_uCurrentlySelected = RegistryValue::GetDWORD(hKey, REG_NAME, 1) + IDC_GUID_RADIO_UPPERCASE - 1;
     }
     ChangeGuid();
     CheckButton(m_uCurrentlySelected);

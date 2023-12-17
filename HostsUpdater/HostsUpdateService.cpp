@@ -437,12 +437,13 @@ void HostsUpdateService::CreateRegistry()
 		}
 		else if (dwDisposition == REG_OPENED_EXISTING_KEY)
 		{
-			DWORD dwError;
-			RegistryValue value;
-			switch (value.GetDWORD(key, REGVAL_VERSION, 0))
+			DWORD dwValue = RegistryValue::GetDWORD(key, REGVAL_VERSION, 0);
+			switch (dwValue)
 			{
 			case 0:
-				dwError = value.Query(key, REGVAL_VERSION);
+			{
+				RegistryValue value;
+				DWORD dwError = value.Query(key, REGVAL_VERSION);
 				if (dwError == ERROR_FILE_NOT_FOUND)
 				{
 					fwprintf(stdout, ResourceString(IDS_WARNING_REGISTRY_MISSING_CREATING), REGVAL_VERSION);
@@ -453,11 +454,12 @@ void HostsUpdateService::CreateRegistry()
 					fwprintf(stdout, ResourceString(IDS_WARNING_REGISTRY_UNAVAILABLE), REGVAL_VERSION, dwError, ErrorMessage::Get(dwError));
 				}
 				break;
+			}
 			case 1:
 				fwprintf(stdout, ResourceString(IDS_INFO_FOUND_REGISTRY_VERSION_1_UNDER_HKLM), REGKEY);
 				break;
 			default:
-				fwprintf(stdout, ResourceString(IDS_WARNING_REGISTRY_UNEXPECTED_VALUE_LU), REGVAL_VERSION, value.UInt32);
+				fwprintf(stdout, ResourceString(IDS_WARNING_REGISTRY_UNEXPECTED_VALUE_LU), REGVAL_VERSION, dwValue);
 				break;
 			}
 		}
@@ -501,19 +503,17 @@ void HostsUpdateService::ReadRegistry()
 	RegistryKey key;
 	if (key.Open(HKEY_LOCAL_MACHINE, REGKEY, 0, KEY_READ) == ERROR_SUCCESS)
 	{
-		RegistryValue value;
-		Buffer<WCHAR> tmp(MAX_PATH);
-		PCWSTR pszLogFileName = value.GetString(key, REGVAL_LOGFILE);
-		if (pszLogFileName)
+		String szLogFileName = RegistryValue::GetString(key, REGVAL_LOGFILE);
+		if (szLogFileName.Len)
 		{
-			DBGPUT(L"%s=%s", REGVAL_LOGFILE, pszLogFileName);
-			OpenLogFile(pszLogFileName);
+			DBGPUT(L"%s=%s", REGVAL_LOGFILE, szLogFileName);
+			OpenLogFile(szLogFileName);
 		}
-		PCWSTR pszHostsFileName = value.GetString(key, REGVAL_HOSTSFILE);
-		if (pszHostsFileName)
+		String szHostsFileName = RegistryValue::GetString(key, REGVAL_HOSTSFILE);
+		if (szHostsFileName.Len)
 		{
-			DBGPUT(L"%s=%s", REGVAL_HOSTSFILE, pszHostsFileName);
-			m_szHostsFile = pszHostsFileName;
+			DBGPUT(L"%s=%s", REGVAL_HOSTSFILE, szHostsFileName);
+			m_szHostsFile = szHostsFileName;
 		}
 	}
 	if (key.Open(HKEY_LOCAL_MACHINE, REGKEY_MAPPINGS, 0, KEY_READ) == ERROR_SUCCESS)
@@ -545,7 +545,7 @@ void HostsUpdateService::ReadRegistry()
 			}
 		}
 	}
-	if (!m_szHostsFile)
+	if (!m_szHostsFile.IsSet)
 	{
 		Log(L"WARNING: No hosts file name is set.");
 	}
@@ -559,12 +559,12 @@ void HostsUpdateService::ReadRegistry()
 void HostsUpdateService::ProcessHostsFile()
 {
 	DBGFNC(L"HostsUpdateService::ProcessHostsFile");
-	if (!m_szHostsFile)
+	if (!m_szHostsFile.Len)
 	{
 		DBGPUT(L"m_szHostsFile=null");
 		return;
 	}
-	DBGPUT(L"m_szHostsFile=%s", m_szHostsFile.Ptr);
+	DBGPUT(L"m_szHostsFile=%s", m_szHostsFile);
 	HostsFile hosts(m_szHostsFile, m_bReadOnly);
 	try
 	{

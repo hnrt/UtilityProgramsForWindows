@@ -24,7 +24,7 @@ namespace hnrt
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
 		void LoadFromRegistry();
-		void SaveToRegistry();
+		void SaveToRegistry() const;
 
 	private:
 
