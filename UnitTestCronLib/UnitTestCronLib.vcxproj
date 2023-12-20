@@ -168,6 +168,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DayOfWeekTests.cpp" />
     <ClCompile Include="DayTests.cpp" />
     <ClCompile Include="HourTests.cpp" />
     <ClCompile Include="MinuteTests.cpp" />
@@ -180,6 +181,7 @@
     </ClCompile>
     <ClCompile Include="AllTests.cpp" />
     <ClCompile Include="SecondTests.cpp" />
+    <ClCompile Include="YearTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
