@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <Windows.h>
+#include "hnrt/String.h"
 
 
 namespace hnrt
@@ -193,4 +193,6 @@ namespace hnrt
 	void GetWeekDay(WORD& year, WORD& month, WORD& day);
 
 	void GetDayOfWeek(WORD& year, WORD& month, WORD& day, int dayOfWeek, int ordinal);
+
+	String SystemTimeToString(const SYSTEMTIME&);
 }

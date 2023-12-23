@@ -170,6 +170,7 @@
   <ItemGroup>
     <ClCompile Include="DayOfWeekTests.cpp" />
     <ClCompile Include="DayTests.cpp" />
+    <ClCompile Include="EvalTests.cpp" />
     <ClCompile Include="HourTests.cpp" />
     <ClCompile Include="MinuteTests.cpp" />
     <ClCompile Include="MonthTests.cpp" />

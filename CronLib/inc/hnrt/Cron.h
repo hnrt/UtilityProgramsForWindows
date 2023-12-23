@@ -29,7 +29,7 @@ namespace hnrt
 		void ParseDayOfWeek(PCWSTR);
 		void ParseYear(PCWSTR);
 		String ToString() const;
-		bool GetNextTime(int, SYSTEMTIME&);
+		bool GetNextTime(const SYSTEMTIME&, SYSTEMTIME&);
 		const CronValue& GetSecond() const;
 		const CronValue& GetMinute() const;
 		const CronValue& GetHour() const;
@@ -52,13 +52,26 @@ namespace hnrt
 		friend class CronParser;
 		friend class CronEvaluation;
 
-		RefPtr<CronValue> m_pSecond; // 0-59 ,-*/
-		RefPtr<CronValue> m_pMinute; // 0-59 ,-*/
-		RefPtr<CronValue> m_pHour; // 0-23 ,-*/
-		RefPtr<CronValue> m_pDayOfWeek; // 1-7 or SUN-SAT ,-*/LC#
-		RefPtr<CronValue> m_pMonth; // 0-11 or JAN-DEC ,-*/
-		RefPtr<CronValue> m_pDayOfMonth; // 1-31 ,-*/LWC
-		RefPtr<CronValue> m_pYear; // empty or 1970-2099 ,-*/
+		bool CheckYear(SYSTEMTIME&) const;
+		bool CheckMonth(SYSTEMTIME&) const;
+		bool CheckDayOfMonth(SYSTEMTIME&) const;
+		bool CheckHour(SYSTEMTIME&) const;
+		bool CheckMinute(SYSTEMTIME&) const;
+		bool CheckSecond(SYSTEMTIME&) const;
+		bool CheckRange(int from, int to, int step, int target, int& closest) const;
+		bool CheckNextYear(SYSTEMTIME&) const;
+		bool CheckNextMonth(SYSTEMTIME&) const;
+		bool CheckNextDayOfMonth(SYSTEMTIME&) const;
+		bool CheckNextHour(SYSTEMTIME&) const;
+		bool CheckNextMinute(SYSTEMTIME&) const;
+
+		RefPtr<CronValue> m_pSecond; // 0-59 , - * /
+		RefPtr<CronValue> m_pMinute; // 0-59 , - * /
+		RefPtr<CronValue> m_pHour; // 0-23 , - * /
+		RefPtr<CronValue> m_pDayOfMonth; // 1-31 , - * / L W
+		RefPtr<CronValue> m_pMonth; // 1-12 or JAN-DEC , - * /
+		RefPtr<CronValue> m_pDayOfWeek; // 1-7 or SUN-SAT , - * L #
+		RefPtr<CronValue> m_pYear; // empty or 1970-2099 , - * /
 		bool m_bSecond;
 	};
 

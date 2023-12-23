@@ -20,11 +20,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Cron.cpp" />
-    <ClCompile Include="src\CronEvaluation.cpp" />
     <ClCompile Include="src\CronParser.cpp" />
     <ClCompile Include="src\CronTokenizer.cpp" />
     <ClCompile Include="src\CronValue.cpp" />
-    <ClCompile Include="src\CronValueEvaluation.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -36,11 +34,10 @@
     <ClInclude Include="inc\hnrt\Cron.h" />
     <ClInclude Include="inc\hnrt\CronElement.h" />
     <ClInclude Include="inc\hnrt\CronError.h" />
-    <ClInclude Include="inc\hnrt\CronEvaluation.h" />
     <ClInclude Include="inc\hnrt\CronParser.h" />
     <ClInclude Include="inc\hnrt\CronTokenizer.h" />
     <ClInclude Include="inc\hnrt\CronValue.h" />
-    <ClInclude Include="inc\hnrt\CronValueEvaluation.h" />
+    <ClInclude Include="inc\hnrt\CronValueType.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\pch.h" />
   </ItemGroup>

@@ -16,13 +16,13 @@ namespace UnitTestCronLib
 			Cron cron;
 			cron.SecondEnabled = true;
 			cron.Parse(L"* * * * * ?");
-			Assert::IsTrue(CRON_ALL == cron.Second.type);
-			Assert::IsTrue(CRON_ALL == cron.Minute.type);
-			Assert::IsTrue(CRON_ALL == cron.Hour.type);
-			Assert::IsTrue(CRON_ALL == cron.DayOfMonth.type);
-			Assert::IsTrue(CRON_ALL == cron.Month.type);
-			Assert::IsTrue(CRON_ANY == cron.DayOfWeek.type);
-			Assert::IsTrue(CRON_EMPTY == cron.Year.type);
+			Assert::IsTrue(CRON_ALL == cron.Second.Type);
+			Assert::IsTrue(CRON_ALL == cron.Minute.Type);
+			Assert::IsTrue(CRON_ALL == cron.Hour.Type);
+			Assert::IsTrue(CRON_ALL == cron.DayOfMonth.Type);
+			Assert::IsTrue(CRON_ALL == cron.Month.Type);
+			Assert::IsTrue(CRON_ANY == cron.DayOfWeek.Type);
+			Assert::IsTrue(CRON_EMPTY == cron.Year.Type);
 		}
 
 		TEST_METHOD(Test0002)
@@ -30,13 +30,13 @@ namespace UnitTestCronLib
 			Cron cron;
 			cron.SecondEnabled = true;
 			cron.Parse(L"* * * * * ? *");
-			Assert::IsTrue(CRON_ALL == cron.Second.type);
-			Assert::IsTrue(CRON_ALL == cron.Minute.type);
-			Assert::IsTrue(CRON_ALL == cron.Hour.type);
-			Assert::IsTrue(CRON_ALL == cron.DayOfMonth.type);
-			Assert::IsTrue(CRON_ALL == cron.Month.type);
-			Assert::IsTrue(CRON_ANY == cron.DayOfWeek.type);
-			Assert::IsTrue(CRON_ALL == cron.Year.type);
+			Assert::IsTrue(CRON_ALL == cron.Second.Type);
+			Assert::IsTrue(CRON_ALL == cron.Minute.Type);
+			Assert::IsTrue(CRON_ALL == cron.Hour.Type);
+			Assert::IsTrue(CRON_ALL == cron.DayOfMonth.Type);
+			Assert::IsTrue(CRON_ALL == cron.Month.Type);
+			Assert::IsTrue(CRON_ANY == cron.DayOfWeek.Type);
+			Assert::IsTrue(CRON_ALL == cron.Year.Type);
 		}
 
 		TEST_METHOD(Test0003)
@@ -44,13 +44,13 @@ namespace UnitTestCronLib
 			Cron cron;
 			cron.SecondEnabled = true;
 			cron.Parse(L"* * * ? * *");
-			Assert::IsTrue(CRON_ALL == cron.Second.type);
-			Assert::IsTrue(CRON_ALL == cron.Minute.type);
-			Assert::IsTrue(CRON_ALL == cron.Hour.type);
-			Assert::IsTrue(CRON_ANY == cron.DayOfMonth.type);
-			Assert::IsTrue(CRON_ALL == cron.Month.type);
-			Assert::IsTrue(CRON_ALL == cron.DayOfWeek.type);
-			Assert::IsTrue(CRON_EMPTY == cron.Year.type);
+			Assert::IsTrue(CRON_ALL == cron.Second.Type);
+			Assert::IsTrue(CRON_ALL == cron.Minute.Type);
+			Assert::IsTrue(CRON_ALL == cron.Hour.Type);
+			Assert::IsTrue(CRON_ANY == cron.DayOfMonth.Type);
+			Assert::IsTrue(CRON_ALL == cron.Month.Type);
+			Assert::IsTrue(CRON_ALL == cron.DayOfWeek.Type);
+			Assert::IsTrue(CRON_EMPTY == cron.Year.Type);
 		}
 
 		TEST_METHOD(Test0004)
@@ -58,13 +58,13 @@ namespace UnitTestCronLib
 			Cron cron;
 			cron.SecondEnabled = true;
 			cron.Parse(L"* * * ? * * *");
-			Assert::IsTrue(CRON_ALL == cron.Second.type);
-			Assert::IsTrue(CRON_ALL == cron.Minute.type);
-			Assert::IsTrue(CRON_ALL == cron.Hour.type);
-			Assert::IsTrue(CRON_ANY == cron.DayOfMonth.type);
-			Assert::IsTrue(CRON_ALL == cron.Month.type);
-			Assert::IsTrue(CRON_ALL == cron.DayOfWeek.type);
-			Assert::IsTrue(CRON_ALL == cron.Year.type);
+			Assert::IsTrue(CRON_ALL == cron.Second.Type);
+			Assert::IsTrue(CRON_ALL == cron.Minute.Type);
+			Assert::IsTrue(CRON_ALL == cron.Hour.Type);
+			Assert::IsTrue(CRON_ANY == cron.DayOfMonth.Type);
+			Assert::IsTrue(CRON_ALL == cron.Month.Type);
+			Assert::IsTrue(CRON_ALL == cron.DayOfWeek.Type);
+			Assert::IsTrue(CRON_ALL == cron.Year.Type);
 		}
 
 		TEST_METHOD(Test0101)
@@ -72,12 +72,12 @@ namespace UnitTestCronLib
 			Cron cron;
 			cron.SecondEnabled = false;
 			cron.Parse(L"* * * * ?");
-			Assert::IsTrue(CRON_ALL == cron.Minute.type);
-			Assert::IsTrue(CRON_ALL == cron.Hour.type);
-			Assert::IsTrue(CRON_ALL == cron.DayOfMonth.type);
-			Assert::IsTrue(CRON_ALL == cron.Month.type);
-			Assert::IsTrue(CRON_ANY == cron.DayOfWeek.type);
-			Assert::IsTrue(CRON_EMPTY == cron.Year.type);
+			Assert::IsTrue(CRON_ALL == cron.Minute.Type);
+			Assert::IsTrue(CRON_ALL == cron.Hour.Type);
+			Assert::IsTrue(CRON_ALL == cron.DayOfMonth.Type);
+			Assert::IsTrue(CRON_ALL == cron.Month.Type);
+			Assert::IsTrue(CRON_ANY == cron.DayOfWeek.Type);
+			Assert::IsTrue(CRON_EMPTY == cron.Year.Type);
 		}
 
 		TEST_METHOD(Test0102)
@@ -85,12 +85,12 @@ namespace UnitTestCronLib
 			Cron cron;
 			cron.SecondEnabled = false;
 			cron.Parse(L"* * * * ? *");
-			Assert::IsTrue(CRON_ALL == cron.Minute.type);
-			Assert::IsTrue(CRON_ALL == cron.Hour.type);
-			Assert::IsTrue(CRON_ALL == cron.DayOfMonth.type);
-			Assert::IsTrue(CRON_ALL == cron.Month.type);
-			Assert::IsTrue(CRON_ANY == cron.DayOfWeek.type);
-			Assert::IsTrue(CRON_ALL == cron.Year.type);
+			Assert::IsTrue(CRON_ALL == cron.Minute.Type);
+			Assert::IsTrue(CRON_ALL == cron.Hour.Type);
+			Assert::IsTrue(CRON_ALL == cron.DayOfMonth.Type);
+			Assert::IsTrue(CRON_ALL == cron.Month.Type);
+			Assert::IsTrue(CRON_ANY == cron.DayOfWeek.Type);
+			Assert::IsTrue(CRON_ALL == cron.Year.Type);
 		}
 
 		TEST_METHOD(Test0103)
@@ -98,12 +98,12 @@ namespace UnitTestCronLib
 			Cron cron;
 			cron.SecondEnabled = false;
 			cron.Parse(L"* * ? * *");
-			Assert::IsTrue(CRON_ALL == cron.Minute.type);
-			Assert::IsTrue(CRON_ALL == cron.Hour.type);
-			Assert::IsTrue(CRON_ANY == cron.DayOfMonth.type);
-			Assert::IsTrue(CRON_ALL == cron.Month.type);
-			Assert::IsTrue(CRON_ALL == cron.DayOfWeek.type);
-			Assert::IsTrue(CRON_EMPTY == cron.Year.type);
+			Assert::IsTrue(CRON_ALL == cron.Minute.Type);
+			Assert::IsTrue(CRON_ALL == cron.Hour.Type);
+			Assert::IsTrue(CRON_ANY == cron.DayOfMonth.Type);
+			Assert::IsTrue(CRON_ALL == cron.Month.Type);
+			Assert::IsTrue(CRON_ALL == cron.DayOfWeek.Type);
+			Assert::IsTrue(CRON_EMPTY == cron.Year.Type);
 		}
 
 		TEST_METHOD(Test0104)
@@ -111,12 +111,12 @@ namespace UnitTestCronLib
 			Cron cron;
 			cron.SecondEnabled = false;
 			cron.Parse(L"* * ? * * *");
-			Assert::IsTrue(CRON_ALL == cron.Minute.type);
-			Assert::IsTrue(CRON_ALL == cron.Hour.type);
-			Assert::IsTrue(CRON_ANY == cron.DayOfMonth.type);
-			Assert::IsTrue(CRON_ALL == cron.Month.type);
-			Assert::IsTrue(CRON_ALL == cron.DayOfWeek.type);
-			Assert::IsTrue(CRON_ALL == cron.Year.type);
+			Assert::IsTrue(CRON_ALL == cron.Minute.Type);
+			Assert::IsTrue(CRON_ALL == cron.Hour.Type);
+			Assert::IsTrue(CRON_ANY == cron.DayOfMonth.Type);
+			Assert::IsTrue(CRON_ALL == cron.Month.Type);
+			Assert::IsTrue(CRON_ALL == cron.DayOfWeek.Type);
+			Assert::IsTrue(CRON_ALL == cron.Year.Type);
 		}
 	};
 }

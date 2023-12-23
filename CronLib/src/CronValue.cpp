@@ -5,25 +5,26 @@
 #include "hnrt/StringBuffer.h"
 #include "hnrt/String.h"
 #include "hnrt/Exception.h"
+#include "hnrt/Debug.h"
 
 
 using namespace hnrt;
 
 
-static void AppendIntegerOrWord(int value, CronElement element, StringBuffer& buf)
+static String AppendIntegerOrWord(int value, CronElement element, String sz)
 {
 	int min = CronValue::Min(element);
 	int max = CronValue::Max(element);
 	if (min <= value && value <= max)
 	{
-		buf.AppendFormat(L"%d", value);
+		sz.AppendFormat(L"%d", value);
 	}
 	else if (element == CRON_MONTH)
 	{
 		value -= CRON_WORD_DISPLACEMENT;
 		if (min <= value && value <= max)
 		{
-			buf += CronMonthWords[value - min];
+			sz += CronMonthWords[value - min];
 		}
 		else
 		{
@@ -35,7 +36,7 @@ static void AppendIntegerOrWord(int value, CronElement element, StringBuffer& bu
 		value -= CRON_WORD_DISPLACEMENT;
 		if (min <= value && value <= max)
 		{
-			buf += CronDayOfWeekWords[value - min];
+			sz += CronDayOfWeekWords[value - min];
 		}
 		else
 		{
@@ -46,6 +47,7 @@ static void AppendIntegerOrWord(int value, CronElement element, StringBuffer& bu
 	{
 		throw Exception(L"CronValue::ToString: Bad value: %d", value);
 	}
+	return sz;
 }
 
 
@@ -100,107 +102,180 @@ int CronValue::Max(CronElement element)
 
 RefPtr<CronValue> CronValue::InvalidValue()
 {
-	static RefPtr<CronValue> pValue = RefPtr<CronValue>(new CronValue(CRON_INVALID_VALUE, CRON_ELEMENT_UNSPECIFIED));
-	return pValue;
+	return RefPtr<CronValue>(new CronValue(CRON_ELEMENT_UNSPECIFIED, CRON_INVALID_VALUE));
 }
 
 
-CronValue::CronValue(CronValueType type, CronElement element)
-	: RefObj()
-	, m_type(type)
-	, m_next()
-	, m_element(element)
+RefPtr<CronValue> CronValue::CreateEmpty(CronElement element)
 {
+	return RefPtr<CronValue>(new CronValue(element, CRON_EMPTY));
+}
+
+
+RefPtr<CronValue> CronValue::CreateAll(CronElement element)
+{
+	return RefPtr<CronValue>(new CronValue(element, CRON_ALL));
+}
+
+
+RefPtr<CronValue> CronValue::CreateAny(CronElement element)
+{
+	return RefPtr<CronValue>(new CronValue(element, CRON_ANY));
+}
+
+
+RefPtr<CronValue> CronValue::CreateLastDay(CronElement element)
+{
+	return RefPtr<CronValue>(new CronValue(element, CRON_LASTDAY));
+}
+
+
+RefPtr<CronValue> CronValue::CreateWeekDay(CronElement element)
+{
+	return RefPtr<CronValue>(new CronValue(element, CRON_WEEKDAY));
+}
+
+
+RefPtr<CronValue> CronValue::CreateSingle(CronElement element, int value, int step)
+{
+	RefPtr<CronValue> ptr(new CronValue(element, CRON_SINGLE));
+	ptr->m_Complex.single.value = value;
+	ptr->m_Complex.single.step = step;
+	return ptr;
+}
+
+
+RefPtr<CronValue> CronValue::CreateRange(CronElement element, int from, int to, int step)
+{
+	RefPtr<CronValue> ptr(new CronValue(element, CRON_RANGE));
+	ptr->m_Complex.range.from = from;
+	ptr->m_Complex.range.to = to;
+	ptr->m_Complex.range.step = step;
+	return ptr;
+}
+
+
+RefPtr<CronValue> CronValue::CreateClosestWeekDay(CronElement element, int dom)
+{
+	RefPtr<CronValue> ptr(new CronValue(element, CRON_CLOSEST_WEEKDAY));
+	ptr->m_Complex.dom.value = dom;
+	return ptr;
+}
+
+
+RefPtr<CronValue> CronValue::CreateNthDayOfWeek(CronElement element, int dow, int nth)
+{
+	RefPtr<CronValue> ptr(new CronValue(element, CRON_NTH_DAYOFWEEK));
+	ptr->m_Complex.dow.value = dow;
+	ptr->m_Complex.dow.nth = nth;
+	return ptr;
+}
+
+
+RefPtr<CronValue> CronValue::CreateLastDayOfWeek(CronElement element, int dow)
+{
+	RefPtr<CronValue> ptr(new CronValue(element, CRON_LAST_DAYOFWEEK));
+	ptr->m_Complex.dow.value = dow;
+	return ptr;
+}
+
+
+CronValue::CronValue(CronElement element, CronValueType type)
+	: RefObj()
+	, m_Element(element)
+	, m_Type(type)
+	, m_Complex()
+	, m_pNext()
+{
+	DBGPUT(L"CronValue<%s>@%p::ctor", Name(m_Element), this);
 }
 
 
 CronValue::~CronValue()
 {
-	m_next = nullptr;
+	DBGPUT(L"CronValue<%s>@%p::dtor", Name(m_Element), this);
 }
 
 
 void CronValue::Append(RefPtr<CronValue> pValue)
 {
-	if (m_next)
+	if (m_pNext)
 	{
-		m_next->Append(pValue);
+		m_pNext->Append(pValue);
 	}
 	else
 	{
-		m_next = pValue;
+		m_pNext = pValue;
 	}
 }
 
 
 String CronValue::ToString() const
 {
-	StringBuffer buf(260);
-	for (const CronValue* pCur = this; pCur; pCur = pCur->next.Ptr)
+	String sz;
+	for (RefPtr<CronValue> pCur = Self; pCur; pCur = pCur->Next)
 	{
-		if (buf.Len)
+		if (sz.Len)
 		{
-			buf.AppendFormat(L",");
+			sz.AppendFormat(L",");
 		}
-		switch (pCur->type)
+		switch (pCur->Type)
 		{
 		case CRON_EMPTY:
 			break;
 		case CRON_ALL:
-			buf.AppendFormat(L"*");
+			sz.AppendFormat(L"*");
 			break;
 		case CRON_ANY:
-			buf.AppendFormat(L"?");
+			sz.AppendFormat(L"?");
 			break;
 		case CRON_SINGLE:
 		{
-			const CronValueSingle* pThis = dynamic_cast<const CronValueSingle*>(pCur);
-			AppendIntegerOrWord(pThis->value, pThis->element, buf);
-			if (pThis->step > 1)
+			sz = AppendIntegerOrWord(pCur->Value, pCur->Element, sz);
+			if (pCur->Step > 1)
 			{
-				buf.AppendFormat(L"/%d", pThis->step);
+				sz.AppendFormat(L"/%d", pCur->Step);
 			}
 			break;
 		}
 		case CRON_RANGE:
 		{
-			const CronValueRange* pThis = dynamic_cast<const CronValueRange*>(pCur);
-			AppendIntegerOrWord(pThis->from, pThis->element, buf);
-			buf.AppendFormat(L"-");
-			AppendIntegerOrWord(pThis->to, pThis->element, buf);
-			if (pThis->step > 1)
+			sz = AppendIntegerOrWord(pCur->From, pCur->Element, sz);
+			sz.AppendFormat(L"-");
+			sz = AppendIntegerOrWord(pCur->To, pCur->Element, sz);
+			if (pCur->Step > 1)
 			{
-				buf.AppendFormat(L"/%d", pThis->step);
+				sz.AppendFormat(L"/%d", pCur->Step);
 			}
 			break;
 		}
 		case CRON_LASTDAY:
-			buf.AppendFormat(L"L");
+			sz.AppendFormat(L"L");
 			break;
 		case CRON_WEEKDAY:
-			buf.AppendFormat(L"W");
+			sz.AppendFormat(L"W");
 			break;
 		case CRON_CLOSEST_WEEKDAY:
-			buf.AppendFormat(L"%dW", dynamic_cast<const CronValueClosestWeekDay*>(pCur)->dom);
+			sz.AppendFormat(L"%dW", pCur->Value);
 			break;
 		case CRON_NTH_DAYOFWEEK:
 		{
-			const CronValueNthDayOfWeek* pThis = dynamic_cast<const CronValueNthDayOfWeek*>(pCur);
-			AppendIntegerOrWord(pThis->dow, pThis->element, buf);
-			buf.AppendFormat(L"#%d", pThis->nth);
+			sz = AppendIntegerOrWord(pCur->Value, pCur->Element, sz);
+			sz.AppendFormat(L"#%d", pCur->Nth);
 			break;
 		}
 		case CRON_LAST_DAYOFWEEK:
-			buf.AppendFormat(L"%dL", dynamic_cast<const CronValueLastDayOfWeek*>(pCur)->dow);
+			sz.AppendFormat(L"%dL", pCur->Value);
 			break;
 		default:
 			break;
 		}
 	}
-	return String(buf);
+	return sz;
 }
 
 
+#if 0
 static int Adjust(int value, CronElement element, int offset)
 {
 	if (element == CRON_DAYOFMONTH)
@@ -324,14 +399,15 @@ RefPtr<CronValueEvaluation> CronValue::Evaluate(int offset) const
 	}
 	return RefPtr<CronValueEvaluation>(new CronValueEvaluation(samples.Detach(), static_cast<int>(count)));
 }
+#endif
 
 
 int CronValue::Count(CronValueType type) const
 {
 	int count = 0;
-	for (const CronValue* pCur = this; pCur; pCur = pCur->next.Ptr)
+	for (RefPtr<CronValue> pCur = Self; pCur; pCur = pCur->Next)
 	{
-		if (pCur->type == type)
+		if (pCur->Type == type)
 		{
 			count++;
 		}
@@ -340,61 +416,77 @@ int CronValue::Count(CronValueType type) const
 }
 
 
-RefPtr<CronValue> CronValueEmpty::Create(CronElement element)
+int CronValue::get_Value() const
 {
-	return RefPtr<CronValue>(new CronValueEmpty(element));
+	if (m_Type == CRON_SINGLE)
+	{
+		return m_Complex.single.value;
+	}
+	else if (m_Type == CRON_CLOSEST_WEEKDAY)
+	{
+		return m_Complex.dom.value;
+	}
+	else if (m_Type == CRON_NTH_DAYOFWEEK || m_Type == CRON_LAST_DAYOFWEEK)
+	{
+		return m_Complex.dow.value;
+	}
+	else
+	{
+		throw Exception(L"CronValue::get_Value: Bad access: element=%d", m_Element);
+	}
+}
+
+int CronValue::get_Step() const
+{
+	if (m_Type == CRON_SINGLE)
+	{
+		return m_Complex.single.step;
+	}
+	else if (m_Type == CRON_RANGE)
+	{
+		return m_Complex.range.step;
+	}
+	else
+	{
+		throw Exception(L"CronValue::get_Step: Bad access: element=%d", m_Element);
+	}
 }
 
 
-RefPtr<CronValue> CronValueAll::Create(CronElement element)
+int CronValue::get_From() const
 {
-	return RefPtr<CronValue>(new CronValueAll(element));
+	if (m_Type == CRON_RANGE)
+	{
+		return m_Complex.range.from;
+	}
+	else
+	{
+		throw Exception(L"CronValue::get_From: Bad access: element=%d", m_Element);
+	}
 }
 
 
-RefPtr<CronValue> CronValueAny::Create(CronElement element)
+int CronValue::get_To() const
 {
-	return RefPtr<CronValue>(new CronValueAny(element));
+	if (m_Type == CRON_RANGE)
+	{
+		return m_Complex.range.to;
+	}
+	else
+	{
+		throw Exception(L"CronValue::get_To: Bad access: element=%d", m_Element);
+	}
 }
 
 
-RefPtr<CronValue> CronValueSingle::Create(CronElement element, int value, int step)
+int CronValue::get_Nth() const
 {
-	return RefPtr<CronValue>(new CronValueSingle(element, value, step));
-}
-
-
-RefPtr<CronValue> CronValueRange::Create(CronElement element, int from, int to, int step)
-{
-	return RefPtr<CronValue>(new CronValueRange(element, from, to, step));
-}
-
-
-RefPtr<CronValue> CronValueLastDay::Create(CronElement element)
-{
-	return RefPtr<CronValue>(new CronValueLastDay(element));
-}
-
-
-RefPtr<CronValue> CronValueWeekDay::Create(CronElement element)
-{
-	return RefPtr<CronValue>(new CronValueWeekDay(element));
-}
-
-
-RefPtr<CronValue> CronValueClosestWeekDay::Create(CronElement element, int dom)
-{
-	return RefPtr<CronValue>(new CronValueClosestWeekDay(element, dom));
-}
-
-
-RefPtr<CronValue> CronValueNthDayOfWeek::Create(CronElement element, int dow, int nth)
-{
-	return RefPtr<CronValue>(new CronValueNthDayOfWeek(element, dow, nth));
-}
-
-
-RefPtr<CronValue> CronValueLastDayOfWeek::Create(CronElement element, int dow)
-{
-	return RefPtr<CronValue>(new CronValueLastDayOfWeek(element, dow));
+	if (m_Type == CRON_NTH_DAYOFWEEK)
+	{
+		return m_Complex.dow.nth;
+	}
+	else
+	{
+		throw Exception(L"CronValue::get_Nth: Bad access: element=%d", m_Element);
+	}
 }

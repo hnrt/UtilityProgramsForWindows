@@ -21,9 +21,6 @@
     <ClCompile Include="src\Cron.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\CronEvaluation.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="src\CronParser.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -31,9 +28,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="src\CronValue.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CronValueEvaluation.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,9 +47,6 @@
     <ClInclude Include="inc\hnrt\CronError.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="inc\hnrt\CronEvaluation.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="inc\hnrt\CronParser.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -65,7 +56,7 @@
     <ClInclude Include="inc\hnrt\CronValue.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="inc\hnrt\CronValueEvaluation.h">
+    <ClInclude Include="inc\hnrt\CronValueType.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
