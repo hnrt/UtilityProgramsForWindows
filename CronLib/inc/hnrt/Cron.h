@@ -50,7 +50,6 @@ namespace hnrt
 	private:
 
 		friend class CronParser;
-		friend class CronEvaluation;
 
 		bool CheckYear(SYSTEMTIME&) const;
 		bool CheckMonth(SYSTEMTIME&) const;
@@ -58,7 +57,6 @@ namespace hnrt
 		bool CheckHour(SYSTEMTIME&) const;
 		bool CheckMinute(SYSTEMTIME&) const;
 		bool CheckSecond(SYSTEMTIME&) const;
-		bool CheckRange(int from, int to, int step, int target, int& closest) const;
 		bool CheckNextYear(SYSTEMTIME&) const;
 		bool CheckNextMonth(SYSTEMTIME&) const;
 		bool CheckNextDayOfMonth(SYSTEMTIME&) const;

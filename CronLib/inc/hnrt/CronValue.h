@@ -25,7 +25,19 @@ namespace hnrt
 		void operator =(const CronValue&) = delete;
 		void Append(RefPtr<CronValue>);
 		String ToString() const;
-		int Count(CronValueType type) const;
+		int Count(CronValueType) const;
+		/// <summary>
+		/// Checks if the corresponding element of the given SYSTEMTIME matches with one of the scheduled timings this value defines.
+		/// If there is no exact match, the given SYSTEMTIME will be altered by using the closest scheduled timing (called as 'candidate').
+		/// Note that the definition of the closest scheduled timing is the earliest scheduled time that is later than the given time.
+		/// </summary>
+		/// <param name="st">[IN/OUT] Time to check</param>
+		/// <returns>
+		/// 1 if the given SYSTEMTIME has the exact match; no changes are made.
+		/// -1 if a candidate was found; the given SYSTEMTIME was altered accordingly.
+		/// 0 if no candidate was found.
+		/// </returns>
+		int GetNext(SYSTEMTIME&) const;
 
 		CronElement get_Element() const;
 		CronValueType get_Type() const;
@@ -89,6 +101,13 @@ namespace hnrt
 		static RefPtr<CronValue> CreateClosestWeekDay(CronElement element, int dom);
 		static RefPtr<CronValue> CreateNthDayOfWeek(CronElement element, int dow, int nth);
 		static RefPtr<CronValue> CreateLastDayOfWeek(CronElement element, int dow);
+		static bool CheckRange(int from, int to, int step, int target, int& candidate);
+		static bool CheckWeekDay(WORD wYear, WORD wMonth, WORD wDay, int target, int& candidate);
+		static bool CheckClosestWeekDay(WORD wYear, WORD wMonth, int day, int target, int& candidate);
+		static bool CheckLastDay(WORD wYear, WORD wMonth, int target, int& candidate);
+		static bool CheckDayOfWeekRange(int from, int to, WORD wDay, WORD wLastDay, int target, int& candidate);
+		static bool CheckLastDayOfWeek(WORD wYear, WORD wMonth, WORD wDay, int target, int& candidate);
+		static bool CheckNthDayOfWeek(WORD wYear, WORD wMonth, WORD wDay, int dow, int nth, int target, int& candidate);
 	};
 
 	inline CronElement CronValue::get_Element() const

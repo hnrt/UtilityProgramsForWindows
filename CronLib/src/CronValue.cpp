@@ -4,6 +4,7 @@
 #include "hnrt/Buffer.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/String.h"
+#include "hnrt/Time.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Debug.h"
 
@@ -275,133 +276,6 @@ String CronValue::ToString() const
 }
 
 
-#if 0
-static int Adjust(int value, CronElement element, int offset)
-{
-	if (element == CRON_DAYOFMONTH)
-	{
-		return (((value - 1) + (offset / (24 * 60)) + 31) % 31) + 1;
-	}
-	else if (element == CRON_HOUR)
-	{
-		return (value + (offset / 60) + 24) % 24;
-	}
-	else if (element == CRON_MINUTE)
-	{
-		return (value + (offset % 60) + 60) % 60;
-	}
-	else
-	{
-		return value;
-	}
-}
-
-
-static void Add(Buffer<int>& buf, size_t& count, int value)
-{
-	if (count + 1 > buf.Len)
-	{
-		Buffer<int> tmp(buf.Len);
-		memcpy_s(tmp.Ptr, tmp.Len * sizeof(int), buf.Ptr, buf.Len * sizeof(int));
-		buf.Resize(buf.Len * 2);
-		memcpy_s(buf.Ptr, buf.Len * sizeof(int), tmp.Ptr, tmp.Len * sizeof(int));
-	}
-	for (size_t index = 0; index < count; index++)
-	{
-		if (value < buf[index])
-		{
-			memmove_s(&buf[index + 1], (buf.Len - (index + 1)) * sizeof(int), &buf[index], (count - index) * sizeof(int));
-			count++;
-			buf[index] = value;
-			return;
-		}
-		else if (value == buf[index])
-		{
-			return;
-		}
-	}
-	buf[count++] = value;
-}
-
-
-RefPtr<CronValueEvaluation> CronValue::Evaluate(int offset) const
-{
-	int min = Min(element);
-	int max = Max(element);
-	Buffer<int> samples(static_cast<size_t>(max) - static_cast<size_t>(min) + 1);
-	size_t count = 0;
-	for (const CronValue* pCur = this; pCur; pCur = pCur->next.Ptr)
-	{
-		switch (pCur->type)
-		{
-		case CRON_EMPTY:
-			if (pCur->element == CRON_YEAR)
-			{
-				for (int next = min; next <= max; next++)
-				{
-					Add(samples, count, next);
-				}
-			}
-			else if (pCur->element == CRON_SECOND)
-			{
-				Add(samples, count, 0);
-			}
-			break;
-		case CRON_ALL:
-			for (int next = min; next <= max; next++)
-			{
-				Add(samples, count, next);
-			}
-			break;
-		case CRON_ANY:
-			break;
-		case CRON_SINGLE:
-		{
-			const CronValueSingle* pThis = dynamic_cast<const CronValueSingle*>(pCur);
-			int value = CRON_NUMBER(pThis->value);
-			if (pThis->step > 0)
-			{
-				for (int next = value; next <= max; next += pThis->step)
-				{
-					Add(samples, count, Adjust(next, element, offset));
-				}
-			}
-			else
-			{
-				Add(samples, count, Adjust(value, element, offset));
-			}
-			break;
-		}
-		case CRON_RANGE:
-		{
-			const CronValueRange* pThis = dynamic_cast<const CronValueRange*>(pCur);
-			int from = CRON_NUMBER(pThis->from);
-			int to = CRON_NUMBER(pThis->to);
-			for (int next = from; next <= to; next += pThis->step)
-			{
-				Add(samples, count, Adjust(next, element, offset));
-			}
-			break;
-		}
-		case CRON_LASTDAY:
-			break;
-		case CRON_WEEKDAY:
-			break;
-		case CRON_CLOSEST_WEEKDAY:
-			break;
-		case CRON_NTH_DAYOFWEEK:
-			break;
-		case CRON_LAST_DAYOFWEEK:
-			break;
-		default:
-			break;
-		}
-	}
-	return RefPtr<CronValueEvaluation>(new CronValueEvaluation(samples.Detach(), static_cast<int>(count)));
-}
-#endif
-
-
 int CronValue::Count(CronValueType type) const
 {
 	int count = 0;
@@ -413,6 +287,341 @@ int CronValue::Count(CronValueType type) const
 		}
 	}
 	return count;
+}
+
+
+int CronValue::GetNext(SYSTEMTIME& st) const
+{
+	int candidate = INT_MAX;
+	int target;
+	switch (m_Element)
+	{
+	case CRON_DAYOFWEEK:
+	{
+		target = st.wDayOfWeek;
+		WORD wLastDay = GetLastDayOfMonth(st.wYear, st.wMonth);
+		for (RefPtr<CronValue> pValue = Self; pValue; pValue = pValue->Next)
+		{
+			if (pValue->Type == CRON_ALL)
+			{
+				return 1;
+			}
+			else if (pValue->Type == CRON_SINGLE)
+			{
+				if (CheckDayOfWeekRange(CRON_NUMBER(pValue->Value) - 1, -1, st.wDay, wLastDay, target, candidate))
+				{
+					return 1;
+				}
+			}
+			else if (pValue->Type == CRON_RANGE)
+			{
+				if (CheckDayOfWeekRange(CRON_NUMBER(pValue->From) - 1, CRON_NUMBER(pValue->To) -1, st.wDay, wLastDay, target, candidate))
+				{
+					return 1;
+				}
+			}
+			else if (pValue->Type == CRON_LAST_DAYOFWEEK)
+			{
+				if (CheckLastDayOfWeek(st.wYear, st.wMonth, st.wDay, target, candidate))
+				{
+					return 1;
+				}
+			}
+			else if (pValue->Type == CRON_NTH_DAYOFWEEK)
+			{
+				if (CheckNthDayOfWeek(st.wYear, st.wMonth, st.wDay, pValue->Value, pValue->Nth, target, candidate))
+				{
+					return 1;
+				}
+			}
+		}
+		if (candidate == INT_MAX)
+		{
+			return 0;
+		}
+		st.wDay = candidate;
+		st.wDayOfWeek = 0;
+		st.wHour = 0;
+		st.wMinute = 0;
+		st.wSecond = 0;
+		FileTime(st).ToSystemTime(st);
+		return -1;
+	}
+	case CRON_YEAR:
+		target = st.wYear;
+		break;
+	case CRON_MONTH:
+		target = st.wMonth;
+		break;
+	case CRON_DAYOFMONTH:
+		target = st.wDay;
+		break;
+	case CRON_HOUR:
+		target = st.wHour;
+		break;
+	case CRON_MINUTE:
+		target = st.wMinute;
+		break;
+	case CRON_SECOND:
+		target = st.wSecond;
+		break;
+	default:
+		return 0;
+	}
+	for (RefPtr<CronValue> pValue = Self; pValue; pValue = pValue->Next)
+	{
+		if (pValue->Type == CRON_ALL || pValue->Type == CRON_EMPTY)
+		{
+			return 1;
+		}
+		else if (pValue->Type == CRON_SINGLE)
+		{
+			if (CheckRange(CRON_NUMBER(pValue->Value), CronValue::Max(pValue->Element), pValue->Step, target, candidate))
+			{
+				return 1;
+			}
+		}
+		else if (pValue->Type == CRON_RANGE)
+		{
+			if (CheckRange(CRON_NUMBER(pValue->From), CRON_NUMBER(pValue->To), pValue->Step, target, candidate))
+			{
+				return 1;
+			}
+		}
+		else if (pValue->Type == CRON_WEEKDAY)
+		{
+			if (CheckWeekDay(st.wYear, st.wMonth, st.wDay, target, candidate))
+			{
+				return 1;
+			}
+		}
+		else if (pValue->Type == CRON_CLOSEST_WEEKDAY)
+		{
+			if (CheckClosestWeekDay(st.wYear, st.wMonth, pValue->Value, target, candidate))
+			{
+				return 1;
+			}
+		}
+		else if (pValue->Type == CRON_LASTDAY)
+		{
+			if (CheckLastDay(st.wYear, st.wMonth, target, candidate))
+			{
+				return 1;
+			}
+		}
+	}
+	if (candidate == INT_MAX)
+	{
+		return 0;
+	}
+	switch (m_Element)
+	{
+	case CRON_YEAR:
+		st.wYear = candidate;
+		st.wMonth = 1;
+		st.wDay = 1;
+		st.wDayOfWeek = 0;
+		st.wHour = 0;
+		st.wMinute = 0;
+		st.wSecond = 0;
+		FileTime(st).ToSystemTime(st);
+		break;
+	case CRON_MONTH:
+		st.wMonth = candidate;
+		st.wDay = 1;
+		st.wDayOfWeek = 0;
+		st.wHour = 0;
+		st.wMinute = 0;
+		st.wSecond = 0;
+		FileTime(st).ToSystemTime(st);
+		break;
+	case CRON_DAYOFMONTH:
+		st.wDay = candidate;
+		st.wDayOfWeek = 0;
+		st.wHour = 0;
+		st.wMinute = 0;
+		st.wSecond = 0;
+		FileTime(st).ToSystemTime(st);
+		break;
+	case CRON_HOUR:
+		st.wHour = candidate;
+		st.wMinute = 0;
+		st.wSecond = 0;
+		break;
+	case CRON_MINUTE:
+		st.wMinute = candidate;
+		st.wSecond = 0;
+		break;
+	case CRON_SECOND:
+		st.wSecond = candidate;
+		break;
+	default:
+		return 0;
+	}
+	return -1;
+}
+
+
+bool CronValue::CheckRange(int from, int to, int step, int target, int& candidate)
+{
+	if (step > 0)
+	{
+		for (int next = from; next <= to; next += step)
+		{
+			if (next == target)
+			{
+				return true;
+			}
+			else if (next > target)
+			{
+				if (candidate > next)
+				{
+					candidate = next;
+				}
+				return false;
+			}
+		}
+	}
+	else if (from == target)
+	{
+		return true;
+	}
+	else if (from > target)
+	{
+		if (candidate > from)
+		{
+			candidate = from;
+		}
+	}
+	return false;
+}
+
+
+bool CronValue::CheckWeekDay(WORD wYear, WORD wMonth, WORD wDay, int target, int& candidate)
+{
+	WORD y = wYear;
+	WORD m = wMonth;
+	WORD d = wDay;
+	GetWeekDay(y, m, d);
+	if (y == wYear && m == wMonth)
+	{
+		if (d == target)
+		{
+			return true;
+		}
+		else if (d > target && candidate > d)
+		{
+			candidate = d;
+		}
+	}
+	return false;
+}
+
+
+bool CronValue::CheckClosestWeekDay(WORD wYear, WORD wMonth, int day, int target, int& candidate)
+{
+	WORD y = wYear;
+	WORD m = wMonth;
+	WORD d = static_cast<WORD>(day);
+	GetWeekDay(y, m, d);
+	if (y == wYear && m == wMonth)
+	{
+		if (d == target)
+		{
+			return true;
+		}
+		else if (d > target && candidate > d)
+		{
+			candidate = d;
+		}
+	}
+	return false;
+}
+
+
+bool CronValue::CheckLastDay(WORD wYear, WORD wMonth, int target, int& candidate)
+{
+	int d = GetLastDayOfMonth(wYear, wMonth);
+	if (d == target)
+	{
+		return true;
+	}
+	else if (candidate > d)
+	{
+		candidate = d;
+	}
+	return false;
+}
+
+
+bool CronValue::CheckDayOfWeekRange(int from, int to, WORD wDay, WORD wLastDay, int target, int& candidate)
+{
+	if (to < 0)
+	{
+		to = from;
+	}
+	for (int next = from; ; next = (next + 1) % 7)
+	{
+		if (next == target)
+		{
+			return true;
+		}
+		else
+		{
+			int d = static_cast<int>(wDay) + ((next + 7 - target) % 7);
+			if (d <= wLastDay && candidate > d)
+			{
+				candidate = d;
+			}
+		}
+		if (next == to)
+		{
+			break;
+		}
+	}
+	return false;
+}
+
+
+bool CronValue::CheckLastDayOfWeek(WORD wYear, WORD wMonth, WORD wDay, int target, int& candidate)
+{
+	WORD y = wYear;
+	WORD m = wMonth;
+	WORD d = wDay;
+	GetLastDayOfMonth(y, m, d, target);
+	if (y == wYear && m == wMonth)
+	{
+		if (d == wDay)
+		{
+			return true;
+		}
+		else if (candidate > d)
+		{
+			candidate = d;
+		}
+	}
+	return false;
+}
+
+
+bool CronValue::CheckNthDayOfWeek(WORD wYear, WORD wMonth, WORD wDay, int dow, int nth, int target, int& candidate)
+{
+	WORD y = wYear;
+	WORD m = wMonth;
+	WORD d = wDay;
+	GetDayOfWeek(y, m, d, dow, nth);
+	if (y == wYear && m == wMonth)
+	{
+		if (d == wDay)
+		{
+			return true;
+		}
+		else if (candidate > d)
+		{
+			candidate = d;
+		}
+	}
+	return false;
 }
 
 
