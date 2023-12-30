@@ -290,63 +290,15 @@ int CronValue::Count(CronValueType type) const
 }
 
 
-int CronValue::GetNext(SYSTEMTIME& st) const
+bool CronValue::GetNext(SYSTEMTIME& st) const
 {
 	int candidate = INT_MAX;
 	int target;
 	switch (m_Element)
 	{
 	case CRON_DAYOFWEEK:
-	{
-		target = st.wDayOfWeek;
-		WORD wLastDay = GetLastDayOfMonth(st.wYear, st.wMonth);
-		for (RefPtr<CronValue> pValue = Self; pValue; pValue = pValue->Next)
-		{
-			if (pValue->Type == CRON_ALL)
-			{
-				return 1;
-			}
-			else if (pValue->Type == CRON_SINGLE)
-			{
-				if (CheckDayOfWeekRange(CRON_NUMBER(pValue->Value) - 1, -1, st.wDay, wLastDay, target, candidate))
-				{
-					return 1;
-				}
-			}
-			else if (pValue->Type == CRON_RANGE)
-			{
-				if (CheckDayOfWeekRange(CRON_NUMBER(pValue->From) - 1, CRON_NUMBER(pValue->To) -1, st.wDay, wLastDay, target, candidate))
-				{
-					return 1;
-				}
-			}
-			else if (pValue->Type == CRON_LAST_DAYOFWEEK)
-			{
-				if (CheckLastDayOfWeek(st.wYear, st.wMonth, st.wDay, target, candidate))
-				{
-					return 1;
-				}
-			}
-			else if (pValue->Type == CRON_NTH_DAYOFWEEK)
-			{
-				if (CheckNthDayOfWeek(st.wYear, st.wMonth, st.wDay, pValue->Value, pValue->Nth, target, candidate))
-				{
-					return 1;
-				}
-			}
-		}
-		if (candidate == INT_MAX)
-		{
-			return 0;
-		}
-		st.wDay = candidate;
-		st.wDayOfWeek = 0;
-		st.wHour = 0;
-		st.wMinute = 0;
-		st.wSecond = 0;
-		FileTime(st).ToSystemTime(st);
-		return -1;
-	}
+		target = st.wDayOfWeek + 1;
+		break;
 	case CRON_YEAR:
 		target = st.wYear;
 		break;
@@ -366,53 +318,67 @@ int CronValue::GetNext(SYSTEMTIME& st) const
 		target = st.wSecond;
 		break;
 	default:
-		return 0;
+		throw Exception(L"CronValue::GetNext: Unknown element: %d", m_Element);
 	}
 	for (RefPtr<CronValue> pValue = Self; pValue; pValue = pValue->Next)
 	{
 		if (pValue->Type == CRON_ALL || pValue->Type == CRON_EMPTY)
 		{
-			return 1;
+			return true;
 		}
 		else if (pValue->Type == CRON_SINGLE)
 		{
-			if (CheckRange(CRON_NUMBER(pValue->Value), CronValue::Max(pValue->Element), pValue->Step, target, candidate))
+			if (CheckRange(CRON_NUMBER(pValue->Value), Max(pValue->Element), pValue->Step, target, candidate))
 			{
-				return 1;
+				return true;
 			}
 		}
 		else if (pValue->Type == CRON_RANGE)
 		{
 			if (CheckRange(CRON_NUMBER(pValue->From), CRON_NUMBER(pValue->To), pValue->Step, target, candidate))
 			{
-				return 1;
+				return true;
 			}
 		}
 		else if (pValue->Type == CRON_WEEKDAY)
 		{
-			if (CheckWeekDay(st.wYear, st.wMonth, st.wDay, target, candidate))
+			if (CheckWeekDay(st.wYear, st.wMonth, st.wDay, candidate))
 			{
-				return 1;
+				return true;
 			}
 		}
 		else if (pValue->Type == CRON_CLOSEST_WEEKDAY)
 		{
 			if (CheckClosestWeekDay(st.wYear, st.wMonth, pValue->Value, target, candidate))
 			{
-				return 1;
+				return true;
 			}
 		}
 		else if (pValue->Type == CRON_LASTDAY)
 		{
 			if (CheckLastDay(st.wYear, st.wMonth, target, candidate))
 			{
-				return 1;
+				return true;
+			}
+		}
+		else if (pValue->Type == CRON_LAST_DAYOFWEEK)
+		{
+			if (CheckLastDayOfWeek(st.wYear, st.wMonth, st.wDay, pValue->Value, candidate))
+			{
+				return true;
+			}
+		}
+		else if (pValue->Type == CRON_NTH_DAYOFWEEK)
+		{
+			if (CheckNthDayOfWeek(st.wYear, st.wMonth, st.wDay, pValue->Nth, pValue->Value, candidate))
+			{
+				return true;
 			}
 		}
 	}
 	if (candidate == INT_MAX)
 	{
-		return 0;
+		return false;
 	}
 	switch (m_Element)
 	{
@@ -443,6 +409,18 @@ int CronValue::GetNext(SYSTEMTIME& st) const
 		st.wSecond = 0;
 		FileTime(st).ToSystemTime(st);
 		break;
+	case CRON_DAYOFWEEK:
+		st.wDay += candidate;
+		if (st.wDay > GetLastDayOfMonth(st.wYear, st.wMonth))
+		{
+			return false;
+		}
+		st.wDayOfWeek = 0;
+		st.wHour = 0;
+		st.wMinute = 0;
+		st.wSecond = 0;
+		FileTime(st).ToSystemTime(st);
+		break;
 	case CRON_HOUR:
 		st.wHour = candidate;
 		st.wMinute = 0;
@@ -456,48 +434,106 @@ int CronValue::GetNext(SYSTEMTIME& st) const
 		st.wSecond = candidate;
 		break;
 	default:
-		return 0;
+		// SHOULD NEVER REACH HERE
+		throw Exception(L"CronValue::GetNext: Unknown element: %d", m_Element);
 	}
-	return -1;
+	return true;
 }
 
 
-bool CronValue::CheckRange(int from, int to, int step, int target, int& candidate)
+bool CronValue::CheckRange(int from, int to, int step, int target, int& candidate) const
 {
-	if (step > 0)
+	if (m_Element == CRON_DAYOFWEEK)
 	{
-		for (int next = from; next <= to; next += step)
+		if (step > 0)
 		{
-			if (next == target)
+			if (to < 0)
 			{
+				to = from;
+			}
+			else if (to < from)
+			{
+				to += 7;
+			}
+			for (int next = from; next <= to; next += step)
+			{
+				int normalized = Normalize(next);
+				if (normalized == target)
+				{
+					candidate = 0;
+					return true;
+				}
+				int delta = (normalized + 7 - target) % 7;
+				if (delta < candidate)
+				{
+					candidate = delta;
+				}
+			}
+		}
+		else
+		{
+			if (from == target)
+			{
+				candidate = 0;
 				return true;
 			}
-			else if (next > target)
+			int delta = (from + 7 - target) % 7;
+			if (delta < candidate)
 			{
-				if (candidate > next)
-				{
-					candidate = next;
-				}
-				return false;
+				candidate = delta;
+			}
+		}
+	}
+	else if (step > 0)
+	{
+		if (m_Element == CRON_YEAR)
+		{
+			if (to < from)
+			{
+				to = from;
+			}
+		}
+		else if (to < from)
+		{
+			to += Max(m_Element) - Min(m_Element) + 1;
+		}
+		for (int next = from; next <= to; next += step)
+		{
+			int normalized = Normalize(next);
+			if (normalized == target)
+			{
+				candidate = normalized;
+				return true;
+			}
+			else if (target < normalized && normalized < candidate)
+			{
+				candidate = normalized;
 			}
 		}
 	}
 	else if (from == target)
 	{
+		candidate = target;
 		return true;
 	}
-	else if (from > target)
+	else if (target < from && from < candidate)
 	{
-		if (candidate > from)
-		{
-			candidate = from;
-		}
+		candidate = from;
 	}
 	return false;
 }
 
 
-bool CronValue::CheckWeekDay(WORD wYear, WORD wMonth, WORD wDay, int target, int& candidate)
+int CronValue::Normalize(int value) const
+{
+	int min = Min(m_Element);
+	int max = Max(m_Element);
+	int len = max - min + 1;
+	return ((value - min) % len) + min;
+}
+
+
+bool CronValue::CheckWeekDay(WORD wYear, WORD wMonth, WORD wDay, int& candidate)
 {
 	WORD y = wYear;
 	WORD m = wMonth;
@@ -505,11 +541,12 @@ bool CronValue::CheckWeekDay(WORD wYear, WORD wMonth, WORD wDay, int target, int
 	GetWeekDay(y, m, d);
 	if (y == wYear && m == wMonth)
 	{
-		if (d == target)
+		if (d == wDay)
 		{
+			candidate = wDay;
 			return true;
 		}
-		else if (d > target && candidate > d)
+		else if (wDay < d && d < candidate)
 		{
 			candidate = d;
 		}
@@ -528,9 +565,10 @@ bool CronValue::CheckClosestWeekDay(WORD wYear, WORD wMonth, int day, int target
 	{
 		if (d == target)
 		{
+			candidate = target;
 			return true;
 		}
-		else if (d > target && candidate > d)
+		else if (target < d && d < candidate)
 		{
 			candidate = d;
 		}
@@ -544,40 +582,12 @@ bool CronValue::CheckLastDay(WORD wYear, WORD wMonth, int target, int& candidate
 	int d = GetLastDayOfMonth(wYear, wMonth);
 	if (d == target)
 	{
+		candidate = target;
 		return true;
 	}
-	else if (candidate > d)
+	else if (target < d && d < candidate)
 	{
 		candidate = d;
-	}
-	return false;
-}
-
-
-bool CronValue::CheckDayOfWeekRange(int from, int to, WORD wDay, WORD wLastDay, int target, int& candidate)
-{
-	if (to < 0)
-	{
-		to = from;
-	}
-	for (int next = from; ; next = (next + 1) % 7)
-	{
-		if (next == target)
-		{
-			return true;
-		}
-		else
-		{
-			int d = static_cast<int>(wDay) + ((next + 7 - target) % 7);
-			if (d <= wLastDay && candidate > d)
-			{
-				candidate = d;
-			}
-		}
-		if (next == to)
-		{
-			break;
-		}
 	}
 	return false;
 }
@@ -588,37 +598,41 @@ bool CronValue::CheckLastDayOfWeek(WORD wYear, WORD wMonth, WORD wDay, int targe
 	WORD y = wYear;
 	WORD m = wMonth;
 	WORD d = wDay;
-	GetLastDayOfMonth(y, m, d, target);
+	GetLastDayOfMonth(y, m, d, target - 1);
 	if (y == wYear && m == wMonth)
 	{
 		if (d == wDay)
 		{
+			candidate = 0;
 			return true;
 		}
-		else if (candidate > d)
+		int delta = d - wDay;
+		if (candidate > delta)
 		{
-			candidate = d;
+			candidate = delta;
 		}
 	}
 	return false;
 }
 
 
-bool CronValue::CheckNthDayOfWeek(WORD wYear, WORD wMonth, WORD wDay, int dow, int nth, int target, int& candidate)
+bool CronValue::CheckNthDayOfWeek(WORD wYear, WORD wMonth, WORD wDay, int nth, int target, int& candidate)
 {
 	WORD y = wYear;
 	WORD m = wMonth;
 	WORD d = wDay;
-	GetDayOfWeek(y, m, d, dow, nth);
+	GetDayOfWeek(y, m, d, target - 1, nth);
 	if (y == wYear && m == wMonth)
 	{
 		if (d == wDay)
 		{
+			candidate = 0;
 			return true;
 		}
-		else if (candidate > d)
+		int delta = d - wDay;
+		if (candidate > delta)
 		{
-			candidate = d;
+			candidate = delta;
 		}
 	}
 	return false;

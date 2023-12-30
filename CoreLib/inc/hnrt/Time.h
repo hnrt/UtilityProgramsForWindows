@@ -188,10 +188,37 @@ namespace hnrt
 
 	WORD GetLastDayOfMonth(int year, int month);
 
+	/// <summary>
+	/// Returns the day that meets the following conditions:
+	/// 1. Be equal to or later than the specified year-month-day.
+	/// 2. Matches with the specified day of the week.
+	/// 3. Be within 7 days to the last day of the month.
+	/// </summary>
+	/// <param name="year">[IN/OUT] year</param>
+	/// <param name="month">[IN/OUT] month</param>
+	/// <param name="day">[IN/OUT] day</param>
+	/// <param name="dayOfWeek">[IN] Day of Week: 0=SUN,1=MON,2=TUE,3=WED,4=THU,5=FRI,6=SAT</param>
 	void GetLastDayOfMonth(WORD& year, WORD& month, WORD& day, int dayOfWeek);
 
+	/// <summary>
+	/// Returns the weekday that is equal to or later than the specified year-month-day.
+	/// </summary>
+	/// <param name="year">[IN/OUT] year</param>
+	/// <param name="month">[IN/OUT] month</param>
+	/// <param name="day">[IN/OUT] day</param>
 	void GetWeekDay(WORD& year, WORD& month, WORD& day);
 
+	/// <summary>
+	/// Returns the day that meets the following conditions:
+	/// 1. Be equal to or later than the specified year-month-day.
+	/// 2. Matches with the specified day of the week.
+	/// 3. Matches with the ordinal number of the day of week in the month.
+	/// </summary>
+	/// <param name="year">[IN/OUT] year</param>
+	/// <param name="month">[IN/OUT] month</param>
+	/// <param name="day">[IN/OUT] day</param>
+	/// <param name="dayOfWeek">[IN] Day of Week: 0=SUN,1=MON,2=TUE,3=WED,4=THU,5=FRI,6=SAT</param>
+	/// <param name="ordinal">[IN] Ordinal number of the day of week in the month, from 1 through 5.</param>
 	void GetDayOfWeek(WORD& year, WORD& month, WORD& day, int dayOfWeek, int ordinal);
 
 	String SystemTimeToString(const SYSTEMTIME&);

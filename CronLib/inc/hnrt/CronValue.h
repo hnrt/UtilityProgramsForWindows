@@ -33,11 +33,11 @@ namespace hnrt
 		/// </summary>
 		/// <param name="st">[IN/OUT] Time to check</param>
 		/// <returns>
-		/// 1 if the given SYSTEMTIME has the exact match; no changes are made.
-		/// -1 if a candidate was found; the given SYSTEMTIME was altered accordingly.
-		/// 0 if no candidate was found.
+		/// true if the given SYSTEMTIME has the exact match; no changes are made
+		/// or if a candidate was found; the given SYSTEMTIME was altered accordingly.
+		/// false if no candidate was found.
 		/// </returns>
-		int GetNext(SYSTEMTIME&) const;
+		bool GetNext(SYSTEMTIME&) const;
 
 		CronElement get_Element() const;
 		CronValueType get_Type() const;
@@ -62,6 +62,8 @@ namespace hnrt
 	protected:
 
 		CronValue(CronElement element, CronValueType type);
+		bool CheckRange(int from, int to, int step, int target, int& candidate) const;
+		int Normalize(int value) const;
 
 		CronElement m_Element;
 		CronValueType m_Type;
@@ -101,13 +103,14 @@ namespace hnrt
 		static RefPtr<CronValue> CreateClosestWeekDay(CronElement element, int dom);
 		static RefPtr<CronValue> CreateNthDayOfWeek(CronElement element, int dow, int nth);
 		static RefPtr<CronValue> CreateLastDayOfWeek(CronElement element, int dow);
-		static bool CheckRange(int from, int to, int step, int target, int& candidate);
-		static bool CheckWeekDay(WORD wYear, WORD wMonth, WORD wDay, int target, int& candidate);
+
+	protected:
+
+		static bool CheckWeekDay(WORD wYear, WORD wMonth, WORD wDay, int& candidate);
 		static bool CheckClosestWeekDay(WORD wYear, WORD wMonth, int day, int target, int& candidate);
 		static bool CheckLastDay(WORD wYear, WORD wMonth, int target, int& candidate);
-		static bool CheckDayOfWeekRange(int from, int to, WORD wDay, WORD wLastDay, int target, int& candidate);
 		static bool CheckLastDayOfWeek(WORD wYear, WORD wMonth, WORD wDay, int target, int& candidate);
-		static bool CheckNthDayOfWeek(WORD wYear, WORD wMonth, WORD wDay, int dow, int nth, int target, int& candidate);
+		static bool CheckNthDayOfWeek(WORD wYear, WORD wMonth, WORD wDay, int nth, int target, int& candidate);
 	};
 
 	inline CronElement CronValue::get_Element() const

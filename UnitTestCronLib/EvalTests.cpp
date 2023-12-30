@@ -610,7 +610,7 @@ namespace UnitTestCronLib
 
 		TEST_METHOD(Test3006)
 		{
-			static const WCHAR szExpression[] = { L"* * * ? 12 6#4 2023" };
+			static const WCHAR szExpression[] = { L"* * * ? 12 7#4 2023" };
 			Cron cron;
 			cron.SecondEnabled = true;
 			cron.Parse(szExpression);
@@ -632,7 +632,7 @@ namespace UnitTestCronLib
 
 		TEST_METHOD(Test3007)
 		{
-			static const WCHAR szExpression[] = { L"* * * ? * 6#5" };
+			static const WCHAR szExpression[] = { L"* * * ? * 7#5" };
 			Cron cron;
 			cron.SecondEnabled = true;
 			cron.Parse(szExpression);
@@ -665,6 +665,270 @@ namespace UnitTestCronLib
 			Assert::AreEqual((WORD)0, st3.wMinute);
 			Assert::AreEqual((WORD)0, st3.wSecond);
 			Assert::AreEqual((WORD)0, st3.wMilliseconds);
+		}
+
+		TEST_METHOD(Test3008)
+		{
+			static const WCHAR szExpression[] = { L"* * * ? * 1#1" };
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(szExpression);
+			SYSTEMTIME st1 = { 2023, 12, 0, 23, 22, 42, 37, 111 };
+			FileTime(st1).ToSystemTime(st1);
+			SYSTEMTIME st2 = { 0 };
+			bool bResult = cron.GetNextTime(st1, st2);
+			Debug::Put(L"Test3008:  in=%s [%s]=%s", SystemTimeToString(st1), szExpression, bResult ? L"true" : L"false");
+			Debug::Put(L"Test3008: out=%s", SystemTimeToString(st2));
+			Assert::IsTrue(bResult);
+			Assert::AreEqual((WORD)2024, st2.wYear);
+			Assert::AreEqual((WORD)1, st2.wMonth);
+			Assert::AreEqual((WORD)7, st2.wDay);
+			Assert::AreEqual((WORD)0, st2.wHour);
+			Assert::AreEqual((WORD)0, st2.wMinute);
+			Assert::AreEqual((WORD)0, st2.wSecond);
+			Assert::AreEqual((WORD)0, st2.wMilliseconds);
+		}
+
+		TEST_METHOD(Test3009)
+		{
+			static const WCHAR szExpression[] = { L"* * * ? * 2#2" };
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(szExpression);
+			SYSTEMTIME st1 = { 2023, 12, 0, 23, 22, 42, 37, 111 };
+			FileTime(st1).ToSystemTime(st1);
+			SYSTEMTIME st2 = { 0 };
+			bool bResult = cron.GetNextTime(st1, st2);
+			Debug::Put(L"Test3009:  in=%s [%s]=%s", SystemTimeToString(st1), szExpression, bResult ? L"true" : L"false");
+			Debug::Put(L"Test3009: out=%s", SystemTimeToString(st2));
+			Assert::IsTrue(bResult);
+			Assert::AreEqual((WORD)2024, st2.wYear);
+			Assert::AreEqual((WORD)1, st2.wMonth);
+			Assert::AreEqual((WORD)8, st2.wDay);
+			Assert::AreEqual((WORD)0, st2.wHour);
+			Assert::AreEqual((WORD)0, st2.wMinute);
+			Assert::AreEqual((WORD)0, st2.wSecond);
+			Assert::AreEqual((WORD)0, st2.wMilliseconds);
+		}
+
+		TEST_METHOD(Test3010)
+		{
+			static const WCHAR szExpression[] = { L"* * * ? * 3#3" };
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(szExpression);
+			SYSTEMTIME st1 = { 2023, 12, 0, 23, 22, 42, 37, 111 };
+			FileTime(st1).ToSystemTime(st1);
+			SYSTEMTIME st2 = { 0 };
+			bool bResult = cron.GetNextTime(st1, st2);
+			Debug::Put(L"Test3010:  in=%s [%s]=%s", SystemTimeToString(st1), szExpression, bResult ? L"true" : L"false");
+			Debug::Put(L"Test3010: out=%s", SystemTimeToString(st2));
+			Assert::IsTrue(bResult);
+			Assert::AreEqual((WORD)2024, st2.wYear);
+			Assert::AreEqual((WORD)1, st2.wMonth);
+			Assert::AreEqual((WORD)16, st2.wDay);
+			Assert::AreEqual((WORD)0, st2.wHour);
+			Assert::AreEqual((WORD)0, st2.wMinute);
+			Assert::AreEqual((WORD)0, st2.wSecond);
+			Assert::AreEqual((WORD)0, st2.wMilliseconds);
+		}
+
+		TEST_METHOD(Test3011)
+		{
+			static const WCHAR szExpression[] = { L"* * * ? * 4#4" };
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(szExpression);
+			SYSTEMTIME st1 = { 2023, 12, 0, 23, 22, 42, 37, 111 };
+			FileTime(st1).ToSystemTime(st1);
+			SYSTEMTIME st2 = { 0 };
+			bool bResult = cron.GetNextTime(st1, st2);
+			Debug::Put(L"Test3011:  in=%s [%s]=%s", SystemTimeToString(st1), szExpression, bResult ? L"true" : L"false");
+			Debug::Put(L"Test3011: out=%s", SystemTimeToString(st2));
+			Assert::IsTrue(bResult);
+			Assert::AreEqual((WORD)2023, st2.wYear);
+			Assert::AreEqual((WORD)12, st2.wMonth);
+			Assert::AreEqual((WORD)27, st2.wDay);
+			Assert::AreEqual((WORD)0, st2.wHour);
+			Assert::AreEqual((WORD)0, st2.wMinute);
+			Assert::AreEqual((WORD)0, st2.wSecond);
+			Assert::AreEqual((WORD)0, st2.wMilliseconds);
+		}
+
+		TEST_METHOD(Test3012)
+		{
+			static const WCHAR szExpression[] = { L"* * * ? * 5#5" };
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(szExpression);
+			SYSTEMTIME st1 = { 2023, 12, 0, 23, 22, 42, 37, 111 };
+			FileTime(st1).ToSystemTime(st1);
+			SYSTEMTIME st2 = { 0 };
+			bool bResult = cron.GetNextTime(st1, st2);
+			Debug::Put(L"Test3012:  in=%s [%s]=%s", SystemTimeToString(st1), szExpression, bResult ? L"true" : L"false");
+			Debug::Put(L"Test3012: out=%s", SystemTimeToString(st2));
+			Assert::IsTrue(bResult);
+			Assert::AreEqual((WORD)2024, st2.wYear);
+			Assert::AreEqual((WORD)2, st2.wMonth);
+			Assert::AreEqual((WORD)29, st2.wDay);
+			Assert::AreEqual((WORD)0, st2.wHour);
+			Assert::AreEqual((WORD)0, st2.wMinute);
+			Assert::AreEqual((WORD)0, st2.wSecond);
+			Assert::AreEqual((WORD)0, st2.wMilliseconds);
+		}
+
+		TEST_METHOD(Test3021)
+		{
+			static const WCHAR szExpression[] = { L"* * * ? * 1L" };
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(szExpression);
+			SYSTEMTIME st1 = { 2023, 12, 0, 27, 22, 42, 37, 111 };
+			FileTime(st1).ToSystemTime(st1);
+			SYSTEMTIME st2 = { 0 };
+			bool bResult = cron.GetNextTime(st1, st2);
+			Debug::Put(L"Test3021:  in=%s [%s]=%s", SystemTimeToString(st1), szExpression, bResult ? L"true" : L"false");
+			Debug::Put(L"Test3021: out=%s", SystemTimeToString(st2));
+			Assert::IsTrue(bResult);
+			Assert::AreEqual((WORD)2023, st2.wYear);
+			Assert::AreEqual((WORD)12, st2.wMonth);
+			Assert::AreEqual((WORD)31, st2.wDay);
+			Assert::AreEqual((WORD)0, st2.wHour);
+			Assert::AreEqual((WORD)0, st2.wMinute);
+			Assert::AreEqual((WORD)0, st2.wSecond);
+			Assert::AreEqual((WORD)0, st2.wMilliseconds);
+		}
+
+		TEST_METHOD(Test3022)
+		{
+			static const WCHAR szExpression[] = { L"* * * ? * 2L" };
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(szExpression);
+			SYSTEMTIME st1 = { 2023, 12, 0, 27, 22, 42, 37, 111 };
+			FileTime(st1).ToSystemTime(st1);
+			SYSTEMTIME st2 = { 0 };
+			bool bResult = cron.GetNextTime(st1, st2);
+			Debug::Put(L"Test3022:  in=%s [%s]=%s", SystemTimeToString(st1), szExpression, bResult ? L"true" : L"false");
+			Debug::Put(L"Test3022: out=%s", SystemTimeToString(st2));
+			Assert::IsTrue(bResult);
+			Assert::AreEqual((WORD)2024, st2.wYear);
+			Assert::AreEqual((WORD)1, st2.wMonth);
+			Assert::AreEqual((WORD)29, st2.wDay);
+			Assert::AreEqual((WORD)0, st2.wHour);
+			Assert::AreEqual((WORD)0, st2.wMinute);
+			Assert::AreEqual((WORD)0, st2.wSecond);
+			Assert::AreEqual((WORD)0, st2.wMilliseconds);
+		}
+
+		TEST_METHOD(Test3023)
+		{
+			static const WCHAR szExpression[] = { L"* * * ? * 3L" };
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(szExpression);
+			SYSTEMTIME st1 = { 2023, 12, 0, 27, 22, 42, 37, 111 };
+			FileTime(st1).ToSystemTime(st1);
+			SYSTEMTIME st2 = { 0 };
+			bool bResult = cron.GetNextTime(st1, st2);
+			Debug::Put(L"Test3023:  in=%s [%s]=%s", SystemTimeToString(st1), szExpression, bResult ? L"true" : L"false");
+			Debug::Put(L"Test3023: out=%s", SystemTimeToString(st2));
+			Assert::IsTrue(bResult);
+			Assert::AreEqual((WORD)2024, st2.wYear);
+			Assert::AreEqual((WORD)1, st2.wMonth);
+			Assert::AreEqual((WORD)30, st2.wDay);
+			Assert::AreEqual((WORD)0, st2.wHour);
+			Assert::AreEqual((WORD)0, st2.wMinute);
+			Assert::AreEqual((WORD)0, st2.wSecond);
+			Assert::AreEqual((WORD)0, st2.wMilliseconds);
+		}
+
+		TEST_METHOD(Test3024)
+		{
+			static const WCHAR szExpression[] = { L"* * * ? * 4L" };
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(szExpression);
+			SYSTEMTIME st1 = { 2023, 12, 0, 27, 22, 42, 37, 111 };
+			FileTime(st1).ToSystemTime(st1);
+			SYSTEMTIME st2 = { 0 };
+			bool bResult = cron.GetNextTime(st1, st2);
+			Debug::Put(L"Test3024:  in=%s [%s]=%s", SystemTimeToString(st1), szExpression, bResult ? L"true" : L"false");
+			Debug::Put(L"Test3024: out=%s", SystemTimeToString(st2));
+			Assert::IsTrue(bResult);
+			Assert::AreEqual((WORD)2023, st2.wYear);
+			Assert::AreEqual((WORD)12, st2.wMonth);
+			Assert::AreEqual((WORD)27, st2.wDay);
+			Assert::AreEqual((WORD)22, st2.wHour);
+			Assert::AreEqual((WORD)42, st2.wMinute);
+			Assert::AreEqual((WORD)38, st2.wSecond);
+			Assert::AreEqual((WORD)0, st2.wMilliseconds);
+		}
+
+		TEST_METHOD(Test3025)
+		{
+			static const WCHAR szExpression[] = { L"* * * ? * 5L" };
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(szExpression);
+			SYSTEMTIME st1 = { 2023, 12, 0, 27, 22, 42, 37, 111 };
+			FileTime(st1).ToSystemTime(st1);
+			SYSTEMTIME st2 = { 0 };
+			bool bResult = cron.GetNextTime(st1, st2);
+			Debug::Put(L"Test3025:  in=%s [%s]=%s", SystemTimeToString(st1), szExpression, bResult ? L"true" : L"false");
+			Debug::Put(L"Test3025: out=%s", SystemTimeToString(st2));
+			Assert::IsTrue(bResult);
+			Assert::AreEqual((WORD)2023, st2.wYear);
+			Assert::AreEqual((WORD)12, st2.wMonth);
+			Assert::AreEqual((WORD)28, st2.wDay);
+			Assert::AreEqual((WORD)0, st2.wHour);
+			Assert::AreEqual((WORD)0, st2.wMinute);
+			Assert::AreEqual((WORD)0, st2.wSecond);
+			Assert::AreEqual((WORD)0, st2.wMilliseconds);
+		}
+
+		TEST_METHOD(Test3026)
+		{
+			static const WCHAR szExpression[] = { L"* * * ? * 6L" };
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(szExpression);
+			SYSTEMTIME st1 = { 2023, 12, 0, 27, 22, 42, 37, 111 };
+			FileTime(st1).ToSystemTime(st1);
+			SYSTEMTIME st2 = { 0 };
+			bool bResult = cron.GetNextTime(st1, st2);
+			Debug::Put(L"Test3026:  in=%s [%s]=%s", SystemTimeToString(st1), szExpression, bResult ? L"true" : L"false");
+			Debug::Put(L"Test3026: out=%s", SystemTimeToString(st2));
+			Assert::IsTrue(bResult);
+			Assert::AreEqual((WORD)2023, st2.wYear);
+			Assert::AreEqual((WORD)12, st2.wMonth);
+			Assert::AreEqual((WORD)29, st2.wDay);
+			Assert::AreEqual((WORD)0, st2.wHour);
+			Assert::AreEqual((WORD)0, st2.wMinute);
+			Assert::AreEqual((WORD)0, st2.wSecond);
+			Assert::AreEqual((WORD)0, st2.wMilliseconds);
+		}
+
+		TEST_METHOD(Test3027)
+		{
+			static const WCHAR szExpression[] = { L"* * * ? * 7L" };
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(szExpression);
+			SYSTEMTIME st1 = { 2023, 12, 0, 27, 22, 42, 37, 111 };
+			FileTime(st1).ToSystemTime(st1);
+			SYSTEMTIME st2 = { 0 };
+			bool bResult = cron.GetNextTime(st1, st2);
+			Debug::Put(L"Test3027:  in=%s [%s]=%s", SystemTimeToString(st1), szExpression, bResult ? L"true" : L"false");
+			Debug::Put(L"Test3027: out=%s", SystemTimeToString(st2));
+			Assert::IsTrue(bResult);
+			Assert::AreEqual((WORD)2023, st2.wYear);
+			Assert::AreEqual((WORD)12, st2.wMonth);
+			Assert::AreEqual((WORD)30, st2.wDay);
+			Assert::AreEqual((WORD)0, st2.wHour);
+			Assert::AreEqual((WORD)0, st2.wMinute);
+			Assert::AreEqual((WORD)0, st2.wSecond);
+			Assert::AreEqual((WORD)0, st2.wMilliseconds);
 		}
 
 		TEST_METHOD(Test4001)

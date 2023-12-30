@@ -160,9 +160,9 @@ RefPtr<CronValue> CronParser::Run(CronElement element, UINT flags)
 			m_next = m_tokenizer.GetNext();
 			pValue = CronValue::CreateLastDay(element);
 		}
-		else if (ParseIntegerOrLabel(element, CronValue::Min(element), CronValue::Max(element), value1))
+		else if (ParseIntegerOrLabel(element, value1))
 		{
-			if (ParseRange(element, value1, value2))
+			if (ParseRange(element, value2))
 			{
 				if ((flags & CRON_WC_STEP) != 0 && ParseStep(element, value3))
 				{
@@ -218,12 +218,12 @@ RefPtr<CronValue> CronParser::Run(CronElement element, UINT flags)
 }
 
 
-bool CronParser::ParseRange(CronElement element, int min, int& value)
+bool CronParser::ParseRange(CronElement element, int& value)
 {
 	if (m_next == L'-')
 	{
 		m_next = m_tokenizer.GetNext();
-		if (ParseIntegerOrLabel(element, CRON_NUMBER(min), CronValue::Max(element), value))
+		if (ParseIntegerOrLabel(element, value))
 		{
 			return true;
 		}
@@ -244,7 +244,7 @@ bool CronParser::ParseStep(CronElement element, int& value)
 	if (m_next == L'/')
 	{
 		m_next = m_tokenizer.GetNext();
-		if (ParseInteger(element, 1, CronValue::Max(element) - 1, value))
+		if (ParseInteger(element, 1, CronValue::Max(element) - CronValue::Min(element) + 1, value))
 		{
 			return true;
 		}
@@ -260,12 +260,24 @@ bool CronParser::ParseStep(CronElement element, int& value)
 }
 
 
+inline int MinOrdinal() {
+	return 1;
+}
+
+
+inline int MaxOrdinal() {
+	int dom = CronValue::Max(CRON_DAYOFMONTH) - CronValue::Min(CRON_DAYOFMONTH) + 1; // 31
+	int dow = CronValue::Max(CRON_DAYOFWEEK) - CronValue::Min(CRON_DAYOFWEEK) + 1; // 7
+	return (dom + dow - 1) / dow;
+}
+
+
 bool CronParser::ParseOrdinal(int& value)
 {
 	if (m_next == L'#')
 	{
 		m_next = m_tokenizer.GetNext();
-		if (ParseInteger(CRON_DAYOFWEEK, 1, (31 + 7 - 1) / 7, value))
+		if (ParseInteger(CRON_DAYOFWEEK, MinOrdinal(), MaxOrdinal(), value))
 		{
 			return true;
 		}
@@ -281,12 +293,12 @@ bool CronParser::ParseOrdinal(int& value)
 }
 
 
-bool CronParser::ParseIntegerOrLabel(CronElement element, int min, int max, int& value)
+bool CronParser::ParseIntegerOrLabel(CronElement element, int& value)
 {
 	if (m_next == CRON_TOKEN_INTEGER)
 	{
 		value = m_tokenizer.GetValue();
-		if (min <= value && value <= max)
+		if (CronValue::Min(element) <= value && value <= CronValue::Max(element))
 		{
 			m_next = m_tokenizer.GetNext();
 		}

@@ -23,10 +23,10 @@ namespace hnrt
 
 		RefPtr<CronValue> Run(CronElement element);
 		RefPtr<CronValue> Run(CronElement element, UINT flags);
-		bool ParseRange(CronElement element, int min, int& value);
+		bool ParseRange(CronElement element, int& value);
 		bool ParseStep(CronElement element, int& value);
 		bool ParseOrdinal(int& value);
-		bool ParseIntegerOrLabel(CronElement element, int min, int max, int& value);
+		bool ParseIntegerOrLabel(CronElement element, int& value);
 		bool ParseInteger(CronElement element, int min, int max, int& value);
 		bool ParseIntegerW(int& value);
 		bool ParseIntegerL(int& value);
