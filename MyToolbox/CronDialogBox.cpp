@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "CronDialogBox.h"
-#include "CronError.h"
-#include "CronTokenizer.h"
 #include "resource.h"
+#include "hnrt/CronError.h"
+#include "hnrt/CronTokenizer.h"
 #include "hnrt/Menu.h"
 #include "hnrt/WindowLayoutSnapshot.h"
 #include "hnrt/WindowDesign.h"
@@ -621,8 +621,13 @@ INT_PTR CronDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 		}
 		else if (m_bParseSuccessful)
 		{
+			int offset = ComboBoxGetSelection(IDC_CRON_EXPR_COMBO);
 			SYSTEMTIME st = { 0 };
-			if (m_cron.GetNextTime(ComboBoxGetSelection(IDC_CRON_EXPR_COMBO), st))
+			GetSystemTime(&st);
+			FileTime ft(st);
+			ft.AddMinutes(offset);
+			ft.ToSystemTime(st);
+			if (m_cron.GetNextTime(st, st))
 			{
 				FileTime ft(st);
 				ft.AddMinutes(m_offset);
@@ -958,20 +963,20 @@ void CronDialogBox::UpdateIndividualControls()
 
 void CronDialogBox::UpdateValueControls(const CronValue& value, int idAll, int idAny, int idLast, int idWeek, int idExpr, int idEdit, int idStatic)
 {
-	ButtonCheck(idAll, value.type == CRON_ALL);
+	ButtonCheck(idAll, value.Type == CRON_ALL);
 	if (idAny)
 	{
-		ButtonCheck(idAny, value.type == CRON_ANY);
+		ButtonCheck(idAny, value.Type == CRON_ANY);
 	}
 	if (idLast)
 	{
-		ButtonCheck(idLast, value.type == CRON_LASTDAY);
+		ButtonCheck(idLast, value.Type == CRON_LASTDAY);
 	}
 	if (idWeek)
 	{
-		ButtonCheck(idWeek, value.type == CRON_WEEKDAY);
+		ButtonCheck(idWeek, value.Type == CRON_WEEKDAY);
 	}
-	ButtonCheck(idExpr, value.type >= CRON_SINGLE);
+	ButtonCheck(idExpr, value.Type >= CRON_SINGLE);
 	SetText(idEdit, value.ToString());
 	SetEvalText(idStatic, value);
 }
@@ -979,20 +984,21 @@ void CronDialogBox::UpdateValueControls(const CronValue& value, int idAll, int i
 
 void CronDialogBox::SetEvalText(int id, const CronValue& value)
 {
-	if (value.type == CRON_INVALID_VALUE)
+	if (value.Type == CRON_INVALID_VALUE)
 	{
 		m_bFormatSuccessful &= ~GetFormatFlag(id);
-		SetText(id);
-	}
-	else if (value.type == CRON_ALL)
-	{
-		m_bFormatSuccessful |= GetFormatFlag(id);
 		SetText(id);
 	}
 	else
 	{
 		m_bFormatSuccessful |= GetFormatFlag(id);
-		SetText(id, value.Evaluate(m_offset)->ToString());
+		std::vector<int> ee = value.Enumerate(m_offset);
+		StringBuffer buf(260);
+		for (std::vector<int>::const_iterator iter = ee.cbegin(); iter != ee.cend(); iter++)
+		{
+			buf.AppendFormat(L" %d", *iter);
+		}
+		SetText(id, &buf[1]);
 	}
 }
 

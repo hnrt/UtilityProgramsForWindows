@@ -639,6 +639,127 @@ bool CronValue::CheckNthDayOfWeek(WORD wYear, WORD wMonth, WORD wDay, int nth, i
 }
 
 
+static void Add(int value, std::vector<int>& dst)
+{
+	for (std::vector<int>::iterator iter = dst.begin(); iter != dst.end(); iter++)
+	{
+		int next = *iter;
+		if (value < next)
+		{
+			dst.insert(iter, value);
+			return;
+		}
+		else if (value == next)
+		{
+			return;
+		}
+	}
+	dst.push_back(value);
+}
+
+
+std::vector<int> CronValue::Enumerate(int offset) const
+{
+	std::vector<int> ret;
+	for (RefPtr<CronValue> pValue = Self; pValue; pValue = pValue->Next)
+	{
+		if (pValue->Type == CRON_ALL || pValue->Type == CRON_ANY || pValue->Type == CRON_EMPTY)
+		{
+			ret.clear();
+			if (m_Element == CRON_YEAR)
+			{
+				SYSTEMTIME st = { 0 };
+				GetSystemTime(&st);
+				FileTime ft(st);
+				ft.AddMinutes(offset);
+				ft.ToSystemTime(st);
+				int from = st.wYear;
+				int to = Max(m_Element);
+				for (int value = from; value <= to; value++)
+				{
+					Add(value, ret);
+				}
+			}
+			else
+			{
+				int from = Min(m_Element);
+				int to = Max(m_Element);
+				for (int value = from; value <= to; value++)
+				{
+					Add(value, ret);
+				}
+			}
+			break;
+		}
+		else if (pValue->Type == CRON_SINGLE)
+		{
+			if (m_Element == CRON_HOUR || m_Element == CRON_MINUTE)
+			{
+				int delta = m_Element == CRON_HOUR ? (offset / 60 + 24) : (offset % 60 + 60);
+				if (pValue->Step > 0)
+				{
+					int from = CRON_NUMBER(pValue->Value);
+					int to = Max(m_Element);
+					for (int value = from; value <= to; value += pValue->Step)
+					{
+						Add(Normalize(value + delta), ret);
+					}
+				}
+				else
+				{
+					Add(Normalize(CRON_NUMBER(pValue->Value) + delta), ret);
+				}
+			}
+			else if (pValue->Step > 0)
+			{
+				int from = CRON_NUMBER(pValue->Value);
+				int to = Max(m_Element);
+				for (int value = from; value <= to; value += pValue->Step)
+				{
+					Add(value, ret);
+				}
+			}
+			else
+			{
+				Add(CRON_NUMBER(pValue->Value), ret);
+			}
+		}
+		else if (pValue->Type == CRON_RANGE)
+		{
+			if (m_Element == CRON_HOUR || m_Element == CRON_MINUTE)
+			{
+				int delta = m_Element == CRON_HOUR ? (offset / 60 + 24) : (offset % 60 + 60);
+				int from = pValue->From;
+				int to = pValue->To;
+				if (to < from)
+				{
+					to += Max(m_Element) - Min(m_Element) + 1;
+				}
+				for (int value = from; value <= to; value += pValue->Step)
+				{
+					Add(Normalize(value + delta), ret);
+				}
+			}
+			else
+			{
+				int max = Max(m_Element);
+				int from = CRON_NUMBER(pValue->From);
+				int to = CRON_NUMBER(pValue->To);
+				if (to < from)
+				{
+					to += Max(m_Element) - Min(m_Element) + 1;
+				}
+				for (int value = from; value <= to; value += pValue->Step)
+				{
+					Add(value, ret);
+				}
+			}
+		}
+	}
+	return ret;
+}
+
+
 int CronValue::get_Value() const
 {
 	if (m_Type == CRON_SINGLE)

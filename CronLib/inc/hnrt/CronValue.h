@@ -6,6 +6,7 @@
 #include "hnrt/String.h"
 #include "hnrt/CronElement.h"
 #include "hnrt/CronValueType.h"
+#include <vector>
 
 
 #define CRON_WORD_DISPLACEMENT 10000
@@ -38,6 +39,7 @@ namespace hnrt
 		/// false if no candidate was found.
 		/// </returns>
 		bool GetNext(SYSTEMTIME&) const;
+		std::vector<int> Enumerate(int) const;
 
 		CronElement get_Element() const;
 		CronValueType get_Type() const;

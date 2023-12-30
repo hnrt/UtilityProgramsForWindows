@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)CoreLib\inc\;$(SolutionDir)WindowAppLib\inc\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)CoreLib\inc\;$(SolutionDir)CronLib\inc\;$(SolutionDir)WindowAppLib\inc\</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -111,7 +111,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)CoreLib\inc\;$(SolutionDir)WindowAppLib\inc\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)CoreLib\inc\;$(SolutionDir)CronLib\inc\;$(SolutionDir)WindowAppLib\inc\</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -130,7 +130,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)CoreLib\inc\;$(SolutionDir)WindowAppLib\inc\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)CoreLib\inc\;$(SolutionDir)CronLib\inc\;$(SolutionDir)WindowAppLib\inc\</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -149,7 +149,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)CoreLib\inc\;$(SolutionDir)WindowAppLib\inc\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)CoreLib\inc\;$(SolutionDir)CronLib\inc\;$(SolutionDir)WindowAppLib\inc\</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -166,15 +166,7 @@
     <ClInclude Include="AboutBox.h" />
     <ClInclude Include="ClipDialogBox.h" />
     <ClInclude Include="ClipFile.h" />
-    <ClInclude Include="Cron.h" />
     <ClInclude Include="CronDialogBox.h" />
-    <ClInclude Include="CronElement.h" />
-    <ClInclude Include="CronError.h" />
-    <ClInclude Include="CronEvaluation.h" />
-    <ClInclude Include="CronParser.h" />
-    <ClInclude Include="CronTokenizer.h" />
-    <ClInclude Include="CronValue.h" />
-    <ClInclude Include="CronValueEvaluation.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GuidDialogBox.h" />
     <ClInclude Include="HashDialogBox.h" />
@@ -193,13 +185,7 @@
     <ClCompile Include="AboutBox.cpp" />
     <ClCompile Include="ClipDialogBox.cpp" />
     <ClCompile Include="ClipFile.cpp" />
-    <ClCompile Include="Cron.cpp" />
     <ClCompile Include="CronDialogBox.cpp" />
-    <ClCompile Include="CronEvaluation.cpp" />
-    <ClCompile Include="CronParser.cpp" />
-    <ClCompile Include="CronTokenizer.cpp" />
-    <ClCompile Include="CronValue.cpp" />
-    <ClCompile Include="CronValueEvaluation.cpp" />
     <ClCompile Include="GuidDialogBox.cpp" />
     <ClCompile Include="HashDialogBox.cpp" />
     <ClCompile Include="MyClipboardObserver.cpp" />
