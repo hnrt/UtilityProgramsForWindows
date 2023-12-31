@@ -116,9 +116,4 @@ namespace hnrt
 	{
 		return m_hFont;
 	}
-
-	inline void CheckButton(int id)
-	{
-
-	}
 }

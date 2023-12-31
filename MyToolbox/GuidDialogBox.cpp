@@ -37,7 +37,7 @@ void GuidDialogBox::OnCreate()
         m_uCurrentlySelected = RegistryValue::GetDWORD(hKey, REG_NAME, 1) + IDC_GUID_RADIO_UPPERCASE - 1;
     }
     ChangeGuid();
-    CheckButton(m_uCurrentlySelected);
+    ButtonCheck(m_uCurrentlySelected);
     m_menuView
         .Add(ResourceString(IDS_MENU_GUID), IDM_VIEW_GUID);
 }
