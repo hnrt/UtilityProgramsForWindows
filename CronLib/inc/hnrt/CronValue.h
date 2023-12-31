@@ -94,6 +94,7 @@ namespace hnrt
 		static PCWSTR Name(CronElement element);
 		static int Min(CronElement element);
 		static int Max(CronElement element);
+		static int Num(CronElement element);
 		static RefPtr<CronValue> InvalidValue();
 		static RefPtr<CronValue> CreateEmpty(CronElement element);
 		static RefPtr<CronValue> CreateAll(CronElement element);

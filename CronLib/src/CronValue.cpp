@@ -101,6 +101,23 @@ int CronValue::Max(CronElement element)
 }
 
 
+// Num = Max - Min + 1
+int CronValue::Num(CronElement element)
+{
+	switch (element)
+	{
+	case CRON_YEAR: return 2099 - 1970 + 1;
+	case CRON_MONTH: return 12 - 1 + 1;
+	case CRON_DAYOFMONTH: return 31 - 1 + 1;
+	case CRON_DAYOFWEEK: return 7 - 1 + 1;
+	case CRON_HOUR: return 23 - 0 + 1;
+	case CRON_MINUTE: return 59 - 0 + 1;
+	case CRON_SECOND: return 59 - 0 + 1;
+	default: throw Exception(L"CronValue::Max: Bad element: %d", element);
+	}
+}
+
+
 RefPtr<CronValue> CronValue::InvalidValue()
 {
 	return RefPtr<CronValue>(new CronValue(CRON_ELEMENT_UNSPECIFIED, CRON_INVALID_VALUE));
@@ -453,7 +470,7 @@ bool CronValue::CheckRange(int from, int to, int step, int target, int& candidat
 			}
 			else if (to < from)
 			{
-				to += 7;
+				to += Num(CRON_DAYOFWEEK);
 			}
 			for (int next = from; next <= to; next += step)
 			{
@@ -477,7 +494,7 @@ bool CronValue::CheckRange(int from, int to, int step, int target, int& candidat
 				candidate = 0;
 				return true;
 			}
-			int delta = (from + 7 - target) % 7;
+			int delta = (from + Num(CRON_DAYOFWEEK) - target) % Num(CRON_DAYOFWEEK);
 			if (delta < candidate)
 			{
 				candidate = delta;
@@ -495,7 +512,7 @@ bool CronValue::CheckRange(int from, int to, int step, int target, int& candidat
 		}
 		else if (to < from)
 		{
-			to += Max(m_Element) - Min(m_Element) + 1;
+			to += Num(m_Element);
 		}
 		for (int next = from; next <= to; next += step)
 		{
@@ -526,10 +543,7 @@ bool CronValue::CheckRange(int from, int to, int step, int target, int& candidat
 
 int CronValue::Normalize(int value) const
 {
-	int min = Min(m_Element);
-	int max = Max(m_Element);
-	int len = max - min + 1;
-	return ((value - min) % len) + min;
+	return ((value - Min(m_Element)) % Num(m_Element)) + Min(m_Element);
 }
 
 
@@ -693,48 +707,14 @@ std::vector<int> CronValue::Enumerate(int offset) const
 		}
 		else if (pValue->Type == CRON_SINGLE)
 		{
-			if (m_Element == CRON_HOUR || m_Element == CRON_MINUTE)
-			{
-				int delta = m_Element == CRON_HOUR ? (offset / 60 + 24) : (offset % 60 + 60);
-				if (pValue->Step > 0)
-				{
-					int from = CRON_NUMBER(pValue->Value);
-					int to = Max(m_Element);
-					for (int value = from; value <= to; value += pValue->Step)
-					{
-						Add(Normalize(value + delta), ret);
-					}
-				}
-				else
-				{
-					Add(Normalize(CRON_NUMBER(pValue->Value) + delta), ret);
-				}
-			}
-			else if (pValue->Step > 0)
+			int delta =
+				m_Element == CRON_HOUR ? (offset / 60 + 24) :
+				m_Element == CRON_MINUTE ? (offset % 60 + 60) :
+				0;
+			if (pValue->Step > 0)
 			{
 				int from = CRON_NUMBER(pValue->Value);
 				int to = Max(m_Element);
-				for (int value = from; value <= to; value += pValue->Step)
-				{
-					Add(value, ret);
-				}
-			}
-			else
-			{
-				Add(CRON_NUMBER(pValue->Value), ret);
-			}
-		}
-		else if (pValue->Type == CRON_RANGE)
-		{
-			if (m_Element == CRON_HOUR || m_Element == CRON_MINUTE)
-			{
-				int delta = m_Element == CRON_HOUR ? (offset / 60 + 24) : (offset % 60 + 60);
-				int from = pValue->From;
-				int to = pValue->To;
-				if (to < from)
-				{
-					to += Max(m_Element) - Min(m_Element) + 1;
-				}
 				for (int value = from; value <= to; value += pValue->Step)
 				{
 					Add(Normalize(value + delta), ret);
@@ -742,17 +722,31 @@ std::vector<int> CronValue::Enumerate(int offset) const
 			}
 			else
 			{
-				int max = Max(m_Element);
-				int from = CRON_NUMBER(pValue->From);
-				int to = CRON_NUMBER(pValue->To);
-				if (to < from)
+				Add(Normalize(CRON_NUMBER(pValue->Value) + delta), ret);
+			}
+		}
+		else if (pValue->Type == CRON_RANGE)
+		{
+			int delta =
+				m_Element == CRON_HOUR ? (offset / 60 + 24) :
+				m_Element == CRON_MINUTE ? (offset % 60 + 60) :
+				0;
+			int from = CRON_NUMBER(pValue->From);
+			int to = CRON_NUMBER(pValue->To);
+			if (to < from)
+			{
+				if (m_Element == CRON_YEAR)
 				{
-					to += Max(m_Element) - Min(m_Element) + 1;
+					to = from;
 				}
-				for (int value = from; value <= to; value += pValue->Step)
+				else
 				{
-					Add(value, ret);
+					to += Num(m_Element);
 				}
+			}
+			for (int value = from; value <= to; value += pValue->Step)
+			{
+				Add(Normalize(value), ret);
 			}
 		}
 	}
