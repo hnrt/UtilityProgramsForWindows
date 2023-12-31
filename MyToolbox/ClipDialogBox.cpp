@@ -82,7 +82,7 @@ void ClipDialogBox::OnCreate()
 			String szFilePath(Path::Combine(m_szDirectoryPath, szFileName));
 			ClipFile file(szFilePath);
 			m_mapHash.insert(ClipEntry(file.Hash, szFileName));
-			String item(PRINTF, L"%s %s", szFileName.Ptr, file.Header.Ptr);
+			String item(PRINTF, L"%s %s", szFileName, file.Header);
 			SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(item.Ptr));
 		}
 		catch (Exception e)
@@ -165,7 +165,7 @@ INT_PTR ClipDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 				m_bChanged = false;
 				WriteBackToFile();
 				ListBoxSetText(IDC_CLIP_FILENAME_LIST, m_selected,
-					String(PRINTF, L"%s %s", Path::GetFileName(m_szFilePath).Ptr, GetText(IDC_CLIP_HEADER_EDIT).Ptr).Ptr);
+					String(PRINTF, L"%s %s", Path::GetFileName(m_szFilePath), GetText(IDC_CLIP_HEADER_EDIT)));
 			}
 			break;
 		default:
@@ -221,7 +221,7 @@ void ClipDialogBox::OnDelete()
 	if (!DeleteFileW(szFilePath))
 	{
 		DWORD dwError = GetLastError();
-		Debug::Put(L"DeleteFile(%s) failed: %s", szFilePath.Ptr, ErrorMessage::Get(dwError));
+		Debug::Put(L"DeleteFile(%s) failed: %s", szFilePath, ErrorMessage::Get(dwError));
 	}
 }
 
@@ -234,7 +234,7 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 	}
 	if (!Path::ValidateDirectory(m_szDirectoryPath))
 	{
-		String szMessage(PRINTF, L"%s\n%s", m_szDirectoryPath.Ptr, ErrorMessage::Get(GetLastError()));
+		String szMessage(PRINTF, L"%s\n%s", m_szDirectoryPath, ErrorMessage::Get(GetLastError()));
 		MessageBoxW(hwnd, szMessage, ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
 		return;
 	}
@@ -261,7 +261,7 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 			if (!MoveFileW(Path::Combine(m_szDirectoryPath, szOldName), Path::Combine(m_szDirectoryPath, szName)))
 			{
 				DWORD dwError = GetLastError();
-				throw Win32Exception(dwError, L"Failed to rename %s to %s.", szOldName.Ptr, szName.Ptr);
+				throw Win32Exception(dwError, L"Failed to rename %s to %s.", szOldName, szName);
 			}
 			m_mapHash.erase(iter);
 			int index = ListBoxFind(IDC_CLIP_FILENAME_LIST, szOldName);
@@ -277,7 +277,7 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 		}
 		m_mapHash.insert(ClipEntry(szHash, szName));
 		ClipFile file(Path::Combine(m_szDirectoryPath, szName));
-		String item(PRINTF, L"%s %s", szName.Ptr, file.Header.Ptr);
+		String item(PRINTF, L"%s %s", szName, file.Header);
 		SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(item.Ptr));
 		if (bSelect)
 		{
@@ -305,14 +305,14 @@ void ClipDialogBox::OnSelectionChange()
 			m_bChanged = false;
 			WriteBackToFile();
 			ListBoxSetText(IDC_CLIP_FILENAME_LIST, m_selected,
-				String(PRINTF, L"%s %s", Path::GetFileName(m_szFilePath).Ptr, GetText(IDC_CLIP_HEADER_EDIT).Ptr).Ptr);
+				String(PRINTF, L"%s %s", Path::GetFileName(m_szFilePath), GetText(IDC_CLIP_HEADER_EDIT)));
 		}
 		String szItem = ListBoxGetText(IDC_CLIP_FILENAME_LIST, index);
 		int nameLen = szItem.IndexOf(L' ');
-		String szName(szItem.Ptr, nameLen >= 0 ? nameLen : szItem.Len);
-		String szFilePath = Path::Combine(m_szDirectoryPath, szName.Ptr);
+		String szName(szItem, nameLen >= 0 ? nameLen : szItem.Len);
+		String szFilePath = Path::Combine(m_szDirectoryPath, szName);
 		ClipFile file(szFilePath);
-		String item(PRINTF, L"%s %s", szName.Ptr, file.Header.Ptr);
+		String item(PRINTF, L"%s %s", szName, file.Header);
 		ListBoxSetText(IDC_CLIP_FILENAME_LIST, index, item);
 		SetText(IDC_CLIP_HEADER_EDIT, file.Header);
 		EditSetReadOnly(IDC_CLIP_HEADER_EDIT, FALSE);
@@ -360,7 +360,7 @@ void ClipDialogBox::WriteBackToFile() const
 	}
 	catch (Win32Exception e)
 	{
-		String message(PRINTF, L"%s\n%s", m_szFilePath.Ptr, ErrorMessage::Get(GetLastError()));
+		String message(PRINTF, L"%s\n%s", m_szFilePath, ErrorMessage::Get(GetLastError()));
 		MessageBoxW(hwnd, message, ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
 	}
 }
