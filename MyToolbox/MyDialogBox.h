@@ -27,6 +27,10 @@ namespace hnrt
 		virtual void OnTabSelectionChanged();
 		virtual void OnLoadFrom();
 		virtual void OnSaveAs();
+		virtual void OnLoad1From();
+		virtual void OnSave1As();
+		virtual void OnLoad2From();
+		virtual void OnSave2As();
 		virtual void OnCut();
 		virtual void OnCopy();
 		virtual void OnPaste();
@@ -99,6 +103,22 @@ namespace hnrt
 	}
 
 	inline void MyDialogBox::OnSaveAs()
+	{
+	}
+
+	inline void MyDialogBox::OnLoad1From()
+	{
+	}
+
+	inline void MyDialogBox::OnSave1As()
+	{
+	}
+
+	inline void MyDialogBox::OnLoad2From()
+	{
+	}
+
+	inline void MyDialogBox::OnSave2As()
 	{
 	}
 

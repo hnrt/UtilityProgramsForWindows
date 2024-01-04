@@ -26,6 +26,7 @@ MyToolbox::MyToolbox()
     , m_about()
     , m_tabs()
     , m_hashTab()
+    , m_crptTab()
     , m_guidTab()
     , m_pctcTab()
     , m_cronTab()
@@ -103,6 +104,7 @@ void MyToolbox::OnCreate()
 void MyToolbox::CreateChildren()
 {
     m_tabs.Add(ResourceString(IDS_TAB_HASH), &m_hashTab);
+    m_tabs.Add(ResourceString(IDS_TAB_CRPT), &m_crptTab);
     m_tabs.Add(ResourceString(IDS_TAB_GUID), &m_guidTab);
     m_tabs.Add(ResourceString(IDS_TAB_PCTC), &m_pctcTab);
     m_tabs.Add(ResourceString(IDS_TAB_CRON), &m_cronTab);
@@ -168,6 +170,18 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_FILE_SAVEAS:
         m_tabs[m_tabs.CurrentItem].OnSaveAs();
         break;
+    case IDM_FILE_LOAD1FROM:
+        m_tabs[m_tabs.CurrentItem].OnLoad1From();
+        break;
+    case IDM_FILE_SAVE1AS:
+        m_tabs[m_tabs.CurrentItem].OnSave1As();
+        break;
+    case IDM_FILE_LOAD2FROM:
+        m_tabs[m_tabs.CurrentItem].OnLoad2From();
+        break;
+    case IDM_FILE_SAVE2AS:
+        m_tabs[m_tabs.CurrentItem].OnSave2As();
+        break;
     case IDM_EDIT_CUT:
         m_tabs[m_tabs.CurrentItem].OnCut();
         break;
@@ -194,6 +208,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         break;
     case IDM_VIEW_HASH:
         m_tabs.CurrentItem = m_hashTab.Id;
+        break;
+    case IDM_VIEW_CRPT:
+        m_tabs.CurrentItem = m_crptTab.Id;
         break;
     case IDM_VIEW_GUID:
         m_tabs.CurrentItem = m_guidTab.Id;

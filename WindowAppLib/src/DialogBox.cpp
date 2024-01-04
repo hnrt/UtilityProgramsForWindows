@@ -633,6 +633,8 @@ INT_PTR CALLBACK DialogBox::MessageCallback(HWND hwnd, UINT message, WPARAM wPar
         return GetWindowUserData<DialogBox>(hwnd)->OnNotify(wParam, lParam);
     case WM_CTLCOLORSTATIC:
         return GetWindowUserData<DialogBox>(hwnd)->OnControlColorStatic(wParam, lParam);
+    case WM_CTLCOLOREDIT:
+        return GetWindowUserData<DialogBox>(hwnd)->OnControlColorEdit(wParam, lParam);
     default:
         return FALSE;
     }
@@ -702,6 +704,14 @@ INT_PTR DialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 
 
 INT_PTR DialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(wParam);
+    UNREFERENCED_PARAMETER(lParam);
+    return FALSE;
+}
+
+
+INT_PTR DialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(wParam);
     UNREFERENCED_PARAMETER(lParam);

@@ -5,6 +5,7 @@
 #include "AboutBox.h"
 #include "MyTabControl.h"
 #include "HashDialogBox.h"
+#include "CryptographyDialogBox.h"
 #include "GuidDialogBox.h"
 #include "PercentCodecDialogBox.h"
 #include "CronDialogBox.h"
@@ -39,6 +40,7 @@ namespace hnrt
 		AboutBox m_about;
 		MyTabControl m_tabs;
 		HashDialogBox m_hashTab;
+		CryptographyDialogBox m_crptTab;
 		GuidDialogBox m_guidTab;
 		PercentCodecDialogBox m_pctcTab;
 		CronDialogBox m_cronTab;
