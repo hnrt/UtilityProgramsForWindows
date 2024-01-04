@@ -38,6 +38,7 @@ namespace hnrt
         int IndexOf(const StringUTF8&, SIZE_T = 0) const;
         bool StartsWith(PCSTR, SSIZE_T = -1) const;
         bool EndsWith(PCSTR, SSIZE_T = -1) const;
+        StringUTF8 Wrap(UINT, PCSTR = "\r\n") const;
         operator PCSTR() const;
         StringUTF8& operator =(const StringUTF8&);
         StringUTF8& operator =(PCSTR);

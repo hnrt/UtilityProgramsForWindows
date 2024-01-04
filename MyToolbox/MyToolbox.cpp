@@ -9,13 +9,10 @@
 #include "hnrt/WindowDesign.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
+#include "hnrt/Interlocked.h"
 
 
 using namespace hnrt;
-
-
-#define FACENAME L"Segoe UI"
-#define POINTSIZE 8
 
 
 static const WCHAR s_szClassName[] = { L"HNRT_MyToolbox" };
@@ -32,6 +29,8 @@ MyToolbox::MyToolbox()
     , m_cronTab()
     , m_ntoaTab()
     , m_clipTab()
+    , m_hFont(NULL)
+    , m_hFontForData(NULL)
 {
     INITCOMMONCONTROLSEX iccx = { sizeof(iccx), ICC_TAB_CLASSES };
     InitCommonControlsEx(&iccx);
@@ -84,12 +83,31 @@ HMENU MyToolbox::CreateMenuBar()
 
 void MyToolbox::OnCreate()
 {
-    SetFont(hwnd,
-        LogicalFont()
-        .SetFaceName(FACENAME)
-        .SetHeight(POINTSIZE, hwnd)
+    String szFaceName(FACENAME);
+    DWORD dwPointSize = POINTSIZE;
+    String szFaceNameForData(FACENAME_DATA);
+    DWORD dwPointSizeForData = POINTSIZE_DATA;
+    RegistryKey hKey;
+    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
+    if (rc == ERROR_SUCCESS)
+    {
+        szFaceName = RegistryValue::GetSZ(hKey, L"FaceName", szFaceName);
+        dwPointSize = RegistryValue::GetDWORD(hKey, L"PointSize", dwPointSize);
+        szFaceNameForData = RegistryValue::GetSZ(hKey, L"FaceNameData", szFaceNameForData);
+        dwPointSizeForData = RegistryValue::GetDWORD(hKey, L"PointSizeData", dwPointSizeForData);
+    }
+    m_hFont = LogicalFont()
+        .SetFaceName(szFaceName)
+        .SetHeight(dwPointSize, hwnd)
         .SetJapaneseCharSet()
-        .Create());
+        .Create();
+    m_hFontForData = LogicalFont()
+        .SetFaceName(szFaceNameForData)
+        .SetHeight(dwPointSizeForData, hwnd)
+        .SetPitchAndFamily(FIXED_PITCH | FF_DONTCARE)
+        .SetJapaneseCharSet()
+        .Create();
+    SetFont(hwnd, m_hFont);
     m_about.Open(GetInstanceHandle(hwnd));
     m_tabs.Open(hwnd);
     CreateChildren();
@@ -98,6 +116,14 @@ void MyToolbox::OnCreate()
     m_tabs.OnTabSelectionChanged();
     SetMinimumSize();
     SetWindowSize(hwnd, MinimumWidth, MinimumHeight);
+}
+
+
+void MyToolbox::OnDestroy()
+{
+    SetFont(hwnd, NULL);
+    DeleteObject(Interlocked<HFONT>::ExchangePointer(&m_hFont, NULL));
+    DeleteObject(Interlocked<HFONT>::ExchangePointer(&m_hFontForData, NULL));
 }
 
 
@@ -268,6 +294,7 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_SETTINGS_UPPERCASE:
     case IDM_SETTINGS_LOWERCASE:
     case IDM_SETTINGS_USESECOND:
+    case IDM_SETTINGS_WRAPDATA:
         m_tabs[m_tabs.CurrentItem].OnSettingChanged(wControlId);
         break;
     case IDM_HELP_ABOUT:

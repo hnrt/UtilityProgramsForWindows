@@ -68,6 +68,7 @@
 #define IDS_MENU_SAVEORGAS              169
 #define IDS_MENU_LOADENCFROM            170
 #define IDS_MENU_SAVEENCAS              171
+#define IDS_MENU_WRAPDATA               172
 #define IDS_TAB_HASH                    190
 #define IDS_TAB_CRPT                    191
 #define IDS_TAB_GUID                    192
@@ -313,6 +314,7 @@
 #define IDM_SETTINGS_UPPERCASE          14050
 #define IDM_SETTINGS_LOWERCASE          14051
 #define IDM_SETTINGS_USESECOND          14052
+#define IDM_SETTINGS_WRAPDATA           14053
 #define IDM_HELP_ABOUT                  19001
 #define IDC_STATIC                      -1
 

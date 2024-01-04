@@ -38,6 +38,7 @@ namespace hnrt
         int IndexOf(const StringAcp&, SIZE_T = 0) const;
         bool StartsWith(PCSTR, SSIZE_T = -1) const;
         bool EndsWith(PCSTR, SSIZE_T = -1) const;
+        StringAcp Wrap(UINT, PCSTR = "\r\n") const;
         operator PCSTR() const;
         StringAcp& operator =(const StringAcp&);
         StringAcp& operator =(PCSTR);

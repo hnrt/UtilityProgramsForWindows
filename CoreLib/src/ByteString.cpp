@@ -192,6 +192,7 @@ int ByteString::Compare(const ByteString& bs1, const ByteString& bs2)
 
 ByteString ByteString::FromHex(PCWSTR psz)
 {
+    size_t len = 0;
     const WCHAR* pCur = psz;
     WCHAR c = *pCur++;
     while (c)
@@ -200,12 +201,18 @@ ByteString ByteString::FromHex(PCWSTR psz)
         {
             c = *pCur++;
         }
+        else if (iswspace(c))
+        {
+            c = *pCur++;
+            continue;
+        }
         else
         {
             throw Exception(L"ByteString::FromHex(\"%s\"): Illegal character at %zu.", psz, (pCur - 1) - psz);
         }
         if (iswxdigit(c))
         {
+            len++;
             c = *pCur++;
         }
         else if (c)
@@ -217,7 +224,7 @@ ByteString ByteString::FromHex(PCWSTR psz)
             throw Exception(L"ByteString::FromHex(\"%s\"): Unexpected end of string.", psz);
         }
     }
-    ByteString bs(((pCur - 1) - psz) / 2ULL);
+    ByteString bs(len);
     unsigned char* pW = bs;
     pCur = psz;
     c = *pCur++;
@@ -232,9 +239,14 @@ ByteString ByteString::FromHex(PCWSTR psz)
         {
             d = 10 + c - L'a';
         }
-        else // if (L'0' <= c && c <= L'9')
+        else if (L'0' <= c && c <= L'9')
         {
             d = c - L'0';
+        }
+        else
+        {
+            c = *pCur++;
+            continue;
         }
         d <<= 4;
         c = *pCur++;
@@ -259,6 +271,7 @@ ByteString ByteString::FromHex(PCWSTR psz)
 
 ByteString ByteString::FromHex(PCSTR psz)
 {
+    size_t len = 0;
     const CHAR* pCur = psz;
     CHAR c = *pCur++;
     while (c)
@@ -266,6 +279,11 @@ ByteString ByteString::FromHex(PCSTR psz)
         if (isxdigit(c))
         {
             c = *pCur++;
+        }
+        else if (isspace(c))
+        {
+            c = *pCur++;
+            continue;
         }
         else
         {
@@ -284,7 +302,7 @@ ByteString ByteString::FromHex(PCSTR psz)
             throw Exception(L"ByteString::FromHex(\"%S\"): Unexpected end of string.", psz);
         }
     }
-    ByteString bs(((pCur - 1) - psz) / 2ULL);
+    ByteString bs(len);
     unsigned char* pW = bs;
     pCur = psz;
     c = *pCur++;
@@ -299,9 +317,14 @@ ByteString ByteString::FromHex(PCSTR psz)
         {
             d = 10 + c - 'a';
         }
-        else // if ('0' <= c && c <= '9')
+        else if ('0' <= c && c <= '9')
         {
             d = c - '0';
+        }
+        else
+        {
+            c = *pCur++;
+            continue;
         }
         d <<= 4;
         c = *pCur++;

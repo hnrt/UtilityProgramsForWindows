@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hnrt/Base64.h"
 #include "hnrt/Exception.h"
+#include "hnrt/Buffer.h"
 #include "hnrt/Debug.h"
 
 
@@ -182,22 +183,53 @@ bool Base64Decoder::Parse(PCWSTR psz)
 {
     DBGFNC(L"Base64Decoder::Parse");
 
-    size_t len = wcslen(psz);
-    DBGPUT(L"StrLen=%zu", len);
-
-    if (!len)
-    {
-        Resize(0);
-        return true;
-    }
-
-    if ((len % 4) > 0)
-    {
-        return false;
-    }
-
     try
     {
+        if (wcspbrk(psz, L" \t\n\r\v\f"))
+        {
+            Buffer<WCHAR> buf(wcslen(psz) + 1ULL);
+            wmemcpy_s(buf, buf.Len, psz, buf.Len);
+            PWCHAR p1 = buf;
+            PWCHAR p2 = buf;
+            PWCHAR p3 = buf + buf.Len - 1ULL;
+            while (p2 < p3)
+            {
+                if (iswspace(*p2))
+                {
+                    p2++;
+                }
+                else if (p2 + 4 <= p3)
+                {
+                    p1[0] = p2[0];
+                    p1[1] = p2[1];
+                    p1[2] = p2[2];
+                    p1[3] = p2[3];
+                    p2 += 4;
+                    p1 += 4;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            *p1 = L'\0';
+            return Parse(buf);
+        }
+
+        size_t len = wcslen(psz);
+        DBGPUT(L"StrLen=%zu", len);
+
+        if (!len)
+        {
+            Resize(0);
+            return true;
+        }
+
+        if ((len % 4) > 0)
+        {
+            return false;
+        }
+
         if (psz[len - 1] != L'=')
         {
             Resize((len / 4) * 3);

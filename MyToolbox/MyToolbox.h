@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "hnrt/WindowApp.h"
 #include "AboutBox.h"
 #include "MyTabControl.h"
@@ -11,7 +10,6 @@
 #include "CronDialogBox.h"
 #include "NativeToAsciiDialogBox.h"
 #include "ClipDialogBox.h"
-
 
 namespace hnrt
 {
@@ -25,11 +23,14 @@ namespace hnrt
 		virtual ~MyToolbox();
 		virtual void Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
 		bool OnFeederNotify(ULONGLONG);
+		HFONT GetFont() const;
+		HFONT GetFontForData() const;
 
 	private:
 
 		HMENU CreateMenuBar();
 		virtual void OnCreate();
+		virtual void OnDestroy();
 		void CreateChildren();
 		void SetMinimumSize();
 		virtual void ProcessMessage(MSG* pMsg);
@@ -46,5 +47,28 @@ namespace hnrt
 		CronDialogBox m_cronTab;
 		NativeToAsciiDialogBox m_ntoaTab;
 		ClipDialogBox m_clipTab;
+		HFONT m_hFont;
+		HFONT m_hFontForData;
 	};
+	
+	inline HFONT MyToolbox::GetFont() const
+	{
+		return m_hFont;
+	}
+
+	inline HFONT MyToolbox::GetFontForData() const
+	{
+		return m_hFontForData;
+	}
 }
+
+#define FACENAME L"Segoe UI"
+#define POINTSIZE 8
+#if 0
+#define FACENAME_DATA L"Campbell"
+#elif 0
+#define FACENAME_DATA L"Courier New"
+#else
+#define FACENAME_DATA L"Lucida Console"
+#endif
+#define POINTSIZE_DATA 10

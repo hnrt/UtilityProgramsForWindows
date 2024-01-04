@@ -1,10 +1,8 @@
 #pragma once
 
-
 #include "hnrt/WindowSize.h"
 #include "hnrt/FontHandle.h"
 #include "hnrt/String.h"
-
 
 #ifdef DialogBox
 #undef DialogBox
@@ -12,7 +10,6 @@
 #ifdef SendMessage
 #undef SendMessage
 #endif
-
 
 namespace hnrt
 {
@@ -33,6 +30,7 @@ namespace hnrt
 		virtual void Open(HWND hwndParent, int x, int y, int cx, int cy);
 		virtual void Close();
 		void SetFont(HFONT hFont);
+		void SetFont(int id, HFONT hFont);
 		HWND GetChild(int id) const;
 		BOOL EnableWindow(int id, BOOL bEnabled = TRUE) const;
 		BOOL DisableWindow(int id) const;

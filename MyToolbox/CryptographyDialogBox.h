@@ -28,6 +28,7 @@ namespace hnrt
 		virtual void OnSelectAll();
 		virtual void OnCopyAll();
 		virtual void OnClear();
+		virtual void OnSettingChanged(UINT);
 
 	private:
 
@@ -59,9 +60,9 @@ namespace hnrt
 		String EncryptedDataToString();
 		void SetMode(int);
 		void ClearStatusText();
-		void SetStatusText(PCWSTR, ...);
-		void SetStatusText(const SYSTEMTIME&, PCWSTR, ...);
-		void SetStatusText(const SYSTEMTIME&, PCWSTR, va_list);
+		void SetStatusText(PCWSTR, ...) const;
+		void SetStatusText(const SYSTEMTIME&, PCWSTR, ...) const;
+		void SetStatusText(const SYSTEMTIME&, PCWSTR, va_list) const;
 		void UpdateMenus();
 		void UpdateButtons();
 
@@ -95,6 +96,7 @@ namespace hnrt
 		String m_szOriginalDataPath;
 		String m_szEncryptedDataPath;
 		long m_ActiveEditControlId;
+		BOOL m_bWrapData;
 	};
 }
 

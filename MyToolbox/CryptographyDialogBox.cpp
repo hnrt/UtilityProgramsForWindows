@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "CryptographyDialogBox.h"
 #include "resource.h"
+#include "MyToolbox.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
 #include "hnrt/WindowLayoutSnapshot.h"
+#include "hnrt/LogicalFont.h"
 #include "hnrt/Base64.h"
 #include "hnrt/StringUTF8.h"
 #include "hnrt/StringACP.h"
@@ -67,6 +69,7 @@ CryptographyDialogBox::CryptographyDialogBox()
 	, m_szOriginalDataPath()
 	, m_szEncryptedDataPath()
 	, m_ActiveEditControlId(0)
+	, m_bWrapData(TRUE)
 {
 	m_hAlg.Open(BCRYPT_AES_ALGORITHM);
 	m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CBC;
@@ -77,6 +80,13 @@ void CryptographyDialogBox::OnCreate()
 {
 	WhileInScope<int> wis(m_Processing, 1, m_Processing);
 	MyDialogBox::OnCreate();
+	HFONT hFont = GetApp<MyToolbox>().GetFontForData();
+	SetFont(IDC_CRPT_KEY_EDIT, hFont);
+	SetFont(IDC_CRPT_IV_EDIT, hFont);
+	SetFont(IDC_CRPT_NONCE_EDIT, hFont);
+	SetFont(IDC_CRPT_TAG_EDIT, hFont);
+	SetFont(IDC_CRPT_ORG_EDIT, hFont);
+	SetFont(IDC_CRPT_ENC_EDIT, hFont);
 	int cm = ChainingModeToControlId(m_hAlg.ChainingMode);
 	int od = OriginalDataDisplayModeToControlId(m_OriginalDataDisplayMode);
 	int ed = EncryptedDataDisplayModeToControlId(m_EncryptedDataDisplayMode);
@@ -166,6 +176,12 @@ void CryptographyDialogBox::OnDestroy()
 		RegistryValue::SetDWORD(hKey, REG_NAME_ORGDISPMODE, m_OriginalDataDisplayMode);
 		RegistryValue::SetDWORD(hKey, REG_NAME_ENCDISPMODE, m_EncryptedDataDisplayMode);
 	}
+	SetFont(IDC_CRPT_KEY_EDIT, NULL);
+	SetFont(IDC_CRPT_IV_EDIT, NULL);
+	SetFont(IDC_CRPT_NONCE_EDIT, NULL);
+	SetFont(IDC_CRPT_TAG_EDIT, NULL);
+	SetFont(IDC_CRPT_ORG_EDIT, NULL);
+	SetFont(IDC_CRPT_ENC_EDIT, NULL);
 	MyDialogBox::OnDestroy();
 }
 
@@ -785,8 +801,28 @@ void CryptographyDialogBox::OnClear()
 	SetText(IDC_CRPT_ORG_EDIT);
 	m_EncryptedData.Resize(0);
 	SetText(IDC_CRPT_ENC_EDIT);
+	ClearStatusText();
 	UpdateMenus();
 	UpdateButtons();
+}
+
+
+void CryptographyDialogBox::OnSettingChanged(UINT id)
+{
+	switch (id)
+	{
+	case IDM_SETTINGS_WRAPDATA:
+	{
+		WhileInScope<int> wis(m_Processing, 1, m_Processing);
+		m_bWrapData ^= TRUE;
+		SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
+		SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
+		UpdateMenus();
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 
@@ -1257,15 +1293,29 @@ void CryptographyDialogBox::OnOriginalDataDisplayCodePageChange()
 
 String CryptographyDialogBox::OriginalDataToString()
 {
+	static const size_t N = 54;
 	switch (m_OriginalDataDisplayMode)
 	{
 	case 0:
-		return String::ToHex(m_OriginalData.Ptr, m_OriginalData.Len);
+		if (m_bWrapData)
+		{
+			return String::ToHex(m_OriginalData.Ptr, m_OriginalData.Len).Wrap(N * 2);
+		}
+		else
+		{
+			return String::ToHex(m_OriginalData.Ptr, m_OriginalData.Len);
+		}
 	case 1:
-		return String(Base64Encoder().Append(m_OriginalData.Ptr, m_OriginalData.Len).End());
+		if (m_bWrapData)
+		{
+			return String(Base64Encoder().Append(m_OriginalData.Ptr, m_OriginalData.Len).End()).Wrap((N / 3) * 4);
+		}
+		else
+		{
+			return String(Base64Encoder().Append(m_OriginalData.Ptr, m_OriginalData.Len).End());
+		}
 	case 2:
-	{
-		if (m_OriginalDataCodePage == 1200 /*UTF-16*/)
+		if (m_OriginalDataCodePage == CP_UTF16)
 		{
 			return String((PCWSTR)m_OriginalData.Ptr, m_OriginalData.Len / sizeof(WCHAR));
 		}
@@ -1273,8 +1323,6 @@ String CryptographyDialogBox::OriginalDataToString()
 		{
 			return String(m_OriginalDataCodePage, (PCSTR)m_OriginalData.Ptr, m_OriginalData.Len);
 		}
-		break;
-	}
 	default: // SHOULD NEVER REACH HERE
 		return String(L"BAD DISPLAY MODE");
 	}
@@ -1343,12 +1391,27 @@ void CryptographyDialogBox::OnEncryptedDataDisplayModeChange(int id)
 
 String CryptographyDialogBox::EncryptedDataToString()
 {
+	static const size_t N = 54;
 	switch (m_EncryptedDataDisplayMode)
 	{
 	case 0:
-		return String::ToHex(m_EncryptedData.Ptr, m_EncryptedData.Len);
+		if (m_bWrapData)
+		{
+			return String::ToHex(m_EncryptedData.Ptr, m_EncryptedData.Len).Wrap(N * 2);
+		}
+		else
+		{
+			return String::ToHex(m_EncryptedData.Ptr, m_EncryptedData.Len);
+		}
 	case 1:
-		return String(Base64Encoder().Append(m_EncryptedData.Ptr, m_EncryptedData.Len).End());
+		if (m_bWrapData)
+		{
+			return String(Base64Encoder().Append(m_EncryptedData.Ptr, m_EncryptedData.Len).End()).Wrap((N / 3) * 4);
+		}
+		else
+		{
+			return String(Base64Encoder().Append(m_EncryptedData.Ptr, m_EncryptedData.Len).End());
+		}
 	default: // SHOULD NEVER REACH HERE
 		return String(L"BAD DISPLAY MODE");
 	}
@@ -1451,7 +1514,7 @@ void CryptographyDialogBox::ClearStatusText()
 }
 
 
-void CryptographyDialogBox::SetStatusText(PCWSTR pszFormat, ...)
+void CryptographyDialogBox::SetStatusText(PCWSTR pszFormat, ...) const
 {
 	SYSTEMTIME st = { 0 };
 	GetLocalTime(&st);
@@ -1462,7 +1525,7 @@ void CryptographyDialogBox::SetStatusText(PCWSTR pszFormat, ...)
 }
 
 
-void CryptographyDialogBox::SetStatusText(const SYSTEMTIME& st, PCWSTR pszFormat, ...)
+void CryptographyDialogBox::SetStatusText(const SYSTEMTIME& st, PCWSTR pszFormat, ...) const
 {
 	va_list argList;
 	va_start(argList, pszFormat);
@@ -1471,7 +1534,7 @@ void CryptographyDialogBox::SetStatusText(const SYSTEMTIME& st, PCWSTR pszFormat
 }
 
 
-void CryptographyDialogBox::SetStatusText(const SYSTEMTIME& st, PCWSTR pszFormat, va_list argList)
+void CryptographyDialogBox::SetStatusText(const SYSTEMTIME& st, PCWSTR pszFormat, va_list argList) const
 {
 	SetText(IDC_CRPT_STATUS_STATIC,
 		String(PRINTF, L"%04d-%02d-%02d %02d:%02d:%02d  ", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond)
@@ -1525,7 +1588,10 @@ void CryptographyDialogBox::UpdateMenus()
 		.AddSeparator()
 		.Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL, uFlagsR)
 		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR, (m_OriginalData.Len > 0 || m_EncryptedData.Len > 0) ? 0U : MF_DISABLED);
+		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR, (m_Mode == MODE_ENCRYPTION || m_Mode == MODE_DECRYPTION) ? 0U : MF_DISABLED);
+	m_menuSettings
+		.RemoveAll()
+		.Add(ResourceString(IDS_MENU_WRAPDATA), IDM_SETTINGS_WRAPDATA, m_bWrapData ? MF_CHECKED : MFS_UNCHECKED);
 }
 
 

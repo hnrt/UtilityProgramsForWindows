@@ -87,6 +87,12 @@ void DialogBox::SetFont(HFONT hFont)
 }
 
 
+void DialogBox::SetFont(int id, HFONT hFont)
+{
+    SendMessage(id, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), TRUE);
+}
+
+
 HWND DialogBox::GetChild(int id) const
 {
     return GetDlgItem(m_hwnd, id);
