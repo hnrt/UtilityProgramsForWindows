@@ -38,7 +38,6 @@ namespace hnrt
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 
 		void OnBrowse();
-		void OnCalculate();
 		void OnSelectSource(UINT uSource);
 		void OnSelectMethod(UINT uMethod);
 		void OnUppercase();

@@ -71,6 +71,7 @@ namespace hnrt
 	protected:
 
 		String m_szRegistryKeyName;
+		int m_cProcessing;
 		Menu m_menuFile;
 		Menu m_menuEdit;
 		Menu m_menuView;
