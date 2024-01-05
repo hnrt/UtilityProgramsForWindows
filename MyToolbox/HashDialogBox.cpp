@@ -19,9 +19,9 @@
 #include "hnrt/Debug.h"
 
 
-#define REG_NAME_SOURCE L"Source"
-#define REG_NAME_METHOD L"Method"
-#define REG_NAME_LETTERCASE L"Lettercase"
+#define REGVAL_SOURCE L"Source"
+#define REGVAL_METHOD L"Method"
+#define REGVAL_LETTERCASE L"Lettercase"
 
 
 #define UPPERCASE_LETTER 1
@@ -32,7 +32,7 @@ using namespace hnrt;
 
 
 HashDialogBox::HashDialogBox()
-    : MyDialogBox(IDD_HASH)
+    : MyDialogBox(IDD_HASH, L"Hash")
     , m_hash()
     , m_uSource(0)
     , m_uMethod(0)
@@ -48,12 +48,12 @@ void HashDialogBox::OnCreate()
     UINT uSource = IDC_HASH_FILE;
     UINT uMethod = IDC_HASH_MD5;
     RegistryKey hKey;
-    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY_(Hash));
+    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName);
     if (rc == ERROR_SUCCESS)
     {
-        uSource = RegistryValue::GetDWORD(hKey, REG_NAME_SOURCE, 1) == 2 ? IDC_HASH_TEXT : IDC_HASH_FILE;
-        uMethod = IDC_HASH_MD5 + (RegistryValue::GetDWORD(hKey, REG_NAME_METHOD, 1) - 1) % 5;
-        m_uLettercase = RegistryValue::GetDWORD(hKey, REG_NAME_LETTERCASE, UPPERCASE_LETTER);
+        uSource = RegistryValue::GetDWORD(hKey, REGVAL_SOURCE, 1) == 2 ? IDC_HASH_TEXT : IDC_HASH_FILE;
+        uMethod = IDC_HASH_MD5 + (RegistryValue::GetDWORD(hKey, REGVAL_METHOD, 1) - 1) % 5;
+        m_uLettercase = RegistryValue::GetDWORD(hKey, REGVAL_LETTERCASE, UPPERCASE_LETTER);
     }
     else
     {
@@ -76,12 +76,12 @@ void HashDialogBox::OnCreate()
 void HashDialogBox::OnDestroy()
 {
     RegistryKey hKey;
-    LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY_(Hash));
+    LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName);
     if (rc == ERROR_SUCCESS)
     {
-        RegistryValue::SetDWORD(hKey, REG_NAME_SOURCE, m_uSource == IDC_HASH_FILE ? 1 : 2);
-        RegistryValue::SetDWORD(hKey, REG_NAME_METHOD, m_uMethod - IDC_HASH_MD5 + 1);
-        RegistryValue::SetDWORD(hKey, REG_NAME_LETTERCASE, m_uLettercase);
+        RegistryValue::SetDWORD(hKey, REGVAL_SOURCE, m_uSource == IDC_HASH_FILE ? 1 : 2);
+        RegistryValue::SetDWORD(hKey, REGVAL_METHOD, m_uMethod - IDC_HASH_MD5 + 1);
+        RegistryValue::SetDWORD(hKey, REGVAL_LETTERCASE, m_uLettercase);
     }
     MyDialogBox::OnDestroy();
 }

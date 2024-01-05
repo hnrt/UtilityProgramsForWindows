@@ -9,7 +9,13 @@
 #include "hnrt/WindowDesign.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
+#include "hnrt/Path.h"
 #include "hnrt/Interlocked.h"
+
+
+#define REGVAL_FACENAME L"FaceName"
+#define REGVAL_FACENAME_TAB L"FaceNameForTab"
+#define REGVAL_FACENAME_DATA L"FaceNameForData"
 
 
 using namespace hnrt;
@@ -30,12 +36,13 @@ MyToolbox::MyToolbox()
     , m_ntoaTab()
     , m_clipTab()
     , m_hFont(NULL)
+    , m_hFontForTab(NULL)
     , m_hFontForData(NULL)
 {
     INITCOMMONCONTROLSEX iccx = { sizeof(iccx), ICC_TAB_CLASSES };
     InitCommonControlsEx(&iccx);
     RegistryKey hKey;
-    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
+    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REGKEY_ROOT);
     if (rc == ERROR_SUCCESS)
     {
     }
@@ -45,10 +52,32 @@ MyToolbox::MyToolbox()
 MyToolbox::~MyToolbox()
 {
     RegistryKey hKey;
-    LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY);
+    LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REGKEY_ROOT);
     if (rc == ERROR_SUCCESS)
     {
     }
+}
+
+
+String MyToolbox::GetRegistryKeyName(PCWSTR pszName) const
+{
+    String szKeyName(REGKEY_ROOT);
+    if (pszName)
+    {
+        szKeyName.AppendFormat(L"\\%s", pszName);
+    }
+    return szKeyName;
+}
+
+
+String MyToolbox::GetDirectoryPath(PCWSTR pszName) const
+{
+    String szDirectoryPath = Path::Combine(Path::GetKnownFolder(FOLDERID_LocalAppData), APP_GROUP, APP_NAME);
+    if (pszName)
+    {
+        szDirectoryPath = Path::Combine(szDirectoryPath, pszName);
+    }
+    return szDirectoryPath;
 }
 
 
@@ -84,26 +113,29 @@ HMENU MyToolbox::CreateMenuBar()
 void MyToolbox::OnCreate()
 {
     String szFaceName(FACENAME);
-    DWORD dwPointSize = POINTSIZE;
+    String szFaceNameForTab(FACENAME_TAB);
     String szFaceNameForData(FACENAME_DATA);
-    DWORD dwPointSizeForData = POINTSIZE_DATA;
     RegistryKey hKey;
-    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
+    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REGKEY_ROOT);
     if (rc == ERROR_SUCCESS)
     {
-        szFaceName = RegistryValue::GetSZ(hKey, L"FaceName", szFaceName);
-        dwPointSize = RegistryValue::GetDWORD(hKey, L"PointSize", dwPointSize);
-        szFaceNameForData = RegistryValue::GetSZ(hKey, L"FaceNameData", szFaceNameForData);
-        dwPointSizeForData = RegistryValue::GetDWORD(hKey, L"PointSizeData", dwPointSizeForData);
+        szFaceName = RegistryValue::GetSZ(hKey, REGVAL_FACENAME, szFaceName);
+        szFaceNameForTab = RegistryValue::GetSZ(hKey, REGVAL_FACENAME_TAB, szFaceNameForTab);
+        szFaceNameForData = RegistryValue::GetSZ(hKey, REGVAL_FACENAME_DATA, szFaceNameForData);
     }
     m_hFont = LogicalFont()
         .SetFaceName(szFaceName)
-        .SetHeight(dwPointSize, hwnd)
+        .SetHeight(POINTSIZE, hwnd)
+        .SetJapaneseCharSet()
+        .Create();
+    m_hFontForTab = LogicalFont()
+        .SetFaceName(szFaceNameForTab)
+        .SetHeight(POINTSIZE_TAB, hwnd)
         .SetJapaneseCharSet()
         .Create();
     m_hFontForData = LogicalFont()
         .SetFaceName(szFaceNameForData)
-        .SetHeight(dwPointSizeForData, hwnd)
+        .SetHeight(POINTSIZE_DATA, hwnd)
         .SetPitchAndFamily(FIXED_PITCH | FF_DONTCARE)
         .SetJapaneseCharSet()
         .Create();
@@ -123,6 +155,7 @@ void MyToolbox::OnDestroy()
 {
     SetFont(hwnd, NULL);
     DeleteObject(Interlocked<HFONT>::ExchangePointer(&m_hFont, NULL));
+    DeleteObject(Interlocked<HFONT>::ExchangePointer(&m_hFontForTab, NULL));
     DeleteObject(Interlocked<HFONT>::ExchangePointer(&m_hFontForData, NULL));
 }
 

@@ -125,7 +125,7 @@ static PCWSTR GetCronErrorText(CronError e, bool bDetails = false)
 
 
 CronDialogBox::CronDialogBox()
-	: MyDialogBox(IDD_CRON)
+	: MyDialogBox(IDD_CRON, L"Cron")
 	, m_offset(0)
 	, m_LastModifiedAt(0)
 	, m_bParse(false)
@@ -143,7 +143,7 @@ void CronDialogBox::OnCreate()
 	DWORD dwDisplayOffset = UINT_MAX;
 	String szExpression = String::Empty;
 	RegistryKey hKey;
-	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY_(Cron));
+	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName);
 	if (rc == ERROR_SUCCESS)
 	{
 		m_cron.SecondEnabled = RegistryValue::GetDWORD(hKey, REG_NAME_SECOND, 1) != 0;
@@ -191,7 +191,7 @@ void CronDialogBox::OnCreate()
 void CronDialogBox::OnDestroy()
 {
 	RegistryKey hKey;
-	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY_(Cron));
+	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName);
 	if (rc == ERROR_SUCCESS)
 	{
 		RegistryValue::SetDWORD(hKey, REG_NAME_SECOND, m_cron.SecondEnabled ? 1U : 0U);

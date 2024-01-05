@@ -49,7 +49,7 @@ using namespace hnrt;
 
 
 CryptographyDialogBox::CryptographyDialogBox()
-	: MyDialogBox(IDD_CRPT)
+	: MyDialogBox(IDD_CRPT, L"Cryptography")
 	, m_hAlg()
 	, m_KeyLength(256)
 	, m_Key()
@@ -91,7 +91,7 @@ void CryptographyDialogBox::OnCreate()
 	int od = OriginalDataDisplayModeToControlId(m_OriginalDataDisplayMode);
 	int ed = EncryptedDataDisplayModeToControlId(m_EncryptedDataDisplayMode);
 	RegistryKey hKey;
-	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY_(Cryptography));
+	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName);
 	if (rc == ERROR_SUCCESS)
 	{
 		cm = ChainingModeToControlId(RegistryValue::GetSZ(hKey, REG_NAME_CHAININGMODE, String(BCRYPT_CHAIN_MODE_CBC)));
@@ -162,7 +162,7 @@ void CryptographyDialogBox::OnDestroy()
 {
 	WhileInScope<int> wis(m_Processing, 1, m_Processing);
 	RegistryKey hKey;
-	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY_(Cryptography));
+	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName);
 	if (rc == ERROR_SUCCESS)
 	{
 		RegistryValue::SetSZ(hKey, REG_NAME_CHAININGMODE, m_hAlg.ChainingMode);
@@ -406,10 +406,16 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case IDC_CRPT_ENCRYPT_BUTTON:
-		OnEncrypt();
+		if (idNotif == BN_CLICKED)
+		{
+			OnEncrypt();
+		}
 		break;
 	case IDC_CRPT_DECRYPT_BUTTON:
-		OnDecrypt();
+		if (idNotif == BN_CLICKED)
+		{
+			OnDecrypt();
+		}
 		break;
 	default:
 		return FALSE;

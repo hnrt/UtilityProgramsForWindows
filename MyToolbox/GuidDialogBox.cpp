@@ -10,16 +10,15 @@
 #include "hnrt/Debug.h"
 
 
-#define REG_KEY L"SOFTWARE\\hnrt\\MyToolbox\\Guid"
-#define REG_NAME L"Format"
-#define REG_NAME_LAST L"Last"
+#define REGVAL_FORMAT L"Format"
+#define REGVAL_LAST L"Last"
 
 
 using namespace hnrt;
 
 
 GuidDialogBox::GuidDialogBox()
-    : MyDialogBox(IDD_GUID)
+    : MyDialogBox(IDD_GUID, L"Guid")
     , m_guid()
     , m_szFormatted()
     , m_uCurrentlySelected(IDC_GUID_RADIO_UPPERCASE)
@@ -31,10 +30,10 @@ void GuidDialogBox::OnCreate()
 {
     MyDialogBox::OnCreate();
     RegistryKey hKey;
-    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_KEY, 0, KEY_READ);
+    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_READ);
     if (rc == ERROR_SUCCESS)
     {
-        m_uCurrentlySelected = RegistryValue::GetDWORD(hKey, REG_NAME, 1) + IDC_GUID_RADIO_UPPERCASE - 1;
+        m_uCurrentlySelected = RegistryValue::GetDWORD(hKey, REGVAL_FORMAT, 1) + IDC_GUID_RADIO_UPPERCASE - 1;
     }
     ChangeGuid();
     ButtonCheck(m_uCurrentlySelected);
@@ -46,19 +45,11 @@ void GuidDialogBox::OnCreate()
 void GuidDialogBox::OnDestroy()
 {
     RegistryKey hKey;
-    DWORD dwRet = hKey.Create(HKEY_CURRENT_USER, REG_KEY, 0, KEY_WRITE);
-    if (dwRet == ERROR_SUCCESS)
+    LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_WRITE);
+    if (rc == ERROR_SUCCESS)
     {
-        dwRet = RegistryValue::SetDWORD(hKey, REG_NAME, m_uCurrentlySelected - IDC_GUID_RADIO_UPPERCASE + 1);
-        if (dwRet != ERROR_SUCCESS)
-        {
-            Debug::Put(L"Failed to set DWORD to HKCU\\%s\\%s: %s", REG_KEY, REG_NAME, ErrorMessage::Get(dwRet));
-        }
-        dwRet = RegistryValue::SetSZ(hKey, REG_NAME_LAST, m_szFormatted);
-        if (dwRet != ERROR_SUCCESS)
-        {
-            Debug::Put(L"Failed to set SZ to HKCU\\%s\\%s: %s", REG_KEY, REG_NAME_LAST, ErrorMessage::Get(dwRet));
-        }
+        RegistryValue::SetDWORD(hKey, REGVAL_FORMAT, m_uCurrentlySelected - IDC_GUID_RADIO_UPPERCASE + 1);
+        RegistryValue::SetSZ(hKey, REGVAL_LAST, m_szFormatted);
     }
     MyDialogBox::OnDestroy();
 }

@@ -14,18 +14,18 @@
 #include "hnrt/Debug.h"
 
 
+#define REGVAL_INPUT_CODEPAGE L"InputCodePage"
+#define REGVAL_OUTPUT_CODEPAGE L"OutputCodePage"
+#define REGVAL_OUTPUT_BOM L"OutputBOM"
+#define REGVAL_ORIGINAL_PATH L"OriginalPath"
+#define REGVAL_ENCODED_PATH L"EncodedPath"
+
+
 using namespace hnrt;
 
 
-#define REG_NAME_INPUT_CODEPAGE L"InputCodePage"
-#define REG_NAME_OUTPUT_CODEPAGE L"OutputCodePage"
-#define REG_NAME_OUTPUT_BOM L"OutputBOM"
-#define REG_NAME_ORIGINAL_PATH L"OriginalPath"
-#define REG_NAME_ENCODED_PATH L"EncodedPath"
-
-
 PercentCodecDialogBox::PercentCodecDialogBox()
-	: MyDialogBox(IDD_PCTC)
+	: MyDialogBox(IDD_PCTC, L"PercentCodec")
 	, m_bEncodingError(false)
 	, m_bDecodingError(false)
 	, m_szOriginalPath()
@@ -38,21 +38,21 @@ void PercentCodecDialogBox::OnCreate()
 {
 	MyDialogBox::OnCreate();
 	RegistryKey hKey;
-	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY_(PercentCodec));
+	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName);
 	if (rc == ERROR_SUCCESS)
 	{
-		m_uInputCodePage = RegistryValue::GetDWORD(hKey, REG_NAME_INPUT_CODEPAGE, CP_AUTODETECT);
-		m_uOutputCodePage = RegistryValue::GetDWORD(hKey, REG_NAME_OUTPUT_CODEPAGE, CP_UTF8);
-		m_bOutputBOM = RegistryValue::GetDWORD(hKey, REG_NAME_OUTPUT_BOM, 0) ? true : false;
-		m_szOriginalPath = RegistryValue::GetSZ(hKey, REG_NAME_ORIGINAL_PATH);
-		m_szEncodedPath = RegistryValue::GetSZ(hKey, REG_NAME_ENCODED_PATH);
+		m_uInputCodePage = RegistryValue::GetDWORD(hKey, REGVAL_INPUT_CODEPAGE, CP_AUTODETECT);
+		m_uOutputCodePage = RegistryValue::GetDWORD(hKey, REGVAL_OUTPUT_CODEPAGE, CP_UTF8);
+		m_bOutputBOM = RegistryValue::GetDWORD(hKey, REGVAL_OUTPUT_BOM, 0) ? true : false;
+		m_szOriginalPath = RegistryValue::GetSZ(hKey, REGVAL_ORIGINAL_PATH);
+		m_szEncodedPath = RegistryValue::GetSZ(hKey, REGVAL_ENCODED_PATH);
 	}
 	InitializeCodePageComboBox(IDC_PCTC_ENCODING);
 	ComboBoxRemove(IDC_PCTC_ENCODING, CP_UTF16);
 	ButtonCheck(IDC_PCTC_USE_PLUS);
 	OnSelectSource(IDC_PCTC_LABEL1);
-	SetText(IDC_PCTC_STATUS1, L"");
-	SetText(IDC_PCTC_STATUS2, L"");
+	SetText(IDC_PCTC_STATUS1);
+	SetText(IDC_PCTC_STATUS2);
 	m_menuView
 		.Add(ResourceString(IDS_MENU_PCTC), IDM_VIEW_PCTC);
 }
@@ -61,14 +61,14 @@ void PercentCodecDialogBox::OnCreate()
 void PercentCodecDialogBox::OnDestroy()
 {
 	RegistryKey hKey;
-	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY_(PercentCodec));
+	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName);
 	if (rc == ERROR_SUCCESS)
 	{
-		RegistryValue::SetDWORD(hKey, REG_NAME_INPUT_CODEPAGE, m_uInputCodePage);
-		RegistryValue::SetDWORD(hKey, REG_NAME_OUTPUT_CODEPAGE, m_uOutputCodePage);
-		RegistryValue::SetDWORD(hKey, REG_NAME_OUTPUT_BOM, m_bOutputBOM ? 1 : 0);
-		RegistryValue::SetSZ(hKey, REG_NAME_ORIGINAL_PATH, m_szOriginalPath);
-		RegistryValue::SetSZ(hKey, REG_NAME_ENCODED_PATH, m_szEncodedPath);
+		RegistryValue::SetDWORD(hKey, REGVAL_INPUT_CODEPAGE, m_uInputCodePage);
+		RegistryValue::SetDWORD(hKey, REGVAL_OUTPUT_CODEPAGE, m_uOutputCodePage);
+		RegistryValue::SetDWORD(hKey, REGVAL_OUTPUT_BOM, m_bOutputBOM ? 1 : 0);
+		RegistryValue::SetSZ(hKey, REGVAL_ORIGINAL_PATH, m_szOriginalPath);
+		RegistryValue::SetSZ(hKey, REGVAL_ENCODED_PATH, m_szEncodedPath);
 	}
 	MyDialogBox::OnDestroy();
 }

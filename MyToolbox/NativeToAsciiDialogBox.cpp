@@ -17,15 +17,15 @@
 using namespace hnrt;
 
 
-#define REG_NAME_INPUT_CODEPAGE L"InputCodePage"
-#define REG_NAME_OUTPUT_CODEPAGE L"OutputCodePage"
-#define REG_NAME_OUTPUT_BOM L"OutputBOM"
-#define REG_NAME_NATIVE_PATH L"NativePath"
-#define REG_NAME_ASCII_PATH L"AsciiPath"
+#define REGVAL_INPUT_CODEPAGE L"InputCodePage"
+#define REGVAL_OUTPUT_CODEPAGE L"OutputCodePage"
+#define REGVAL_OUTPUT_BOM L"OutputBOM"
+#define REGVAL_NATIVE_PATH L"NativePath"
+#define REGVAL_ASCII_PATH L"AsciiPath"
 
 
 NativeToAsciiDialogBox::NativeToAsciiDialogBox()
-	: MyDialogBox(IDD_NTOA)
+	: MyDialogBox(IDD_NTOA, L"NativeToAscii")
 	, m_szNativePath()
 	, m_szAsciiPath()
 {
@@ -36,14 +36,14 @@ void NativeToAsciiDialogBox::OnCreate()
 {
 	MyDialogBox::OnCreate();
 	RegistryKey hKey;
-	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY_(NativeToAscii));
+	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName);
 	if (rc == ERROR_SUCCESS)
 	{
-		m_uInputCodePage = RegistryValue::GetDWORD(hKey, REG_NAME_INPUT_CODEPAGE, CP_AUTODETECT);
-		m_uOutputCodePage = RegistryValue::GetDWORD(hKey, REG_NAME_OUTPUT_CODEPAGE, CP_UTF8);
-		m_bOutputBOM = RegistryValue::GetDWORD(hKey, REG_NAME_OUTPUT_BOM, 0) ? true : false;
-		m_szNativePath = RegistryValue::GetSZ(hKey, REG_NAME_NATIVE_PATH);
-		m_szAsciiPath = RegistryValue::GetSZ(hKey, REG_NAME_ASCII_PATH);
+		m_uInputCodePage = RegistryValue::GetDWORD(hKey, REGVAL_INPUT_CODEPAGE, CP_AUTODETECT);
+		m_uOutputCodePage = RegistryValue::GetDWORD(hKey, REGVAL_OUTPUT_CODEPAGE, CP_UTF8);
+		m_bOutputBOM = RegistryValue::GetDWORD(hKey, REGVAL_OUTPUT_BOM, 0) ? true : false;
+		m_szNativePath = RegistryValue::GetSZ(hKey, REGVAL_NATIVE_PATH);
+		m_szAsciiPath = RegistryValue::GetSZ(hKey, REGVAL_ASCII_PATH);
 	}
 	m_menuView
 		.Add(ResourceString(IDS_MENU_NTOA), IDM_VIEW_NTOA);
@@ -53,14 +53,14 @@ void NativeToAsciiDialogBox::OnCreate()
 void NativeToAsciiDialogBox::OnDestroy()
 {
 	RegistryKey hKey;
-	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY_(NativeToAscii));
+	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName);
 	if (rc == ERROR_SUCCESS)
 	{
-		RegistryValue::SetDWORD(hKey, REG_NAME_INPUT_CODEPAGE, m_uInputCodePage);
-		RegistryValue::SetDWORD(hKey, REG_NAME_OUTPUT_CODEPAGE, m_uOutputCodePage);
-		RegistryValue::SetDWORD(hKey, REG_NAME_OUTPUT_BOM, m_bOutputBOM ? 1 : 0);
-		RegistryValue::SetSZ(hKey, REG_NAME_NATIVE_PATH, m_szNativePath);
-		RegistryValue::SetSZ(hKey, REG_NAME_ASCII_PATH, m_szAsciiPath);
+		RegistryValue::SetDWORD(hKey, REGVAL_INPUT_CODEPAGE, m_uInputCodePage);
+		RegistryValue::SetDWORD(hKey, REGVAL_OUTPUT_CODEPAGE, m_uOutputCodePage);
+		RegistryValue::SetDWORD(hKey, REGVAL_OUTPUT_BOM, m_bOutputBOM ? 1 : 0);
+		RegistryValue::SetSZ(hKey, REGVAL_NATIVE_PATH, m_szNativePath);
+		RegistryValue::SetSZ(hKey, REGVAL_ASCII_PATH, m_szAsciiPath);
 	}
 	MyDialogBox::OnDestroy();
 }

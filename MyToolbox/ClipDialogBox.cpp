@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "ClipDialogBox.h"
 #include "ClipFile.h"
+#include "MyToolbox.h"
 #include "resource.h"
 #include "hnrt/WindowDesign.h"
 #include "hnrt/WindowLayoutSnapshot.h"
@@ -18,9 +19,9 @@ using namespace hnrt;
 
 
 ClipDialogBox::ClipDialogBox()
-	: MyDialogBox(IDD_CLIP)
+	: MyDialogBox(IDD_CLIP, L"Clip")
 	, m_pCO(RefPtr<ClipboardObserver>(new MyClipboardObserver(*this)))
-	, m_szDirectoryPath(Path::Combine(Path::GetKnownFolder(FOLDERID_LocalAppData), L"hnrt", L"MyToolbox", L"clippings"))
+	, m_szDirectoryPath(GetApp<MyToolbox>().GetDirectoryPath(L"clippings"))
 	, m_mapHash()
 	, m_selected(-1)
 	, m_szFilePath()

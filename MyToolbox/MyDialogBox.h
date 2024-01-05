@@ -1,14 +1,11 @@
 #pragma once
 
-
 #include "hnrt/DialogBox.h"
 #include "hnrt/Menu.h"
 #include "hnrt/String.h"
 
-
 #define CP_AUTODETECT 0
 #define CP_UTF16 1200
-
 
 namespace hnrt
 {
@@ -17,7 +14,7 @@ namespace hnrt
 	{
 	public:
 
-		MyDialogBox(UINT idTemplate);
+		MyDialogBox(UINT, PCWSTR);
 		MyDialogBox(const MyDialogBox&) = delete;
 		virtual ~MyDialogBox() = default;
 		void operator =(const MyDialogBox&) = delete;
@@ -73,6 +70,7 @@ namespace hnrt
 
 	protected:
 
+		String m_szRegistryKeyName;
 		Menu m_menuFile;
 		Menu m_menuEdit;
 		Menu m_menuView;
@@ -164,7 +162,3 @@ namespace hnrt
 		UNREFERENCED_PARAMETER(nbytes);
 	}
 }
-
-
-#define REG_SUBKEY L"SOFTWARE\\hnrt\\MyToolbox"
-#define REG_SUBKEY_(name) REG_SUBKEY L"\\" L#name

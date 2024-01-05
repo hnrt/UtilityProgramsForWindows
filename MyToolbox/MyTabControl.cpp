@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "MyTabControl.h"
-#include "MyDialogBox.h"
+#include "MyToolbox.h"
 #include "hnrt/TabControlItem.h"
 #include "hnrt/LogicalFont.h"
 #include "hnrt/WindowHandle.h"
@@ -9,14 +9,10 @@
 #include "hnrt/Exception.h"
 
 
+#define REGVAL_CURRENTTAB L"CurrentTab"
+
+
 using namespace hnrt;
-
-
-#define FACENAME L"Segoe UI"
-#define POINTSIZE 10
-
-
-#define REG_NAME_CURRENTTAB L"CurrentTab"
 
 
 MyTabControl::MyTabControl()
@@ -29,12 +25,7 @@ MyTabControl::MyTabControl()
 void MyTabControl::Open(HWND hwndParent)
 {
 	TabControl::Open(hwndParent);
-    SetFont(*this,
-        LogicalFont()
-        .SetFaceName(FACENAME)
-        .SetHeight(POINTSIZE, *this)
-        .SetJapaneseCharSet()
-        .Create());
+    SetFont(*this, GetApp<MyToolbox>().GetFontForTab());
 }
 
 
@@ -105,10 +96,10 @@ void MyTabControl::OnTabSelectionChanged()
 void MyTabControl::LoadFromRegistry()
 {
     RegistryKey hKey;
-    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REG_SUBKEY);
+    LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, GetApp<MyToolbox>().GetRegistryKeyName());
     if (rc == ERROR_SUCCESS)
     {
-        CurrentItem = static_cast<INT>(RegistryValue::GetDWORD(hKey, REG_NAME_CURRENTTAB));
+        CurrentItem = static_cast<INT>(RegistryValue::GetDWORD(hKey, REGVAL_CURRENTTAB));
     }
     else
     {
@@ -120,9 +111,9 @@ void MyTabControl::LoadFromRegistry()
 void MyTabControl::SaveToRegistry() const
 {
     RegistryKey hKey;
-    LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, REG_SUBKEY);
+    LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, GetApp<MyToolbox>().GetRegistryKeyName());
     if (rc == ERROR_SUCCESS)
     {
-        RegistryValue::SetDWORD(hKey, REG_NAME_CURRENTTAB, CurrentItem);
+        RegistryValue::SetDWORD(hKey, REGVAL_CURRENTTAB, CurrentItem);
     }
 }

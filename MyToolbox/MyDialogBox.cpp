@@ -17,10 +17,11 @@
 using namespace hnrt;
 
 
-MyDialogBox::MyDialogBox(UINT idTemplate)
+MyDialogBox::MyDialogBox(UINT idTemplate, PCWSTR pszName)
 	: DialogBox(idTemplate)
 	, m_id(-1)
 	, m_bActive(false)
+	, m_szRegistryKeyName(GetApp<MyToolbox>().GetRegistryKeyName(pszName))
 	, m_menuFile(HMENU_NULL)
 	, m_menuEdit(HMENU_NULL)
 	, m_menuView(HMENU_NULL)
