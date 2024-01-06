@@ -63,7 +63,6 @@ CryptographyDialogBox::CryptographyDialogBox()
 	, m_OriginalDataCodePage(CP_UTF8)
 	, m_EncryptedData()
 	, m_EncryptedDataDisplayMode(1)
-	, m_Processing(0)
 	, m_Mode(MODE_IDLE)
 	, m_bStatusSuccessful(TRUE)
 	, m_szOriginalDataPath()
@@ -78,7 +77,7 @@ CryptographyDialogBox::CryptographyDialogBox()
 
 void CryptographyDialogBox::OnCreate()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	MyDialogBox::OnCreate();
 	HFONT hFont = GetApp<MyToolbox>().GetFontForData();
 	SetFont(IDC_CRPT_KEY_EDIT, hFont);
@@ -160,7 +159,7 @@ void CryptographyDialogBox::OnCreate()
 
 void CryptographyDialogBox::OnDestroy()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	RegistryKey hKey;
 	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName);
 	if (rc == ERROR_SUCCESS)
@@ -241,7 +240,7 @@ void CryptographyDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
-	if (m_Processing)
+	if (m_cProcessing)
 	{
 		return TRUE;
 	}
@@ -448,7 +447,7 @@ static const COLORREF BLUE = RGB(0, 0, 204);
 
 INT_PTR CryptographyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	HDC hdc = reinterpret_cast<HDC>(wParam);
 	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
 	switch (id)
@@ -486,7 +485,7 @@ INT_PTR CryptographyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 
 INT_PTR CryptographyDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	HDC hdc = reinterpret_cast<HDC>(wParam);
 	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
 	switch (id)
@@ -508,7 +507,7 @@ INT_PTR CryptographyDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam
 
 void CryptographyDialogBox::OnLoad1From()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	String szTitle(ResourceString(IDS_LOADTEXTFROMFILE));
 	StringBuffer szPath2(MAX_PATH, m_szOriginalDataPath);
 	OPENFILENAMEW ofn = { 0 };
@@ -539,7 +538,7 @@ void CryptographyDialogBox::OnLoad1From()
 
 void CryptographyDialogBox::OnSave1As()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	String szTitle(ResourceString(IDS_SAVETEXTASFILE));
 	StringBuffer szPath2(MAX_PATH, m_szOriginalDataPath);
 	OPENFILENAMEW ofn = { 0 };
@@ -579,7 +578,7 @@ void CryptographyDialogBox::OnSave1As()
 
 void CryptographyDialogBox::OnLoad2From()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	String szTitle(ResourceString(IDS_LOADTEXTFROMFILE));
 	StringBuffer szPath2(MAX_PATH, m_szEncryptedDataPath);
 	OPENFILENAMEW ofn = { 0 };
@@ -610,7 +609,7 @@ void CryptographyDialogBox::OnLoad2From()
 
 void CryptographyDialogBox::OnSave2As()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	String szTitle(ResourceString(IDS_SAVETEXTASFILE));
 	StringBuffer szPath2(MAX_PATH, m_szEncryptedDataPath);
 	OPENFILENAMEW ofn = { 0 };
@@ -650,7 +649,7 @@ void CryptographyDialogBox::OnSave2As()
 
 void CryptographyDialogBox::OnCut()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	switch (m_ActiveEditControlId)
 	{
 	case IDC_CRPT_KEY_EDIT:
@@ -700,7 +699,7 @@ void CryptographyDialogBox::OnCopy()
 
 void CryptographyDialogBox::OnPaste()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	switch (m_ActiveEditControlId)
 	{
 	case IDC_CRPT_KEY_EDIT:
@@ -741,7 +740,7 @@ void CryptographyDialogBox::OnPaste()
 
 void CryptographyDialogBox::OnDelete()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	switch (m_ActiveEditControlId)
 	{
 	case IDC_CRPT_KEY_EDIT:
@@ -801,7 +800,7 @@ void CryptographyDialogBox::OnCopyAll()
 
 void CryptographyDialogBox::OnClear()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SetMode(MODE_IDLE);
 	m_OriginalData.Resize(0);
 	SetText(IDC_CRPT_ORG_EDIT);
@@ -819,7 +818,7 @@ void CryptographyDialogBox::OnSettingChanged(UINT id)
 	{
 	case IDM_SETTINGS_WRAPDATA:
 	{
-		WhileInScope<int> wis(m_Processing, 1, m_Processing);
+		WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 		m_bWrapData ^= TRUE;
 		SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
 		SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
@@ -834,7 +833,7 @@ void CryptographyDialogBox::OnSettingChanged(UINT id)
 
 void CryptographyDialogBox::OnEncrypt()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SYSTEMTIME st = { 0 };
 	GetLocalTime(&st);
 	try
@@ -899,7 +898,7 @@ void CryptographyDialogBox::OnEncrypt()
 
 void CryptographyDialogBox::OnDecrypt()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SYSTEMTIME st = { 0 };
 	GetLocalTime(&st);
 	try
@@ -968,7 +967,7 @@ void CryptographyDialogBox::OnDecrypt()
 
 void CryptographyDialogBox::OnChainingModeChange(int id)
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	switch (id)
 	{
 	case IDC_CRPT_AESCBC_RADIO:
@@ -1080,7 +1079,7 @@ void CryptographyDialogBox::OnChainingModeChange(int id)
 
 void CryptographyDialogBox::OnKeyLengthChange(int id)
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_KeyLength = ControlIdToKeyLength(id);
 	InvalidateRect(GetChild(IDC_CRPT_KEY_EDIT), NULL, FALSE);
 	SetMode(m_Mode);
@@ -1089,7 +1088,7 @@ void CryptographyDialogBox::OnKeyLengthChange(int id)
 
 void CryptographyDialogBox::OnNonceLengthChange(int id)
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_NonceLength = ControlIdToNonceLength(id);
 	InvalidateRect(GetChild(IDC_CRPT_NONCE_EDIT), NULL, FALSE);
 	SetMode(m_Mode);
@@ -1098,7 +1097,7 @@ void CryptographyDialogBox::OnNonceLengthChange(int id)
 
 void CryptographyDialogBox::OnTagLengthChange(int id)
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_TagLength = ControlIdToTagLength(id);
 	InvalidateRect(GetChild(IDC_CRPT_TAG_EDIT), NULL, FALSE);
 	SetMode(m_Mode);
@@ -1107,7 +1106,7 @@ void CryptographyDialogBox::OnTagLengthChange(int id)
 
 void CryptographyDialogBox::OnEditSetFocus(int id)
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	_InterlockedExchange(&m_ActiveEditControlId, id);
 	UpdateMenus();
 }
@@ -1115,7 +1114,7 @@ void CryptographyDialogBox::OnEditSetFocus(int id)
 
 void CryptographyDialogBox::OnEditKillFocus(int id)
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	if (_InterlockedCompareExchange(&m_ActiveEditControlId, 0, id) == id)
 	{
 		UpdateMenus();
@@ -1125,7 +1124,7 @@ void CryptographyDialogBox::OnEditKillFocus(int id)
 
 void CryptographyDialogBox::OnKeyChange()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	try
 	{
 		m_Key = ByteString::FromHex(GetText(IDC_CRPT_KEY_EDIT).Trim());
@@ -1143,7 +1142,7 @@ void CryptographyDialogBox::OnKeyChange()
 
 void CryptographyDialogBox::OnIVChange()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	try
 	{
 		m_IV = ByteString::FromHex(GetText(IDC_CRPT_IV_EDIT).Trim());
@@ -1161,7 +1160,7 @@ void CryptographyDialogBox::OnIVChange()
 
 void CryptographyDialogBox::OnNonceChange()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	try
 	{
 		m_Nonce = ByteString::FromHex(GetText(IDC_CRPT_NONCE_EDIT).Trim());
@@ -1179,7 +1178,7 @@ void CryptographyDialogBox::OnNonceChange()
 
 void CryptographyDialogBox::OnTagChange()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	try
 	{
 		m_Tag = ByteString::FromHex(GetText(IDC_CRPT_TAG_EDIT).Trim());
@@ -1197,7 +1196,7 @@ void CryptographyDialogBox::OnTagChange()
 
 void CryptographyDialogBox::OnOriginalDataChange()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	String szText = GetText(IDC_CRPT_ORG_EDIT);
 	if (!szText.Len)
 	{
@@ -1276,7 +1275,7 @@ void CryptographyDialogBox::OnOriginalDataChange()
 
 void CryptographyDialogBox::OnOriginalDataDisplayModeChange(int id)
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	if (m_Mode == MODE_ENCRYPTION)
 	{
 		ClearStatusText();
@@ -1288,7 +1287,7 @@ void CryptographyDialogBox::OnOriginalDataDisplayModeChange(int id)
 
 void CryptographyDialogBox::OnOriginalDataDisplayCodePageChange()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_OriginalDataCodePage = ComboBoxGetSelection(IDC_CRPT_ORG_ENC_COMBO, CP_UTF8);
 	if (m_OriginalDataDisplayMode == 2)
 	{
@@ -1337,7 +1336,7 @@ String CryptographyDialogBox::OriginalDataToString()
 
 void CryptographyDialogBox::OnEncryptedDataChange()
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	String szText = GetText(IDC_CRPT_ENC_EDIT);
 	if (!szText.Len)
 	{
@@ -1385,7 +1384,7 @@ void CryptographyDialogBox::OnEncryptedDataChange()
 
 void CryptographyDialogBox::OnEncryptedDataDisplayModeChange(int id)
 {
-	WhileInScope<int> wis(m_Processing, 1, m_Processing);
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	if (m_Mode == MODE_DECRYPTION)
 	{
 		ClearStatusText();

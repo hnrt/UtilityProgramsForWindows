@@ -162,11 +162,11 @@ void PercentCodecDialogBox::OnTabSelectionChanged()
 
 INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
+	UNREFERENCED_PARAMETER(lParam);
 	if (m_cProcessing)
 	{
 		return TRUE;
 	}
-	UNREFERENCED_PARAMETER(lParam);
 	UINT idChild = LOWORD(wParam);
 	UINT idNotif = HIWORD(wParam);
 	switch (idChild)

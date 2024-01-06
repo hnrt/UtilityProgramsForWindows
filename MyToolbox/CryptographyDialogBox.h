@@ -90,7 +90,6 @@ namespace hnrt
 		UINT m_OriginalDataCodePage;
 		ByteString m_EncryptedData;
 		int m_EncryptedDataDisplayMode; // 0=HEX 1=BASE64
-		int m_Processing; // 0=System 1=Class
 		int m_Mode;
 		BOOL m_bStatusSuccessful;
 		String m_szOriginalDataPath;
