@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "PercentCodecDialogBox.h"
+#include "MyToolbox.h"
 #include "resource.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
@@ -7,6 +8,7 @@
 #include "hnrt/WindowDesign.h"
 #include "hnrt/WindowHandle.h"
 #include "hnrt/WindowLayoutSnapshot.h"
+#include "hnrt/WhileInScope.h"
 #include "hnrt/Clipboard.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/Buffer.h"
@@ -47,12 +49,15 @@ void PercentCodecDialogBox::OnCreate()
 		m_szOriginalPath = RegistryValue::GetSZ(hKey, REGVAL_ORIGINAL_PATH);
 		m_szEncodedPath = RegistryValue::GetSZ(hKey, REGVAL_ENCODED_PATH);
 	}
-	InitializeCodePageComboBox(IDC_PCTC_ENCODING);
-	ComboBoxRemove(IDC_PCTC_ENCODING, CP_UTF16);
-	ButtonCheck(IDC_PCTC_USE_PLUS);
-	OnSelectSource(IDC_PCTC_LABEL1);
-	SetText(IDC_PCTC_STATUS1);
-	SetText(IDC_PCTC_STATUS2);
+	HFONT hFont = GetApp<MyToolbox>().GetFontForData();
+	SetFont(IDC_PCTC_CONTENT1_EDIT, hFont);
+	SetFont(IDC_PCTC_CONTENT2_EDIT, hFont);
+	InitializeCodePageComboBox(IDC_PCTC_CODEPAGE_COMBO);
+	ComboBoxRemove(IDC_PCTC_CODEPAGE_COMBO, CP_UTF16);
+	ButtonCheck(IDC_PCTC_USEPLUS_CHECK);
+	OnSelectSource(IDC_PCTC_CONTENT1_RADIO);
+	SetText(IDC_PCTC_STATUS1_STATIC);
+	SetText(IDC_PCTC_STATUS2_STATIC);
 	m_menuView
 		.Add(ResourceString(IDS_MENU_PCTC), IDM_VIEW_PCTC);
 }
@@ -70,6 +75,8 @@ void PercentCodecDialogBox::OnDestroy()
 		RegistryValue::SetSZ(hKey, REGVAL_ORIGINAL_PATH, m_szOriginalPath);
 		RegistryValue::SetSZ(hKey, REGVAL_ENCODED_PATH, m_szEncodedPath);
 	}
+	SetFont(IDC_PCTC_CONTENT1_EDIT, NULL);
+	SetFont(IDC_PCTC_CONTENT2_EDIT, NULL);
 	MyDialogBox::OnDestroy();
 }
 
@@ -80,34 +87,34 @@ void PercentCodecDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 
 	before.AddAllChildren(hDlg).Clone(after);
 
-	after[IDC_PCTC_EDIT1].right += cxDelta;
-	MoveHorizontally(after[IDC_PCTC_COPY1], cxDelta);
-	MoveHorizontally(after[IDC_PCTC_USE_PLUS], cxDelta);
+	after[IDC_PCTC_CONTENT1_EDIT].right += cxDelta;
+	MoveHorizontally(after[IDC_PCTC_COPY1_BUTTON], cxDelta);
+	MoveHorizontally(after[IDC_PCTC_USEPLUS_CHECK], cxDelta);
 
-	CenterHorizontally(after[IDC_PCTC_EDIT1], after[IDC_PCTC_ENCODE], after[IDC_PCTC_ENCODING], after[IDC_PCTC_DECODE]);
-	BindRightToLeft(after[IDC_PCTC_STATUS1], before[IDC_PCTC_ENCODE], after[IDC_PCTC_ENCODE]);
-	BindLeftToRight(after[IDC_PCTC_STATUS2], before[IDC_PCTC_DECODE], after[IDC_PCTC_DECODE]);
-	after[IDC_PCTC_STATUS2].right = after[IDC_PCTC_EDIT1].right;
+	CenterHorizontally(after[IDC_PCTC_CONTENT1_EDIT], after[IDC_PCTC_ENCODE_BUTTON], after[IDC_PCTC_CODEPAGE_COMBO], after[IDC_PCTC_DECODE_BUTTON]);
+	BindRightToLeft(after[IDC_PCTC_STATUS1_STATIC], before[IDC_PCTC_ENCODE_BUTTON], after[IDC_PCTC_ENCODE_BUTTON]);
+	BindLeftToRight(after[IDC_PCTC_STATUS2_STATIC], before[IDC_PCTC_DECODE_BUTTON], after[IDC_PCTC_DECODE_BUTTON]);
+	after[IDC_PCTC_STATUS2_STATIC].right = after[IDC_PCTC_CONTENT1_EDIT].right;
 
-	after[IDC_PCTC_EDIT2].right += cxDelta;
-	MoveHorizontally(after[IDC_PCTC_COPY2], cxDelta);
-	after[IDC_PCTC_LABEL3].right += cxDelta;
+	after[IDC_PCTC_CONTENT2_EDIT].right += cxDelta;
+	MoveHorizontally(after[IDC_PCTC_COPY2_BUTTON], cxDelta);
+	after[IDC_PCTC_DESC_STATIC].right += cxDelta;
 
-	ExtendVertically(after[IDC_PCTC_EDIT1], after[IDC_PCTC_EDIT2], cyDelta);
+	ExtendVertically(after[IDC_PCTC_CONTENT1_EDIT], after[IDC_PCTC_CONTENT2_EDIT], cyDelta);
 
-	RepositionBottom(after[IDC_PCTC_USE_PLUS], after[IDC_PCTC_EDIT1].bottom);
+	RepositionBottom(after[IDC_PCTC_USEPLUS_CHECK], after[IDC_PCTC_CONTENT1_EDIT].bottom);
 
-	LONG dy = after[IDC_PCTC_EDIT1].bottom - before[IDC_PCTC_EDIT1].bottom;
-	MoveVertically(after[IDC_PCTC_STATUS1], dy);
-	MoveVertically(after[IDC_PCTC_ENCODE], dy);
-	MoveVertically(after[IDC_PCTC_ENCODING], dy);
-	MoveVertically(after[IDC_PCTC_DECODE], dy);
-	MoveVertically(after[IDC_PCTC_STATUS2], dy);
+	LONG dy = after[IDC_PCTC_CONTENT1_EDIT].bottom - before[IDC_PCTC_CONTENT1_EDIT].bottom;
+	MoveVertically(after[IDC_PCTC_STATUS1_STATIC], dy);
+	MoveVertically(after[IDC_PCTC_ENCODE_BUTTON], dy);
+	MoveVertically(after[IDC_PCTC_CODEPAGE_COMBO], dy);
+	MoveVertically(after[IDC_PCTC_DECODE_BUTTON], dy);
+	MoveVertically(after[IDC_PCTC_STATUS2_STATIC], dy);
 
-	RepositionTop(after[IDC_PCTC_LABEL2], after[IDC_PCTC_EDIT2].top);
-	RepositionTop(after[IDC_PCTC_COPY2], after[IDC_PCTC_EDIT2].top);
+	RepositionTop(after[IDC_PCTC_CONTENT2_RADIO], after[IDC_PCTC_CONTENT2_EDIT].top);
+	RepositionTop(after[IDC_PCTC_COPY2_BUTTON], after[IDC_PCTC_CONTENT2_EDIT].top);
 
-	MoveVertically(after[IDC_PCTC_LABEL3], cyDelta);
+	MoveVertically(after[IDC_PCTC_DESC_STATIC], cyDelta);
 
 	after.Apply();
 }
@@ -132,7 +139,7 @@ void PercentCodecDialogBox::OnTabSelectionChanged()
 		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
 	m_menuEdit
 		.RemoveAll()
-		.Add(ResourceString(CurrentEdit == IDC_PCTC_EDIT1 ? IDS_MENU_ENCODE : IDS_MENU_DECODE), IDM_EDIT_EXECUTE)
+		.Add(ResourceString(CurrentEdit == IDC_PCTC_CONTENT1_EDIT ? IDS_MENU_ENCODE : IDS_MENU_DECODE), IDM_EDIT_EXECUTE)
 		.AddSeparator()
 		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
 		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
@@ -155,46 +162,57 @@ void PercentCodecDialogBox::OnTabSelectionChanged()
 
 INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
+	if (m_cProcessing)
+	{
+		return TRUE;
+	}
 	UNREFERENCED_PARAMETER(lParam);
 	UINT idChild = LOWORD(wParam);
+	UINT idNotif = HIWORD(wParam);
 	switch (idChild)
 	{
-	case IDC_PCTC_LABEL1:
-	case IDC_PCTC_LABEL2:
-		OnSelectSource(idChild);
-		break;
-	case IDC_PCTC_COPY1:
-		CopyAllText(IDC_PCTC_EDIT1);
-		break;
-	case IDC_PCTC_COPY2:
-		CopyAllText(IDC_PCTC_EDIT2);
-		break;
-	case IDC_PCTC_ENCODE:
-		if (OnEncode())
+	case IDC_PCTC_CONTENT1_RADIO:
+	case IDC_PCTC_CONTENT2_RADIO:
+		if (idNotif == BN_CLICKED)
 		{
-			SetFocus(IDC_PCTC_COPY2);
+			OnSelectSource(idChild);
 		}
 		break;
-	case IDC_PCTC_DECODE:
-		if (OnDecode())
+	case IDC_PCTC_COPY1_BUTTON:
+		if (idNotif == BN_CLICKED)
 		{
-			SetFocus(IDC_PCTC_COPY1);
+			CopyAllText(IDC_PCTC_CONTENT1_EDIT);
 		}
 		break;
-	case IDC_PCTC_EDIT1:
-	case IDC_PCTC_EDIT2:
-		if (HIWORD(wParam) == EN_CHANGE)
+	case IDC_PCTC_COPY2_BUTTON:
+		if (idNotif == BN_CLICKED)
 		{
-			if (m_bEncodingError)
+			CopyAllText(IDC_PCTC_CONTENT2_EDIT);
+		}
+		break;
+	case IDC_PCTC_ENCODE_BUTTON:
+		if (idNotif == BN_CLICKED)
+		{
+			if (OnEncode())
 			{
-				m_bEncodingError = false;
-				SetText(IDC_PCTC_STATUS1, L"");
+				SetFocus(IDC_PCTC_COPY2_BUTTON);
 			}
-			if (m_bDecodingError)
+		}
+		break;
+	case IDC_PCTC_DECODE_BUTTON:
+		if (idNotif == BN_CLICKED)
+		{
+			if (OnDecode())
 			{
-				m_bDecodingError = false;
-				SetText(IDC_PCTC_STATUS2, L"");
+				SetFocus(IDC_PCTC_COPY1_BUTTON);
 			}
+		}
+		break;
+	case IDC_PCTC_CONTENT1_EDIT:
+	case IDC_PCTC_CONTENT2_EDIT:
+		if (idNotif == EN_CHANGE)
+		{
+			ClearStatus();
 		}
 		break;
 	default:
@@ -210,8 +228,8 @@ INT_PTR PercentCodecDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam
 	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
 	switch (id)
 	{
-	case IDC_PCTC_STATUS1:
-	case IDC_PCTC_STATUS2:
+	case IDC_PCTC_STATUS1_STATIC:
+	case IDC_PCTC_STATUS2_STATIC:
 		SetTextColor(hdc, RGB(240, 0, 0));
 		SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
 		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
@@ -224,73 +242,87 @@ INT_PTR PercentCodecDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam
 
 void PercentCodecDialogBox::OnLoadFrom()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	LoadTextFromFile(CurrentEdit, CurrentPath);
 }
 
 
 void PercentCodecDialogBox::OnSaveAs()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SaveTextAsFile(CurrentEdit, CurrentPath);
 }
 
 
 void PercentCodecDialogBox::OnCut()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditCut(CurrentEdit);
+	ClearStatus();
 }
 
 
 void PercentCodecDialogBox::OnCopy()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditCopy(CurrentEdit);
 }
 
 
 void PercentCodecDialogBox::OnPaste()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditPaste(CurrentEdit);
+	ClearStatus();
 }
 
 
 void PercentCodecDialogBox::OnDelete()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditDelete(CurrentEdit);
+	ClearStatus();
 }
 
 
 void PercentCodecDialogBox::OnSelectAll()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditSelectAll(CurrentEdit);
 }
 
 
 void PercentCodecDialogBox::OnCopyAll()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	CopyAllText(CurrentEdit);
 }
 
 
 void PercentCodecDialogBox::OnClear()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditClear(CurrentEdit);
+	ClearStatus();
 	CurrentPath = String::Empty;
 }
 
 
 void PercentCodecDialogBox::OnExecute()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	switch (CurrentEdit)
 	{
-	case IDC_PCTC_EDIT1:
+	case IDC_PCTC_CONTENT1_EDIT:
 		if (OnEncode())
 		{
-			SetFocus(IDC_PCTC_COPY2);
+			SetFocus(IDC_PCTC_COPY2_BUTTON);
 		}
 		break;
-	case IDC_PCTC_EDIT2:
+	case IDC_PCTC_CONTENT2_EDIT:
 		if (OnDecode())
 		{
-			SetFocus(IDC_PCTC_COPY1);
+			SetFocus(IDC_PCTC_COPY1_BUTTON);
 		}
 		break;
 	default:
@@ -301,6 +333,7 @@ void PercentCodecDialogBox::OnExecute()
 
 void PercentCodecDialogBox::OnSettingChanged(UINT uId)
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	if (ApplyToInputCodePage(uId))
 	{
 		return;
@@ -314,55 +347,39 @@ void PercentCodecDialogBox::OnSettingChanged(UINT uId)
 
 void PercentCodecDialogBox::OnSelectSource(int id)
 {
-	ButtonCheck(IDC_PCTC_LABEL1, id == IDC_PCTC_LABEL1);
-	EditSetReadOnly(IDC_PCTC_EDIT1, id == IDC_PCTC_LABEL1 ? FALSE : TRUE);
-	EnableWindow(IDC_PCTC_USE_PLUS, id == IDC_PCTC_LABEL1);
-	EnableWindow(IDC_PCTC_ENCODE, id == IDC_PCTC_LABEL1);
-	ButtonCheck(IDC_PCTC_LABEL2, id == IDC_PCTC_LABEL2);
-	EditSetReadOnly(IDC_PCTC_EDIT2, id == IDC_PCTC_LABEL2 ? FALSE : TRUE);
-	EnableWindow(IDC_PCTC_DECODE, id == IDC_PCTC_LABEL2);
-	if (m_bEncodingError)
-	{
-		m_bEncodingError = false;
-		SetText(IDC_PCTC_STATUS1, L"");
-	}
-	if (m_bDecodingError)
-	{
-		m_bDecodingError = false;
-		SetText(IDC_PCTC_STATUS2, L"");
-	}
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+	ButtonCheck(IDC_PCTC_CONTENT1_RADIO, id == IDC_PCTC_CONTENT1_RADIO);
+	EditSetReadOnly(IDC_PCTC_CONTENT1_EDIT, id == IDC_PCTC_CONTENT1_RADIO ? FALSE : TRUE);
+	EnableWindow(IDC_PCTC_USEPLUS_CHECK, id == IDC_PCTC_CONTENT1_RADIO);
+	EnableWindow(IDC_PCTC_ENCODE_BUTTON, id == IDC_PCTC_CONTENT1_RADIO);
+	ButtonCheck(IDC_PCTC_CONTENT2_RADIO, id == IDC_PCTC_CONTENT2_RADIO);
+	EditSetReadOnly(IDC_PCTC_CONTENT2_EDIT, id == IDC_PCTC_CONTENT2_RADIO ? FALSE : TRUE);
+	EnableWindow(IDC_PCTC_DECODE_BUTTON, id == IDC_PCTC_CONTENT2_RADIO);
+	ClearStatus();
 	m_menuEdit
 		.Modify(
 			IDM_EDIT_EXECUTE, 0,
-			IDM_EDIT_EXECUTE, ResourceString(id == IDC_PCTC_LABEL1 ? IDS_MENU_ENCODE : IDS_MENU_DECODE));
+			IDM_EDIT_EXECUTE, ResourceString(id == IDC_PCTC_CONTENT1_RADIO ? IDS_MENU_ENCODE : IDS_MENU_DECODE));
 }
 
 
 bool PercentCodecDialogBox::OnEncode()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	try
 	{
-		if (m_bEncodingError)
-		{
-			m_bEncodingError = false;
-			SetText(IDC_PCTC_STATUS1, L"");
-		}
-		if (m_bDecodingError)
-		{
-			m_bDecodingError = false;
-			SetText(IDC_PCTC_STATUS2, L"");
-		}
-		String szText = GetText(IDC_PCTC_EDIT1);
+		ClearStatus();
+		String szText = GetText(IDC_PCTC_CONTENT1_EDIT);
 		UINT uCodePage = GetCodePage();
 		Buffer<WCHAR> buf((szText.Len + 1ULL) * 4ULL * 3ULL);
-		Encode(szText, static_cast<UINT>(szText.Len + 1ULL), uCodePage, buf, static_cast<UINT>(buf.Len), ButtonIsChecked(IDC_PCTC_USE_PLUS));
-		SetText(IDC_PCTC_EDIT2, buf);
+		Encode(szText, static_cast<UINT>(szText.Len + 1ULL), uCodePage, buf, static_cast<UINT>(buf.Len), ButtonIsChecked(IDC_PCTC_USEPLUS_CHECK));
+		SetText(IDC_PCTC_CONTENT2_EDIT, buf);
 		m_bDecodingError = false;
 		return true;
 	}
 	catch (Exception e)
 	{
-		SetText(IDC_PCTC_STATUS1, e.Message);
+		SetText(IDC_PCTC_STATUS1_STATIC, e.Message);
 		m_bEncodingError = true;
 		return false;
 	}
@@ -371,29 +388,21 @@ bool PercentCodecDialogBox::OnEncode()
 
 bool PercentCodecDialogBox::OnDecode()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	try
 	{
-		if (m_bEncodingError)
-		{
-			m_bEncodingError = false;
-			SetText(IDC_PCTC_STATUS1, L"");
-		}
-		if (m_bDecodingError)
-		{
-			m_bDecodingError = false;
-			SetText(IDC_PCTC_STATUS2, L"");
-		}
-		String szText = GetText(IDC_PCTC_EDIT2);
+		ClearStatus();
+		String szText = GetText(IDC_PCTC_CONTENT2_EDIT);
 		UINT uCodePage = GetCodePage();
 		Buffer<WCHAR> buf(szText.Len + 1ULL);
 		Decode(szText, static_cast<UINT>(szText.Len + 1ULL), uCodePage, buf, static_cast<UINT>(buf.Len));
-		SetText(IDC_PCTC_EDIT1, buf);
+		SetText(IDC_PCTC_CONTENT1_EDIT, buf);
 		m_bDecodingError = false;
 		return true;
 	}
 	catch (Exception e)
 	{
-		SetText(IDC_PCTC_STATUS2, e.Message);
+		SetText(IDC_PCTC_STATUS2_STATIC, e.Message);
 		m_bDecodingError = true;
 		return false;
 	}
@@ -402,7 +411,7 @@ bool PercentCodecDialogBox::OnDecode()
 
 UINT PercentCodecDialogBox::GetCodePage() const
 {
-	return ComboBoxGetSelection(IDC_PCTC_ENCODING, CP_UTF8);
+	return ComboBoxGetSelection(IDC_PCTC_CODEPAGE_COMBO, CP_UTF8);
 }
 
 
@@ -720,15 +729,30 @@ UINT PercentCodecDialogBox::GetDecodedOffset(PCWSTR pszIn, UINT cbOut)
 }
 
 
+void PercentCodecDialogBox::ClearStatus()
+{
+	if (m_bEncodingError)
+	{
+		m_bEncodingError = false;
+		SetText(IDC_PCTC_STATUS1_STATIC);
+	}
+	if (m_bDecodingError)
+	{
+		m_bDecodingError = false;
+		SetText(IDC_PCTC_STATUS2_STATIC);
+	}
+}
+
+
 int PercentCodecDialogBox::get_CurrentEdit() const
 {
-	if (ButtonIsChecked(IDC_PCTC_LABEL1))
+	if (ButtonIsChecked(IDC_PCTC_CONTENT1_RADIO))
 	{
-		return IDC_PCTC_EDIT1;
+		return IDC_PCTC_CONTENT1_EDIT;
 	}
-	else if (ButtonIsChecked(IDC_PCTC_LABEL2))
+	else if (ButtonIsChecked(IDC_PCTC_CONTENT2_RADIO))
 	{
-		return IDC_PCTC_EDIT2;
+		return IDC_PCTC_CONTENT2_EDIT;
 	}
 	else
 	{
@@ -741,9 +765,9 @@ String& PercentCodecDialogBox::get_CurrentPath() const
 {
 	switch (CurrentEdit)
 	{
-	case IDC_PCTC_EDIT1:
+	case IDC_PCTC_CONTENT1_EDIT:
 		return m_szOriginalPath;
-	case IDC_PCTC_EDIT2:
+	case IDC_PCTC_CONTENT2_EDIT:
 		return m_szEncodedPath;
 	default:
 		throw Exception(L"PercentCodecDialogBox::get_CurrentPath: Unexpected state.");
@@ -755,10 +779,10 @@ void PercentCodecDialogBox::set_CurrentPath(const String& value)
 {
 	switch (CurrentEdit)
 	{
-	case IDC_PCTC_EDIT1:
+	case IDC_PCTC_CONTENT1_EDIT:
 		m_szOriginalPath = value;
 		break;
-	case IDC_PCTC_EDIT2:
+	case IDC_PCTC_CONTENT2_EDIT:
 		m_szEncodedPath = value;
 		break;
 	default:
