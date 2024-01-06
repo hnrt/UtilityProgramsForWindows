@@ -36,8 +36,9 @@ namespace hnrt
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		void OnSelectSource(int);
-		void OnEncode() const;
-		void OnDecode() const;
+		void OnEncode();
+		void OnDecode();
+		void UpdateMenus();
 
 		int get_CurrentEdit() const;
 		String& get_CurrentPath() const;

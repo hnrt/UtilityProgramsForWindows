@@ -45,6 +45,7 @@ namespace hnrt
 		void Decode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut);
 		UINT GetDecodedOffset(PCWSTR pszIn, UINT cbOut);
 		void ClearStatus();
+		void UpdateMenus();
 
 		int get_CurrentEdit() const;
 		String& get_CurrentPath() const;

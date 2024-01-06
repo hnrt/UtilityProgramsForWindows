@@ -1,11 +1,13 @@
 #include "pch.h"
 #include "NativeToAsciiDialogBox.h"
+#include "MyToolbox.h"
 #include "resource.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/WindowDesign.h"
 #include "hnrt/WindowLayoutSnapshot.h"
+#include "hnrt/WhileInScope.h"
 #include "hnrt/Menu.h"
 #include "hnrt/WindowHandle.h"
 #include "hnrt/Buffer.h"
@@ -14,14 +16,14 @@
 #include "hnrt/Exception.h"
 
 
-using namespace hnrt;
-
-
 #define REGVAL_INPUT_CODEPAGE L"InputCodePage"
 #define REGVAL_OUTPUT_CODEPAGE L"OutputCodePage"
 #define REGVAL_OUTPUT_BOM L"OutputBOM"
 #define REGVAL_NATIVE_PATH L"NativePath"
 #define REGVAL_ASCII_PATH L"AsciiPath"
+
+
+using namespace hnrt;
 
 
 NativeToAsciiDialogBox::NativeToAsciiDialogBox()
@@ -45,6 +47,9 @@ void NativeToAsciiDialogBox::OnCreate()
 		m_szNativePath = RegistryValue::GetSZ(hKey, REGVAL_NATIVE_PATH);
 		m_szAsciiPath = RegistryValue::GetSZ(hKey, REGVAL_ASCII_PATH);
 	}
+	HFONT hFont = GetApp<MyToolbox>().GetFontForData();
+	SetFont(IDC_NTOA_NATIVE_EDIT, hFont);
+	SetFont(IDC_NTOA_ASCII_EDIT, hFont);
 	m_menuView
 		.Add(ResourceString(IDS_MENU_NTOA), IDM_VIEW_NTOA);
 }
@@ -62,6 +67,8 @@ void NativeToAsciiDialogBox::OnDestroy()
 		RegistryValue::SetSZ(hKey, REGVAL_NATIVE_PATH, m_szNativePath);
 		RegistryValue::SetSZ(hKey, REGVAL_ASCII_PATH, m_szAsciiPath);
 	}
+	SetFont(IDC_NTOA_NATIVE_EDIT, NULL);
+	SetFont(IDC_NTOA_ASCII_EDIT, NULL);
 	MyDialogBox::OnDestroy();
 }
 
@@ -101,26 +108,7 @@ void NativeToAsciiDialogBox::OnTabSelectionChanging()
 void NativeToAsciiDialogBox::OnTabSelectionChanged()
 {
 	MyDialogBox::OnTabSelectionChanged();
-	m_menuFile
-		.RemoveAll()
-		.Add(ResourceString(IDS_MENU_LOADFROM), IDM_FILE_LOADFROM)
-		.Add(ResourceString(IDS_MENU_SAVEAS), IDM_FILE_SAVEAS)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
-	m_menuEdit
-		.RemoveAll()
-		.Add(ResourceString(CurrentEdit == IDC_NTOA_NATIVE_EDIT ? IDS_MENU_ENCODE : IDS_MENU_DECODE), IDM_EDIT_EXECUTE)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
-		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
-		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
-		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
+	UpdateMenus();
 	m_menuView
 		.Enable(IDM_VIEW_NTOA, MF_DISABLED);
 	m_menuSettings
@@ -133,26 +121,53 @@ void NativeToAsciiDialogBox::OnTabSelectionChanged()
 INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
+	if (m_cProcessing)
+	{
+		return TRUE;
+	}
 	UINT idChild = LOWORD(wParam);
+	UINT idNotif = HIWORD(wParam);
 	switch (idChild)
 	{
 	case IDC_NTOA_NATIVE_RADIO:
 	case IDC_NTOA_ASCII_RADIO:
-		OnSelectSource(idChild);
+		if (idNotif == BN_CLICKED)
+		{
+			OnSelectSource(idChild);
+		}
 		break;
 	case IDC_NTOA_COPY1_BUTTON:
-		CopyAllText(IDC_NTOA_NATIVE_EDIT);
+		if (idNotif == BN_CLICKED)
+		{
+			CopyAllText(IDC_NTOA_NATIVE_EDIT);
+		}
 		break;
 	case IDC_NTOA_COPY2_BUTTON:
-		CopyAllText(IDC_NTOA_ASCII_EDIT);
+		if (idNotif == BN_CLICKED)
+		{
+			CopyAllText(IDC_NTOA_ASCII_EDIT);
+		}
 		break;
 	case IDC_NTOA_ENCODE_BUTTON:
-		OnEncode();
-		SetFocus(IDC_NTOA_COPY2_BUTTON);
+		if (idNotif == BN_CLICKED)
+		{
+			OnEncode();
+			SetFocus(IDC_NTOA_COPY2_BUTTON);
+		}
 		break;
 	case IDC_NTOA_DECODE_BUTTON:
-		OnDecode();
-		SetFocus(IDC_NTOA_COPY1_BUTTON);
+		if (idNotif == BN_CLICKED)
+		{
+			OnDecode();
+			SetFocus(IDC_NTOA_COPY1_BUTTON);
+		}
+		break;
+	case IDC_NTOA_NATIVE_EDIT:
+	case IDC_NTOA_ASCII_EDIT:
+		if (idNotif == EN_CHANGE)
+		{
+			UpdateMenus();
+		}
 		break;
 	default:
 		return FALSE;
@@ -163,61 +178,77 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 
 void NativeToAsciiDialogBox::OnLoadFrom()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	LoadTextFromFile(CurrentEdit, CurrentPath);
+	UpdateMenus();
 }
 
 
 void NativeToAsciiDialogBox::OnSaveAs()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SaveTextAsFile(CurrentEdit, CurrentPath);
 }
 
 
 void NativeToAsciiDialogBox::OnCut()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditCut(CurrentEdit);
+	UpdateMenus();
 }
 
 
 void NativeToAsciiDialogBox::OnCopy()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditCopy(CurrentEdit);
+	UpdateMenus();
 }
 
 
 void NativeToAsciiDialogBox::OnPaste()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditPaste(CurrentEdit);
+	UpdateMenus();
 }
 
 
 void NativeToAsciiDialogBox::OnDelete()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditDelete(CurrentEdit);
+	UpdateMenus();
 }
 
 
 void NativeToAsciiDialogBox::OnSelectAll()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditSelectAll(CurrentEdit);
 }
 
 
 void NativeToAsciiDialogBox::OnCopyAll()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	CopyAllText(CurrentEdit);
 }
 
 
 void NativeToAsciiDialogBox::OnClear()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditClear(CurrentEdit);
 	CurrentPath = String::Empty;
+	UpdateMenus();
 }
 
 
 void NativeToAsciiDialogBox::OnExecute()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	switch (CurrentEdit)
 	{
 	case IDC_NTOA_NATIVE_EDIT:
@@ -236,6 +267,7 @@ void NativeToAsciiDialogBox::OnExecute()
 
 void NativeToAsciiDialogBox::OnSettingChanged(UINT uId)
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	if (ApplyToInputCodePage(uId))
 	{
 		return;
@@ -249,28 +281,54 @@ void NativeToAsciiDialogBox::OnSettingChanged(UINT uId)
 
 void NativeToAsciiDialogBox::OnSelectSource(int id)
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	ButtonCheck(IDC_NTOA_NATIVE_RADIO, id == IDC_NTOA_NATIVE_RADIO);
 	EditSetReadOnly(IDC_NTOA_NATIVE_EDIT, id != IDC_NTOA_NATIVE_RADIO);
 	EnableWindow(IDC_NTOA_ENCODE_BUTTON, id == IDC_NTOA_NATIVE_RADIO);
 	ButtonCheck(IDC_NTOA_ASCII_RADIO, id == IDC_NTOA_ASCII_RADIO);
 	EditSetReadOnly(IDC_NTOA_ASCII_EDIT, id != IDC_NTOA_ASCII_RADIO);
 	EnableWindow(IDC_NTOA_DECODE_BUTTON, id == IDC_NTOA_ASCII_RADIO);
-	m_menuEdit
-		.Modify(
-			IDM_EDIT_EXECUTE, 0,
-			IDM_EDIT_EXECUTE, ResourceString(id == IDC_NTOA_NATIVE_RADIO ? IDS_MENU_ENCODE : IDS_MENU_DECODE));
+	UpdateMenus();
 }
 
 
-void NativeToAsciiDialogBox::OnEncode() const
+void NativeToAsciiDialogBox::OnEncode()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SetText(IDC_NTOA_ASCII_EDIT, FromNativeToAscii(GetText(IDC_NTOA_NATIVE_EDIT)));
 }
 
 
-void NativeToAsciiDialogBox::OnDecode() const
+void NativeToAsciiDialogBox::OnDecode()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SetText(IDC_NTOA_NATIVE_EDIT, FromAsciiToNative(GetText(IDC_NTOA_ASCII_EDIT)));
+}
+
+
+void NativeToAsciiDialogBox::UpdateMenus()
+{
+	UINT flags = GetTextLength(CurrentEdit) > 0 ? MF_ENABLED : MF_DISABLED;
+	m_menuFile
+		.RemoveAll()
+		.Add(ResourceString(IDS_MENU_LOADFROM), IDM_FILE_LOADFROM)
+		.Add(ResourceString(IDS_MENU_SAVEAS), IDM_FILE_SAVEAS, flags)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
+	m_menuEdit
+		.RemoveAll()
+		.Add(ResourceString(CurrentEdit == IDC_NTOA_NATIVE_EDIT ? IDS_MENU_ENCODE : IDS_MENU_DECODE), IDM_EDIT_EXECUTE, flags)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT, flags)
+		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY, flags)
+		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
+		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE, flags)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL, flags)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL, flags)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR, flags);
 }
 
 

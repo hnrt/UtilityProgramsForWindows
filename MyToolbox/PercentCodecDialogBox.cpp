@@ -131,26 +131,7 @@ void PercentCodecDialogBox::OnTabSelectionChanging()
 void PercentCodecDialogBox::OnTabSelectionChanged()
 {
 	MyDialogBox::OnTabSelectionChanged();
-	m_menuFile
-		.RemoveAll()
-		.Add(ResourceString(IDS_MENU_LOADFROM), IDM_FILE_LOADFROM)
-		.Add(ResourceString(IDS_MENU_SAVEAS), IDM_FILE_SAVEAS)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
-	m_menuEdit
-		.RemoveAll()
-		.Add(ResourceString(CurrentEdit == IDC_PCTC_CONTENT1_EDIT ? IDS_MENU_ENCODE : IDS_MENU_DECODE), IDM_EDIT_EXECUTE)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
-		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
-		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
-		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
+	UpdateMenus();
 	m_menuView
 		.Enable(IDM_VIEW_PCTC, MF_DISABLED);
 	m_menuSettings
@@ -213,6 +194,7 @@ INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		if (idNotif == EN_CHANGE)
 		{
 			ClearStatus();
+			UpdateMenus();
 		}
 		break;
 	default:
@@ -244,6 +226,7 @@ void PercentCodecDialogBox::OnLoadFrom()
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	LoadTextFromFile(CurrentEdit, CurrentPath);
+	UpdateMenus();
 }
 
 
@@ -259,6 +242,7 @@ void PercentCodecDialogBox::OnCut()
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditCut(CurrentEdit);
 	ClearStatus();
+	UpdateMenus();
 }
 
 
@@ -274,6 +258,7 @@ void PercentCodecDialogBox::OnPaste()
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditPaste(CurrentEdit);
 	ClearStatus();
+	UpdateMenus();
 }
 
 
@@ -282,6 +267,7 @@ void PercentCodecDialogBox::OnDelete()
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	EditDelete(CurrentEdit);
 	ClearStatus();
+	UpdateMenus();
 }
 
 
@@ -305,6 +291,7 @@ void PercentCodecDialogBox::OnClear()
 	EditClear(CurrentEdit);
 	ClearStatus();
 	CurrentPath = String::Empty;
+	UpdateMenus();
 }
 
 
@@ -356,10 +343,7 @@ void PercentCodecDialogBox::OnSelectSource(int id)
 	EditSetReadOnly(IDC_PCTC_CONTENT2_EDIT, id == IDC_PCTC_CONTENT2_RADIO ? FALSE : TRUE);
 	EnableWindow(IDC_PCTC_DECODE_BUTTON, id == IDC_PCTC_CONTENT2_RADIO);
 	ClearStatus();
-	m_menuEdit
-		.Modify(
-			IDM_EDIT_EXECUTE, 0,
-			IDM_EDIT_EXECUTE, ResourceString(id == IDC_PCTC_CONTENT1_RADIO ? IDS_MENU_ENCODE : IDS_MENU_DECODE));
+	UpdateMenus();
 }
 
 
@@ -741,6 +725,32 @@ void PercentCodecDialogBox::ClearStatus()
 		m_bDecodingError = false;
 		SetText(IDC_PCTC_STATUS2_STATIC);
 	}
+}
+
+
+void PercentCodecDialogBox::UpdateMenus()
+{
+	UINT flags = GetTextLength(CurrentEdit) > 0 ? MF_ENABLED : MF_DISABLED;
+	m_menuFile
+		.RemoveAll()
+		.Add(ResourceString(IDS_MENU_LOADFROM), IDM_FILE_LOADFROM)
+		.Add(ResourceString(IDS_MENU_SAVEAS), IDM_FILE_SAVEAS, flags)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
+	m_menuEdit
+		.RemoveAll()
+		.Add(ResourceString(CurrentEdit == IDC_PCTC_CONTENT1_EDIT ? IDS_MENU_ENCODE : IDS_MENU_DECODE), IDM_EDIT_EXECUTE, flags)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT, flags)
+		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY, flags)
+		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
+		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE, flags)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL, flags)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL, flags)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR, flags);
 }
 
 
