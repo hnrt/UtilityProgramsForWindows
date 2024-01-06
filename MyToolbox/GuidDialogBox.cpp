@@ -130,6 +130,7 @@ INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_GUID_REGISTRY_RADIO:
     case IDC_GUID_SQUARE_RADIO:
     case IDC_GUID_ANGLE_RADIO:
+    case IDC_GUID_HEX_RADIO:
         if (idNotif == BN_CLICKED)
         {
             ChangeFormat(idChild);
@@ -243,6 +244,9 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
         * <Guid("CC9CCEEF-195A-4539-9378-D083818A61C6")>
         */
         m_szFormatted.Format(L"<Guid(\"%.36s\")>", &buf[1]);
+        break;
+    case IDC_GUID_HEX_RADIO:
+        m_szFormatted = String::ToHex(&m_guid, sizeof(m_guid), UPPERCASE);
         break;
     case IDC_GUID_UPPERCASE_RADIO:
     default:

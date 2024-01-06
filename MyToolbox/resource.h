@@ -132,9 +132,9 @@
 #define IDC_GUID_SQUARE_RADIO           2006
 #define IDC_GUID_ANGLE_RADIO            2007
 #define IDC_GUID_RESULT_STATIC          2008
-#define IDC_GUID_COPY_BUTTON            2009
-#define IDC_GUID_NEW_BUTTON             2010
-#define IDC_GUID_FORMAT                 2011
+#define IDC_GUID_HEX_RADIO              2009
+#define IDC_GUID_COPY_BUTTON            2010
+#define IDC_GUID_NEW_BUTTON             2011
 #define IDC_GUID_FORMAT_GROUP           2012
 #define IDC_GUID_RESULT_GROUP           2013
 #define IDC_PCTC_LABEL1                 3000
