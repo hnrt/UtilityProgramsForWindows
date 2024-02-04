@@ -143,7 +143,7 @@ XSTRING::XSTRING(SIZE_T cch, XCHAR fill)
 XSTRING::XSTRING(UINT cp, PCSTR psz, SSIZE_T cb)
     : m_psz(nullptr)
 {
-    cb = StringCommons::Length(psz, cb);
+    cb = StrLen(psz, cb);
     if (cb)
     {
         int cch = MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, static_cast<int>(cb), NULL, 0);
@@ -167,7 +167,7 @@ XSTRING::XSTRING(UINT cp, PCSTR psz, SSIZE_T cb)
 XSTRING::XSTRING(PCWSTR psz, SSIZE_T cch)
     : m_psz(nullptr)
 {
-    cch = StringCommons::Length(psz, cch);
+    cch = StrLen(psz, cch);
     if (cch)
     {
         int cb = WideCharToMultiByte(XCODEPAGE, WC_ERR_INVALID_CHARS, psz, static_cast<int>(cch), NULL, 0, NULL, NULL);
@@ -303,8 +303,8 @@ XSTRING& XSTRING::TruncateHead(SIZE_T cch)
         else if (cch < pThis->Len)
         {
             SIZE_T newLen = pThis->Len - cch;
-            StringCommons::Move(&m_psz[0], &m_psz[cch], newLen);
-            StringCommons::Fill(&m_psz[newLen], XLITERAL('\0'), cch);
+            StrMove(&m_psz[0], &m_psz[cch], newLen);
+            StrFill(&m_psz[newLen], XLITERAL('\0'), cch);
             pThis->SetLength(newLen);
         }
         else
@@ -328,7 +328,7 @@ XSTRING& XSTRING::TruncateTail(SIZE_T cch)
         else if (cch < pThis->Len)
         {
             SIZE_T newLen = pThis->Len - cch;
-            StringCommons::Fill(&m_psz[newLen], XLITERAL('\0'), cch);
+            StrFill(&m_psz[newLen], XLITERAL('\0'), cch);
             pThis->SetLength(newLen);
         }
         else
@@ -395,7 +395,7 @@ int XSTRING::IndexOf(const XSTRING& s, SIZE_T fromIndex) const
 
 bool XSTRING::StartsWith(PCXSTR psz, SSIZE_T cch) const
 {
-    SIZE_T cchActual = StringCommons::Length(psz, cch);
+    SIZE_T cchActual = StrLen(psz, cch);
     if (cchActual == 0)
     {
         return true;
@@ -413,7 +413,7 @@ bool XSTRING::StartsWith(PCXSTR psz, SSIZE_T cch) const
 
 bool XSTRING::EndsWith(PCXSTR psz, SSIZE_T cch) const
 {
-    SIZE_T cchActual = StringCommons::Length(psz, cch);
+    SIZE_T cchActual = StrLen(psz, cch);
     if (cchActual == 0)
     {
         return true;
@@ -436,7 +436,7 @@ XSTRING XSTRING::Wrap(UINT width, PCXSTR pszNewLine) const
         return XSTRING(*this);
     }
     SIZE_T len = Len;
-    SIZE_T lenNewLine = StringCommons::Length(pszNewLine);
+    SIZE_T lenNewLine = StrLen(pszNewLine);
     SIZE_T delta = (len / static_cast<SIZE_T>(width)) * lenNewLine;
     XSTRING sz(len + delta);
     PXCHAR pSrc = &m_psz[0];
@@ -444,11 +444,11 @@ XSTRING XSTRING::Wrap(UINT width, PCXSTR pszNewLine) const
     PXCHAR pDst = const_cast<PXCHAR>(sz.Ptr);
     while (pSrc + width <= pEnd)
     {
-        pDst += StringCommons::Copy(pDst, pSrc, width);
-        pDst += StringCommons::Copy(pDst, pszNewLine, lenNewLine);
+        pDst += StrCopy(pDst, pSrc, width);
+        pDst += StrCopy(pDst, pszNewLine, lenNewLine);
         pSrc += width;
     }
-    pDst += StringCommons::Copy(pDst, pSrc, pEnd - pSrc);
+    pDst += StrCopy(pDst, pSrc, pEnd - pSrc);
     pDst[0] = (XCHAR)0;
     return sz;
 }

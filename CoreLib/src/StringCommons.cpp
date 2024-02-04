@@ -6,11 +6,11 @@
 using namespace hnrt;
 
 
-SIZE_T StringCommons::Length(const WCHAR* psz, SSIZE_T cch)
+SIZE_T hnrt::StrLen(const WCHAR* str, SSIZE_T numberOfElements)
 {
-	if (psz && cch)
+	if (str && numberOfElements)
 	{
-		return cch < 0 ? wcslen(psz) : wcsnlen(psz, cch);
+		return numberOfElements < 0 ? wcslen(str) : wcsnlen(str, numberOfElements);
 	}
 	else
 	{
@@ -19,11 +19,11 @@ SIZE_T StringCommons::Length(const WCHAR* psz, SSIZE_T cch)
 }
 
 
-SIZE_T StringCommons::Length(const CHAR* psz, SSIZE_T cch)
+SIZE_T hnrt::StrLen(const CHAR* str, SSIZE_T numberOfElements)
 {
-	if (psz && cch)
+	if (str && numberOfElements)
 	{
-		return cch < 0 ? strlen(psz) : strnlen(psz, cch);
+		return numberOfElements < 0 ? strlen(str) : strnlen(str, numberOfElements);
 	}
 	else
 	{
@@ -32,50 +32,49 @@ SIZE_T StringCommons::Length(const CHAR* psz, SSIZE_T cch)
 }
 
 
-SIZE_T StringCommons::Fill(WCHAR* psz, WCHAR c, SIZE_T cch)
+SIZE_T hnrt::StrCopy(WCHAR* dest, const WCHAR* src, SSIZE_T count)
 {
-	wmemset(psz, c, cch);
+	SIZE_T cch = StrLen(src, count);
+	wmemcpy_s(dest, cch, src, cch);
+	dest[cch] = L'\0';
 	return cch;
 }
 
 
-SIZE_T StringCommons::Fill(CHAR* psz, CHAR c, SIZE_T cch)
+SIZE_T hnrt::StrCopy(CHAR* dest, const CHAR* src, SSIZE_T count)
 {
-	memset(psz, c, cch);
+	SIZE_T cch = StrLen(src, count);
+	memcpy_s(dest, cch, src, cch);
+	dest[cch] = '\0';
 	return cch;
 }
 
 
-
-SIZE_T StringCommons::Copy(WCHAR* psz1, const WCHAR* psz2, SSIZE_T cch)
+SIZE_T hnrt::StrFill(WCHAR* dest, WCHAR c, SIZE_T count)
 {
-	cch = Length(psz2, cch);
-	wmemcpy_s(psz1, cch, psz2, cch);
-	psz1[cch] = L'\0';
-	return cch;
+	wmemset(dest, c, count);
+	return count;
 }
 
 
-SIZE_T StringCommons::Copy(CHAR* psz1, const CHAR* psz2, SSIZE_T cch)
+SIZE_T hnrt::StrFill(CHAR* dest, CHAR c, SIZE_T count)
 {
-	cch = Length(psz2, cch);
-	memcpy_s(psz1, cch, psz2, cch);
-	psz1[cch] = '\0';
-	return cch;
+	memset(dest, c, count);
+	return count;
 }
 
 
-SIZE_T StringCommons::Move(WCHAR* p1, const WCHAR* p2, SIZE_T cch)
+SIZE_T hnrt::StrMove(WCHAR* dest, const WCHAR* src, SIZE_T count)
 {
-	wmemmove_s(p1, cch, p2, cch);
-	return cch;
+	wmemmove_s(dest, count, src, count);
+	return count;
 }
 
 
-SIZE_T StringCommons::Move(CHAR* p1, const CHAR* p2, SIZE_T cch)
+SIZE_T hnrt::StrMove(CHAR* dest, const CHAR* src, SIZE_T count)
 {
-	memmove_s(p1, cch, p2, cch);
-	return cch;
+	memmove_s(dest, count, src, count);
+	return count;
 }
 
 
@@ -187,7 +186,7 @@ SIZE_T StringCommons::VaFormat(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, v
 
 SIZE_T StringCommons::Uppercase(WCHAR* psz, SSIZE_T cch)
 {
-	cch = Length(psz, cch);
+	cch = StrLen(psz, cch);
 	_wcsupr_s(psz, cch);
 	return cch;
 }
@@ -195,7 +194,7 @@ SIZE_T StringCommons::Uppercase(WCHAR* psz, SSIZE_T cch)
 
 SIZE_T StringCommons::Uppercase(CHAR* psz, SSIZE_T cch)
 {
-	cch = Length(psz, cch);
+	cch = StrLen(psz, cch);
 	_strupr_s(psz, cch);
 	return cch;
 }
@@ -203,7 +202,7 @@ SIZE_T StringCommons::Uppercase(CHAR* psz, SSIZE_T cch)
 
 SIZE_T StringCommons::Lowercase(WCHAR* psz, SSIZE_T cch)
 {
-	cch = Length(psz, cch);
+	cch = StrLen(psz, cch);
 	_wcslwr_s(psz, cch);
 	return cch;
 }
@@ -211,7 +210,7 @@ SIZE_T StringCommons::Lowercase(WCHAR* psz, SSIZE_T cch)
 
 SIZE_T StringCommons::Lowercase(CHAR* psz, SSIZE_T cch)
 {
-	cch = Length(psz, cch);
+	cch = StrLen(psz, cch);
 	_strlwr_s(psz, cch);
 	return cch;
 }
@@ -219,7 +218,7 @@ SIZE_T StringCommons::Lowercase(CHAR* psz, SSIZE_T cch)
 
 SIZE_T StringCommons::Lettercase(StringOptions option, WCHAR* psz, SSIZE_T cch)
 {
-	cch = Length(psz, cch);
+	cch = StrLen(psz, cch);
 	switch (option)
 	{
 	case UPPERCASE:
@@ -237,7 +236,7 @@ SIZE_T StringCommons::Lettercase(StringOptions option, WCHAR* psz, SSIZE_T cch)
 
 SIZE_T StringCommons::Lettercase(StringOptions option, CHAR* psz, SSIZE_T cch)
 {
-	cch = Length(psz, cch);
+	cch = StrLen(psz, cch);
 	switch (option)
 	{
 	case UPPERCASE:
@@ -356,34 +355,34 @@ CHAR* StringCommons::Trim(CHAR* psz, StringOptions option)
 template<typename T>
 SIZE_T DoVaConcatLength(StringOptions option, const T* psz, va_list argList)
 {
-	SIZE_T required = StringCommons::Length(psz);
+	SIZE_T required = StrLen(psz);
 	va_list argList2;
 	va_copy(argList2, argList);
 	switch (option)
 	{
 	case CONCAT9:
-		required += StringCommons::Length(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argList2, const T*));
 		//FALLTHROUGH
 	case CONCAT8:
-		required += StringCommons::Length(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argList2, const T*));
 		//FALLTHROUGH
 	case CONCAT7:
-		required += StringCommons::Length(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argList2, const T*));
 		//FALLTHROUGH
 	case CONCAT6:
-		required += StringCommons::Length(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argList2, const T*));
 		//FALLTHROUGH
 	case CONCAT5:
-		required += StringCommons::Length(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argList2, const T*));
 		//FALLTHROUGH
 	case CONCAT4:
-		required += StringCommons::Length(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argList2, const T*));
 		//FALLTHROUGH
 	case CONCAT3:
-		required += StringCommons::Length(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argList2, const T*));
 		//FALLTHROUGH
 	case CONCAT2:
-		required += StringCommons::Length(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argList2, const T*));
 		break;
 	default:
 		while (true)
@@ -393,7 +392,7 @@ SIZE_T DoVaConcatLength(StringOptions option, const T* psz, va_list argList)
 			{
 				break;
 			}
-			required += StringCommons::Length(psz2);
+			required += StrLen(psz2);
 		}
 		break;
 	}
@@ -417,32 +416,32 @@ SIZE_T StringCommons::VaConcatLength(StringOptions option, const CHAR* psz, va_l
 template<typename T>
 SIZE_T DoVaConcat(StringOptions option, const T* psz, va_list argList, T* pBuf)
 {
-	T* pCur = pBuf + StringCommons::Copy(pBuf, psz);
+	T* pCur = pBuf + StrCopy(pBuf, psz);
 	switch (option)
 	{
 	case CONCAT9:
-		pCur += StringCommons::Copy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argList, const T*));
 		//FALLTHROUGH
 	case CONCAT8:
-		pCur += StringCommons::Copy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argList, const T*));
 		//FALLTHROUGH
 	case CONCAT7:
-		pCur += StringCommons::Copy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argList, const T*));
 		//FALLTHROUGH
 	case CONCAT6:
-		pCur += StringCommons::Copy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argList, const T*));
 		//FALLTHROUGH
 	case CONCAT5:
-		pCur += StringCommons::Copy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argList, const T*));
 		//FALLTHROUGH
 	case CONCAT4:
-		pCur += StringCommons::Copy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argList, const T*));
 		//FALLTHROUGH
 	case CONCAT3:
-		pCur += StringCommons::Copy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argList, const T*));
 		//FALLTHROUGH
 	case CONCAT2:
-		pCur += StringCommons::Copy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argList, const T*));
 		break;
 	default:
 		while (true)
@@ -452,7 +451,7 @@ SIZE_T DoVaConcat(StringOptions option, const T* psz, va_list argList, T* pBuf)
 			{
 				break;
 			}
-			pCur += StringCommons::Copy(pCur, psz2);
+			pCur += StrCopy(pCur, psz2);
 		}
 		break;
 	}

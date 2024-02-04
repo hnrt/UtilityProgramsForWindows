@@ -86,7 +86,7 @@ namespace hnrt
         , m_len(cch)
         , m_buf()
     {
-        m_buf[StringCommons::Fill(&m_buf[0], fill, m_len)] = (T)0;
+        m_buf[StrFill(&m_buf[0], fill, m_len)] = (T)0;
     }
 
     template<typename T>
@@ -95,7 +95,7 @@ namespace hnrt
         , m_len(cch)
         , m_buf()
     {
-        (void)StringCommons::Copy(&m_buf[0], psz, m_len);
+        (void)StrCopy(&m_buf[0], psz, m_len);
     }
 
     template<typename T>
@@ -113,8 +113,8 @@ namespace hnrt
         , m_len(cch1 + cch2)
         , m_buf()
     {
-        (void)StringCommons::Copy(&m_buf[0], psz1, cch1);
-        (void)StringCommons::Copy(&m_buf[cch1], psz2, cch2);
+        (void)StrCopy(&m_buf[0], psz1, cch1);
+        (void)StrCopy(&m_buf[cch1], psz2, cch2);
     }
 
     template<typename T>
@@ -123,27 +123,27 @@ namespace hnrt
         , m_len(cch1 + cch2)
         , m_buf()
     {
-        (void)StringCommons::Copy(&m_buf[0], psz1, cch1);
+        (void)StrCopy(&m_buf[0], psz1, cch1);
         (void)StringCommons::VaFormat(&m_buf[cch1], cch2 + 1, pszFormat, argList);
     }
 
     template<typename T>
     RefString<T>::~RefString()
     {
-        (void)StringCommons::Fill(&m_buf[0], (T)0, m_len);
+        (void)StrFill(&m_buf[0], (T)0, m_len);
     }
 
     template<typename T>
     void RefString<T>::SetLength(SSIZE_T cch)
     {
-        m_len = StringCommons::Length(&m_buf[0], cch < 0 ? m_len : (cch < static_cast<SSIZE_T>(m_len) ? cch : m_len));
+        m_len = StrLen(&m_buf[0], cch < 0 ? m_len : (cch < static_cast<SSIZE_T>(m_len) ? cch : m_len));
         m_buf[m_len] = (T)0;
     }
 
     template<typename T>
     void RefString<T>::Fill(T c)
     {
-        StringCommons::Fill(&m_buf[0], c, m_len);
+        StrFill(&m_buf[0], c, m_len);
         if (c)
         {
             m_buf[m_len] = (T)0;
@@ -190,7 +190,7 @@ namespace hnrt
     {
         if (psz && cch)
         {
-            cch = StringCommons::Length(psz, cch);
+            cch = StrLen(psz, cch);
             return GetString(new(cch) RefString<T>(psz, cch));
         }
         else
@@ -210,15 +210,15 @@ namespace hnrt
     template<typename T>
     T* RefString<T>::Create(const T* psz1, const T* psz2, SSIZE_T cch)
     {
-        SIZE_T cch1 = StringCommons::Length(psz1);
-        SIZE_T cch2 = StringCommons::Length(psz2, cch);
+        SIZE_T cch1 = StrLen(psz1);
+        SIZE_T cch2 = StrLen(psz2, cch);
         return GetString(new(cch1 + cch2) RefString<T>(psz1, cch1, psz2, cch2));
     }
 
     template<typename T>
     T* RefString<T>::Create(const T* psz1, const T* psz2, ::va_list argList)
     {
-        SIZE_T cch1 = StringCommons::Length(psz1);
+        SIZE_T cch1 = StrLen(psz1);
         SIZE_T cch2 = StringCommons::VaFormatLength(psz2, argList);
         return GetString(new(cch1 + cch2) RefString<T>(psz1, cch1, psz2, argList, cch2));
     }
@@ -231,7 +231,7 @@ namespace hnrt
         case UPPERCASE:
         case LOWERCASE:
         {
-            SIZE_T cch = StringCommons::Length(psz);
+            SIZE_T cch = StrLen(psz);
             T* pszReturn = GetString(new(cch) RefString<T>(psz, cch));
             StringCommons::Lettercase(option, pszReturn, cch);
             return pszReturn;
