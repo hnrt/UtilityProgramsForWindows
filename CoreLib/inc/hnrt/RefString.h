@@ -242,7 +242,7 @@ namespace hnrt
         {
             int start = 0;
             int end = 0;
-            StringCommons::TrimScan(psz, start, end, option);
+            StrTrimScan(psz, start, end, option);
             int cch = end - start;
             return GetString(new(cch) RefString<T>(psz + start, cch));
         }

@@ -153,6 +153,42 @@ namespace hnrt
 	/// <returns>Number of CHARs processed, not including the terminating null character.</returns>
 	SIZE_T StrLwr(CHAR* str, SSIZE_T count = -1);
 
+	/// <summary>
+	/// The function finds the range of the resulting substring in case of trimming a string in the specified manner.
+	/// Trimming is done for the following characters, HT(9), LF(10), VT(11), FF(12) and CR(13).
+	/// </summary>
+	/// <param name="str">String to be examined.</param>
+	/// <param name="start">Receives the start index of the resulting substring.</param>
+	/// <param name="end">Receives the end index of the resulting substring.</param>
+	/// <param name="option">Trimming manner; TRIM, TRIM_HEAD or TRIM_TAIL.</param>
+	void StrTrimScan(const WCHAR* str, int& start, int& end, StringOptions option = TRIM);
+
+	/// <summary>
+	/// The function finds the range of the resulting substring in case of trimming a string in the specified manner.
+	/// Trimming is done for the following characters, HT(9), LF(10), VT(11), FF(12) and CR(13).
+	/// </summary>
+	/// <param name="str">String to be examined.</param>
+	/// <param name="start">Receives the start index of the resulting substring.</param>
+	/// <param name="end">Receives the end index of the resulting substring.</param>
+	/// <param name="option">Trimming manner; TRIM, TRIM_HEAD or TRIM_TAIL.</param>
+	void StrTrimScan(const CHAR* str, int& start, int& end, StringOptions option = TRIM);
+
+	/// <summary>
+	/// The function trims a string in the specified manner.
+	/// </summary>
+	/// <param name="str">String to be trimmed.</param>
+	/// <param name="option">Trimming manner; TRIM, TRIM_HEAD or TRIM_TAIL.</param>
+	/// <returns>String trimmed.</returns>
+	WCHAR* StrTrim(WCHAR* str, StringOptions option = TRIM);
+
+	/// <summary>
+	/// The function trims a string in the specified manner.
+	/// </summary>
+	/// <param name="str">String to be trimmed.</param>
+	/// <param name="option">Trimming manner; TRIM, TRIM_HEAD or TRIM_TAIL.</param>
+	/// <returns>String trimmed.</returns>
+	CHAR* StrTrim(CHAR* str, StringOptions option = TRIM);
+
 	class StringCommons
 	{
 	public:
@@ -165,10 +201,6 @@ namespace hnrt
 		static SIZE_T Format(CHAR* psz, SIZE_T, const CHAR*, ...);
 		static SIZE_T VaFormat(WCHAR* psz, SIZE_T, const WCHAR*, va_list);
 		static SIZE_T VaFormat(CHAR* psz, SIZE_T, const CHAR*, va_list);
-		static void TrimScan(const WCHAR*, int&, int&, StringOptions = TRIM);
-		static void TrimScan(const CHAR*, int&, int&, StringOptions = TRIM);
-		static WCHAR* Trim(WCHAR*, StringOptions = TRIM);
-		static CHAR* Trim(CHAR*, StringOptions = TRIM);
 		static SIZE_T VaConcatLength(StringOptions, const WCHAR*, va_list);
 		static SIZE_T VaConcatLength(StringOptions, const CHAR*, va_list);
 		static SIZE_T VaConcat(StringOptions, const WCHAR*, va_list, WCHAR*);

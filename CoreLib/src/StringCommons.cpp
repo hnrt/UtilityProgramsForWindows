@@ -200,6 +200,106 @@ SIZE_T hnrt::StrLwr(CHAR* str, SSIZE_T count)
 }
 
 
+template<typename T>
+void DoTrimScan(const T* str, int& start, int& end, StringOptions option)
+{
+	const T* pCur = str;
+	T c = *pCur++;
+	if (option == TRIM_TAIL)
+	{
+		start = 0;
+	}
+	else
+	{
+		while (StringCommons::IsWhitespace(c))
+		{
+			c = *pCur++;
+		}
+		start = static_cast<int>(pCur - 1 - str);
+		if (c)
+		{
+			c = *pCur++;
+		}
+	}
+	if (option == TRIM_HEAD)
+	{
+		while (c)
+		{
+			c = *pCur++;
+		}
+		end = static_cast<int>(pCur - 1 - str);
+	}
+	else
+	{
+		while (true)
+		{
+			if (StringCommons::IsWhitespace(c))
+			{
+				end = static_cast<int>(pCur - 1 - str);
+				c = *pCur++;
+				while (StringCommons::IsWhitespace(c))
+				{
+					c = *pCur++;
+				}
+				if (c)
+				{
+					c = *pCur++;
+				}
+				else
+				{
+					break;
+				}
+			}
+			else if (c)
+			{
+				c = *pCur++;
+			}
+			else
+			{
+				end = static_cast<int>(pCur - 1 - str);
+				break;
+			}
+		}
+	}
+}
+
+
+void hnrt::StrTrimScan(const WCHAR* str, int& start, int& end, StringOptions option)
+{
+	DoTrimScan(str, start, end, option);
+}
+
+
+void hnrt::StrTrimScan(const CHAR* str, int& start, int& end, StringOptions option)
+{
+	DoTrimScan(str, start, end, option);
+}
+
+
+WCHAR* hnrt::StrTrim(WCHAR* psz, StringOptions option)
+{
+	int start = 0;
+	int end = 0;
+	StrTrimScan(psz, start, end, option);
+	int len = end - start;
+	wmemmove_s(psz, len, psz + start, len);
+	psz[len] = L'\0';
+	return psz;
+}
+
+
+CHAR* hnrt::StrTrim(CHAR* psz, StringOptions option)
+{
+	int start = 0;
+	int end = 0;
+	StrTrimScan(psz, start, end, option);
+	int len = end - start;
+	memmove_s(psz, len, psz + start, len);
+	psz[len] = '\0';
+	return psz;
+}
+
+
 SIZE_T StringCommons::FormatLength(const WCHAR* pszFormat, ...)
 {
 	va_list argList;
@@ -303,106 +403,6 @@ SIZE_T StringCommons::VaFormat(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, v
 		throw Exception(L"StringCommons::VaFormat failed.");
 	}
 	return static_cast<SIZE_T>(cch);
-}
-
-
-template<typename T>
-void DoTrimScan(const T* psz, int& start, int& end, StringOptions option)
-{
-	const T* pCur = psz;
-	T c = *pCur++;
-	if (option == TRIM_TAIL)
-	{
-		start = 0;
-	}
-	else
-	{
-		while (StringCommons::IsWhitespace(c))
-		{
-			c = *pCur++;
-		}
-		start = static_cast<int>(pCur - 1 - psz);
-		if (c)
-		{
-			c = *pCur++;
-		}
-	}
-	if (option == TRIM_HEAD)
-	{
-		while (c)
-		{
-			c = *pCur++;
-		}
-		end = static_cast<int>(pCur - 1 - psz);
-	}
-	else
-	{
-		while (true)
-		{
-			if (StringCommons::IsWhitespace(c))
-			{
-				end = static_cast<int>(pCur - 1 - psz);
-				c = *pCur++;
-				while (StringCommons::IsWhitespace(c))
-				{
-					c = *pCur++;
-				}
-				if (c)
-				{
-					c = *pCur++;
-				}
-				else
-				{
-					break;
-				}
-			}
-			else if (c)
-			{
-				c = *pCur++;
-			}
-			else
-			{
-				end = static_cast<int>(pCur - 1 - psz);
-				break;
-			}
-		}
-	}
-}
-
-
-void StringCommons::TrimScan(const WCHAR* psz, int& start, int& end, StringOptions option)
-{
-	DoTrimScan(psz, start, end, option);
-}
-
-
-void StringCommons::TrimScan(const CHAR* psz, int& start, int& end, StringOptions option)
-{
-	DoTrimScan(psz, start, end, option);
-}
-
-
-WCHAR* StringCommons::Trim(WCHAR* psz, StringOptions option)
-{
-	int start = 0;
-	int end = 0;
-	TrimScan(psz, start, end, option);
-	int len = end - start;
-	wmemmove_s(psz, len, psz + start, len);
-	psz[len] = L'\0';
-	return psz;
-}
-
-
-CHAR* StringCommons::Trim(CHAR* psz, StringOptions option)
-{
-	int start = 0;
-	int end = 0;
-	TrimScan(psz, start, end, option);
-	int len = end - start;
-	memmove_s(psz, len, psz + start, len);
-	psz[len] = '\0';
-	return psz;
 }
 
 
