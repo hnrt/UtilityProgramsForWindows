@@ -85,6 +85,74 @@ namespace hnrt
 	/// <returns>Number of CHARs moved.</returns>
 	SIZE_T StrMove(CHAR* dest, const CHAR* src, SIZE_T count);
 
+	/// <summary>
+	/// The function converts the letter case of characters in a string.
+	/// It finishes the conversion when it processes the specified number of WCHARs
+	/// or it encounters the terminating null character.
+	/// The resulting string will be null-terminated.
+	/// </summary>
+	/// <param name="option">Letter case to convert characters to, either UPPERCASE or LOWERCASE.</param>
+	/// <param name="str">String in which characters are to be converted to the specified letter case.</param>
+	/// <param name="count">Number of WCHARs to process at most. A negative value specifies to process all characters in the string.</param>
+	/// <returns>Number of WCHARs processed, not including the terminating null character.</returns>
+	SIZE_T StrCase(StringOptions option, WCHAR* str, SSIZE_T count = -1);
+
+	/// <summary>
+	/// The function converts the letter case of characters in a string.
+	/// It finishes the conversion when it processes the specified number of CHARs
+	/// or it encounters the terminating null character.
+	/// The resulting string will be null-terminated.
+	/// </summary>
+	/// <param name="option">Letter case to convert characters to, either UPPERCASE or LOWERCASE.</param>
+	/// <param name="str">String in which characters are to be converted to the specified letter case.</param>
+	/// <param name="count">Number of CHARs to process at most. A negative value specifies to process all characters in the string.</param>
+	/// <returns>Number of CHARs processed, not including the terminating null character.</returns>
+	SIZE_T StrCase(StringOptions option, CHAR* str, SSIZE_T count = -1);
+
+	/// <summary>
+	/// The function converts lowercase characters to uppercase in a string.
+	/// It finishes the conversion when it processes the specified number of WCHARs
+	/// or it encounters the terminating null character.
+	/// The resulting string will be null-terminated.
+	/// </summary>
+	/// <param name="str">String in which lowercase characters are to be converted to uppercase.</param>
+	/// <param name="count">Number of WCHARs to process at most. A negative value specifies to process all characters in the string.</param>
+	/// <returns>Number of WCHARs processed, not including the terminating null character.</returns>
+	SIZE_T StrUpr(WCHAR* str, SSIZE_T count = -1);
+
+	/// <summary>
+	/// The function converts lowercase characters to uppercase in a string.
+	/// It finishes the conversion when it processes the specified number of CHARs
+	/// or it encounters the terminating null character.
+	/// The resulting string will be null-terminated.
+	/// </summary>
+	/// <param name="str">String in which lowercase characters are to be converted to uppercase.</param>
+	/// <param name="count">Number of CHARs to process at most. A negative value specifies to process all characters in the string.</param>
+	/// <returns>Number of CHARs processed, not including the terminating null character.</returns>
+	SIZE_T StrUpr(CHAR* str, SSIZE_T count = -1);
+
+	/// <summary>
+	/// The function converts uppercase characters to lowercase in a string.
+	/// It finishes the conversion when it processes the specified number of WCHARs
+	/// or it encounters the terminating null character.
+	/// The resulting string will be null-terminated.
+	/// </summary>
+	/// <param name="str">String in which uppercase characters are to be converted to lowercase.</param>
+	/// <param name="count">Number of WCHARs to process at most. A negative value specifies to process all characters in the string.</param>
+	/// <returns>Number of WCHARs processed, not including the terminating null character.</returns>
+	SIZE_T StrLwr(WCHAR* str, SSIZE_T count = -1);
+
+	/// <summary>
+	/// The function converts uppercase characters to lowercase in a string.
+	/// It finishes the conversion when it processes the specified number of CHARs
+	/// or it encounters the terminating null character.
+	/// The resulting string will be null-terminated.
+	/// </summary>
+	/// <param name="str">String in which uppercase characters are to be converted to lowercase.</param>
+	/// <param name="count">Number of CHARs to process at most. A negative value specifies to process all characters in the string.</param>
+	/// <returns>Number of CHARs processed, not including the terminating null character.</returns>
+	SIZE_T StrLwr(CHAR* str, SSIZE_T count = -1);
+
 	class StringCommons
 	{
 	public:
@@ -97,12 +165,6 @@ namespace hnrt
 		static SIZE_T Format(CHAR* psz, SIZE_T, const CHAR*, ...);
 		static SIZE_T VaFormat(WCHAR* psz, SIZE_T, const WCHAR*, va_list);
 		static SIZE_T VaFormat(CHAR* psz, SIZE_T, const CHAR*, va_list);
-		static SIZE_T Uppercase(WCHAR*, SSIZE_T = -1);
-		static SIZE_T Uppercase(CHAR*, SSIZE_T = -1);
-		static SIZE_T Lowercase(WCHAR*, SSIZE_T = -1);
-		static SIZE_T Lowercase(CHAR*, SSIZE_T = -1);
-		static SIZE_T Lettercase(StringOptions, WCHAR*, SSIZE_T = -1);
-		static SIZE_T Lettercase(StringOptions, CHAR*, SSIZE_T = -1);
 		static void TrimScan(const WCHAR*, int&, int&, StringOptions = TRIM);
 		static void TrimScan(const CHAR*, int&, int&, StringOptions = TRIM);
 		static WCHAR* Trim(WCHAR*, StringOptions = TRIM);

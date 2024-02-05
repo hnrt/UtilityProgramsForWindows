@@ -233,7 +233,7 @@ namespace hnrt
         {
             SIZE_T cch = StrLen(psz);
             T* pszReturn = GetString(new(cch) RefString<T>(psz, cch));
-            StringCommons::Lettercase(option, pszReturn, cch);
+            StrCase(option, pszReturn, cch);
             return pszReturn;
         }
         case TRIM:

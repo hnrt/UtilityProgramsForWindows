@@ -78,6 +78,128 @@ SIZE_T hnrt::StrMove(CHAR* dest, const CHAR* src, SIZE_T count)
 }
 
 
+SIZE_T hnrt::StrCase(StringOptions option, WCHAR* str, SSIZE_T count)
+{
+	if (str)
+	{
+		SIZE_T cch;
+		switch (option)
+		{
+		case UPPERCASE:
+			cch = StrLen(str, count);
+			str[cch] = L'\0';
+			_wcsupr_s(str, cch + 1);
+			break;
+		case LOWERCASE:
+			cch = StrLen(str, count);
+			str[cch] = L'\0';
+			_wcslwr_s(str, cch + 1);
+			break;
+		default:
+			throw Exception(L"hnrt::StrCase: Bad option: %d", option);
+		}
+		return cch;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+SIZE_T hnrt::StrCase(StringOptions option, CHAR* str, SSIZE_T count)
+{
+	if (str)
+	{
+		SIZE_T cch;
+		switch (option)
+		{
+		case UPPERCASE:
+			cch = StrLen(str, count);
+			str[cch] = '\0';
+			_strupr_s(str, cch + 1);
+			break;
+		case LOWERCASE:
+			cch = StrLen(str, count);
+			str[cch] = '\0';
+			_strlwr_s(str, cch + 1);
+			break;
+		default:
+			throw Exception(L"hnrt::StrCase: Bad option: %d", option);
+		}
+		return cch;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+SIZE_T hnrt::StrUpr(WCHAR* str, SSIZE_T count)
+{
+	if (str)
+	{
+		SIZE_T cch = StrLen(str, count);
+		str[cch] = L'\0';
+		_wcsupr_s(str, cch + 1);
+		return cch;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+SIZE_T hnrt::StrUpr(CHAR* str, SSIZE_T count)
+{
+	if (str)
+	{
+		SIZE_T cch = StrLen(str, count);
+		str[cch] = '\0';
+		_strupr_s(str, cch + 1);
+		return cch;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+SIZE_T hnrt::StrLwr(WCHAR* str, SSIZE_T count)
+{
+	if (str)
+	{
+		SIZE_T cch = StrLen(str, count);
+		str[cch] = L'\0';
+		_wcslwr_s(str, cch + 1);
+		return cch;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+SIZE_T hnrt::StrLwr(CHAR* str, SSIZE_T count)
+{
+	if (str)
+	{
+		SIZE_T cch = StrLen(str, count);
+		str[cch] = '\0';
+		_strlwr_s(str, cch + 1);
+		return cch;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
 SIZE_T StringCommons::FormatLength(const WCHAR* pszFormat, ...)
 {
 	va_list argList;
@@ -181,74 +303,6 @@ SIZE_T StringCommons::VaFormat(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, v
 		throw Exception(L"StringCommons::VaFormat failed.");
 	}
 	return static_cast<SIZE_T>(cch);
-}
-
-
-SIZE_T StringCommons::Uppercase(WCHAR* psz, SSIZE_T cch)
-{
-	cch = StrLen(psz, cch);
-	_wcsupr_s(psz, cch);
-	return cch;
-}
-
-
-SIZE_T StringCommons::Uppercase(CHAR* psz, SSIZE_T cch)
-{
-	cch = StrLen(psz, cch);
-	_strupr_s(psz, cch);
-	return cch;
-}
-
-
-SIZE_T StringCommons::Lowercase(WCHAR* psz, SSIZE_T cch)
-{
-	cch = StrLen(psz, cch);
-	_wcslwr_s(psz, cch);
-	return cch;
-}
-
-
-SIZE_T StringCommons::Lowercase(CHAR* psz, SSIZE_T cch)
-{
-	cch = StrLen(psz, cch);
-	_strlwr_s(psz, cch);
-	return cch;
-}
-
-
-SIZE_T StringCommons::Lettercase(StringOptions option, WCHAR* psz, SSIZE_T cch)
-{
-	cch = StrLen(psz, cch);
-	switch (option)
-	{
-	case UPPERCASE:
-		_wcsupr_s(psz, cch + 1);
-		break;
-	case LOWERCASE:
-		_wcslwr_s(psz, cch + 1);
-		break;
-	default:
-		break;
-	}
-	return cch;
-}
-
-
-SIZE_T StringCommons::Lettercase(StringOptions option, CHAR* psz, SSIZE_T cch)
-{
-	cch = StrLen(psz, cch);
-	switch (option)
-	{
-	case UPPERCASE:
-		_strupr_s(psz, cch + 1);
-		break;
-	case LOWERCASE:
-		_strlwr_s(psz, cch + 1);
-		break;
-	default:
-		break;
-	}
-	return cch;
 }
 
 
