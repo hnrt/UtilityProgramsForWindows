@@ -181,6 +181,7 @@
     <ClCompile Include="ResourceStringTests.cpp" />
     <ClCompile Include="ByteStringTests.cpp" />
     <ClCompile Include="SecretTests.cpp" />
+    <ClCompile Include="StringCommonsTests.cpp" />
     <ClCompile Include="StringTests.cpp" />
     <ClCompile Include="VersionInfoTests.cpp" />
   </ItemGroup>

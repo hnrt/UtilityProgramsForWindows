@@ -34,104 +34,116 @@ SIZE_T hnrt::StrLen(const CHAR* str, SSIZE_T numberOfElements)
 
 SIZE_T hnrt::StrCopy(WCHAR* dest, const WCHAR* src, SSIZE_T count)
 {
-	SIZE_T cch = StrLen(src, count);
-	wmemcpy_s(dest, cch, src, cch);
-	dest[cch] = L'\0';
-	return cch;
-}
-
-
-SIZE_T hnrt::StrCopy(CHAR* dest, const CHAR* src, SSIZE_T count)
-{
-	SIZE_T cch = StrLen(src, count);
-	memcpy_s(dest, cch, src, cch);
-	dest[cch] = '\0';
-	return cch;
-}
-
-
-SIZE_T hnrt::StrFill(WCHAR* dest, WCHAR c, SIZE_T count)
-{
-	wmemset(dest, c, count);
-	return count;
-}
-
-
-SIZE_T hnrt::StrFill(CHAR* dest, CHAR c, SIZE_T count)
-{
-	memset(dest, c, count);
-	return count;
-}
-
-
-SIZE_T hnrt::StrMove(WCHAR* dest, const WCHAR* src, SIZE_T count)
-{
-	wmemmove_s(dest, count, src, count);
-	return count;
-}
-
-
-SIZE_T hnrt::StrMove(CHAR* dest, const CHAR* src, SIZE_T count)
-{
-	memmove_s(dest, count, src, count);
-	return count;
-}
-
-
-SIZE_T hnrt::StrCase(StringOptions option, WCHAR* str, SSIZE_T count)
-{
-	if (str)
+	if (dest)
 	{
-		SIZE_T cch;
-		switch (option)
-		{
-		case UPPERCASE:
-			cch = StrLen(str, count);
-			str[cch] = L'\0';
-			_wcsupr_s(str, cch + 1);
-			break;
-		case LOWERCASE:
-			cch = StrLen(str, count);
-			str[cch] = L'\0';
-			_wcslwr_s(str, cch + 1);
-			break;
-		default:
-			throw Exception(L"hnrt::StrCase: Bad option: %d", option);
-		}
+		SIZE_T cch = StrLen(src, count);
+		wmemcpy_s(dest, cch, src, cch);
+		dest[cch] = L'\0';
 		return cch;
 	}
 	else
 	{
 		return 0;
+	}
+}
+
+
+SIZE_T hnrt::StrCopy(CHAR* dest, const CHAR* src, SSIZE_T count)
+{
+	if (dest)
+	{
+		SIZE_T cch = StrLen(src, count);
+		memcpy_s(dest, cch, src, cch);
+		dest[cch] = '\0';
+		return cch;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+SIZE_T hnrt::StrFill(WCHAR* dest, WCHAR c, SIZE_T count)
+{
+	if (dest)
+	{
+		wmemset(dest, c, count);
+		return count;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+SIZE_T hnrt::StrFill(CHAR* dest, CHAR c, SIZE_T count)
+{
+	if (dest)
+	{
+		memset(dest, c, count);
+		return count;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+SIZE_T hnrt::StrMove(WCHAR* dest, const WCHAR* src, SIZE_T count)
+{
+	if (dest)
+	{
+		wmemmove_s(dest, count, src, count);
+		return count;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+SIZE_T hnrt::StrMove(CHAR* dest, const CHAR* src, SIZE_T count)
+{
+	if (dest)
+	{
+		memmove_s(dest, count, src, count);
+		return count;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+SIZE_T hnrt::StrCase(StringOptions option, WCHAR* str, SSIZE_T count)
+{
+	switch (option)
+	{
+	case UPPERCASE:
+		return StrUpr(str, count);
+	case LOWERCASE:
+		return StrLwr(str, count);
+	default:
+		throw Exception(L"hnrt::StrCase: Bad option: %d", option);
 	}
 }
 
 
 SIZE_T hnrt::StrCase(StringOptions option, CHAR* str, SSIZE_T count)
 {
-	if (str)
+	switch (option)
 	{
-		SIZE_T cch;
-		switch (option)
-		{
-		case UPPERCASE:
-			cch = StrLen(str, count);
-			str[cch] = '\0';
-			_strupr_s(str, cch + 1);
-			break;
-		case LOWERCASE:
-			cch = StrLen(str, count);
-			str[cch] = '\0';
-			_strlwr_s(str, cch + 1);
-			break;
-		default:
-			throw Exception(L"hnrt::StrCase: Bad option: %d", option);
-		}
-		return cch;
-	}
-	else
-	{
-		return 0;
+	case UPPERCASE:
+		return StrUpr(str, count);
+	case LOWERCASE:
+		return StrLwr(str, count);
+	default:
+		throw Exception(L"hnrt::StrCase: Bad option: %d", option);
 	}
 }
 
