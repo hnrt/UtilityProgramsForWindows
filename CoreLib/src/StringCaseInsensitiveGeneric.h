@@ -119,37 +119,37 @@ XSTRING& XSTRING::operator +=(const XSTRING2& other)
 
 bool XSTRING::operator ==(const XSTRING& other) const
 {
-    return StringCommons::CaseCompare(Ptr, -1, other.Ptr, -1) == 0;
+    return StrCaseCmp(Ptr, -1, other.Ptr, -1) == 0;
 }
 
 
 bool XSTRING::operator !=(const XSTRING& other) const
 {
-    return StringCommons::CaseCompare(Ptr, -1, other.Ptr, -1) != 0;
+    return StrCaseCmp(Ptr, -1, other.Ptr, -1) != 0;
 }
 
 
 bool XSTRING::operator <(const XSTRING& other) const
 {
-    return StringCommons::CaseCompare(Ptr, -1, other.Ptr, -1) < 0;
+    return StrCaseCmp(Ptr, -1, other.Ptr, -1) < 0;
 }
 
 
 bool XSTRING::operator <=(const XSTRING& other) const
 {
-    return StringCommons::CaseCompare(Ptr, -1, other.Ptr, -1) <= 0;
+    return StrCaseCmp(Ptr, -1, other.Ptr, -1) <= 0;
 }
 
 
 bool XSTRING::operator >(const XSTRING& other) const
 {
-    return StringCommons::CaseCompare(Ptr, -1, other.Ptr, -1) > 0;
+    return StrCaseCmp(Ptr, -1, other.Ptr, -1) > 0;
 }
 
 
 bool XSTRING::operator >=(const XSTRING& other) const
 {
-    return StringCommons::CaseCompare(Ptr, -1, other.Ptr, -1) >= 0;
+    return StrCaseCmp(Ptr, -1, other.Ptr, -1) >= 0;
 }
 
 
@@ -173,5 +173,5 @@ SIZE_T XSTRING::get_len() const
 
 int XSTRING::Compare(PCXSTR psz1, SSIZE_T cch1, PCXSTR psz2, SSIZE_T cch2)
 {
-    return StringCommons::CaseCompare(psz1, cch1, psz2, cch2);
+    return StrCaseCmp(psz1, cch1, psz2, cch2);
 }

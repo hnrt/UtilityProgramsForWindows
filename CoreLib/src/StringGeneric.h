@@ -345,7 +345,7 @@ int XSTRING::IndexOf(XCHAR c, SIZE_T fromIndex) const
     SIZE_T length = Len;
     if (m_psz && fromIndex < length)
     {
-        int index = StringCommons::IndexOf(m_psz + fromIndex, c, length - fromIndex);
+        int index = StrIndexOf(m_psz + fromIndex, c, length - fromIndex);
         return index >= 0 ? (static_cast<int>(fromIndex) + index) : -1;
     }
     return -1;
@@ -363,7 +363,7 @@ int XSTRING::IndexOf(const XSTRING& s, SIZE_T fromIndex) const
         {
             cch--;
             XCHAR c = *psz++;
-            int index = StringCommons::IndexOf(m_psz + fromIndex, c, length - fromIndex);
+            int index = StrIndexOf(m_psz + fromIndex, c, length - fromIndex);
             PXSTR pCur = index >= 0 ? (m_psz + fromIndex + static_cast<SIZE_T>(index)) : nullptr;
             if (cch)
             {
@@ -379,7 +379,7 @@ int XSTRING::IndexOf(const XSTRING& s, SIZE_T fromIndex) const
                     {
                         return static_cast<int>((pCur - 1) - m_psz);
                     }
-                    int index = StringCommons::IndexOf(pCur, c, pEnd - pCur);
+                    int index = StrIndexOf(pCur, c, pEnd - pCur);
                     pCur = index >= 0 ? (pCur + index) : nullptr;
                 }
             }
@@ -456,37 +456,37 @@ XSTRING XSTRING::Wrap(UINT width, PCXSTR pszNewLine) const
 
 bool XSTRING::operator ==(const XSTRING& other) const
 {
-    return StringCommons::Compare(Ptr, -1, other.Ptr, -1) == 0;
+    return StrCmp(Ptr, -1, other.Ptr, -1) == 0;
 }
 
 
 bool XSTRING::operator !=(const XSTRING& other) const
 {
-    return StringCommons::Compare(Ptr, -1, other.Ptr, -1) != 0;
+    return StrCmp(Ptr, -1, other.Ptr, -1) != 0;
 }
 
 
 bool XSTRING::operator <(const XSTRING& other) const
 {
-    return StringCommons::Compare(Ptr, -1, other.Ptr, -1) < 0;
+    return StrCmp(Ptr, -1, other.Ptr, -1) < 0;
 }
 
 
 bool XSTRING::operator <=(const XSTRING& other) const
 {
-    return StringCommons::Compare(Ptr, -1, other.Ptr, -1) <= 0;
+    return StrCmp(Ptr, -1, other.Ptr, -1) <= 0;
 }
 
 
 bool XSTRING::operator >(const XSTRING& other) const
 {
-    return StringCommons::Compare(Ptr, -1, other.Ptr, -1) > 0;
+    return StrCmp(Ptr, -1, other.Ptr, -1) > 0;
 }
 
 
 bool XSTRING::operator >=(const XSTRING& other) const
 {
-    return StringCommons::Compare(Ptr, -1, other.Ptr, -1) >= 0;
+    return StrCmp(Ptr, -1, other.Ptr, -1) >= 0;
 }
 
 
@@ -513,7 +513,7 @@ void XSTRING::set_len(SIZE_T len)
 
 int XSTRING::Compare(PCXSTR psz1, SSIZE_T cch1, PCXSTR psz2, SSIZE_T cch2)
 {
-    return StringCommons::Compare(psz1, cch1, psz2, cch2);
+    return StrCmp(psz1, cch1, psz2, cch2);
 }
 
 

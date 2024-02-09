@@ -254,7 +254,7 @@ StringBuffer& StringBuffer::Replace(WCHAR c1, WCHAR c2, SIZE_T offset, int count
     PWCHAR pCur = m_ptr + offset;
     PWCHAR pEnd = m_ptr + m_len;
     int index;
-    while (pCur < pEnd && (index = StringCommons::IndexOf(pCur, c1, pEnd - pCur)) >= 0)
+    while (pCur < pEnd && (index = StrIndexOf(pCur, c1, pEnd - pCur)) >= 0)
     {
         pCur[index] = c2;
         if (--count)

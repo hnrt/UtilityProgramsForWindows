@@ -211,7 +211,7 @@ void DoTrimScan(const T* str, int& start, int& end, StringOptions option)
 	}
 	else
 	{
-		while (StringCommons::IsWhitespace(c))
+		while (IsWhitespace(c))
 		{
 			c = *pCur++;
 		}
@@ -233,11 +233,11 @@ void DoTrimScan(const T* str, int& start, int& end, StringOptions option)
 	{
 		while (true)
 		{
-			if (StringCommons::IsWhitespace(c))
+			if (IsWhitespace(c))
 			{
 				end = static_cast<int>(pCur - 1 - str);
 				c = *pCur++;
-				while (StringCommons::IsWhitespace(c))
+				while (IsWhitespace(c))
 				{
 					c = *pCur++;
 				}
@@ -525,61 +525,113 @@ SIZE_T StringCommons::VaConcat(StringOptions option, const CHAR* psz, va_list ar
 }
 
 
-int StringCommons::IndexOf(const WCHAR* p, WCHAR c, SIZE_T n)
+int hnrt::StrIndexOf(const WCHAR* str, WCHAR c, SSIZE_T size)
 {
-	const WCHAR* q = wmemchr(p, c, n);
-	return q ? static_cast<int>(q - p) : -1;
+	if (c)
+	{
+		SIZE_T cch = StrLen(str, size);
+		const WCHAR* q = wmemchr(str, c, cch);
+		return q ? static_cast<int>(q - str) : -1;
+	}
+	else if (size >= 0)
+	{
+		const WCHAR* q = wmemchr(str, L'\0', size);
+		return q ? static_cast<int>(q - str) : -1;
+	}
+	else
+	{
+		return static_cast<int>(StrLen(str));
+	}
 }
 
 
-int StringCommons::IndexOf(const CHAR* p, CHAR c, SIZE_T n)
+int hnrt::StrIndexOf(const CHAR* str, CHAR c, SSIZE_T size)
 {
-	const CHAR* q = reinterpret_cast<const CHAR*>(memchr(p, c, n));
-	return q ? static_cast<int>(q - p) : -1;
+	if (c)
+	{
+		SIZE_T cch = StrLen(str, size);
+		const CHAR* q = reinterpret_cast<const CHAR*>(memchr(str, c, cch));
+		return q ? static_cast<int>(q - str) : -1;
+	}
+	else if (size >= 0)
+	{
+		const CHAR* q = reinterpret_cast<const CHAR*>(memchr(str, '\0', size));
+		return q ? static_cast<int>(q - str) : -1;
+	}
+	else
+	{
+		return static_cast<int>(StrLen(str));
+	}
 }
 
 
-int StringCommons::IndexOf(WCHAR* p, WCHAR c, SIZE_T n)
+int hnrt::StrIndexOf(WCHAR* str, WCHAR c, SSIZE_T size)
 {
-	WCHAR* q = wmemchr(p, c, n);
-	return q ? static_cast<int>(q - p) : -1;
+	if (c)
+	{
+		SIZE_T cch = StrLen(str, size);
+		WCHAR* q = wmemchr(str, c, cch);
+		return q ? static_cast<int>(q - str) : -1;
+	}
+	else if (size >= 0)
+	{
+		WCHAR* q = wmemchr(str, L'\0', size);
+		return q ? static_cast<int>(q - str) : -1;
+	}
+	else
+	{
+		return static_cast<int>(StrLen(str));
+	}
 }
 
 
-int StringCommons::IndexOf(CHAR* p, CHAR c, SIZE_T n)
+int hnrt::StrIndexOf(CHAR* str, CHAR c, SSIZE_T size)
 {
-	CHAR* q = reinterpret_cast<CHAR*>(memchr(p, c, n));
-	return q ? static_cast<int>(q - p) : -1;
+	if (c)
+	{
+		SIZE_T cch = StrLen(str, size);
+		CHAR* q = reinterpret_cast<CHAR*>(memchr(str, c, cch));
+		return q ? static_cast<int>(q - str) : -1;
+	}
+	else if (size >= 0)
+	{
+		CHAR* q = reinterpret_cast<CHAR*>(memchr(str, '\0', size));
+		return q ? static_cast<int>(q - str) : -1;
+	}
+	else
+	{
+		return static_cast<int>(StrLen(str));
+	}
 }
 
 
-BOOL StringCommons::IsWhitespace(WCHAR c)
+BOOL hnrt::IsWhitespace(WCHAR c)
 {
 	return iswspace(c) ? TRUE : FALSE;
 }
 
 
-BOOL StringCommons::IsWhitespace(CHAR c)
+BOOL hnrt::IsWhitespace(CHAR c)
 {
 	return isspace(c) ? TRUE : FALSE;
 }
 
 
-BOOL StringCommons::IsDigit(WCHAR c)
+BOOL hnrt::IsDigit(WCHAR c)
 {
 	return iswdigit(c) ? TRUE : FALSE;
 }
 
 
-BOOL StringCommons::IsDigit(CHAR c)
+BOOL hnrt::IsDigit(CHAR c)
 {
 	return isdigit(c) ? TRUE : FALSE;
 }
 
 
-int StringCommons::Compare(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2)
+int hnrt::StrCmp(PCWSTR str1, SSIZE_T count1, PCWSTR str2, SSIZE_T count2)
 {
-	switch (CompareStringW(LOCALE_INVARIANT, 0, psz1, static_cast<int>(cch1), psz2, static_cast<int>(cch2)))
+	switch (CompareStringW(LOCALE_INVARIANT, 0, str1, static_cast<int>(count1), str2, static_cast<int>(count2)))
 	{
 	case CSTR_EQUAL:
 		return 0;
@@ -588,14 +640,14 @@ int StringCommons::Compare(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2)
 	case CSTR_GREATER_THAN:
 		return 1;
 	default:
-		throw Exception(L"StringCommons::Compare failed.");
+		throw Exception(L"CompareStringW(LOCALE_INVARIANT) failed.");
 	}
 }
 
 
-int StringCommons::Compare(PCSTR psz1, SSIZE_T cch1, PCSTR psz2, SSIZE_T cch2)
+int hnrt::StrCmp(PCSTR str1, SSIZE_T count1, PCSTR str2, SSIZE_T count2)
 {
-	switch (CompareStringA(LOCALE_INVARIANT, 0, psz1, static_cast<int>(cch1), psz2, static_cast<int>(cch2)))
+	switch (CompareStringA(LOCALE_INVARIANT, 0, str1, static_cast<int>(count1), str2, static_cast<int>(count2)))
 	{
 	case CSTR_EQUAL:
 		return 0;
@@ -604,14 +656,14 @@ int StringCommons::Compare(PCSTR psz1, SSIZE_T cch1, PCSTR psz2, SSIZE_T cch2)
 	case CSTR_GREATER_THAN:
 		return 1;
 	default:
-		throw Exception(L"StringCommons::Compare failed.");
+		throw Exception(L"CompareStringW(LOCALE_INVARIANT) failed.");
 	}
 }
 
 
-int StringCommons::CaseCompare(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2)
+int hnrt::StrCaseCmp(PCWSTR str1, SSIZE_T count1, PCWSTR str2, SSIZE_T count2)
 {
-	switch (CompareStringW(LOCALE_INVARIANT, LINGUISTIC_IGNORECASE, psz1, static_cast<int>(cch1), psz2, static_cast<int>(cch2)))
+	switch (CompareStringW(LOCALE_INVARIANT, LINGUISTIC_IGNORECASE, str1, static_cast<int>(count1), str2, static_cast<int>(count2)))
 	{
 	case CSTR_EQUAL:
 		return 0;
@@ -620,14 +672,14 @@ int StringCommons::CaseCompare(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T c
 	case CSTR_GREATER_THAN:
 		return 1;
 	default:
-		throw Exception(L"StringCommons::CaseCompare failed.");
+		throw Exception(L"CompareStringW(LOCALE_INVARIANT,LINGUISTIC_IGNORECASE) failed.");
 	}
 }
 
 
-int StringCommons::CaseCompare(PCSTR psz1, SSIZE_T cch1, PCSTR psz2, SSIZE_T cch2)
+int hnrt::StrCaseCmp(PCSTR str1, SSIZE_T count1, PCSTR str2, SSIZE_T count2)
 {
-	switch (CompareStringA(LOCALE_INVARIANT, LINGUISTIC_IGNORECASE, psz1, static_cast<int>(cch1), psz2, static_cast<int>(cch2)))
+	switch (CompareStringA(LOCALE_INVARIANT, LINGUISTIC_IGNORECASE, str1, static_cast<int>(count1), str2, static_cast<int>(count2)))
 	{
 	case CSTR_EQUAL:
 		return 0;
@@ -636,6 +688,6 @@ int StringCommons::CaseCompare(PCSTR psz1, SSIZE_T cch1, PCSTR psz2, SSIZE_T cch
 	case CSTR_GREATER_THAN:
 		return 1;
 	default:
-		throw Exception(L"StringCommons::CaseCompare failed.");
+		throw Exception(L"CompareStringA(LOCALE_INVARIANT,LINGUISTIC_IGNORECASE) failed.");
 	}
 }

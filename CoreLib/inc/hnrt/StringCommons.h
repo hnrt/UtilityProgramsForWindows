@@ -10,8 +10,9 @@ namespace hnrt
 	/// If a null pointer is specified or the buffer size of zero is specified, the function returns zero.
 	/// </summary>
 	/// <param name="str">Null-terminated string.</param>
-	/// <param name="numberOfElements">The size of the string buffer. A negative value means that the size is unspecified.</param>
-	/// <returns>The length of string, not including the terminating null character, in WCHARs.</returns>
+	/// <param name="numberOfElements">Size of the string buffer. A negative value indicates that the size is unspecified.</param>
+	/// <returns>Length of the string, not including the terminating null character, in WCHARs.
+	/// The return value cannot be greater than the size of the string buffer.</returns>
 	SIZE_T StrLen(const WCHAR* str, SSIZE_T numberOfElements = -1);
 
 	/// <summary>
@@ -19,8 +20,9 @@ namespace hnrt
 	/// If a null pointer is specified or the buffer size of zero is specified, the function returns zero.
 	/// </summary>
 	/// <param name="str">Null-terminated string.</param>
-	/// <param name="numberOfElements">The size of the string buffer. A negative value means that the size is unspecified.</param>
-	/// <returns>The length of string, not including the terminating null character, in CHARs.</returns>
+	/// <param name="numberOfElements">Size of the string buffer. A negative value indicates that the size is unspecified.</param>
+	/// <returns>Length of the string, not including the terminating null character, in CHARs.
+	/// The return value cannot be greater than the size of the string buffer.</returns>
 	SIZE_T StrLen(const CHAR* str, SSIZE_T numberOfElements = -1);
 
 	/// <summary>
@@ -205,17 +207,137 @@ namespace hnrt
 		static SIZE_T VaConcatLength(StringOptions, const CHAR*, va_list);
 		static SIZE_T VaConcat(StringOptions, const WCHAR*, va_list, WCHAR*);
 		static SIZE_T VaConcat(StringOptions, const CHAR*, va_list, CHAR*);
-		static int IndexOf(const WCHAR*, WCHAR, SIZE_T);
-		static int IndexOf(const CHAR*, CHAR, SIZE_T);
-		static int IndexOf(WCHAR*, WCHAR, SIZE_T);
-		static int IndexOf(CHAR*, CHAR, SIZE_T);
-		static BOOL IsWhitespace(WCHAR c);
-		static BOOL IsWhitespace(CHAR c);
-		static BOOL IsDigit(WCHAR c);
-		static BOOL IsDigit(CHAR c);
-		static int Compare(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2);
-		static int Compare(PCSTR psz1, SSIZE_T cch1, PCSTR psz2, SSIZE_T cch2);
-		static int CaseCompare(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2);
-		static int CaseCompare(PCSTR psz1, SSIZE_T cch1, PCSTR psz2, SSIZE_T cch2);
 	};
+
+	/// <summary>
+	/// This function searches a null-terminated string for a character.
+	/// </summary>
+	/// <param name="str">String to search.</param>
+	/// <param name="c">Character to search for.</param>
+	/// <param name="size">Size of the string buffer in WCHARs.
+	/// A negative value indicates that the size is unspecified.</param>
+	/// <returns>Zero-based index of the character found in the string.
+	/// -1 if the character is not found.</returns>
+	int StrIndexOf(const WCHAR* str, WCHAR c, SSIZE_T size = -1);
+
+	/// <summary>
+	/// This function searches a null-terminated string for a character.
+	/// </summary>
+	/// <param name="str">String to search.</param>
+	/// <param name="c">Character to search for.</param>
+	/// <param name="size">Size of the string buffer in CHARs.
+	/// A negative value indicates that the size is unspecified.</param>
+	/// <returns>Zero-based index of the character found in the string.
+	/// -1 if the character is not found.</returns>
+	int StrIndexOf(const CHAR* str, CHAR c, SSIZE_T size = -1);
+
+	/// <summary>
+	/// This function searches a null-terminated string for a character.
+	/// </summary>
+	/// <param name="str">String to search.</param>
+	/// <param name="c">Character to search for.</param>
+	/// <param name="size">Size of the string buffer in WCHARs.
+	/// A negative value indicates that the size is unspecified.</param>
+	/// <returns>Zero-based index of the character found in the string.
+	/// -1 if the character is not found.</returns>
+	int StrIndexOf(WCHAR* str, WCHAR c, SSIZE_T size = -1);
+
+	/// <summary>
+	/// This function searches a null-terminated string for a character.
+	/// </summary>
+	/// <param name="str">String to search.</param>
+	/// <param name="c">Character to search for.</param>
+	/// <param name="size">Size of the string buffer in CHARs.
+	/// A negative value indicates that the size is unspecified.</param>
+	/// <returns>Zero-based index of the character found in the string.
+	/// -1 if the character is not found.</returns>
+	int StrIndexOf(CHAR* str, CHAR c, SSIZE_T size = -1);
+
+	/// <summary>
+	/// This function checks if a character is of whitespace.
+	/// Whitespace characters are HT(9), LF(10), VT(11), FF(12) and CR(13).
+	/// </summary>
+	/// <param name="c">Character to check.</param>
+	/// <returns>TRUE if the character is of whitespace. FALSE otherwise.</returns>
+	BOOL IsWhitespace(WCHAR c);
+
+	/// <summary>
+	/// This function checks if a character is of whitespace.
+	/// Whitespace characters are HT(9), LF(10), VT(11), FF(12) and CR(13).
+	/// </summary>
+	/// <param name="c">Character to check.</param>
+	/// <returns>TRUE if the character is of whitespace. FALSE otherwise.</returns>
+	BOOL IsWhitespace(CHAR c);
+
+	/// <summary>
+	/// This function checks if a character is of digit.
+	/// </summary>
+	/// <param name="c">Character to check.</param>
+	/// <returns>TRUE if the character is of digit. FALSE otherwise.</returns>
+	BOOL IsDigit(WCHAR c);
+
+	/// <summary>
+	/// This function checks if a character is of digit.
+	/// </summary>
+	/// <param name="c">Character to check.</param>
+	/// <returns>TRUE if the character is of digit. FALSE otherwise.</returns>
+	BOOL IsDigit(CHAR c);
+
+	/// <summary>
+	/// This function compares two strings.
+	/// </summary>
+	/// <param name="str1">The first string to compare.</param>
+	/// <param name="count1">Number of WCHARs in the first string, excluding the terminating null character.
+	/// A negative value makes the function count the number of WCHARs until the terminating null character.</param>
+	/// <param name="str2">The second string to compare.</param>
+	/// <param name="count2">Number of WCHARs in the second string, excluding the terminating null character.
+	/// A negative value makes the function count the number of WCHARs until the terminating null character.</param>
+	/// <returns>0 on the exact match,
+	/// 1 if the lexical order of the first string is greater than that of the second one,
+	/// -1 if the lexical order of the first string is less than that of the second one.</returns>
+	int StrCmp(PCWSTR str1, SSIZE_T count1, PCWSTR str2, SSIZE_T count2);
+
+	/// <summary>
+	/// This function compares two strings.
+	/// </summary>
+	/// <param name="str1">The first string to compare.</param>
+	/// <param name="count1">Number of CHARs in the first string, excluding the terminating null character.
+	/// A negative value makes the function count the number of CHARs until the terminating null character.</param>
+	/// <param name="str2">The second string to compare.</param>
+	/// <param name="count2">Number of CHARs in the second string, excluding the terminating null character.
+	/// A negative value makes the function count the number of CHARs until the terminating null character.</param>
+	/// <returns>0 on the exact match,
+	/// 1 if the lexical order of the first string is greater than that of the second one,
+	/// -1 if the lexical order of the first string is less than that of the second one.</returns>
+	int StrCmp(PCSTR str1, SSIZE_T count1, PCSTR str2, SSIZE_T count2);
+
+	/// <summary>
+	/// This function compares two strings.
+	/// Comparison is done in the lettercase insensitive manner.
+	/// </summary>
+	/// <param name="str1">The first string to compare.</param>
+	/// <param name="count1">Number of WCHARs in the first string, excluding the terminating null character.
+	/// A negative value makes the function count the number of WCHARs until the terminating null character.</param>
+	/// <param name="str2">The second string to compare.</param>
+	/// <param name="count2">Number of WCHARs in the second string, excluding the terminating null character.
+	/// A negative value makes the function count the number of WCHARs until the terminating null character.</param>
+	/// <returns>0 on the exact match,
+	/// 1 if the lexical order of the first string is greater than that of the second one,
+	/// -1 if the lexical order of the first string is less than that of the second one.</returns>
+	int StrCaseCmp(PCWSTR str1, SSIZE_T count1, PCWSTR str2, SSIZE_T count2);
+
+	/// <summary>
+	/// This function compares two strings.
+	/// Comparison is done in the lettercase insensitive manner.
+	/// </summary>
+	/// <param name="str1">The first string to compare.</param>
+	/// <param name="count1">Number of CHARs in the first string, excluding the terminating null character.
+	/// A negative value makes the function count the number of CHARs until the terminating null character.</param>
+	/// <param name="str2">The second string to compare.</param>
+	/// <param name="count2">Number of CHARs in the second string, excluding the terminating null character.
+	/// A negative value makes the function count the number of CHARs until the terminating null character.</param>
+	/// <returns>0 on the exact match,
+	/// 1 if the lexical order of the first string is greater than that of the second one,
+	/// -1 if the lexical order of the first string is less than that of the second one.</returns>
+	int StrCaseCmp(PCSTR str1, SSIZE_T count1, PCSTR str2, SSIZE_T count2);
 }
