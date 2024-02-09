@@ -276,101 +276,101 @@ void hnrt::StrTrimScan(const CHAR* str, int& start, int& end, StringOptions opti
 }
 
 
-WCHAR* hnrt::StrTrim(WCHAR* psz, StringOptions option)
+WCHAR* hnrt::StrTrim(WCHAR* str, StringOptions option)
 {
 	int start = 0;
 	int end = 0;
-	StrTrimScan(psz, start, end, option);
+	StrTrimScan(str, start, end, option);
 	int len = end - start;
-	wmemmove_s(psz, len, psz + start, len);
-	psz[len] = L'\0';
-	return psz;
+	wmemmove_s(str, len, str + start, len);
+	str[len] = L'\0';
+	return str;
 }
 
 
-CHAR* hnrt::StrTrim(CHAR* psz, StringOptions option)
+CHAR* hnrt::StrTrim(CHAR* str, StringOptions option)
 {
 	int start = 0;
 	int end = 0;
-	StrTrimScan(psz, start, end, option);
+	StrTrimScan(str, start, end, option);
 	int len = end - start;
-	memmove_s(psz, len, psz + start, len);
-	psz[len] = '\0';
-	return psz;
+	memmove_s(str, len, str + start, len);
+	str[len] = '\0';
+	return str;
 }
 
 
-SIZE_T StringCommons::FormatLength(const WCHAR* pszFormat, ...)
+SIZE_T hnrt::FormatLength(const WCHAR* format, ...)
 {
 	va_list argList;
-	va_start(argList, pszFormat);
-	int cch = _vscwprintf(pszFormat, argList);
+	va_start(argList, format);
+	int cch = _vscwprintf(format, argList);
 	va_end(argList);
 	if (cch < 0)
 	{
-		throw Exception(L"StringCommons::FormatLength failed.");
+		throw Exception(L"_vscwprintf failed.");
 	}
 	return static_cast<SIZE_T>(cch);
 }
 
 
-SIZE_T StringCommons::FormatLength(const CHAR* pszFormat, ...)
+SIZE_T hnrt::FormatLength(const CHAR* format, ...)
 {
 	va_list argList;
-	va_start(argList, pszFormat);
-	int cch = _vscprintf(pszFormat, argList);
+	va_start(argList, format);
+	int cch = _vscprintf(format, argList);
 	va_end(argList);
 	if (cch < 0)
 	{
-		throw Exception(L"StringCommons::FormatLength failed.");
+		throw Exception(L"_vscprintf failed.");
 	}
 	return static_cast<SIZE_T>(cch);
 }
 
 
-SIZE_T StringCommons::VaFormatLength(const WCHAR* pszFormat, va_list argList)
+SIZE_T hnrt::VaFormatLength(const WCHAR* format, va_list argList)
 {
 	va_list argList2;
 	va_copy(argList2, argList);
-	int cch = _vscwprintf(pszFormat, argList2);
+	int cch = _vscwprintf(format, argList2);
 	va_end(argList2);
 	if (cch < 0)
 	{
-		throw Exception(L"StringCommons::VaFormatLength failed.");
+		throw Exception(L"_vscwprintf failed.");
 	}
 	return static_cast<SIZE_T>(cch);
 }
 
 
-SIZE_T StringCommons::VaFormatLength(const CHAR* pszFormat, va_list argList)
+SIZE_T hnrt::VaFormatLength(const CHAR* format, va_list argList)
 {
 	va_list argList2;
 	va_copy(argList2, argList);
-	int cch = _vscprintf(pszFormat, argList2);
+	int cch = _vscprintf(format, argList2);
 	va_end(argList2);
 	if (cch < 0)
 	{
-		throw Exception(L"StringCommons::VaFormatLength failed.");
+		throw Exception(L"_vscprintf failed.");
 	}
 	return static_cast<SIZE_T>(cch);
 }
 
 
-SIZE_T StringCommons::Format(WCHAR* psz, SIZE_T bufsz, const WCHAR* pszFormat, ...)
+SIZE_T hnrt::Format(WCHAR* buf, SIZE_T bufsz, const WCHAR* format, ...)
 {
 	va_list argList;
-	va_start(argList, pszFormat);
-	int cch = _vsnwprintf_s(psz, bufsz, _TRUNCATE, pszFormat, argList);
+	va_start(argList, format);
+	int cch = _vsnwprintf_s(buf, bufsz, _TRUNCATE, format, argList);
 	va_end(argList);
 	if (cch < 0)
 	{
-		throw Exception(L"StringCommons::Format failed.");
+		throw Exception(L"_vsnwprintf_s failed.");
 	}
 	return static_cast<SIZE_T>(cch);
 }
 
 
-SIZE_T StringCommons::Format(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, ...)
+SIZE_T hnrt::Format(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, ...)
 {
 	va_list argList;
 	va_start(argList, pszFormat);
@@ -378,150 +378,154 @@ SIZE_T StringCommons::Format(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, ...
 	va_end(argList);
 	if (cch < 0)
 	{
-		throw Exception(L"StringCommons::Format failed.");
+		throw Exception(L"_vsnprintf_s failed.");
 	}
 	return static_cast<SIZE_T>(cch);
 }
 
 
-SIZE_T StringCommons::VaFormat(WCHAR* psz, SIZE_T bufsz, const WCHAR* pszFormat, va_list argList)
+SIZE_T hnrt::VaFormat(WCHAR* psz, SIZE_T bufsz, const WCHAR* pszFormat, va_list argList)
 {
 	int cch = _vsnwprintf_s(psz, bufsz, _TRUNCATE, pszFormat, argList);
 	if (cch < 0)
 	{
-		throw Exception(L"StringCommons::VaFormat failed.");
+		throw Exception(L"_vsnwprintf_s failed.");
 	}
 	return static_cast<SIZE_T>(cch);
 }
 
 
-SIZE_T StringCommons::VaFormat(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, va_list argList)
+SIZE_T hnrt::VaFormat(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, va_list argList)
 {
 	int cch = _vsnprintf_s(psz, bufsz, _TRUNCATE, pszFormat, argList);
 	if (cch < 0)
 	{
-		throw Exception(L"StringCommons::VaFormat failed.");
+		throw Exception(L"_vsnprintf_s failed.");
 	}
 	return static_cast<SIZE_T>(cch);
 }
 
 
 template<typename T>
-SIZE_T DoVaConcatLength(StringOptions option, const T* psz, va_list argList)
+SIZE_T DoVaConcatLength(StringOptions option, const T* str, va_list argptr)
 {
-	SIZE_T required = StrLen(psz);
-	va_list argList2;
-	va_copy(argList2, argList);
+	SIZE_T required = StrLen(str);
+	va_list argptr2;
+	va_copy(argptr2, argptr);
 	switch (option)
 	{
 	case CONCAT9:
-		required += StrLen(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argptr2, const T*));
 		//FALLTHROUGH
 	case CONCAT8:
-		required += StrLen(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argptr2, const T*));
 		//FALLTHROUGH
 	case CONCAT7:
-		required += StrLen(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argptr2, const T*));
 		//FALLTHROUGH
 	case CONCAT6:
-		required += StrLen(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argptr2, const T*));
 		//FALLTHROUGH
 	case CONCAT5:
-		required += StrLen(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argptr2, const T*));
 		//FALLTHROUGH
 	case CONCAT4:
-		required += StrLen(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argptr2, const T*));
 		//FALLTHROUGH
 	case CONCAT3:
-		required += StrLen(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argptr2, const T*));
 		//FALLTHROUGH
 	case CONCAT2:
-		required += StrLen(va_arg(argList2, const T*));
+		required += StrLen(va_arg(argptr2, const T*));
 		break;
-	default:
+	case CONCAT:
 		while (true)
 		{
-			const T* psz2 = va_arg(argList2, const T*);
-			if (!psz2)
+			const T* psz = va_arg(argptr2, const T*);
+			if (!psz)
 			{
 				break;
 			}
-			required += StrLen(psz2);
+			required += StrLen(psz);
 		}
 		break;
+	default:
+		throw Exception(L"hnrt::VaConcatLength: Bad option: %d", option);
 	}
-	va_end(argList2);
+	va_end(argptr2);
 	return required;
 }
 
 
-SIZE_T StringCommons::VaConcatLength(StringOptions option, const WCHAR* psz, va_list argList)
+SIZE_T hnrt::VaConcatLength(StringOptions option, const WCHAR* str, va_list argptr)
 {
-	return DoVaConcatLength(option, psz, argList);
+	return DoVaConcatLength(option, str, argptr);
 }
 
 
-SIZE_T StringCommons::VaConcatLength(StringOptions option, const CHAR* psz, va_list argList)
+SIZE_T hnrt::VaConcatLength(StringOptions option, const CHAR* str, va_list argptr)
 {
-	return DoVaConcatLength(option, psz, argList);
+	return DoVaConcatLength(option, str, argptr);
 }
 
 
 template<typename T>
-SIZE_T DoVaConcat(StringOptions option, const T* psz, va_list argList, T* pBuf)
+SIZE_T DoVaConcat(StringOptions option, const T* str, va_list argptr, T* buf)
 {
-	T* pCur = pBuf + StrCopy(pBuf, psz);
+	T* pCur = buf + StrCopy(buf, str);
 	switch (option)
 	{
 	case CONCAT9:
-		pCur += StrCopy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT8:
-		pCur += StrCopy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT7:
-		pCur += StrCopy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT6:
-		pCur += StrCopy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT5:
-		pCur += StrCopy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT4:
-		pCur += StrCopy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT3:
-		pCur += StrCopy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT2:
-		pCur += StrCopy(pCur, va_arg(argList, const T*));
+		pCur += StrCopy(pCur, va_arg(argptr, const T*));
 		break;
-	default:
+	case CONCAT:
 		while (true)
 		{
-			const T* psz2 = va_arg(argList, const T*);
-			if (!psz2)
+			const T* psz = va_arg(argptr, const T*);
+			if (!psz)
 			{
 				break;
 			}
-			pCur += StrCopy(pCur, psz2);
+			pCur += StrCopy(pCur, psz);
 		}
 		break;
+	default:
+		throw Exception(L"hnrt::VaConcat: Bad option: %d", option);
 	}
-	return pCur - pBuf;
+	return pCur - buf;
 }
 
 
-SIZE_T StringCommons::VaConcat(StringOptions option, const WCHAR* psz, va_list argList, WCHAR* pBuf)
+SIZE_T hnrt::VaConcat(StringOptions option, const WCHAR* str, va_list argptr, WCHAR* buf)
 {
-	return DoVaConcat(option, psz, argList, pBuf);
+	return DoVaConcat(option, str, argptr, buf);
 }
 
 
-SIZE_T StringCommons::VaConcat(StringOptions option, const CHAR* psz, va_list argList, CHAR* pBuf)
+SIZE_T hnrt::VaConcat(StringOptions option, const CHAR* str, va_list argptr, CHAR* buf)
 {
-	return DoVaConcat(option, psz, argList, pBuf);
+	return DoVaConcat(option, str, argptr, buf);
 }
 
 

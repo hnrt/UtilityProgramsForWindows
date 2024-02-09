@@ -104,7 +104,7 @@ namespace hnrt
         , m_len(cch)
         , m_buf()
     {
-        (void)StringCommons::VaFormat(&m_buf[0], m_len + 1, pszFormat, argList);
+        (void)VaFormat(&m_buf[0], m_len + 1, pszFormat, argList);
     }
 
     template<typename T>
@@ -124,7 +124,7 @@ namespace hnrt
         , m_buf()
     {
         (void)StrCopy(&m_buf[0], psz1, cch1);
-        (void)StringCommons::VaFormat(&m_buf[cch1], cch2 + 1, pszFormat, argList);
+        (void)VaFormat(&m_buf[cch1], cch2 + 1, pszFormat, argList);
     }
 
     template<typename T>
@@ -203,7 +203,7 @@ namespace hnrt
     template<typename T>
     T* RefString<T>::Create(const T* psz, ::va_list argList)
     {
-        SIZE_T cch = StringCommons::VaFormatLength(psz, argList);
+        SIZE_T cch = VaFormatLength(psz, argList);
         return GetString(new(cch) RefString<T>(psz, argList, cch));
     }
 
@@ -219,7 +219,7 @@ namespace hnrt
     T* RefString<T>::Create(const T* psz1, const T* psz2, ::va_list argList)
     {
         SIZE_T cch1 = StrLen(psz1);
-        SIZE_T cch2 = StringCommons::VaFormatLength(psz2, argList);
+        SIZE_T cch2 = VaFormatLength(psz2, argList);
         return GetString(new(cch1 + cch2) RefString<T>(psz1, cch1, psz2, argList, cch2));
     }
 
@@ -266,9 +266,9 @@ namespace hnrt
         case CONCAT8:
         case CONCAT9:
         {
-            SIZE_T cch = StringCommons::VaConcatLength(option, psz, argList);
+            SIZE_T cch = VaConcatLength(option, psz, argList);
             T* pszReturn = GetString(new(cch) RefString<T>(cch));
-            (void)StringCommons::VaConcat(option, psz, argList, pszReturn);
+            (void)VaConcat(option, psz, argList, pszReturn);
             return pszReturn;
         }
         default:

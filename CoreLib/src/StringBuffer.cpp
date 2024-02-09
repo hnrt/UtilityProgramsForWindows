@@ -231,8 +231,8 @@ StringBuffer& StringBuffer::AppendFormat(PCWSTR pszFormat, ...)
 
 StringBuffer& StringBuffer::VaAppendFormat(PCWSTR pszFormat, va_list argList)
 {
-    CheckCapacity(StringCommons::VaFormatLength(pszFormat, argList));
-    m_len += StringCommons::VaFormat(m_ptr + m_len, m_cap - m_len, pszFormat, argList);
+    CheckCapacity(VaFormatLength(pszFormat, argList));
+    m_len += hnrt::VaFormat(m_ptr + m_len, m_cap - m_len, pszFormat, argList);
     return *this;
 }
 

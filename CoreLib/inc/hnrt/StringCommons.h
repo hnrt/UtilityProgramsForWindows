@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <stdarg.h>
 #include "hnrt/StringOptions.h"
 
 namespace hnrt
@@ -191,23 +192,121 @@ namespace hnrt
 	/// <returns>String trimmed.</returns>
 	CHAR* StrTrim(CHAR* str, StringOptions option = TRIM);
 
-	class StringCommons
-	{
-	public:
+	/// <summary>
+	/// The function counts the number of WCHARs in the formatted string.
+	/// </summary>
+	/// <param name="format">Format-control string.</param>
+	/// <returns>Number of WCHARs in the formatted string, not including the terminating null character.</returns>
+	SIZE_T FormatLength(const WCHAR* format, ...);
 
-		static SIZE_T FormatLength(const WCHAR*, ...);
-		static SIZE_T FormatLength(const CHAR*, ...);
-		static SIZE_T VaFormatLength(const WCHAR*, va_list);
-		static SIZE_T VaFormatLength(const CHAR*, va_list);
-		static SIZE_T Format(WCHAR* psz, SIZE_T, const WCHAR*, ...);
-		static SIZE_T Format(CHAR* psz, SIZE_T, const CHAR*, ...);
-		static SIZE_T VaFormat(WCHAR* psz, SIZE_T, const WCHAR*, va_list);
-		static SIZE_T VaFormat(CHAR* psz, SIZE_T, const CHAR*, va_list);
-		static SIZE_T VaConcatLength(StringOptions, const WCHAR*, va_list);
-		static SIZE_T VaConcatLength(StringOptions, const CHAR*, va_list);
-		static SIZE_T VaConcat(StringOptions, const WCHAR*, va_list, WCHAR*);
-		static SIZE_T VaConcat(StringOptions, const CHAR*, va_list, CHAR*);
-	};
+	/// <summary>
+	/// The function counts the number of CHARs in the formatted string.
+	/// </summary>
+	/// <param name="format">Format-control string. Zero or more extra arguments are to be required based on this string.</param>
+	/// <returns>Number of CHARs in the formatted string, not including the terminating null character.</returns>
+	SIZE_T FormatLength(const CHAR* format, ...);
+
+	/// <summary>
+	/// The function counts the number of WCHARs in the formatted string.
+	/// </summary>
+	/// <param name="format">Format-control string.</param>
+	/// <param name="argList">Pointer to the list of arguments.</param>
+	/// <returns>Number of WCHARs in the formatted string, not including the terminating null character.</returns>
+	SIZE_T VaFormatLength(const WCHAR* format, va_list argList);
+
+	/// <summary>
+	/// The function counts the number of CHARs in the formatted string.
+	/// </summary>
+	/// <param name="format">Format-control string.</param>
+	/// <param name="argList">Pointer to the list of arguments.</param>
+	/// <returns>Number of CHARs in the formatted string, not including the terminating null character.</returns>
+	SIZE_T VaFormatLength(const CHAR* format, va_list argList);
+
+	/// <summary>
+	/// The function writes a formatted string to a buffer.
+	/// </summary>
+	/// <param name="buf">Pointer to the buffer.</param>
+	/// <param name="bufsz">Size of the buffer in WCHARs.</param>
+	/// <param name="format">Format-control string. Zero or more extra arguments are to be required based on this string.</param>
+	/// <returns>Number of WCHARs in the formatted string, not including the terminating null character.</returns>
+	SIZE_T Format(WCHAR* buf, SIZE_T bufsz, const WCHAR* format, ...);
+
+	/// <summary>
+	/// The function writes a formatted string to a buffer.
+	/// </summary>
+	/// <param name="buf">Pointer to the buffer.</param>
+	/// <param name="bufsz">Size of the buffer in CHARs.</param>
+	/// <param name="format">Format-control string. Zero or more extra arguments are to be required based on this string.</param>
+	/// <returns>Number of CHARs in the formatted string, not including the terminating null character.</returns>
+	SIZE_T Format(CHAR* buf, SIZE_T bufsz, const CHAR* format, ...);
+
+	/// <summary>
+	/// The function writes a formatted string to a buffer.
+	/// </summary>
+	/// <param name="buf">Pointer to the buffer.</param>
+	/// <param name="bufsz">Size of the buffer in WCHARs.</param>
+	/// <param name="format">Format-control string.</param>
+	/// <param name="argList">Pointer to the list of arguments.</param>
+	/// <returns>Number of WCHARs in the formatted string, not including the terminating null character.</returns>
+	SIZE_T VaFormat(WCHAR* buf, SIZE_T bufsz, const WCHAR* format, va_list argList);
+
+	/// <summary>
+	/// The function writes a formatted string to a buffer.
+	/// </summary>
+	/// <param name="buf">Pointer to the buffer.</param>
+	/// <param name="bufsz">Size of the buffer in CHARs.</param>
+	/// <param name="format">Format-control string.</param>
+	/// <param name="argList">Pointer to the list of arguments.</param>
+	/// <returns>Number of CHARs in the formatted string, not including the terminating null character.</returns>
+	SIZE_T VaFormat(CHAR* buf, SIZE_T bufsz, const CHAR* format, va_list argList);
+
+	/// <summary>
+	/// The function counts the number of WCHARs in the concatenated string.
+	/// </summary>
+	/// <param name="option">Concatenation mode.
+	/// CONCAT indicates to concatenate as many arguments as while the argument is not NULL.
+	/// CONCAT2 to CONCAT9 indicate to concatenate 2 to 9 arguments.</param>
+	/// <param name="str">The first string to concatenate.</param>
+	/// <param name="argptr">Pointer to the list of arguments including the second string and more to concatenate.</param>
+	/// <returns>Number of WCHARs in the resulting string, not including the terminating null character.</returns>
+	SIZE_T VaConcatLength(StringOptions option, const WCHAR* str, va_list argptr);
+
+	/// <summary>
+	/// The function counts the number of CHARs in the concatenated string.
+	/// </summary>
+	/// <param name="option">Concatenation mode.
+	/// CONCAT indicates to concatenate as many arguments as while the argument is not NULL.
+	/// CONCAT2 to CONCAT9 indicate to concatenate 2 to 9 arguments.</param>
+	/// <param name="str">The first string to concatenate.</param>
+	/// <param name="argptr">Pointer to the list of arguments including the second string and more to concatenate.</param>
+	/// <returns>Number of CHARs in the resulting string, not including the terminating null character.</returns>
+	SIZE_T VaConcatLength(StringOptions option, const CHAR* str, va_list argptr);
+
+	/// <summary>
+	/// The function concatenates arguments of string and writes a single string to a buffer.
+	/// </summary>
+	/// <param name="option">Concatenation mode.
+	/// CONCAT indicates to concatenate as many arguments as while the argument is not NULL.
+	/// CONCAT2 to CONCAT9 indicate to concatenate 2 to 9 arguments.</param>
+	/// <param name="str">The first string to concatenate.</param>
+	/// <param name="argptr">Pointer to the list of arguments including the second string and more to concatenate.</param>
+	/// <param name="buf">Buffer of the string to create.
+	/// The size of this buffer should be determined by VaConcatLength call using the same input.</param>
+	/// <returns>Number of WCHARs in the resulting string, not including the terminating null character.</returns>
+	SIZE_T VaConcat(StringOptions option, const WCHAR* str, va_list argptr, WCHAR* buf);
+
+	/// <summary>
+	/// The function concatenates arguments of string and writes a single string to a buffer.
+	/// </summary>
+	/// <param name="option">Concatenation mode.
+	/// CONCAT indicates to concatenate as many arguments as while the argument is not NULL.
+	/// CONCAT2 to CONCAT9 indicate to concatenate 2 to 9 arguments.</param>
+	/// <param name="str">The first string to concatenate.</param>
+	/// <param name="argptr">Pointer to the list of arguments including the second string and more to concatenate.</param>
+	/// <param name="buf">Buffer of the string to create.
+	/// The size of this buffer should be determined by VaConcatLength call using the same input.</param>
+	/// <returns>Number of CHARs in the resulting string, not including the terminating null character.</returns>
+	SIZE_T VaConcat(StringOptions option, const CHAR* str, va_list argptr, CHAR* buf);
 
 	/// <summary>
 	/// This function searches a null-terminated string for a character.
