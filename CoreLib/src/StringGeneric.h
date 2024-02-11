@@ -303,8 +303,8 @@ XSTRING& XSTRING::TruncateHead(SIZE_T cch)
         else if (cch < pThis->Len)
         {
             SIZE_T newLen = pThis->Len - cch;
-            StrMove(&m_psz[0], &m_psz[cch], newLen);
-            StrFill(&m_psz[newLen], XLITERAL('\0'), cch);
+            MemMove(&m_psz[0], &m_psz[cch], newLen);
+            MemSet(&m_psz[newLen], XLITERAL('\0'), cch);
             pThis->SetLength(newLen);
         }
         else
@@ -328,7 +328,7 @@ XSTRING& XSTRING::TruncateTail(SIZE_T cch)
         else if (cch < pThis->Len)
         {
             SIZE_T newLen = pThis->Len - cch;
-            StrFill(&m_psz[newLen], XLITERAL('\0'), cch);
+            MemSet(&m_psz[newLen], XLITERAL('\0'), cch);
             pThis->SetLength(newLen);
         }
         else
@@ -345,7 +345,7 @@ int XSTRING::IndexOf(XCHAR c, SIZE_T fromIndex) const
     SIZE_T length = Len;
     if (m_psz && fromIndex < length)
     {
-        int index = StrIndexOf(m_psz + fromIndex, c, length - fromIndex);
+        int index = hnrt::IndexOf(m_psz + fromIndex, c, length - fromIndex);
         return index >= 0 ? (static_cast<int>(fromIndex) + index) : -1;
     }
     return -1;
@@ -363,7 +363,7 @@ int XSTRING::IndexOf(const XSTRING& s, SIZE_T fromIndex) const
         {
             cch--;
             XCHAR c = *psz++;
-            int index = StrIndexOf(m_psz + fromIndex, c, length - fromIndex);
+            int index = hnrt::IndexOf(m_psz + fromIndex, c, length - fromIndex);
             PXSTR pCur = index >= 0 ? (m_psz + fromIndex + static_cast<SIZE_T>(index)) : nullptr;
             if (cch)
             {
@@ -379,7 +379,7 @@ int XSTRING::IndexOf(const XSTRING& s, SIZE_T fromIndex) const
                     {
                         return static_cast<int>((pCur - 1) - m_psz);
                     }
-                    int index = StrIndexOf(pCur, c, pEnd - pCur);
+                    int index = hnrt::IndexOf(pCur, c, pEnd - pCur);
                     pCur = index >= 0 ? (pCur + index) : nullptr;
                 }
             }

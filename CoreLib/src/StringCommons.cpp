@@ -8,115 +8,59 @@ using namespace hnrt;
 
 SIZE_T hnrt::StrLen(const WCHAR* str, SSIZE_T numberOfElements)
 {
-	if (str && numberOfElements)
-	{
-		return numberOfElements < 0 ? wcslen(str) : wcsnlen(str, numberOfElements);
-	}
-	else
-	{
-		return 0;
-	}
+	return numberOfElements < 0 ? wcslen(str) : wcsnlen(str, numberOfElements);
 }
 
 
 SIZE_T hnrt::StrLen(const CHAR* str, SSIZE_T numberOfElements)
 {
-	if (str && numberOfElements)
-	{
-		return numberOfElements < 0 ? strlen(str) : strnlen(str, numberOfElements);
-	}
-	else
-	{
-		return 0;
-	}
+	return numberOfElements < 0 ? strlen(str) : strnlen(str, numberOfElements);
 }
 
 
 SIZE_T hnrt::StrCopy(WCHAR* dest, const WCHAR* src, SSIZE_T count)
 {
-	if (dest)
-	{
-		SIZE_T cch = StrLen(src, count);
-		wmemcpy_s(dest, cch, src, cch);
-		dest[cch] = L'\0';
-		return cch;
-	}
-	else
-	{
-		return 0;
-	}
+	SIZE_T cch = StrLen(src, count);
+	wmemcpy_s(dest, cch, src, cch);
+	dest[cch] = L'\0';
+	return cch;
 }
 
 
 SIZE_T hnrt::StrCopy(CHAR* dest, const CHAR* src, SSIZE_T count)
 {
-	if (dest)
-	{
-		SIZE_T cch = StrLen(src, count);
-		memcpy_s(dest, cch, src, cch);
-		dest[cch] = '\0';
-		return cch;
-	}
-	else
-	{
-		return 0;
-	}
+	SIZE_T cch = StrLen(src, count);
+	memcpy_s(dest, cch, src, cch);
+	dest[cch] = '\0';
+	return cch;
 }
 
 
-SIZE_T hnrt::StrFill(WCHAR* dest, WCHAR c, SIZE_T count)
+SIZE_T hnrt::MemSet(WCHAR* dest, WCHAR c, SIZE_T count)
 {
-	if (dest)
-	{
-		wmemset(dest, c, count);
-		return count;
-	}
-	else
-	{
-		return 0;
-	}
+	wmemset(dest, c, count);
+	return count;
 }
 
 
-SIZE_T hnrt::StrFill(CHAR* dest, CHAR c, SIZE_T count)
+SIZE_T hnrt::MemSet(CHAR* dest, CHAR c, SIZE_T count)
 {
-	if (dest)
-	{
-		memset(dest, c, count);
-		return count;
-	}
-	else
-	{
-		return 0;
-	}
+	memset(dest, c, count);
+	return count;
 }
 
 
-SIZE_T hnrt::StrMove(WCHAR* dest, const WCHAR* src, SIZE_T count)
+SIZE_T hnrt::MemMove(WCHAR* dest, const WCHAR* src, SIZE_T count)
 {
-	if (dest)
-	{
-		wmemmove_s(dest, count, src, count);
-		return count;
-	}
-	else
-	{
-		return 0;
-	}
+	wmemmove_s(dest, count, src, count);
+	return count;
 }
 
 
-SIZE_T hnrt::StrMove(CHAR* dest, const CHAR* src, SIZE_T count)
+SIZE_T hnrt::MemMove(CHAR* dest, const CHAR* src, SIZE_T count)
 {
-	if (dest)
-	{
-		memmove_s(dest, count, src, count);
-		return count;
-	}
-	else
-	{
-		return 0;
-	}
+	memmove_s(dest, count, src, count);
+	return count;
 }
 
 
@@ -150,65 +94,37 @@ SIZE_T hnrt::StrCase(StringOptions option, CHAR* str, SSIZE_T count)
 
 SIZE_T hnrt::StrUpr(WCHAR* str, SSIZE_T count)
 {
-	if (str)
-	{
-		SIZE_T cch = StrLen(str, count);
-		str[cch] = L'\0';
-		_wcsupr_s(str, cch + 1);
-		return cch;
-	}
-	else
-	{
-		return 0;
-	}
+	SIZE_T cch = StrLen(str, count);
+	str[cch] = L'\0';
+	_wcsupr_s(str, cch + 1);
+	return cch;
 }
 
 
 SIZE_T hnrt::StrUpr(CHAR* str, SSIZE_T count)
 {
-	if (str)
-	{
-		SIZE_T cch = StrLen(str, count);
-		str[cch] = '\0';
-		_strupr_s(str, cch + 1);
-		return cch;
-	}
-	else
-	{
-		return 0;
-	}
+	SIZE_T cch = StrLen(str, count);
+	str[cch] = '\0';
+	_strupr_s(str, cch + 1);
+	return cch;
 }
 
 
 SIZE_T hnrt::StrLwr(WCHAR* str, SSIZE_T count)
 {
-	if (str)
-	{
-		SIZE_T cch = StrLen(str, count);
-		str[cch] = L'\0';
-		_wcslwr_s(str, cch + 1);
-		return cch;
-	}
-	else
-	{
-		return 0;
-	}
+	SIZE_T cch = StrLen(str, count);
+	str[cch] = L'\0';
+	_wcslwr_s(str, cch + 1);
+	return cch;
 }
 
 
 SIZE_T hnrt::StrLwr(CHAR* str, SSIZE_T count)
 {
-	if (str)
-	{
-		SIZE_T cch = StrLen(str, count);
-		str[cch] = '\0';
-		_strlwr_s(str, cch + 1);
-		return cch;
-	}
-	else
-	{
-		return 0;
-	}
+	SIZE_T cch = StrLen(str, count);
+	str[cch] = '\0';
+	_strlwr_s(str, cch + 1);
+	return cch;
 }
 
 
@@ -312,7 +228,7 @@ CHAR* hnrt::StrTrim(CHAR* str, StringOptions option)
 }
 
 
-SIZE_T hnrt::FormatLength(const WCHAR* format, ...)
+SIZE_T hnrt::StrFmtLen(const WCHAR* format, ...)
 {
 	va_list argList;
 	va_start(argList, format);
@@ -326,7 +242,7 @@ SIZE_T hnrt::FormatLength(const WCHAR* format, ...)
 }
 
 
-SIZE_T hnrt::FormatLength(const CHAR* format, ...)
+SIZE_T hnrt::StrFmtLen(const CHAR* format, ...)
 {
 	va_list argList;
 	va_start(argList, format);
@@ -340,7 +256,7 @@ SIZE_T hnrt::FormatLength(const CHAR* format, ...)
 }
 
 
-SIZE_T hnrt::VaFormatLength(const WCHAR* format, va_list argList)
+SIZE_T hnrt::VaStrFmtLen(const WCHAR* format, va_list argList)
 {
 	va_list argList2;
 	va_copy(argList2, argList);
@@ -354,7 +270,7 @@ SIZE_T hnrt::VaFormatLength(const WCHAR* format, va_list argList)
 }
 
 
-SIZE_T hnrt::VaFormatLength(const CHAR* format, va_list argList)
+SIZE_T hnrt::VaStrFmtLen(const CHAR* format, va_list argList)
 {
 	va_list argList2;
 	va_copy(argList2, argList);
@@ -368,7 +284,7 @@ SIZE_T hnrt::VaFormatLength(const CHAR* format, va_list argList)
 }
 
 
-SIZE_T hnrt::Format(WCHAR* buf, SIZE_T bufsz, const WCHAR* format, ...)
+SIZE_T hnrt::StrFmt(WCHAR* buf, SIZE_T bufsz, const WCHAR* format, ...)
 {
 	va_list argList;
 	va_start(argList, format);
@@ -382,7 +298,7 @@ SIZE_T hnrt::Format(WCHAR* buf, SIZE_T bufsz, const WCHAR* format, ...)
 }
 
 
-SIZE_T hnrt::Format(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, ...)
+SIZE_T hnrt::StrFmt(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, ...)
 {
 	va_list argList;
 	va_start(argList, pszFormat);
@@ -396,7 +312,7 @@ SIZE_T hnrt::Format(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, ...)
 }
 
 
-SIZE_T hnrt::VaFormat(WCHAR* psz, SIZE_T bufsz, const WCHAR* pszFormat, va_list argList)
+SIZE_T hnrt::VaStrFmt(WCHAR* psz, SIZE_T bufsz, const WCHAR* pszFormat, va_list argList)
 {
 	int cch = _vsnwprintf_s(psz, bufsz, _TRUNCATE, pszFormat, argList);
 	if (cch < 0)
@@ -407,7 +323,7 @@ SIZE_T hnrt::VaFormat(WCHAR* psz, SIZE_T bufsz, const WCHAR* pszFormat, va_list 
 }
 
 
-SIZE_T hnrt::VaFormat(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, va_list argList)
+SIZE_T hnrt::VaStrFmt(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, va_list argList)
 {
 	int cch = _vsnprintf_s(psz, bufsz, _TRUNCATE, pszFormat, argList);
 	if (cch < 0)
@@ -419,7 +335,7 @@ SIZE_T hnrt::VaFormat(CHAR* psz, SIZE_T bufsz, const CHAR* pszFormat, va_list ar
 
 
 template<typename T>
-SIZE_T DoVaConcatLength(StringOptions option, const T* str, va_list argptr)
+SIZE_T DoVaStrCatLen(StringOptions option, const T* str, va_list argptr)
 {
 	SIZE_T required = StrLen(str);
 	va_list argptr2;
@@ -462,27 +378,27 @@ SIZE_T DoVaConcatLength(StringOptions option, const T* str, va_list argptr)
 		}
 		break;
 	default:
-		throw Exception(L"hnrt::VaConcatLength: Bad option: %d", option);
+		throw Exception(L"hnrt::VaStrCatLen: Bad option: %d", option);
 	}
 	va_end(argptr2);
 	return required;
 }
 
 
-SIZE_T hnrt::VaConcatLength(StringOptions option, const WCHAR* str, va_list argptr)
+SIZE_T hnrt::VaStrCatLen(StringOptions option, const WCHAR* str, va_list argptr)
 {
-	return DoVaConcatLength(option, str, argptr);
+	return DoVaStrCatLen(option, str, argptr);
 }
 
 
-SIZE_T hnrt::VaConcatLength(StringOptions option, const CHAR* str, va_list argptr)
+SIZE_T hnrt::VaStrCatLen(StringOptions option, const CHAR* str, va_list argptr)
 {
-	return DoVaConcatLength(option, str, argptr);
+	return DoVaStrCatLen(option, str, argptr);
 }
 
 
 template<typename T>
-SIZE_T DoVaConcat(StringOptions option, const T* str, va_list argptr, T* buf)
+SIZE_T DoVaStrCat(StringOptions option, const T* str, va_list argptr, T* buf)
 {
 	T* pCur = buf + StrCopy(buf, str);
 	switch (option)
@@ -523,100 +439,236 @@ SIZE_T DoVaConcat(StringOptions option, const T* str, va_list argptr, T* buf)
 		}
 		break;
 	default:
-		throw Exception(L"hnrt::VaConcat: Bad option: %d", option);
+		throw Exception(L"hnrt::VaStrCat: Bad option: %d", option);
 	}
 	return pCur - buf;
 }
 
 
-SIZE_T hnrt::VaConcat(StringOptions option, const WCHAR* str, va_list argptr, WCHAR* buf)
+SIZE_T hnrt::VaStrCat(StringOptions option, const WCHAR* str, va_list argptr, WCHAR* buf)
 {
-	return DoVaConcat(option, str, argptr, buf);
+	return DoVaStrCat(option, str, argptr, buf);
 }
 
 
-SIZE_T hnrt::VaConcat(StringOptions option, const CHAR* str, va_list argptr, CHAR* buf)
+SIZE_T hnrt::VaStrCat(StringOptions option, const CHAR* str, va_list argptr, CHAR* buf)
 {
-	return DoVaConcat(option, str, argptr, buf);
+	return DoVaStrCat(option, str, argptr, buf);
 }
 
 
-int hnrt::StrIndexOf(const WCHAR* str, WCHAR c, SSIZE_T size)
+int hnrt::IndexOf(const WCHAR* str, WCHAR c, SSIZE_T size)
 {
+	const WCHAR* p = wmemchr(str, c, c ? StrLen(str, size) : (size >= 0 ? size : INT_MAX));
+	return p ? static_cast<int>(p - str) : -1;
+}
+
+
+int hnrt::IndexOf(const CHAR* str, CHAR c, SSIZE_T size)
+{
+	const CHAR* p = reinterpret_cast<const CHAR*>(memchr(str, c & 0xFF, c ? StrLen(str, size) : (size >= 0 ? size : INT_MAX)));
+	return p ? static_cast<int>(p - str) : -1;
+}
+
+
+int hnrt::IndexOf(const WCHAR* str, const WCHAR* seq, SSIZE_T size)
+{
+	WCHAR c = *seq++;
 	if (c)
 	{
-		SIZE_T cch = StrLen(str, size);
-		const WCHAR* q = wmemchr(str, c, cch);
-		return q ? static_cast<int>(q - str) : -1;
-	}
-	else if (size >= 0)
-	{
-		const WCHAR* q = wmemchr(str, L'\0', size);
-		return q ? static_cast<int>(q - str) : -1;
+		size_t cch = wcslen(seq);
+		if (cch)
+		{
+			const WCHAR* pCur = str;
+			const WCHAR* pEnd = str + StrLen(str, size) - cch;
+			if (pCur < pEnd)
+			{
+				const WCHAR* pStop;
+				while ((pStop = wmemchr(pCur, c, pEnd - pCur)))
+				{
+					pCur = pStop + 1;
+					if (!wmemcmp(pCur, seq, cch))
+					{
+						return static_cast<int>(pStop - str);
+					}
+				}
+			}
+			return -1;
+		}
+		else
+		{
+			return IndexOf(str, c, size);
+		}
 	}
 	else
 	{
-		return static_cast<int>(StrLen(str));
+		return size ? 0 : -1;
 	}
 }
 
 
-int hnrt::StrIndexOf(const CHAR* str, CHAR c, SSIZE_T size)
+int hnrt::IndexOf(const CHAR* str, const CHAR* seq, SSIZE_T size)
 {
+	int c = *seq++ & 0xFF;
 	if (c)
 	{
-		SIZE_T cch = StrLen(str, size);
-		const CHAR* q = reinterpret_cast<const CHAR*>(memchr(str, c, cch));
-		return q ? static_cast<int>(q - str) : -1;
-	}
-	else if (size >= 0)
-	{
-		const CHAR* q = reinterpret_cast<const CHAR*>(memchr(str, '\0', size));
-		return q ? static_cast<int>(q - str) : -1;
+		size_t cch = strlen(seq);
+		if (cch)
+		{
+			const CHAR* pCur = str;
+			const CHAR* pEnd = str + StrLen(str, size) - cch;
+			if (pCur < pEnd)
+			{
+				const CHAR* pStop;
+				while ((pStop = reinterpret_cast<const CHAR*>(memchr(pCur, c, pEnd - pCur))))
+				{
+					pCur = pStop + 1;
+					if (!memcmp(pCur, seq, cch))
+					{
+						return static_cast<int>(pStop - str);
+					}
+				}
+			}
+			return -1;
+		}
+		else
+		{
+			return IndexOf(str, c, size);
+		}
 	}
 	else
 	{
-		return static_cast<int>(StrLen(str));
+		return size ? 0 : -1;
 	}
 }
 
 
-int hnrt::StrIndexOf(WCHAR* str, WCHAR c, SSIZE_T size)
+int hnrt::LastIndexOf(const WCHAR* str, WCHAR c, SSIZE_T size)
 {
 	if (c)
 	{
-		SIZE_T cch = StrLen(str, size);
-		WCHAR* q = wmemchr(str, c, cch);
-		return q ? static_cast<int>(q - str) : -1;
+		const WCHAR* pCur = str + StrLen(str, size);
+		while (str <= --pCur)
+		{
+			if (*pCur == c)
+			{
+				return static_cast<int>(pCur - str);
+			}
+		}
+		return -1;
 	}
-	else if (size >= 0)
+	else if (size > 0)
 	{
-		WCHAR* q = wmemchr(str, L'\0', size);
-		return q ? static_cast<int>(q - str) : -1;
+		const WCHAR* p = wmemchr(str, L'\0', size);
+		return p ? static_cast<int>(p - str) : -1;
+	}
+	else if (size < 0)
+	{
+		return static_cast<int>(wcslen(str));
 	}
 	else
 	{
-		return static_cast<int>(StrLen(str));
+		return -1;
 	}
 }
 
 
-int hnrt::StrIndexOf(CHAR* str, CHAR c, SSIZE_T size)
+int hnrt::LastIndexOf(const CHAR* str, CHAR c, SSIZE_T size)
 {
 	if (c)
 	{
-		SIZE_T cch = StrLen(str, size);
-		CHAR* q = reinterpret_cast<CHAR*>(memchr(str, c, cch));
-		return q ? static_cast<int>(q - str) : -1;
+		const CHAR* pCur = str + StrLen(str, size);
+		while (str <= --pCur)
+		{
+			if (*pCur == c)
+			{
+				return static_cast<int>(pCur - str);
+			}
+		}
+		return -1;
 	}
-	else if (size >= 0)
+	else if (size > 0)
 	{
-		CHAR* q = reinterpret_cast<CHAR*>(memchr(str, '\0', size));
-		return q ? static_cast<int>(q - str) : -1;
+		const CHAR* p = reinterpret_cast<const CHAR*>(memchr(str, '\0', size));
+		return p ? static_cast<int>(p - str) : -1;
+	}
+	else if (size < 0)
+	{
+		return static_cast<int>(strlen(str));
 	}
 	else
 	{
-		return static_cast<int>(StrLen(str));
+		return -1;
+	}
+}
+
+
+int hnrt::LastIndexOf(const WCHAR* str, const WCHAR* seq, SSIZE_T size)
+{
+	size_t cch = wcslen(seq);
+	if (cch)
+	{
+		WCHAR c = seq[--cch];
+		if (cch)
+		{
+			const WCHAR* pCur = str + StrLen(str, size);
+			const WCHAR* pEnd = str + cch;
+			while (pEnd <= --pCur)
+			{
+				if (*pCur == c)
+				{
+					const WCHAR* pHead = pCur - cch;
+					if (!wmemcmp(pHead, seq, cch))
+					{
+						return static_cast<int>(pHead - str);
+					}
+				}
+			}
+			return -1;
+		}
+		else
+		{
+			return LastIndexOf(str, c, size);
+		}
+	}
+	else
+	{
+		return size ? static_cast<int>(StrLen(str, size)) : -1;
+	}
+}
+
+
+int hnrt::LastIndexOf(const CHAR* str, const CHAR* seq, SSIZE_T size)
+{
+	size_t cch = strlen(seq);
+	if (cch)
+	{
+		int c = seq[--cch] & 0xFF;
+		if (cch)
+		{
+			const CHAR* pCur = str + StrLen(str, size);
+			const CHAR* pEnd = str + cch;
+			while (pEnd <= --pCur)
+			{
+				if (*pCur == c)
+				{
+					const CHAR* pHead = pCur - cch;
+					if (!memcmp(pHead, seq, cch))
+					{
+						return static_cast<int>(pHead - str);
+					}
+				}
+			}
+			return -1;
+		}
+		else
+		{
+			return LastIndexOf(str, c, size);
+		}
+	}
+	else
+	{
+		return size ? static_cast<int>(StrLen(str, size)) : -1;
 	}
 }
 

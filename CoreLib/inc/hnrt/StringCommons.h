@@ -28,26 +28,26 @@ namespace hnrt
 
 	/// <summary>
 	/// The function copies characters between string buffers.
-	/// The destination string buffer will be null-terminated.
+	/// The destination string buffer will be always null-terminated.
 	/// </summary>
 	/// <param name="dest">Destination string buffer to copy to.</param>
 	/// <param name="src">Source string buffer to copy from.</param>
 	/// <param name="count">Number of characters to copy at most.
-	/// No characters beyond the terminating null character are copied from the source string buffer.
+	/// No characters beyond the terminating null character are to be copied from the source string buffer.
 	/// A negative value specifies to copy all the characters from the source string buffer.</param>
-	/// <returns>Number of characters copied, not including the terminating null character.</returns>
+	/// <returns>Number of WCHARs copied, not including the terminating null character.</returns>
 	SIZE_T StrCopy(WCHAR* dest, const WCHAR* src, SSIZE_T count = -1);
 
 	/// <summary>
 	/// The function copies characters between string buffers.
-	/// The destination string buffer will be null-terminated.
+	/// The destination string buffer will be always null-terminated.
 	/// </summary>
 	/// <param name="dest">Destination string buffer to copy to.</param>
 	/// <param name="src">Source string buffer to copy from.</param>
 	/// <param name="count">Number of characters to copy at most.
-	/// No characters beyond the terminating null character are copied from the source string buffer.
+	/// No characters beyond the terminating null character are to be copied from the source string buffer.
 	/// A negative value specifies to copy all the characters from the source string buffer.</param>
-	/// <returns>Number of characters copied, not including the terminating null character.</returns>
+	/// <returns>Number of CHARs copied, not including the terminating null character.</returns>
 	SIZE_T StrCopy(CHAR* dest, const CHAR* src, SSIZE_T count = -1);
 
 	/// <summary>
@@ -56,8 +56,8 @@ namespace hnrt
 	/// <param name="dest">Pointer to the string buffer.</param>
 	/// <param name="c">Character to fill a string buffer with.</param>
 	/// <param name="count">Number of characters.</param>
-	/// <returns>Number of characters filled the string buffer with.</returns>
-	SIZE_T StrFill(WCHAR* dest, WCHAR c, SIZE_T count);
+	/// <returns>Number of WCHARs filled the string buffer.</returns>
+	SIZE_T MemSet(WCHAR* dest, WCHAR c, SIZE_T count);
 
 	/// <summary>
 	/// The function fills a string buffer with a specified character.
@@ -65,28 +65,30 @@ namespace hnrt
 	/// <param name="dest">Pointer to the string buffer.</param>
 	/// <param name="c">Character to fill a string buffer with.</param>
 	/// <param name="count">Number of characters.</param>
-	/// <returns>Number of characters filled the string buffer with.</returns>
-	SIZE_T StrFill(CHAR* dest, CHAR c, SIZE_T count);
+	/// <returns>Number of CHARs filled the string buffer.</returns>
+	SIZE_T MemSet(CHAR* dest, CHAR c, SIZE_T count);
 
 	/// <summary>
 	/// The function moves a block of successive characters to another memory location.
 	/// Any characters, including a terminating null character, will be moved.
+	/// The source block and the destination block can overlap each other.
 	/// </summary>
 	/// <param name="dest">Destination address.</param>
 	/// <param name="src">Source address.</param>
 	/// <param name="count">Number of WCHARs to move.</param>
 	/// <returns>Number of WCHARs moved.</returns>
-	SIZE_T StrMove(WCHAR* dest, const WCHAR* src, SIZE_T count);
+	SIZE_T MemMove(WCHAR* dest, const WCHAR* src, SIZE_T count);
 
 	/// <summary>
 	/// The function moves a block of successive characters to another memory location.
 	/// Any characters, including a terminating null character, will be moved.
+	/// The source block and the destination block can overlap each other.
 	/// </summary>
 	/// <param name="dest">Destination address.</param>
 	/// <param name="src">Source address.</param>
 	/// <param name="count">Number of CHARs to move.</param>
 	/// <returns>Number of CHARs moved.</returns>
-	SIZE_T StrMove(CHAR* dest, const CHAR* src, SIZE_T count);
+	SIZE_T MemMove(CHAR* dest, const CHAR* src, SIZE_T count);
 
 	/// <summary>
 	/// The function converts the letter case of characters in a string.
@@ -197,14 +199,14 @@ namespace hnrt
 	/// </summary>
 	/// <param name="format">Format-control string.</param>
 	/// <returns>Number of WCHARs in the formatted string, not including the terminating null character.</returns>
-	SIZE_T FormatLength(const WCHAR* format, ...);
+	SIZE_T StrFmtLen(const WCHAR* format, ...);
 
 	/// <summary>
 	/// The function counts the number of CHARs in the formatted string.
 	/// </summary>
 	/// <param name="format">Format-control string. Zero or more extra arguments are to be required based on this string.</param>
 	/// <returns>Number of CHARs in the formatted string, not including the terminating null character.</returns>
-	SIZE_T FormatLength(const CHAR* format, ...);
+	SIZE_T StrFmtLen(const CHAR* format, ...);
 
 	/// <summary>
 	/// The function counts the number of WCHARs in the formatted string.
@@ -212,7 +214,7 @@ namespace hnrt
 	/// <param name="format">Format-control string.</param>
 	/// <param name="argList">Pointer to the list of arguments.</param>
 	/// <returns>Number of WCHARs in the formatted string, not including the terminating null character.</returns>
-	SIZE_T VaFormatLength(const WCHAR* format, va_list argList);
+	SIZE_T VaStrFmtLen(const WCHAR* format, va_list argList);
 
 	/// <summary>
 	/// The function counts the number of CHARs in the formatted string.
@@ -220,7 +222,7 @@ namespace hnrt
 	/// <param name="format">Format-control string.</param>
 	/// <param name="argList">Pointer to the list of arguments.</param>
 	/// <returns>Number of CHARs in the formatted string, not including the terminating null character.</returns>
-	SIZE_T VaFormatLength(const CHAR* format, va_list argList);
+	SIZE_T VaStrFmtLen(const CHAR* format, va_list argList);
 
 	/// <summary>
 	/// The function writes a formatted string to a buffer.
@@ -229,7 +231,7 @@ namespace hnrt
 	/// <param name="bufsz">Size of the buffer in WCHARs.</param>
 	/// <param name="format">Format-control string. Zero or more extra arguments are to be required based on this string.</param>
 	/// <returns>Number of WCHARs in the formatted string, not including the terminating null character.</returns>
-	SIZE_T Format(WCHAR* buf, SIZE_T bufsz, const WCHAR* format, ...);
+	SIZE_T StrFmt(WCHAR* buf, SIZE_T bufsz, const WCHAR* format, ...);
 
 	/// <summary>
 	/// The function writes a formatted string to a buffer.
@@ -238,7 +240,7 @@ namespace hnrt
 	/// <param name="bufsz">Size of the buffer in CHARs.</param>
 	/// <param name="format">Format-control string. Zero or more extra arguments are to be required based on this string.</param>
 	/// <returns>Number of CHARs in the formatted string, not including the terminating null character.</returns>
-	SIZE_T Format(CHAR* buf, SIZE_T bufsz, const CHAR* format, ...);
+	SIZE_T StrFmt(CHAR* buf, SIZE_T bufsz, const CHAR* format, ...);
 
 	/// <summary>
 	/// The function writes a formatted string to a buffer.
@@ -248,7 +250,7 @@ namespace hnrt
 	/// <param name="format">Format-control string.</param>
 	/// <param name="argList">Pointer to the list of arguments.</param>
 	/// <returns>Number of WCHARs in the formatted string, not including the terminating null character.</returns>
-	SIZE_T VaFormat(WCHAR* buf, SIZE_T bufsz, const WCHAR* format, va_list argList);
+	SIZE_T VaStrFmt(WCHAR* buf, SIZE_T bufsz, const WCHAR* format, va_list argList);
 
 	/// <summary>
 	/// The function writes a formatted string to a buffer.
@@ -258,7 +260,7 @@ namespace hnrt
 	/// <param name="format">Format-control string.</param>
 	/// <param name="argList">Pointer to the list of arguments.</param>
 	/// <returns>Number of CHARs in the formatted string, not including the terminating null character.</returns>
-	SIZE_T VaFormat(CHAR* buf, SIZE_T bufsz, const CHAR* format, va_list argList);
+	SIZE_T VaStrFmt(CHAR* buf, SIZE_T bufsz, const CHAR* format, va_list argList);
 
 	/// <summary>
 	/// The function counts the number of WCHARs in the concatenated string.
@@ -269,7 +271,7 @@ namespace hnrt
 	/// <param name="str">The first string to concatenate.</param>
 	/// <param name="argptr">Pointer to the list of arguments including the second string and more to concatenate.</param>
 	/// <returns>Number of WCHARs in the resulting string, not including the terminating null character.</returns>
-	SIZE_T VaConcatLength(StringOptions option, const WCHAR* str, va_list argptr);
+	SIZE_T VaStrCatLen(StringOptions option, const WCHAR* str, va_list argptr);
 
 	/// <summary>
 	/// The function counts the number of CHARs in the concatenated string.
@@ -280,7 +282,7 @@ namespace hnrt
 	/// <param name="str">The first string to concatenate.</param>
 	/// <param name="argptr">Pointer to the list of arguments including the second string and more to concatenate.</param>
 	/// <returns>Number of CHARs in the resulting string, not including the terminating null character.</returns>
-	SIZE_T VaConcatLength(StringOptions option, const CHAR* str, va_list argptr);
+	SIZE_T VaStrCatLen(StringOptions option, const CHAR* str, va_list argptr);
 
 	/// <summary>
 	/// The function concatenates arguments of string and writes a single string to a buffer.
@@ -291,9 +293,9 @@ namespace hnrt
 	/// <param name="str">The first string to concatenate.</param>
 	/// <param name="argptr">Pointer to the list of arguments including the second string and more to concatenate.</param>
 	/// <param name="buf">Buffer of the string to create.
-	/// The size of this buffer should be determined by VaConcatLength call using the same input.</param>
+	/// The size of this buffer should be determined by VaStrCatLen call using the same input.</param>
 	/// <returns>Number of WCHARs in the resulting string, not including the terminating null character.</returns>
-	SIZE_T VaConcat(StringOptions option, const WCHAR* str, va_list argptr, WCHAR* buf);
+	SIZE_T VaStrCat(StringOptions option, const WCHAR* str, va_list argptr, WCHAR* buf);
 
 	/// <summary>
 	/// The function concatenates arguments of string and writes a single string to a buffer.
@@ -304,12 +306,12 @@ namespace hnrt
 	/// <param name="str">The first string to concatenate.</param>
 	/// <param name="argptr">Pointer to the list of arguments including the second string and more to concatenate.</param>
 	/// <param name="buf">Buffer of the string to create.
-	/// The size of this buffer should be determined by VaConcatLength call using the same input.</param>
+	/// The size of this buffer should be determined by VaStrCatLen call using the same input.</param>
 	/// <returns>Number of CHARs in the resulting string, not including the terminating null character.</returns>
-	SIZE_T VaConcat(StringOptions option, const CHAR* str, va_list argptr, CHAR* buf);
+	SIZE_T VaStrCat(StringOptions option, const CHAR* str, va_list argptr, CHAR* buf);
 
 	/// <summary>
-	/// This function searches a null-terminated string for a character.
+	/// The function searches a null-terminated string for a character.
 	/// </summary>
 	/// <param name="str">String to search.</param>
 	/// <param name="c">Character to search for.</param>
@@ -317,10 +319,10 @@ namespace hnrt
 	/// A negative value indicates that the size is unspecified.</param>
 	/// <returns>Zero-based index of the character found in the string.
 	/// -1 if the character is not found.</returns>
-	int StrIndexOf(const WCHAR* str, WCHAR c, SSIZE_T size = -1);
+	int IndexOf(const WCHAR* str, WCHAR c, SSIZE_T size = -1);
 
 	/// <summary>
-	/// This function searches a null-terminated string for a character.
+	/// The function searches a null-terminated string for a character.
 	/// </summary>
 	/// <param name="str">String to search.</param>
 	/// <param name="c">Character to search for.</param>
@@ -328,29 +330,73 @@ namespace hnrt
 	/// A negative value indicates that the size is unspecified.</param>
 	/// <returns>Zero-based index of the character found in the string.
 	/// -1 if the character is not found.</returns>
-	int StrIndexOf(const CHAR* str, CHAR c, SSIZE_T size = -1);
+	int IndexOf(const CHAR* str, CHAR c, SSIZE_T size = -1);
 
 	/// <summary>
-	/// This function searches a null-terminated string for a character.
+	/// The function searches a null-terminated string for a sequence of characters.
+	/// </summary>
+	/// <param name="str">String to search.</param>
+	/// <param name="seq">Sequence of characters to search for.</param>
+	/// <param name="size">Size of the string buffer in WCHARs.
+	/// A negative value indicates that the size is unspecified.</param>
+	/// <returns>Zero-based index of the sequence of characters found in the string.
+	/// -1 if the character is not found.</returns>
+	int IndexOf(const WCHAR* str, const WCHAR* seq, SSIZE_T size = -1);
+
+	/// <summary>
+	/// The function searches a null-terminated string for a sequence of characters.
+	/// </summary>
+	/// <param name="str">String to search.</param>
+	/// <param name="seq">Sequence of characters to search for.</param>
+	/// <param name="size">Size of the string buffer in CHARs.
+	/// A negative value indicates that the size is unspecified.</param>
+	/// <returns>Zero-based index of the sequence of characters found in the string.
+	/// -1 if the character is not found.</returns>
+	int IndexOf(const CHAR* str, const CHAR* seq, SSIZE_T size = -1);
+
+	/// <summary>
+	/// The function searches a null-terminated string for a character in the reverse order.
 	/// </summary>
 	/// <param name="str">String to search.</param>
 	/// <param name="c">Character to search for.</param>
 	/// <param name="size">Size of the string buffer in WCHARs.
 	/// A negative value indicates that the size is unspecified.</param>
-	/// <returns>Zero-based index of the character found in the string.
+	/// <returns>Zero-based index of the sequence of characters found in the string.
 	/// -1 if the character is not found.</returns>
-	int StrIndexOf(WCHAR* str, WCHAR c, SSIZE_T size = -1);
+	int LastIndexOf(const WCHAR* str, WCHAR c, SSIZE_T size = -1);
 
 	/// <summary>
-	/// This function searches a null-terminated string for a character.
+	/// The function searches a null-terminated string for a character in the reverse order.
 	/// </summary>
 	/// <param name="str">String to search.</param>
 	/// <param name="c">Character to search for.</param>
 	/// <param name="size">Size of the string buffer in CHARs.
 	/// A negative value indicates that the size is unspecified.</param>
-	/// <returns>Zero-based index of the character found in the string.
+	/// <returns>Zero-based index of the sequence of characters found in the string.
 	/// -1 if the character is not found.</returns>
-	int StrIndexOf(CHAR* str, CHAR c, SSIZE_T size = -1);
+	int LastIndexOf(const CHAR* str, CHAR c, SSIZE_T size = -1);
+
+	/// <summary>
+	/// The function searches a null-terminated string for a sequence of characters in the reverse order.
+	/// </summary>
+	/// <param name="str">String to search.</param>
+	/// <param name="seq">Sequence of characters to search for.</param>
+	/// <param name="size">Size of the string buffer in WCHARs.
+	/// A negative value indicates that the size is unspecified.</param>
+	/// <returns>Zero-based index of the sequence of characters found in the string.
+	/// -1 if the character is not found.</returns>
+	int LastIndexOf(const WCHAR* str, const WCHAR* seq, SSIZE_T size = -1);
+
+	/// <summary>
+	/// The function searches a null-terminated string for a sequence of characters in the reverse order.
+	/// </summary>
+	/// <param name="str">String to search.</param>
+	/// <param name="seq">Sequence of characters to search for.</param>
+	/// <param name="size">Size of the string buffer in CHARs.
+	/// A negative value indicates that the size is unspecified.</param>
+	/// <returns>Zero-based index of the sequence of characters found in the string.
+	/// -1 if the character is not found.</returns>
+	int LastIndexOf(const CHAR* str, const CHAR* seq, SSIZE_T size = -1);
 
 	/// <summary>
 	/// This function checks if a character is of whitespace.

@@ -231,8 +231,8 @@ StringBuffer& StringBuffer::AppendFormat(PCWSTR pszFormat, ...)
 
 StringBuffer& StringBuffer::VaAppendFormat(PCWSTR pszFormat, va_list argList)
 {
-    CheckCapacity(VaFormatLength(pszFormat, argList));
-    m_len += hnrt::VaFormat(m_ptr + m_len, m_cap - m_len, pszFormat, argList);
+    CheckCapacity(VaStrFmtLen(pszFormat, argList));
+    m_len += hnrt::VaStrFmt(m_ptr + m_len, m_cap - m_len, pszFormat, argList);
     return *this;
 }
 
@@ -254,7 +254,7 @@ StringBuffer& StringBuffer::Replace(WCHAR c1, WCHAR c2, SIZE_T offset, int count
     PWCHAR pCur = m_ptr + offset;
     PWCHAR pEnd = m_ptr + m_len;
     int index;
-    while (pCur < pEnd && (index = StrIndexOf(pCur, c1, pEnd - pCur)) >= 0)
+    while (pCur < pEnd && (index = IndexOf(pCur, c1, pEnd - pCur)) >= 0)
     {
         pCur[index] = c2;
         if (--count)
