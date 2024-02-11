@@ -86,7 +86,8 @@ namespace hnrt
         , m_len(cch)
         , m_buf()
     {
-        m_buf[MemSet(&m_buf[0], fill, m_len)] = (T)0;
+        (void)MemSet(&m_buf[0], fill, m_len);
+        m_buf[m_len] = (T)0;
     }
 
     template<typename T>
@@ -95,7 +96,8 @@ namespace hnrt
         , m_len(cch)
         , m_buf()
     {
-        (void)StrCopy(&m_buf[0], psz, m_len);
+        (void)MemCpy(&m_buf[0], psz, m_len);
+        m_buf[m_len] = (T)0;
     }
 
     template<typename T>
@@ -113,8 +115,9 @@ namespace hnrt
         , m_len(cch1 + cch2)
         , m_buf()
     {
-        (void)StrCopy(&m_buf[0], psz1, cch1);
-        (void)StrCopy(&m_buf[cch1], psz2, cch2);
+        (void)MemCpy(&m_buf[0], psz1, cch1);
+        (void)MemCpy(&m_buf[cch1], psz2, cch2);
+        m_buf[m_len] = (T)0;
     }
 
     template<typename T>
@@ -123,7 +126,7 @@ namespace hnrt
         , m_len(cch1 + cch2)
         , m_buf()
     {
-        (void)StrCopy(&m_buf[0], psz1, cch1);
+        (void)MemCpy(&m_buf[0], psz1, cch1);
         (void)VaStrFmt(&m_buf[cch1], cch2 + 1, pszFormat, argList);
     }
 

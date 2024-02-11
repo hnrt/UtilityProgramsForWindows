@@ -51,6 +51,24 @@ namespace hnrt
 	SIZE_T StrCopy(CHAR* dest, const CHAR* src, SSIZE_T count = -1);
 
 	/// <summary>
+	/// The function copies characters between string buffers.
+	/// </summary>
+	/// <param name="dest">Destination string buffer to copy to.</param>
+	/// <param name="src">Source string buffer to copy from.</param>
+	/// <param name="count">Number of WCHARs to copy.</param>
+	/// <returns>Number of WCHARs copied.</returns>
+	SIZE_T MemCpy(WCHAR* dest, const WCHAR* src, SIZE_T count);
+
+	/// <summary>
+	/// The function copies characters between string buffers.
+	/// </summary>
+	/// <param name="dest">Destination string buffer to copy to.</param>
+	/// <param name="src">Source string buffer to copy from.</param>
+	/// <param name="count">Number of CHARs to copy.</param>
+	/// <returns>Number of CHARs copied.</returns>
+	SIZE_T MemCpy(CHAR* dest, const CHAR* src, SIZE_T count);
+
+	/// <summary>
 	/// The function fills a string buffer with a specified character.
 	/// </summary>
 	/// <param name="dest">Pointer to the string buffer.</param>
