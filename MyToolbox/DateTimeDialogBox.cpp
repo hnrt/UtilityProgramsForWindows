@@ -172,7 +172,6 @@ INT_PTR DateTimeDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
         LONGLONG threshold = FileTime().AddSeconds(-3).Milliseconds;
         if (0 < m_lastModifiedAt && m_lastModifiedAt <= threshold)
         {
-            m_lastModifiedAt = 0;
             SYSTEMTIME st = { 0 };
             GetSystemTime(st);
             SetSystemTime(st);
@@ -191,7 +190,6 @@ void DateTimeDialogBox::OnCopy()
 {
     if (m_lastModifiedAt)
     {
-        m_lastModifiedAt = 0;
         SYSTEMTIME st = { 0 };
         GetSystemTime(st);
         SetSystemTime(st);
@@ -206,7 +204,6 @@ void DateTimeDialogBox::OnCopy()
 
 void DateTimeDialogBox::OnExecute()
 {
-    m_lastModifiedAt = 0;
     UpdateDateTime();
     FormatString(m_format);
 }
@@ -214,7 +211,6 @@ void DateTimeDialogBox::OnExecute()
 
 void DateTimeDialogBox::OnOffsetChange()
 {
-    m_lastModifiedAt = 0;
     SYSTEMTIME st = { 0 };
     GetSystemTime(st);
     m_offset = ComboBoxGetSelection(IDC_DTTM_OFFSET_COMBO);
@@ -318,6 +314,7 @@ void DateTimeDialogBox::SetSystemTime(SYSTEMTIME& st)
     SetText(IDC_DTTM_MINUTE_EDIT, String(PRINTF, L"%d", st.wMinute));
     SetText(IDC_DTTM_SECOND_EDIT, String(PRINTF, L"%d", st.wSecond));
     SetText(IDC_DTTM_MILLISECOND_EDIT, String(PRINTF, L"%d", st.wMilliseconds));
+    m_lastModifiedAt = 0;
 }
 
 
@@ -363,6 +360,7 @@ void DateTimeDialogBox::UpdateDateTime()
     {
         SetText(IDC_DTTM_MILLISECOND_EDIT, String(PRINTF, L"%d", st.wMilliseconds));
     }
+    m_lastModifiedAt = 0;
 }
 
 
