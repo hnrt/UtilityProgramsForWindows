@@ -9,6 +9,7 @@
 #include "PercentCodecDialogBox.h"
 #include "CronDialogBox.h"
 #include "NativeToAsciiDialogBox.h"
+#include "DateTimeDialogBox.h"
 #include "ClipDialogBox.h"
 
 namespace hnrt
@@ -49,6 +50,7 @@ namespace hnrt
 		PercentCodecDialogBox m_pctcTab;
 		CronDialogBox m_cronTab;
 		NativeToAsciiDialogBox m_ntoaTab;
+		DateTimeDialogBox m_dttmTab;
 		ClipDialogBox m_clipTab;
 		HFONT m_hFont;
 		HFONT m_hFontForTab;

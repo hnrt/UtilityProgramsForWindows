@@ -168,6 +168,7 @@
     <ClInclude Include="ClipFile.h" />
     <ClInclude Include="CronDialogBox.h" />
     <ClInclude Include="CryptographyDialogBox.h" />
+    <ClInclude Include="DateTimeDialogBox.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GuidDialogBox.h" />
     <ClInclude Include="HashDialogBox.h" />
@@ -188,6 +189,7 @@
     <ClCompile Include="ClipFile.cpp" />
     <ClCompile Include="CronDialogBox.cpp" />
     <ClCompile Include="CryptographyDialogBox.cpp" />
+    <ClCompile Include="DateTimeDialogBox.cpp" />
     <ClCompile Include="GuidDialogBox.cpp" />
     <ClCompile Include="HashDialogBox.cpp" />
     <ClCompile Include="MyClipboardObserver.cpp" />
