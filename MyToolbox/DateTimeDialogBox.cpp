@@ -282,7 +282,7 @@ void DateTimeDialogBox::ApplyModification()
 }
 
 
-void DateTimeDialogBox::GetSystemTime(SYSTEMTIME& st)
+void DateTimeDialogBox::GetSystemTime(SYSTEMTIME& st) const
 {
     st.wYear = 2099;
     st.wMonth = 12;
@@ -363,7 +363,7 @@ void DateTimeDialogBox::GetSystemTime(SYSTEMTIME& st)
 }
 
 
-void DateTimeDialogBox::SetSystemTime(SYSTEMTIME& st)
+void DateTimeDialogBox::SetSystemTime(SYSTEMTIME& st) const
 {
     FileTime(st).AddMinutes(m_offset).ToSystemTime(st);
     SetText(IDC_DTTM_YEAR_EDIT, String(PRINTF, L"%d", st.wYear));
@@ -384,7 +384,7 @@ static String ToOffsetString(int offset)
 }
 
 
-void DateTimeDialogBox::UpdateDateTime()
+void DateTimeDialogBox::UpdateDateTime() const
 {
     SYSTEMTIME st = { 0 };
     FileTime().AddMinutes(m_offset).ToSystemTime(st);

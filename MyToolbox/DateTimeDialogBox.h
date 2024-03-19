@@ -31,9 +31,9 @@ namespace hnrt
 
 		void OnOffsetChange();
 		void ApplyModification();
-		void GetSystemTime(SYSTEMTIME&);
-		void SetSystemTime(SYSTEMTIME&);
-		void UpdateDateTime();
+		void GetSystemTime(SYSTEMTIME&) const;
+		void SetSystemTime(SYSTEMTIME&) const;
+		void UpdateDateTime() const;
 		void FormatString(int id);
 
 		int m_offset;
