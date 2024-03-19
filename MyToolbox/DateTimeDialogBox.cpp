@@ -27,6 +27,7 @@ DateTimeDialogBox::DateTimeDialogBox()
     : MyDialogBox(IDD_DTTM, L"DateTime")
     , m_offset(0)
     , m_format(IDC_DTTM_ISO8601_RADIO)
+    , m_lastModified(0)
     , m_lastModifiedAt(0)
 {
 }
@@ -46,13 +47,25 @@ void DateTimeDialogBox::OnCreate()
         m_offset = static_cast<int>(RegistryValue::GetDWORD(hKey, REGVAL_OFFSET));
         m_format = RegistryValue::GetDWORD(hKey, REGVAL_FORMAT, IDC_DTTM_ISO8601_RADIO - IDC_DTTM_EDIT) + IDC_DTTM_EDIT;
     }
-    SetSystemTime(st);
     ComboBoxSetSelection(IDC_DTTM_OFFSET_COMBO, m_offset);
     ButtonCheck(m_format);
+    switch (m_format)
+    {
+    case IDC_DTTM_SECONDS_RADIO:
+    case IDC_DTTM_MILLISECONDS_RADIO:
+    case IDC_DTTM_FILETIME_RADIO:
+        EditSetReadOnly(IDC_DTTM_EDIT, FALSE);
+        break;
+    default:
+        EditSetReadOnly(IDC_DTTM_EDIT, TRUE);
+        break;
+    }
+    SetSystemTime(st);
     FormatString(m_format);
+    m_lastModified = 0;
+    m_lastModifiedAt = 0;
     m_menuView
         .Add(ResourceString(IDS_MENU_DTTM), IDM_VIEW_DTTM);
-
 }
 
 
@@ -74,6 +87,7 @@ void DateTimeDialogBox::OnDestroy()
 
 void DateTimeDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
+    WindowLayout::UpdateLayout(hDlg, IDC_DTTM_EDIT, 0, 0, cxDelta, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_DTTM_COPY_BUTTON, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_DTTM_NEW_BUTTON, cxDelta, 0, 0, 0);
 }
@@ -110,6 +124,7 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_DTTM_NEW_BUTTON:
         OnExecute();
         break;
+    case IDC_DTTM_EDIT:
     case IDC_DTTM_YEAR_EDIT:
     case IDC_DTTM_MONTH_EDIT:
     case IDC_DTTM_DAY_EDIT:
@@ -117,8 +132,9 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_DTTM_MINUTE_EDIT:
     case IDC_DTTM_SECOND_EDIT:
     case IDC_DTTM_MILLISECOND_EDIT:
-        if (idNotif == EN_UPDATE)
+        if (idNotif == EN_CHANGE)
         {
+            m_lastModified = idChild;
             m_lastModifiedAt = FileTime().Milliseconds;
         }
         break;
@@ -151,10 +167,20 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_DTTM_TIMEONLY_NOSEP_RADIO:
     case IDC_DTTM_TIMEONLY_MS_RADIO:
     case IDC_DTTM_TIMEONLY_MS_NOSEP_RADIO:
+    case IDC_DTTM_ISO8601_Z_RADIO:
+    case IDC_DTTM_ISO8601_Z_MS_RADIO:
+        EditSetReadOnly(IDC_DTTM_EDIT, TRUE);
+        FormatString(idChild);
+        m_lastModified = 0;
+        m_lastModifiedAt = 0;
+        break;
     case IDC_DTTM_SECONDS_RADIO:
     case IDC_DTTM_MILLISECONDS_RADIO:
     case IDC_DTTM_FILETIME_RADIO:
+        EditSetReadOnly(IDC_DTTM_EDIT, FALSE);
         FormatString(idChild);
+        m_lastModified = 0;
+        m_lastModifiedAt = 0;
         break;
     default:
         return FALSE;
@@ -172,10 +198,7 @@ INT_PTR DateTimeDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
         LONGLONG threshold = FileTime().AddSeconds(-3).Milliseconds;
         if (0 < m_lastModifiedAt && m_lastModifiedAt <= threshold)
         {
-            SYSTEMTIME st = { 0 };
-            GetSystemTime(st);
-            SetSystemTime(st);
-            FormatString(m_format);
+            ApplyModification();
         }
         break;
     }
@@ -190,10 +213,7 @@ void DateTimeDialogBox::OnCopy()
 {
     if (m_lastModifiedAt)
     {
-        SYSTEMTIME st = { 0 };
-        GetSystemTime(st);
-        SetSystemTime(st);
-        FormatString(m_format);
+        ApplyModification();
     }
     if (!Clipboard::Write(hwnd, GetText(IDC_DTTM_EDIT)))
     {
@@ -206,6 +226,8 @@ void DateTimeDialogBox::OnExecute()
 {
     UpdateDateTime();
     FormatString(m_format);
+    m_lastModified = 0;
+    m_lastModifiedAt = 0;
 }
 
 
@@ -216,6 +238,47 @@ void DateTimeDialogBox::OnOffsetChange()
     m_offset = ComboBoxGetSelection(IDC_DTTM_OFFSET_COMBO);
     SetSystemTime(st);
     FormatString(m_format);
+    m_lastModified = 0;
+    m_lastModifiedAt = 0;
+}
+
+
+void DateTimeDialogBox::ApplyModification()
+{
+    if (m_lastModified == IDC_DTTM_EDIT)
+    {
+        String sz = GetText(IDC_DTTM_EDIT).Trim();
+        wchar_t* pStop = nullptr;
+        long long value = wcstoll(sz, &pStop, 10);
+        if (pStop && !*pStop && value >= 0)
+        {
+            SYSTEMTIME st = { 0 };
+            switch (m_format)
+            {
+            case IDC_DTTM_SECONDS_RADIO:
+                FileTime((value + FILETIME_UNIX_EPOCH_TIME_IN_SECONDS) * 10000000LL).ToSystemTime(st);
+                break;
+            case IDC_DTTM_MILLISECONDS_RADIO:
+                FileTime((value + FILETIME_UNIX_EPOCH_TIME_IN_MILLISECONDS) * 10000LL).ToSystemTime(st);
+                break;
+            case IDC_DTTM_FILETIME_RADIO:
+            default:
+                FileTime(value).ToSystemTime(st);
+                break;
+            }
+            SetSystemTime(st);
+            FormatString(m_format);
+        }
+    }
+    else
+    {
+        SYSTEMTIME st = { 0 };
+        GetSystemTime(st);
+        SetSystemTime(st);
+        FormatString(m_format);
+    }
+    m_lastModified = 0;
+    m_lastModifiedAt = 0;
 }
 
 
@@ -296,17 +359,13 @@ void DateTimeDialogBox::GetSystemTime(SYSTEMTIME& st)
     {
         st.wMilliseconds = static_cast<WORD>(millisecond);
     }
-    FileTime ft(st);
-    ft.AddMinutes(-m_offset);
-    ft.ToSystemTime(st);
+    FileTime(st).AddMinutes(-m_offset).ToSystemTime(st);
 }
 
 
 void DateTimeDialogBox::SetSystemTime(SYSTEMTIME& st)
 {
-    FileTime ft(st);
-    ft.AddMinutes(m_offset);
-    ft.ToSystemTime(st);
+    FileTime(st).AddMinutes(m_offset).ToSystemTime(st);
     SetText(IDC_DTTM_YEAR_EDIT, String(PRINTF, L"%d", st.wYear));
     SetText(IDC_DTTM_MONTH_EDIT, String(PRINTF, L"%d", st.wMonth));
     SetText(IDC_DTTM_DAY_EDIT, String(PRINTF, L"%d", st.wDay));
@@ -314,24 +373,21 @@ void DateTimeDialogBox::SetSystemTime(SYSTEMTIME& st)
     SetText(IDC_DTTM_MINUTE_EDIT, String(PRINTF, L"%d", st.wMinute));
     SetText(IDC_DTTM_SECOND_EDIT, String(PRINTF, L"%d", st.wSecond));
     SetText(IDC_DTTM_MILLISECOND_EDIT, String(PRINTF, L"%d", st.wMilliseconds));
-    m_lastModifiedAt = 0;
 }
 
 
 static String ToOffsetString(int offset)
 {
-    return offset > 0 ? String(PRINTF, L"+%02d:%02d", offset / 60, offset % 60) :
-        offset < 0 ? String(PRINTF, L"-%02d:%02d", -offset / 60, -offset % 60) :
-        String(L"Z");
+    return offset >= 0 ?
+        String(PRINTF, L"+%02d:%02d", offset / 60, offset % 60) :
+        String(PRINTF, L"-%02d:%02d", -offset / 60, -offset % 60);
 }
 
 
 void DateTimeDialogBox::UpdateDateTime()
 {
     SYSTEMTIME st = { 0 };
-    FileTime ft;
-    ft.AddMinutes(m_offset);
-    ft.ToSystemTime(st);
+    FileTime().AddMinutes(m_offset).ToSystemTime(st);
     if (!ButtonIsChecked(IDC_DTTM_YEAR_CHECK))
     {
         SetText(IDC_DTTM_YEAR_EDIT, String(PRINTF, L"%d", st.wYear));
@@ -360,7 +416,6 @@ void DateTimeDialogBox::UpdateDateTime()
     {
         SetText(IDC_DTTM_MILLISECOND_EDIT, String(PRINTF, L"%d", st.wMilliseconds));
     }
-    m_lastModifiedAt = 0;
 }
 
 
@@ -429,34 +484,27 @@ void DateTimeDialogBox::FormatString(int id)
             st.wHour, st.wMinute, st.wSecond, st.wMilliseconds));
         break;
     case IDC_DTTM_SECONDS_RADIO:
-    {
-        FileTime ft(st);
-        ft.AddMinutes(-m_offset);
-        SYSTEMTIME ue = { 0 };
-        ue.wYear = 1970;
-        ue.wMonth = 1;
-        ue.wDay = 1;
-        SetText(IDC_DTTM_EDIT, String(PRINTF, L"%llu", ft.Seconds - FileTime(ue).Seconds));
+        SetText(IDC_DTTM_EDIT, String(PRINTF, L"%llu",
+            FileTime(st).AddMinutes(-m_offset).Seconds - FILETIME_UNIX_EPOCH_TIME_IN_SECONDS));
         break;
-    }
     case IDC_DTTM_MILLISECONDS_RADIO:
-    {
-        FileTime ft(st);
-        ft.AddMinutes(-m_offset);
-        SYSTEMTIME ue = { 0 };
-        ue.wYear = 1970;
-        ue.wMonth = 1;
-        ue.wDay = 1;
-        SetText(IDC_DTTM_EDIT, String(PRINTF, L"%llu", ft.Milliseconds - FileTime(ue).Milliseconds));
+        SetText(IDC_DTTM_EDIT, String(PRINTF, L"%llu",
+            FileTime(st).AddMinutes(-m_offset).Milliseconds - FILETIME_UNIX_EPOCH_TIME_IN_MILLISECONDS));
         break;
-    }
     case IDC_DTTM_FILETIME_RADIO:
-    {
-        FileTime ft(st);
-        ft.AddMinutes(-m_offset);
-        SetText(IDC_DTTM_EDIT, String(PRINTF, L"%llu", ft.Intervals));
+        SetText(IDC_DTTM_EDIT, String(PRINTF, L"%llu",
+            FileTime(st).AddMinutes(-m_offset).Intervals));
         break;
-    }
+    case IDC_DTTM_ISO8601_Z_RADIO:
+        FileTime(st).AddMinutes(-m_offset).ToSystemTime(st);
+        SetText(IDC_DTTM_EDIT, String(PRINTF, L"%04u-%02u-%02uT%02u:%02u:%02uZ",
+            st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond));
+        break;
+    case IDC_DTTM_ISO8601_Z_MS_RADIO:
+        FileTime(st).AddMinutes(-m_offset).ToSystemTime(st);
+        SetText(IDC_DTTM_EDIT, String(PRINTF, L"%04u-%02u-%02uT%02u:%02u:%02u.%03uZ",
+            st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds));
+        break;
     default:
         break;
     }

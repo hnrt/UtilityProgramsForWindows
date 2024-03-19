@@ -297,6 +297,8 @@
 #define IDC_DTTM_SECONDS_RADIO          8151
 #define IDC_DTTM_MILLISECONDS_RADIO     8152
 #define IDC_DTTM_FILETIME_RADIO         8153
+#define IDC_DTTM_ISO8601_Z_RADIO        8191
+#define IDC_DTTM_ISO8601_Z_MS_RADIO     8192
 #define IDM_FILE_EXIT                   11001
 #define IDM_FILE_LOADFROM               11002
 #define IDM_FILE_SAVEAS                 11003

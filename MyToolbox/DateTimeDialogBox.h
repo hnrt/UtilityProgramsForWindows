@@ -30,6 +30,7 @@ namespace hnrt
 		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
 
 		void OnOffsetChange();
+		void ApplyModification();
 		void GetSystemTime(SYSTEMTIME&);
 		void SetSystemTime(SYSTEMTIME&);
 		void UpdateDateTime();
@@ -37,6 +38,7 @@ namespace hnrt
 
 		int m_offset;
 		int m_format;
+		int m_lastModified;
 		LONGLONG m_lastModifiedAt;
 	};
 }
