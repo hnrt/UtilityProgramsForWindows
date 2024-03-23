@@ -31,14 +31,20 @@ namespace hnrt
 
 		void OnOffsetChange();
 		void ApplyModification();
-		void GetSystemTime(SYSTEMTIME&) const;
-		void SetSystemTime(SYSTEMTIME&) const;
+		void GetDateTimeInUTC(SYSTEMTIME&) const;
+		void SetDateTimeInUTC(SYSTEMTIME&) const;
 		void UpdateDateTime() const;
-		void FormatString(int id);
+		void FormatString(int id = 0);
+		void UpdateEditReadOnly() const;
+		void InitializeFixedButtons(DWORD) const;
+		DWORD GetFixedButtonFlags() const;
+		void SetLastModifiedBy(int id);
+		void ResetLastModifiedBy();
+		bool IsModified(int nGracePeriodInSeconds = 0) const;
 
 		int m_offset;
 		int m_format;
-		int m_lastModified;
+		int m_lastModifiedBy;
 		LONGLONG m_lastModifiedAt;
 	};
 }

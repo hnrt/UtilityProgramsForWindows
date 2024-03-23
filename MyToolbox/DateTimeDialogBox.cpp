@@ -15,6 +15,7 @@
 #define REGVAL_FORMAT L"Format"
 #define REGVAL_OFFSET L"Offset"
 #define REGVAL_LAST L"Last"
+#define REGVAL_FIXED L"Fixed"
 
 
 #define DTTM_TIMER1SEC 8001
@@ -27,7 +28,7 @@ DateTimeDialogBox::DateTimeDialogBox()
     : MyDialogBox(IDD_DTTM, L"DateTime")
     , m_offset(0)
     , m_format(IDC_DTTM_ISO8601_RADIO)
-    , m_lastModified(0)
+    , m_lastModifiedBy(0)
     , m_lastModifiedAt(0)
 {
 }
@@ -39,6 +40,7 @@ void DateTimeDialogBox::OnCreate()
     InitializeOffsetComboBox(IDC_DTTM_OFFSET_COMBO);
     SYSTEMTIME st = { 0 };
     ::GetSystemTime(&st);
+    DWORD dwFixed = 0;
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_READ);
     if (rc == ERROR_SUCCESS)
@@ -46,24 +48,13 @@ void DateTimeDialogBox::OnCreate()
         FileTime(RegistryValue::GetQWORD(hKey, REGVAL_LAST, FileTime().Intervals)).ToSystemTime(st);
         m_offset = static_cast<int>(RegistryValue::GetDWORD(hKey, REGVAL_OFFSET));
         m_format = RegistryValue::GetDWORD(hKey, REGVAL_FORMAT, IDC_DTTM_ISO8601_RADIO - IDC_DTTM_EDIT) + IDC_DTTM_EDIT;
+        dwFixed = RegistryValue::GetDWORD(hKey, REGVAL_FIXED);
     }
     ComboBoxSetSelection(IDC_DTTM_OFFSET_COMBO, m_offset);
     ButtonCheck(m_format);
-    switch (m_format)
-    {
-    case IDC_DTTM_SECONDS_RADIO:
-    case IDC_DTTM_MILLISECONDS_RADIO:
-    case IDC_DTTM_FILETIME_RADIO:
-        EditSetReadOnly(IDC_DTTM_EDIT, FALSE);
-        break;
-    default:
-        EditSetReadOnly(IDC_DTTM_EDIT, TRUE);
-        break;
-    }
-    SetSystemTime(st);
+    InitializeFixedButtons(dwFixed);
+    SetDateTimeInUTC(st);
     FormatString(m_format);
-    m_lastModified = 0;
-    m_lastModifiedAt = 0;
     m_menuView
         .Add(ResourceString(IDS_MENU_DTTM), IDM_VIEW_DTTM);
 }
@@ -76,10 +67,11 @@ void DateTimeDialogBox::OnDestroy()
     if (rc == ERROR_SUCCESS)
     {
         SYSTEMTIME st = { 0 };
-        GetSystemTime(st);
+        GetDateTimeInUTC(st);
         RegistryValue::SetQWORD(hKey, REGVAL_LAST, FileTime(st).Intervals);
-        RegistryValue::SetDWORD(hKey, REGVAL_OFFSET, static_cast<DWORD>(m_offset));
+        RegistryValue::SetDWORD(hKey, REGVAL_OFFSET, m_offset);
         RegistryValue::SetDWORD(hKey, REGVAL_FORMAT, m_format - IDC_DTTM_EDIT);
+        RegistryValue::SetDWORD(hKey, REGVAL_FIXED, GetFixedButtonFlags());
     }
     MyDialogBox::OnDestroy();
 }
@@ -105,6 +97,8 @@ void DateTimeDialogBox::OnTabSelectionChanging()
 void DateTimeDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
+    m_menuEdit
+        .Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY);
     m_menuView
         .Enable(IDM_VIEW_DTTM, MF_DISABLED);
     SetTimer(hwnd, DTTM_TIMER1SEC, 1000, NULL);
@@ -134,8 +128,7 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_DTTM_MILLISECOND_EDIT:
         if (idNotif == EN_CHANGE)
         {
-            m_lastModified = idChild;
-            m_lastModifiedAt = FileTime().Milliseconds;
+            SetLastModifiedBy(idChild);
         }
         break;
     case IDC_DTTM_YEAR_CHECK:
@@ -145,8 +138,7 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_DTTM_MINUTE_CHECK:
     case IDC_DTTM_SECOND_CHECK:
     case IDC_DTTM_MILLISECOND_CHECK:
-    case IDC_DTTM_OFFSET_CHECK:
-        EnableWindow(idChild - 1, !ButtonIsChecked(idChild));
+        EditSetReadOnly(idChild - 1, ButtonIsChecked(idChild));
         break;
     case IDC_DTTM_OFFSET_COMBO:
         if (idNotif == CBN_SELCHANGE)
@@ -169,18 +161,10 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_DTTM_TIMEONLY_MS_NOSEP_RADIO:
     case IDC_DTTM_ISO8601_Z_RADIO:
     case IDC_DTTM_ISO8601_Z_MS_RADIO:
-        EditSetReadOnly(IDC_DTTM_EDIT, TRUE);
-        FormatString(idChild);
-        m_lastModified = 0;
-        m_lastModifiedAt = 0;
-        break;
     case IDC_DTTM_SECONDS_RADIO:
     case IDC_DTTM_MILLISECONDS_RADIO:
     case IDC_DTTM_FILETIME_RADIO:
-        EditSetReadOnly(IDC_DTTM_EDIT, FALSE);
         FormatString(idChild);
-        m_lastModified = 0;
-        m_lastModifiedAt = 0;
         break;
     default:
         return FALSE;
@@ -194,14 +178,11 @@ INT_PTR DateTimeDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
     switch (wParam)
     {
     case DTTM_TIMER1SEC:
-    {
-        LONGLONG threshold = FileTime().AddSeconds(-3).Milliseconds;
-        if (0 < m_lastModifiedAt && m_lastModifiedAt <= threshold)
+        if (IsModified(3))
         {
             ApplyModification();
         }
         break;
-    }
     default:
         break;
     }
@@ -211,7 +192,7 @@ INT_PTR DateTimeDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 
 void DateTimeDialogBox::OnCopy()
 {
-    if (m_lastModifiedAt)
+    if (IsModified())
     {
         ApplyModification();
     }
@@ -225,27 +206,23 @@ void DateTimeDialogBox::OnCopy()
 void DateTimeDialogBox::OnExecute()
 {
     UpdateDateTime();
-    FormatString(m_format);
-    m_lastModified = 0;
-    m_lastModifiedAt = 0;
+    FormatString();
 }
 
 
 void DateTimeDialogBox::OnOffsetChange()
 {
     SYSTEMTIME st = { 0 };
-    GetSystemTime(st);
+    GetDateTimeInUTC(st);
     m_offset = ComboBoxGetSelection(IDC_DTTM_OFFSET_COMBO);
-    SetSystemTime(st);
-    FormatString(m_format);
-    m_lastModified = 0;
-    m_lastModifiedAt = 0;
+    SetDateTimeInUTC(st);
+    FormatString();
 }
 
 
 void DateTimeDialogBox::ApplyModification()
 {
-    if (m_lastModified == IDC_DTTM_EDIT)
+    if (m_lastModifiedBy == IDC_DTTM_EDIT)
     {
         String sz = GetText(IDC_DTTM_EDIT).Trim();
         wchar_t* pStop = nullptr;
@@ -256,33 +233,35 @@ void DateTimeDialogBox::ApplyModification()
             switch (m_format)
             {
             case IDC_DTTM_SECONDS_RADIO:
-                FileTime((value + FILETIME_UNIX_EPOCH_TIME_IN_SECONDS) * 10000000LL).ToSystemTime(st);
+                FileTime((FILETIME_UNIX_EPOCH_TIME_IN_SECONDS + value) * 10000000LL).ToSystemTime(st);
                 break;
             case IDC_DTTM_MILLISECONDS_RADIO:
-                FileTime((value + FILETIME_UNIX_EPOCH_TIME_IN_MILLISECONDS) * 10000LL).ToSystemTime(st);
+                FileTime((FILETIME_UNIX_EPOCH_TIME_IN_MILLISECONDS + value) * 10000LL).ToSystemTime(st);
                 break;
             case IDC_DTTM_FILETIME_RADIO:
             default:
                 FileTime(value).ToSystemTime(st);
                 break;
             }
-            SetSystemTime(st);
-            FormatString(m_format);
+            SetDateTimeInUTC(st);
+            FormatString();
+        }
+        else
+        {
+            ResetLastModifiedBy();
         }
     }
     else
     {
         SYSTEMTIME st = { 0 };
-        GetSystemTime(st);
-        SetSystemTime(st);
-        FormatString(m_format);
+        GetDateTimeInUTC(st);
+        SetDateTimeInUTC(st);
+        FormatString();
     }
-    m_lastModified = 0;
-    m_lastModifiedAt = 0;
 }
 
 
-void DateTimeDialogBox::GetSystemTime(SYSTEMTIME& st) const
+void DateTimeDialogBox::GetDateTimeInUTC(SYSTEMTIME& st) const
 {
     st.wYear = 2099;
     st.wMonth = 12;
@@ -363,7 +342,7 @@ void DateTimeDialogBox::GetSystemTime(SYSTEMTIME& st) const
 }
 
 
-void DateTimeDialogBox::SetSystemTime(SYSTEMTIME& st) const
+void DateTimeDialogBox::SetDateTimeInUTC(SYSTEMTIME& st) const
 {
     FileTime(st).AddMinutes(m_offset).ToSystemTime(st);
     SetText(IDC_DTTM_YEAR_EDIT, String(PRINTF, L"%d", st.wYear));
@@ -373,14 +352,6 @@ void DateTimeDialogBox::SetSystemTime(SYSTEMTIME& st) const
     SetText(IDC_DTTM_MINUTE_EDIT, String(PRINTF, L"%d", st.wMinute));
     SetText(IDC_DTTM_SECOND_EDIT, String(PRINTF, L"%d", st.wSecond));
     SetText(IDC_DTTM_MILLISECOND_EDIT, String(PRINTF, L"%d", st.wMilliseconds));
-}
-
-
-static String ToOffsetString(int offset)
-{
-    return offset >= 0 ?
-        String(PRINTF, L"+%02d:%02d", offset / 60, offset % 60) :
-        String(PRINTF, L"-%02d:%02d", -offset / 60, -offset % 60);
 }
 
 
@@ -419,8 +390,21 @@ void DateTimeDialogBox::UpdateDateTime() const
 }
 
 
+static String ToOffsetString(int offset)
+{
+    return offset >= 0 ?
+        String(PRINTF, L"+%02d:%02d", offset / 60, offset % 60) :
+        String(PRINTF, L"-%02d:%02d", -offset / 60, -offset % 60);
+}
+
+
 void DateTimeDialogBox::FormatString(int id)
 {
+    if (id)
+    {
+        m_format = id;
+        UpdateEditReadOnly();
+    }
     SYSTEMTIME st = { 0 };
     st.wYear = static_cast<WORD>(wcstol(GetText(IDC_DTTM_YEAR_EDIT), nullptr, 10));
     st.wMonth = static_cast<WORD>(wcstol(GetText(IDC_DTTM_MONTH_EDIT), nullptr, 10));
@@ -429,7 +413,7 @@ void DateTimeDialogBox::FormatString(int id)
     st.wMinute = static_cast<WORD>(wcstol(GetText(IDC_DTTM_MINUTE_EDIT), nullptr, 10));
     st.wSecond = static_cast<WORD>(wcstol(GetText(IDC_DTTM_SECOND_EDIT), nullptr, 10));
     st.wMilliseconds = static_cast<WORD>(wcstol(GetText(IDC_DTTM_MILLISECOND_EDIT), nullptr, 10));
-    switch (id)
+    switch (m_format)
     {
     case IDC_DTTM_ISO8601_RADIO:
         SetText(IDC_DTTM_EDIT, String(PRINTF, L"%04u-%02u-%02uT%02u:%02u:%02u%s",
@@ -508,5 +492,82 @@ void DateTimeDialogBox::FormatString(int id)
     default:
         break;
     }
-    m_format = id;
+    ResetLastModifiedBy();
+}
+
+
+void DateTimeDialogBox::UpdateEditReadOnly() const
+{
+    switch (m_format)
+    {
+    case IDC_DTTM_SECONDS_RADIO:
+    case IDC_DTTM_MILLISECONDS_RADIO:
+    case IDC_DTTM_FILETIME_RADIO:
+        EditSetReadOnly(IDC_DTTM_EDIT, FALSE);
+        break;
+    default:
+        EditSetReadOnly(IDC_DTTM_EDIT, TRUE);
+        break;
+    }
+}
+
+
+void DateTimeDialogBox::InitializeFixedButtons(DWORD dwFixed) const
+{
+    BOOL bMillisecond = (dwFixed & 1) ? TRUE : FALSE; dwFixed >>= 1;
+    BOOL bSecond = (dwFixed & 1) ? TRUE : FALSE; dwFixed >>= 1;
+    BOOL bMinute = (dwFixed & 1) ? TRUE : FALSE; dwFixed >>= 1;
+    BOOL bHour = (dwFixed & 1) ? TRUE : FALSE; dwFixed >>= 1;
+    BOOL bDay = (dwFixed & 1) ? TRUE : FALSE; dwFixed >>= 1;
+    BOOL bMonth = (dwFixed & 1) ? TRUE : FALSE; dwFixed >>= 1;
+    BOOL bYear = (dwFixed & 1) ? TRUE : FALSE;
+    EditSetReadOnly(IDC_DTTM_YEAR_EDIT, bYear);
+    ButtonCheck(IDC_DTTM_YEAR_CHECK, bYear);
+    EditSetReadOnly(IDC_DTTM_MONTH_EDIT, bMonth);
+    ButtonCheck(IDC_DTTM_MONTH_CHECK, bMonth);
+    EditSetReadOnly(IDC_DTTM_DAY_EDIT, bDay);
+    ButtonCheck(IDC_DTTM_DAY_CHECK, bDay);
+    EditSetReadOnly(IDC_DTTM_HOUR_EDIT, bHour);
+    ButtonCheck(IDC_DTTM_HOUR_CHECK, bHour);
+    EditSetReadOnly(IDC_DTTM_MINUTE_EDIT, bMinute);
+    ButtonCheck(IDC_DTTM_MINUTE_CHECK, bMinute);
+    EditSetReadOnly(IDC_DTTM_SECOND_EDIT, bSecond);
+    ButtonCheck(IDC_DTTM_SECOND_CHECK, bSecond);
+    EditSetReadOnly(IDC_DTTM_MILLISECOND_EDIT, bMillisecond);
+    ButtonCheck(IDC_DTTM_MILLISECOND_CHECK, bMillisecond);
+}
+
+
+DWORD DateTimeDialogBox::GetFixedButtonFlags() const
+{
+    DWORD dwFixed = ButtonIsChecked(IDC_DTTM_YEAR_CHECK) ? 1 : 0;
+    dwFixed = (dwFixed << 1) | (ButtonIsChecked(IDC_DTTM_MONTH_CHECK) ? 1 : 0);
+    dwFixed = (dwFixed << 1) | (ButtonIsChecked(IDC_DTTM_DAY_CHECK) ? 1 : 0);
+    dwFixed = (dwFixed << 1) | (ButtonIsChecked(IDC_DTTM_HOUR_CHECK) ? 1 : 0);
+    dwFixed = (dwFixed << 1) | (ButtonIsChecked(IDC_DTTM_MINUTE_CHECK) ? 1 : 0);
+    dwFixed = (dwFixed << 1) | (ButtonIsChecked(IDC_DTTM_SECOND_CHECK) ? 1 : 0);
+    dwFixed = (dwFixed << 1) | (ButtonIsChecked(IDC_DTTM_MILLISECOND_CHECK) ? 1 : 0);
+    return dwFixed;
+}
+
+
+void DateTimeDialogBox::SetLastModifiedBy(int id)
+{
+    m_lastModifiedBy = id;
+    m_lastModifiedAt = FileTime().Milliseconds;
+}
+
+
+void DateTimeDialogBox::ResetLastModifiedBy()
+{
+    m_lastModifiedBy = 0;
+    m_lastModifiedAt = 0;
+}
+
+
+bool DateTimeDialogBox::IsModified(int nGracePeriodInSeconds) const
+{
+    return m_lastModifiedAt == 0 ? false
+        : nGracePeriodInSeconds == 0 ? true
+        : m_lastModifiedAt <= FileTime().AddSeconds(-nGracePeriodInSeconds).Milliseconds;
 }
