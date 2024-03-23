@@ -773,3 +773,39 @@ int hnrt::StrCaseCmp(PCSTR str1, SSIZE_T count1, PCSTR str2, SSIZE_T count2)
 		throw Exception(L"CompareStringA(LOCALE_INVARIANT,LINGUISTIC_IGNORECASE) failed.");
 	}
 }
+
+
+long hnrt::StrToLong(PCWSTR str, PWSTR* stop, int radix)
+{
+	return wcstol(str, stop, radix);
+}
+
+
+long hnrt::StrToLong(PCSTR str, PSTR* stop, int radix)
+{
+	return strtol(str, stop, radix);
+}
+
+
+long long hnrt::StrToLongLong(PCWSTR str, PWSTR* stop, int radix)
+{
+	return wcstoll(str, stop, radix);
+}
+
+
+long long hnrt::StrToLongLong(PCSTR str, PSTR* stop, int radix)
+{
+	return strtoll(str, stop, radix);
+}
+
+
+double hnrt::StrToDouble(PCWSTR str, PWSTR* stop)
+{
+	return wcstod(str, stop);
+}
+
+
+double hnrt::StrToDouble(PCSTR str, PSTR* stop)
+{
+	return strtod(str, stop);
+}

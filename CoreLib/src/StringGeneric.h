@@ -454,6 +454,75 @@ XSTRING XSTRING::Wrap(UINT width, PCXSTR pszNewLine) const
 }
 
 
+long XSTRING::ToLong(long defaultValue, BOOL* pbSuccessful, int nRadix)
+{
+    if (Len)
+    {
+        PXCHAR pStop = nullptr;
+        long value = StrToLong(&m_psz[0], &pStop, nRadix);
+        if (!*pStop)
+        {
+            if (pbSuccessful)
+            {
+                *pbSuccessful = TRUE;
+            }
+            return value;
+        }
+    }
+    if (pbSuccessful)
+    {
+        *pbSuccessful = FALSE;
+    }
+    return defaultValue;
+}
+
+
+long long XSTRING::ToLongLong(long long defaultValue, BOOL* pbSuccessful, int nRadix)
+{
+    if (Len)
+    {
+        PXCHAR pStop = nullptr;
+        long long value = StrToLongLong(&m_psz[0], &pStop, nRadix);
+        if (!*pStop)
+        {
+            if (pbSuccessful)
+            {
+                *pbSuccessful = TRUE;
+            }
+            return value;
+        }
+    }
+    if (pbSuccessful)
+    {
+        *pbSuccessful = FALSE;
+    }
+    return defaultValue;
+}
+
+
+double XSTRING::ToDouble(double defaultValue, BOOL* pbSuccessful)
+{
+    if (Len)
+    {
+        PXCHAR pStop = nullptr;
+        double value = StrToDouble(&m_psz[0], &pStop);
+        if (!*pStop)
+        {
+            if (pbSuccessful)
+            {
+                *pbSuccessful = TRUE;
+            }
+            return value;
+        }
+    }
+    if (pbSuccessful)
+    {
+        *pbSuccessful = FALSE;
+    }
+    return defaultValue;
+}
+
+
 bool XSTRING::operator ==(const XSTRING& other) const
 {
     return StrCmp(Ptr, -1, other.Ptr, -1) == 0;

@@ -503,4 +503,62 @@ namespace hnrt
 	/// 1 if the lexical order of the first string is greater than that of the second one,
 	/// -1 if the lexical order of the first string is less than that of the second one.</returns>
 	int StrCaseCmp(PCSTR str1, SSIZE_T count1, PCSTR str2, SSIZE_T count2);
+
+	/// <summary>
+	/// This function converts a string to a long integer value.
+	/// </summary>
+	/// <param name="str">Null-terminated string to convert.</param>
+	/// <param name="endptr">An output parameter, set to point to the character after the last interpreted character. Ignored, if NULL.</param>
+	/// <param name="radix">Number base to use.</param>
+	/// <returns>A long integer value. Zero if unsuccessful.</returns>
+	long StrToLong(PCWSTR str, PWSTR* endptr, int radix);
+
+	/// <summary>
+	/// This function converts a string to a long integer value.
+	/// </summary>
+	/// <param name="str">Null-terminated string to convert.</param>
+	/// <param name="endptr">An output parameter, set to point to the character after the last interpreted character. Ignored, if NULL.</param>
+	/// <param name="radix">Number base to use.</param>
+	/// <returns>A long integer value. Zero if unsuccessful.</returns>
+	long StrToLong(PCSTR str, PSTR* endptr, int radix);
+
+	/// <summary>
+	/// This function converts a string to a long long integer value.
+	/// </summary>
+	/// <param name="str">Null-terminated string to convert.</param>
+	/// <param name="endptr">An output parameter, set to point to the character after the last interpreted character. Ignored, if NULL.</param>
+	/// <param name="radix">Number base to use.</param>
+	/// <returns>A long long integer value. Zero if unsuccessful.</returns>
+	long long StrToLongLong(PCWSTR str, PWSTR* endptr, int radix);
+
+	/// <summary>
+	/// This function converts a string to a long long integer value.
+	/// </summary>
+	/// <param name="str">Null-terminated string to convert.</param>
+	/// <param name="endptr">An output parameter, set to point to the character after the last interpreted character. Ignored, if NULL.</param>
+	/// <param name="radix">Number base to use.</param>
+	/// <returns>A long long integer value. Zero if unsuccessful.</returns>
+	long long StrToLongLong(PCSTR str, PSTR* endptr, int radix);
+
+	/// <summary>
+	/// This function converts a string to a double-precision floating point number.
+	/// </summary>
+	/// <param name="str">Null-terminated string to convert.</param>
+	/// <param name="endptr">An output parameter, set to point to the character after the last interpreted character. Ignored, if NULL.</param>
+	/// <returns>A double-precision floating point number.
+	/// +/-HUGE_VAL when the representation would cause an overflow.
+	/// The sign of HUGE_VAL matches the sign of the value that can't be represented.
+	/// Zero if no conversion can be performed or an underflow occurs.</returns>
+	double StrToDouble(PCWSTR str, PWSTR* endptr);
+
+	/// <summary>
+	/// This function converts a string to a double-precision floating point number.
+	/// </summary>
+	/// <param name="str">Null-terminated string to convert.</param>
+	/// <param name="endptr">An output parameter, set to point to the character after the last interpreted character. Ignored, if NULL.</param>
+	/// <returns>A double-precision floating point number.
+	/// +/-HUGE_VAL when the representation would cause an overflow.
+	/// The sign of HUGE_VAL matches the sign of the value that can't be represented.
+	/// Zero if no conversion can be performed or an underflow occurs.</returns>
+	double StrToDouble(PCSTR str, PSTR* endptr);
 }

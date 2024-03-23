@@ -39,6 +39,9 @@ namespace hnrt
         bool StartsWith(PCSTR, SSIZE_T = -1) const;
         bool EndsWith(PCSTR, SSIZE_T = -1) const;
         StringAcp Wrap(UINT, PCSTR = "\r\n") const;
+        long ToLong(long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
+        long long ToLongLong(long long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
+        double ToDouble(double defaultValue = 0L, BOOL* pbSuccessful = nullptr);
         operator PCSTR() const;
         StringAcp& operator =(const StringAcp&);
         StringAcp& operator =(PCSTR);
