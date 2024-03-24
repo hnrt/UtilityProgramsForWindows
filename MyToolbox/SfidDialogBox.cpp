@@ -191,7 +191,7 @@ void SfidDialogBox::OnExecute()
 
 void SfidDialogBox::NewContent()
 {
-    LARGE_INTEGER value;
+    LARGE_INTEGER value = { 0 };
     srand(static_cast<unsigned int>(FileTime().Intervals));
     value.LowPart = rand();
     value.HighPart = rand();
