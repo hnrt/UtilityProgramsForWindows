@@ -36,6 +36,7 @@ MyToolbox::MyToolbox()
     , m_ntoaTab()
     , m_dttmTab()
     , m_clipTab()
+    , m_sfidTab()
     , m_hFont(NULL)
     , m_hFontForTab(NULL)
     , m_hFontForData(NULL)
@@ -170,6 +171,7 @@ void MyToolbox::CreateChildren()
     m_tabs.Add(ResourceString(IDS_TAB_CRON), &m_cronTab);
     m_tabs.Add(ResourceString(IDS_TAB_NTOA), &m_ntoaTab);
     m_tabs.Add(ResourceString(IDS_TAB_DTTM), &m_dttmTab);
+    m_tabs.Add(ResourceString(IDS_TAB_SFID), &m_sfidTab);
     m_tabs.Add(ResourceString(IDS_TAB_CLIP), &m_clipTab);
     for (int index = 0; index < m_tabs.ItemCount; index++)
     {
@@ -287,6 +289,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         break;
     case IDM_VIEW_DTTM:
         m_tabs.CurrentItem = m_dttmTab.Id;
+        break;
+    case IDM_VIEW_SFID:
+        m_tabs.CurrentItem = m_sfidTab.Id;
         break;
     case IDM_VIEW_CLIP:
         m_tabs.CurrentItem = m_clipTab.Id;

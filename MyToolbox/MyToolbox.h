@@ -10,6 +10,7 @@
 #include "CronDialogBox.h"
 #include "NativeToAsciiDialogBox.h"
 #include "DateTimeDialogBox.h"
+#include "SfidDialogBox.h"
 #include "ClipDialogBox.h"
 
 namespace hnrt
@@ -51,6 +52,7 @@ namespace hnrt
 		CronDialogBox m_cronTab;
 		NativeToAsciiDialogBox m_ntoaTab;
 		DateTimeDialogBox m_dttmTab;
+		SfidDialogBox m_sfidTab;
 		ClipDialogBox m_clipTab;
 		HFONT m_hFont;
 		HFONT m_hFontForTab;

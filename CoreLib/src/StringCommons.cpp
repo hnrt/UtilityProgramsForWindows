@@ -787,6 +787,18 @@ long hnrt::StrToLong(PCSTR str, PSTR* stop, int radix)
 }
 
 
+unsigned long hnrt::StrToUnsignedLong(PCWSTR str, PWSTR* stop, int radix)
+{
+	return wcstoul(str, stop, radix);
+}
+
+
+unsigned long hnrt::StrToUnsignedLong(PCSTR str, PSTR* stop, int radix)
+{
+	return strtoul(str, stop, radix);
+}
+
+
 long long hnrt::StrToLongLong(PCWSTR str, PWSTR* stop, int radix)
 {
 	return wcstoll(str, stop, radix);
@@ -796,6 +808,18 @@ long long hnrt::StrToLongLong(PCWSTR str, PWSTR* stop, int radix)
 long long hnrt::StrToLongLong(PCSTR str, PSTR* stop, int radix)
 {
 	return strtoll(str, stop, radix);
+}
+
+
+unsigned long long hnrt::StrToUnsignedLongLong(PCWSTR str, PWSTR* stop, int radix)
+{
+	return wcstoull(str, stop, radix);
+}
+
+
+unsigned long long hnrt::StrToUnsignedLongLong(PCSTR str, PSTR* stop, int radix)
+{
+	return strtoull(str, stop, radix);
 }
 
 

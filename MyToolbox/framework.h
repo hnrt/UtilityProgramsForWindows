@@ -5,6 +5,7 @@
 #include <combaseapi.h>
 #include <commctrl.h>
 #include <commdlg.h>
+#define _CRT_RAND_S
 #include <stdlib.h>
 #include <malloc.h>
 #include <memory.h>

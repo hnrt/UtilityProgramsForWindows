@@ -18,7 +18,7 @@
 #define REGVAL_FIXED L"Fixed"
 
 
-#define DTTM_TIMER100MS 8001
+#define DTTM_TIMER100MS 7001
 
 
 using namespace hnrt;

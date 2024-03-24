@@ -523,6 +523,24 @@ namespace hnrt
 	long StrToLong(PCSTR str, PSTR* endptr, int radix);
 
 	/// <summary>
+	/// This function converts a string to an unsigned long integer value.
+	/// </summary>
+	/// <param name="str">Null-terminated string to convert.</param>
+	/// <param name="endptr">An output parameter, set to point to the character after the last interpreted character. Ignored, if NULL.</param>
+	/// <param name="radix">Number base to use.</param>
+	/// <returns>An unsigned long integer value. Zero if unsuccessful.</returns>
+	unsigned long StrToUnsignedLong(PCWSTR str, PWSTR* endptr, int radix);
+
+	/// <summary>
+	/// This function converts a string to an unsigned long integer value.
+	/// </summary>
+	/// <param name="str">Null-terminated string to convert.</param>
+	/// <param name="endptr">An output parameter, set to point to the character after the last interpreted character. Ignored, if NULL.</param>
+	/// <param name="radix">Number base to use.</param>
+	/// <returns>An unsigned long integer value. Zero if unsuccessful.</returns>
+	unsigned long StrToUnsignedLong(PCSTR str, PSTR* endptr, int radix);
+
+	/// <summary>
 	/// This function converts a string to a long long integer value.
 	/// </summary>
 	/// <param name="str">Null-terminated string to convert.</param>
@@ -539,6 +557,24 @@ namespace hnrt
 	/// <param name="radix">Number base to use.</param>
 	/// <returns>A long long integer value. Zero if unsuccessful.</returns>
 	long long StrToLongLong(PCSTR str, PSTR* endptr, int radix);
+
+	/// <summary>
+	/// This function converts a string to an unsigned long long integer value.
+	/// </summary>
+	/// <param name="str">Null-terminated string to convert.</param>
+	/// <param name="endptr">An output parameter, set to point to the character after the last interpreted character. Ignored, if NULL.</param>
+	/// <param name="radix">Number base to use.</param>
+	/// <returns>An unsigned long long integer value. Zero if unsuccessful.</returns>
+	unsigned long long StrToUnsignedLongLong(PCWSTR str, PWSTR* endptr, int radix);
+
+	/// <summary>
+	/// This function converts a string to an unsigned long long integer value.
+	/// </summary>
+	/// <param name="str">Null-terminated string to convert.</param>
+	/// <param name="endptr">An output parameter, set to point to the character after the last interpreted character. Ignored, if NULL.</param>
+	/// <param name="radix">Number base to use.</param>
+	/// <returns>An unsigned long long integer value. Zero if unsuccessful.</returns>
+	unsigned long long StrToUnsignedLongLong(PCSTR str, PSTR* endptr, int radix);
 
 	/// <summary>
 	/// This function converts a string to a double-precision floating point number.

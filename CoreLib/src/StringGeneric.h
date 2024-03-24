@@ -477,12 +477,58 @@ long XSTRING::ToLong(long defaultValue, BOOL* pbSuccessful, int nRadix)
 }
 
 
+unsigned long XSTRING::ToUnsignedLong(unsigned long defaultValue, BOOL* pbSuccessful, int nRadix)
+{
+    if (Len)
+    {
+        PXCHAR pStop = nullptr;
+        unsigned long value = StrToUnsignedLong(&m_psz[0], &pStop, nRadix);
+        if (!*pStop)
+        {
+            if (pbSuccessful)
+            {
+                *pbSuccessful = TRUE;
+            }
+            return value;
+        }
+    }
+    if (pbSuccessful)
+    {
+        *pbSuccessful = FALSE;
+    }
+    return defaultValue;
+}
+
+
 long long XSTRING::ToLongLong(long long defaultValue, BOOL* pbSuccessful, int nRadix)
 {
     if (Len)
     {
         PXCHAR pStop = nullptr;
         long long value = StrToLongLong(&m_psz[0], &pStop, nRadix);
+        if (!*pStop)
+        {
+            if (pbSuccessful)
+            {
+                *pbSuccessful = TRUE;
+            }
+            return value;
+        }
+    }
+    if (pbSuccessful)
+    {
+        *pbSuccessful = FALSE;
+    }
+    return defaultValue;
+}
+
+
+unsigned long long XSTRING::ToUnsignedLongLong(unsigned long long defaultValue, BOOL* pbSuccessful, int nRadix)
+{
+    if (Len)
+    {
+        PXCHAR pStop = nullptr;
+        unsigned long long value = StrToUnsignedLongLong(&m_psz[0], &pStop, nRadix);
         if (!*pStop)
         {
             if (pbSuccessful)

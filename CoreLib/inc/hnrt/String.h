@@ -40,7 +40,9 @@ namespace hnrt
         bool EndsWith(PCWSTR, SSIZE_T = -1) const;
         String Wrap(UINT, PCWSTR = L"\r\n") const;
         long ToLong(long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
+        unsigned long ToUnsignedLong(unsigned long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
         long long ToLongLong(long long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
+        unsigned long long ToUnsignedLongLong(unsigned long long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
         double ToDouble(double defaultValue = 0L, BOOL* pbSuccessful = nullptr);
         operator PCWSTR() const;
         String& operator =(const String&);

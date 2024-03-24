@@ -1,9 +1,6 @@
 #pragma once
 
-
-#include "hnrt/String.h"
 #include "MyDialogBox.h"
-
 
 namespace hnrt
 {
