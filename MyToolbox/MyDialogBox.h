@@ -2,6 +2,7 @@
 
 #include "hnrt/DialogBox.h"
 #include "hnrt/Menu.h"
+#include "hnrt/LastModified.h"
 #include "hnrt/String.h"
 
 #define CP_AUTODETECT 0
@@ -80,6 +81,7 @@ namespace hnrt
 		UINT m_uInputCodePage;
 		UINT m_uOutputCodePage;
 		bool m_bOutputBOM;
+		LastModified m_LastModified;
 	};
 
 	inline void MyDialogBox::SetId(INT id)

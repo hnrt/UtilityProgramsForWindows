@@ -31,6 +31,7 @@ MyDialogBox::MyDialogBox(UINT idTemplate, PCWSTR pszName)
 	, m_uInputCodePage(CP_AUTODETECT)
 	, m_uOutputCodePage(CP_UTF8)
 	, m_bOutputBOM(false)
+	, m_LastModified()
 {
 }
 

@@ -610,6 +610,7 @@
     <ClInclude Include="inc\hnrt\FontHandle.h" />
     <ClInclude Include="inc\hnrt\LogicalFont.h" />
     <ClInclude Include="inc\hnrt\Menu.h" />
+    <ClInclude Include="inc\hnrt\LastModified.h" />
     <ClInclude Include="inc\hnrt\TabControl.h" />
     <ClInclude Include="inc\hnrt\TabControlItem.h" />
     <ClInclude Include="inc\hnrt\WindowDesign.h" />
@@ -632,6 +633,7 @@
     <ClCompile Include="src\FontHandle.cpp" />
     <ClCompile Include="src\LogicalFont.cpp" />
     <ClCompile Include="src\Menu.cpp" />
+    <ClCompile Include="src\LastModified.cpp" />
     <ClCompile Include="src\TabControl.cpp" />
     <ClCompile Include="src\TabControlItem.cpp" />
     <ClCompile Include="src\WindowLayout.cpp" />

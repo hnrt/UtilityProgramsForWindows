@@ -28,8 +28,6 @@ DateTimeDialogBox::DateTimeDialogBox()
     : MyDialogBox(IDD_DTTM, L"DateTime")
     , m_offset(0)
     , m_format(IDC_DTTM_DTZ_EXTENDED_RADIO)
-    , m_lastModifiedBy(0)
-    , m_lastModifiedAt(0)
 {
 }
 
@@ -89,7 +87,7 @@ void DateTimeDialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
     KillTimer(hwnd, DTTM_TIMER1SEC);
-    if (IsModified())
+    if (m_LastModified)
     {
         ApplyModification();
     }
@@ -135,7 +133,7 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_DTTM_MILLISECOND_EDIT:
         if (idNotif == EN_CHANGE)
         {
-            SetLastModifiedBy(idChild);
+            m_LastModified.By = idChild;
         }
         break;
     case IDC_DTTM_YEAR_CHECK:
@@ -200,7 +198,7 @@ INT_PTR DateTimeDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
     switch (wParam)
     {
     case DTTM_TIMER1SEC:
-        if (IsModified(3))
+        if (m_LastModified.IsUpdateRequired)
         {
             ApplyModification();
         }
@@ -214,7 +212,7 @@ INT_PTR DateTimeDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 
 void DateTimeDialogBox::OnCopy()
 {
-    if (IsModified())
+    if (m_LastModified)
     {
         ApplyModification();
     }
@@ -244,7 +242,7 @@ void DateTimeDialogBox::OnOffsetChange()
 
 void DateTimeDialogBox::ApplyModification()
 {
-    if (m_lastModifiedBy == IDC_DTTM_EDIT)
+    if (m_LastModified.By == IDC_DTTM_EDIT)
     {
         BOOL bSuccessful = FALSE;
         long long value = GetText(IDC_DTTM_EDIT).Trim().ToLongLong(0, &bSuccessful);
@@ -269,7 +267,7 @@ void DateTimeDialogBox::ApplyModification()
         }
         else
         {
-            ResetLastModifiedBy();
+            m_LastModified.Clear();
         }
     }
     else
@@ -407,16 +405,16 @@ void DateTimeDialogBox::UpdateDateTime() const
 
 static String ToExtendedOffsetString(int offset)
 {
-    return offset >= 0 ?
-        String(PRINTF, L"+%02d:%02d", offset / 60, offset % 60) :
+    return offset == 0 ? String(L"Z") : 
+        offset > 0 ? String(PRINTF, L"+%02d:%02d", offset / 60, offset % 60) :
         String(PRINTF, L"-%02d:%02d", -offset / 60, -offset % 60);
 }
 
 
 static String ToBasicOffsetString(int offset)
 {
-    return offset >= 0 ?
-        String(PRINTF, L"+%02d%02d", offset / 60, offset % 60) :
+    return offset == 0 ? String(L"Z") :
+        offset > 0 ? String(PRINTF, L"+%02d%02d", offset / 60, offset % 60) :
         String(PRINTF, L"-%02d%02d", -offset / 60, -offset % 60);
 }
 
@@ -581,7 +579,7 @@ void DateTimeDialogBox::FormatString(int id)
     default:
         break;
     }
-    ResetLastModifiedBy();
+    m_LastModified.Clear();
 }
 
 
@@ -637,28 +635,4 @@ DWORD DateTimeDialogBox::GetFixedButtonFlags() const
     dwFixed = (dwFixed << 1) | (ButtonIsChecked(IDC_DTTM_SECOND_CHECK) ? 1 : 0);
     dwFixed = (dwFixed << 1) | (ButtonIsChecked(IDC_DTTM_MILLISECOND_CHECK) ? 1 : 0);
     return dwFixed;
-}
-
-
-void DateTimeDialogBox::SetLastModifiedBy(int id)
-{
-    m_lastModifiedBy = id;
-    m_lastModifiedAt = FileTime().Milliseconds;
-    SetCursor(LoadCursor(NULL, IDC_WAIT));
-}
-
-
-void DateTimeDialogBox::ResetLastModifiedBy()
-{
-    m_lastModifiedBy = 0;
-    m_lastModifiedAt = 0;
-    SetCursor(LoadCursor(NULL, IDC_ARROW));
-}
-
-
-bool DateTimeDialogBox::IsModified(int nGracePeriodInSeconds) const
-{
-    return m_lastModifiedAt == 0 ? false
-        : nGracePeriodInSeconds == 0 ? true
-        : m_lastModifiedAt <= FileTime().AddSeconds(-nGracePeriodInSeconds).Milliseconds;
 }

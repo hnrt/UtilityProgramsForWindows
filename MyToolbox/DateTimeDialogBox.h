@@ -38,13 +38,8 @@ namespace hnrt
 		void UpdateEditReadOnly() const;
 		void InitializeFixedButtons(DWORD) const;
 		DWORD GetFixedButtonFlags() const;
-		void SetLastModifiedBy(int id);
-		void ResetLastModifiedBy();
-		bool IsModified(int nGracePeriodInSeconds = 0) const;
 
 		int m_offset;
 		int m_format;
-		int m_lastModifiedBy;
-		LONGLONG m_lastModifiedAt;
 	};
 }
