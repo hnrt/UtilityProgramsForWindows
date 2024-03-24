@@ -25,7 +25,8 @@
 #define REGVAL_EXPRESSION L"Expression"
 
 
-#define CRON_TIMER1SEC 5001
+#define CRON_TIMER0100MS 5001
+#define CRON_TIMER1000MS 5002
 
 
 #define CRON_FORMAT_SECOND		(1U<<0)
@@ -128,12 +129,12 @@ static PCWSTR GetCronErrorText(CronError e, bool bDetails = false)
 CronDialogBox::CronDialogBox()
 	: MyDialogBox(IDD_CRON, L"Cron")
 	, m_offset(0)
-	, m_LastModifiedAt(0)
 	, m_bParse(false)
 	, m_bParseSuccessful(true)
 	, m_bFormat(0)
 	, m_bFormatSuccessful(0)
 {
+	m_LastModified.CursorChange = true;
 }
 
 
@@ -327,7 +328,8 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void CronDialogBox::OnTabSelectionChanging()
 {
 	MyDialogBox::OnTabSelectionChanging();
-	KillTimer(hwnd, CRON_TIMER1SEC);
+	KillTimer(hwnd, CRON_TIMER0100MS);
+	KillTimer(hwnd, CRON_TIMER1000MS);
 	m_menuView
 		.Enable(IDM_VIEW_CRON, MF_ENABLED);
 }
@@ -345,7 +347,8 @@ void CronDialogBox::OnTabSelectionChanged()
 	m_menuSettings
 		.RemoveAll()
 		.Add(ResourceString(IDS_MENU_USESECOND), IDM_SETTINGS_USESECOND, m_cron.SecondEnabled ? MF_CHECKED : MF_UNCHECKED);
-	SetTimer(hwnd, CRON_TIMER1SEC, 1000, NULL);
+	SetTimer(hwnd, CRON_TIMER0100MS, 100, NULL);
+	SetTimer(hwnd, CRON_TIMER1000MS, 1000, NULL);
 }
 
 
@@ -408,7 +411,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 					m_bParse = true;
 					ClearEvalStatics();
 				}
-				m_LastModifiedAt.FromSystemTime();
+				m_LastModified.By = idChild;
 			}
 		}
 		break;
@@ -429,7 +432,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			DisableWindow(IDC_CRON_YEAR_EDIT);
 			SetText(IDC_CRON_YEAR_EDIT, L"*");
-			m_LastModifiedAt.FromSystemTime();
+			m_LastModified.By = idChild;
 			m_bFormat |= CRON_FORMAT_YEAR;
 		}
 		break;
@@ -444,7 +447,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			DisableWindow(IDC_CRON_MONTH_EDIT);
 			SetText(IDC_CRON_MONTH_EDIT, L"*");
-			m_LastModifiedAt.FromSystemTime();
+			m_LastModified.By = idChild;
 			m_bFormat |= CRON_FORMAT_MONTH;
 		}
 		break;
@@ -466,7 +469,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 				ButtonUncheck(IDC_CRON_DOW_EXPR_RADIO);
 				SetText(IDC_CRON_DOW_EDIT, L"?");
 			}
-			m_LastModifiedAt.FromSystemTime();
+			m_LastModified.By = idChild;
 			m_bFormat |= CRON_FORMAT_DAYOFMONTH;
 		}
 		break;
@@ -482,7 +485,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 				ButtonUncheck(IDC_CRON_DOW_EXPR_RADIO);
 				SetText(IDC_CRON_DOW_EDIT, L"*");
 			}
-			m_LastModifiedAt.FromSystemTime();
+			m_LastModified.By = idChild;
 			m_bFormat |= CRON_FORMAT_DAYOFMONTH;
 		}
 		break;
@@ -498,7 +501,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 				ButtonUncheck(IDC_CRON_DOW_EXPR_RADIO);
 				SetText(IDC_CRON_DOW_EDIT, L"?");
 			}
-			m_LastModifiedAt.FromSystemTime();
+			m_LastModified.By = idChild;
 			m_bFormat |= CRON_FORMAT_DAYOFMONTH;
 		}
 		break;
@@ -514,7 +517,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 				ButtonUncheck(IDC_CRON_DOW_EXPR_RADIO);
 				SetText(IDC_CRON_DOW_EDIT, L"?");
 			}
-			m_LastModifiedAt.FromSystemTime();
+			m_LastModified.By = idChild;
 			m_bFormat |= CRON_FORMAT_DAYOFWEEK;
 		}
 		break;
@@ -546,7 +549,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 				ButtonUncheck(IDC_CRON_DAY_EXPR_RADIO);
 				SetText(IDC_CRON_DAY_EDIT, L"?");
 			}
-			m_LastModifiedAt.FromSystemTime();
+			m_LastModified.By = idChild;
 			m_bFormat |= CRON_FORMAT_DAYOFWEEK;
 		}
 		break;
@@ -564,7 +567,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 				ButtonUncheck(IDC_CRON_DAY_EXPR_RADIO);
 				SetText(IDC_CRON_DAY_EDIT, L"*");
 			}
-			m_LastModifiedAt.FromSystemTime();
+			m_LastModified.By = idChild;
 			m_bFormat |= CRON_FORMAT_DAYOFWEEK;
 		}
 		break;
@@ -589,7 +592,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			DisableWindow(IDC_CRON_HOUR_EDIT);
 			SetText(IDC_CRON_HOUR_EDIT, L"*");
-			m_LastModifiedAt.FromSystemTime();
+			m_LastModified.By = idChild;
 			m_bFormat |= CRON_FORMAT_HOUR;
 		}
 		break;
@@ -604,7 +607,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			DisableWindow(IDC_CRON_MINUTE_EDIT);
 			SetText(IDC_CRON_MINUTE_EDIT, L"*");
-			m_LastModifiedAt.FromSystemTime();
+			m_LastModified.By = idChild;
 			m_bFormat |= CRON_FORMAT_MINUTE;
 		}
 		break;
@@ -619,7 +622,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			DisableWindow(IDC_CRON_SECOND_EDIT);
 			SetText(IDC_CRON_SECOND_EDIT, L"*");
-			m_LastModifiedAt.FromSystemTime();
+			m_LastModified.By = idChild;
 			m_bFormat |= CRON_FORMAT_SECOND;
 		}
 		break;
@@ -645,7 +648,7 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 					m_bFormat |= GetFormatFlag(idChild);
 					ClearEvalStatics(GetEvalStatic(idChild));
 				}
-				m_LastModifiedAt.FromSystemTime();
+				m_LastModified.By = idChild;
 			}
 		}
 		break;
@@ -673,38 +676,42 @@ INT_PTR CronDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 {
 	switch (wParam)
 	{
-	case CRON_TIMER1SEC:
+	case CRON_TIMER0100MS:
 		if (m_bParse)
 		{
-			if (m_LastModifiedAt <= FileTime().AddSeconds(-3))
+			if (m_LastModified.IsUpdateRequired)
 			{
 				Parse();
 				UpdateIndividualControls();
+				m_LastModified.By = 0;
 			}
 		}
 		else if (m_bFormat)
 		{
-			if (m_LastModifiedAt <= FileTime().AddSeconds(-3))
+			if (m_LastModified.IsUpdateRequired)
 			{
 				Format();
 				Parse();
+				m_LastModified.By = 0;
 			}
 		}
-		else if (m_bParseSuccessful)
+		break;
+	case CRON_TIMER1000MS:
+		if (m_bParseSuccessful)
 		{
 			int offset = ComboBoxGetSelection(IDC_CRON_EXPR_COMBO);
 			SYSTEMTIME st = { 0 };
-			GetSystemTime(&st);
-			FileTime ft(st);
-			ft.AddMinutes(offset);
-			ft.ToSystemTime(st);
+			FileTime().AddMinutes(offset).ToSystemTime(st);
 			if (m_cron.GetNextTime(st, st))
 			{
-				FileTime ft(st);
-				ft.AddMinutes(m_offset);
-				ft.ToSystemTime(st);
-				WCHAR buf[260] = { 0 };
-				swprintf_s(buf, L"OK  [ %04d-%02d-%02d %02d:%02d:%02d ]", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+				FileTime(st).AddMinutes(m_offset).ToSystemTime(st);
+				String buf(PRINTF, L"OK  [ %04d-%02d-%02d %02d:%02d:%02d ]", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+				SetText(IDC_CRON_EXPR_STATIC, buf);
+				DBGPUT(L"Cron: %s", buf);
+			}
+			else
+			{
+				String buf(L"OK [ No more scheduled time ]");
 				SetText(IDC_CRON_EXPR_STATIC, buf);
 				DBGPUT(L"Cron: %s", buf);
 			}

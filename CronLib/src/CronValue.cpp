@@ -5,7 +5,8 @@
 #include "hnrt/StringBuffer.h"
 #include "hnrt/String.h"
 #include "hnrt/Time.h"
-#include "hnrt/Exception.h"
+#include "hnrt/Win32Exception.h"
+#include "hnrt/ErrorMessage.h"
 #include "hnrt/Debug.h"
 
 
@@ -397,64 +398,77 @@ bool CronValue::GetNext(SYSTEMTIME& st) const
 	{
 		return false;
 	}
-	switch (m_Element)
+	try
 	{
-	case CRON_YEAR:
-		st.wYear = candidate;
-		st.wMonth = 1;
-		st.wDay = 1;
-		st.wDayOfWeek = 0;
-		st.wHour = 0;
-		st.wMinute = 0;
-		st.wSecond = 0;
-		FileTime(st).ToSystemTime(st);
-		break;
-	case CRON_MONTH:
-		st.wMonth = candidate;
-		st.wDay = 1;
-		st.wDayOfWeek = 0;
-		st.wHour = 0;
-		st.wMinute = 0;
-		st.wSecond = 0;
-		FileTime(st).ToSystemTime(st);
-		break;
-	case CRON_DAYOFMONTH:
-		st.wDay = candidate;
-		st.wDayOfWeek = 0;
-		st.wHour = 0;
-		st.wMinute = 0;
-		st.wSecond = 0;
-		FileTime(st).ToSystemTime(st);
-		break;
-	case CRON_DAYOFWEEK:
-		st.wDay += candidate;
-		if (st.wDay > GetLastDayOfMonth(st.wYear, st.wMonth))
+		switch (m_Element)
 		{
+		case CRON_YEAR:
+			st.wYear = candidate;
+			st.wMonth = 1;
+			st.wDay = 1;
+			st.wDayOfWeek = 0;
+			st.wHour = 0;
+			st.wMinute = 0;
+			st.wSecond = 0;
+			FileTime(st).ToSystemTime(st);
+			break;
+		case CRON_MONTH:
+			st.wMonth = candidate;
+			st.wDay = 1;
+			st.wDayOfWeek = 0;
+			st.wHour = 0;
+			st.wMinute = 0;
+			st.wSecond = 0;
+			FileTime(st).ToSystemTime(st);
+			break;
+		case CRON_DAYOFMONTH:
+			st.wDay = candidate;
+			if (st.wDay > GetLastDayOfMonth(st.wYear, st.wMonth))
+			{
+				return false;
+			}
+			st.wDayOfWeek = 0;
+			st.wHour = 0;
+			st.wMinute = 0;
+			st.wSecond = 0;
+			FileTime(st).ToSystemTime(st);
+			break;
+		case CRON_DAYOFWEEK:
+			st.wDay += candidate;
+			if (st.wDay > GetLastDayOfMonth(st.wYear, st.wMonth))
+			{
+				return false;
+			}
+			st.wDayOfWeek = 0;
+			st.wHour = 0;
+			st.wMinute = 0;
+			st.wSecond = 0;
+			FileTime(st).ToSystemTime(st);
+			break;
+		case CRON_HOUR:
+			st.wHour = candidate;
+			st.wMinute = 0;
+			st.wSecond = 0;
+			break;
+		case CRON_MINUTE:
+			st.wMinute = candidate;
+			st.wSecond = 0;
+			break;
+		case CRON_SECOND:
+			st.wSecond = candidate;
+			break;
+		default:
+			// SHOULD NEVER REACH HERE
+			Debug::Put(L"CronValue::GetNext: Unknown element: %d", m_Element);
 			return false;
 		}
-		st.wDayOfWeek = 0;
-		st.wHour = 0;
-		st.wMinute = 0;
-		st.wSecond = 0;
-		FileTime(st).ToSystemTime(st);
-		break;
-	case CRON_HOUR:
-		st.wHour = candidate;
-		st.wMinute = 0;
-		st.wSecond = 0;
-		break;
-	case CRON_MINUTE:
-		st.wMinute = candidate;
-		st.wSecond = 0;
-		break;
-	case CRON_SECOND:
-		st.wSecond = candidate;
-		break;
-	default:
-		// SHOULD NEVER REACH HERE
-		throw Exception(L"CronValue::GetNext: Unknown element: %d", m_Element);
+		return true;
 	}
-	return true;
+	catch (Win32Exception e)
+	{
+		Debug::Put(L"CronValue::GetNext: %s (%s)", e.Message, ErrorMessage::Get(e.Error));
+		return false;
+	}
 }
 
 

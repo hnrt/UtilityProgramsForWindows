@@ -9,6 +9,10 @@
 using namespace hnrt;
 
 
+static HCURSOR hCursorActive = LoadCursor(NULL, IDC_WAIT);
+static HCURSOR hCursorInactive = LoadCursor(NULL, IDC_ARROW);
+
+
 LONGLONG LastModified::m_DefaultGracePeriod = DEFAULT_GRACE_PERIOD;
 
 
@@ -22,23 +26,55 @@ LastModified::LastModified(LONG nGracePeriodInMilliseconds)
 	: m_GracePeriod(nGracePeriodInMilliseconds < 0 ? m_DefaultGracePeriod : static_cast<LONGLONG>(nGracePeriodInMilliseconds))
 	, m_At(0)
 	, m_By(0)
+	, m_bCursorChange(false)
 {
 }
 
 
 void LastModified::Clear()
 {
-	m_At = 0;
-	m_By = 0;
-	SetCursor(LoadCursor(NULL, IDC_ARROW));
+	put_By(0);
+}
+
+
+void LastModified::Forget()
+{
+	if (m_bCursorChange && m_At > 0)
+	{
+		SetCursor(hCursorActive);
+	}
+}
+
+
+void LastModified::Recall()
+{
+	if (m_bCursorChange && m_At > 0)
+	{
+		SetCursor(hCursorActive);
+	}
 }
 
 
 void LastModified::put_By(int id)
 {
-	m_At = FileTime().Intervals;
-	m_By = id;
-	SetCursor(LoadCursor(NULL, IDC_WAIT));
+	if (id)
+	{
+		m_At = FileTime().Intervals;
+		m_By = id;
+		if (m_bCursorChange)
+		{
+			SetCursor(hCursorActive);
+		}
+	}
+	else
+	{
+		m_At = 0;
+		m_By = 0;
+		if (m_bCursorChange)
+		{
+			SetCursor(hCursorInactive);
+		}
+	}
 }
 
 
@@ -49,4 +85,11 @@ bool LastModified::get_IsUpdateRequired() const
 		return m_At < FileTime().AddMilliseconds(-m_GracePeriod).Intervals;
 	}
 	return false;
+}
+
+
+void LastModified::put_CursorChange(bool value)
+{
+	m_bCursorChange = value;
+	SetCursor(m_bCursorChange && m_At > 0 ? hCursorActive : hCursorInactive);
 }

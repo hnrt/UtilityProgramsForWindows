@@ -55,6 +55,7 @@ void MyDialogBox::OnDestroy()
 void MyDialogBox::OnTabSelectionChanging()
 {
 	m_bActive = false;
+	m_LastModified.Forget();
 	m_menuFile
 		.RemoveAll()
 		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
@@ -68,6 +69,7 @@ void MyDialogBox::OnTabSelectionChanging()
 void MyDialogBox::OnTabSelectionChanged()
 {
 	m_bActive = true;
+	m_LastModified.Recall();
 }
 
 

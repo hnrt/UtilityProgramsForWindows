@@ -48,7 +48,6 @@ namespace hnrt
 
 		Cron m_cron;
 		int m_offset;
-		FileTime m_LastModifiedAt;
 		bool m_bParse;
 		bool m_bParseSuccessful;
 		UINT m_bFormat;

@@ -18,7 +18,7 @@
 #define REGVAL_FIXED L"Fixed"
 
 
-#define DTTM_TIMER1SEC 8001
+#define DTTM_TIMER100MS 8001
 
 
 using namespace hnrt;
@@ -29,6 +29,7 @@ DateTimeDialogBox::DateTimeDialogBox()
     , m_offset(0)
     , m_format(IDC_DTTM_DTZ_EXTENDED_RADIO)
 {
+    m_LastModified.CursorChange = true;
 }
 
 
@@ -86,7 +87,7 @@ void DateTimeDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void DateTimeDialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
-    KillTimer(hwnd, DTTM_TIMER1SEC);
+    KillTimer(hwnd, DTTM_TIMER100MS);
     if (m_LastModified)
     {
         ApplyModification();
@@ -106,7 +107,7 @@ void DateTimeDialogBox::OnTabSelectionChanged()
         ;
     m_menuView
         .Enable(IDM_VIEW_DTTM, MF_DISABLED);
-    SetTimer(hwnd, DTTM_TIMER1SEC, 1000, NULL);
+    SetTimer(hwnd, DTTM_TIMER100MS, 100, NULL);
 }
 
 
@@ -197,7 +198,7 @@ INT_PTR DateTimeDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 {
     switch (wParam)
     {
-    case DTTM_TIMER1SEC:
+    case DTTM_TIMER100MS:
         if (m_LastModified.IsUpdateRequired)
         {
             ApplyModification();
@@ -267,7 +268,7 @@ void DateTimeDialogBox::ApplyModification()
         }
         else
         {
-            m_LastModified.Clear();
+            m_LastModified.By = 0;
         }
     }
     else
@@ -579,7 +580,7 @@ void DateTimeDialogBox::FormatString(int id)
     default:
         break;
     }
-    m_LastModified.Clear();
+    m_LastModified.By = 0;
 }
 
 

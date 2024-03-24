@@ -16,15 +16,20 @@ namespace hnrt
 		LastModified(const LastModified& src) = default;
 		~LastModified() = default;
 		void Clear();
+		void Forget();
+		void Recall();
 		operator bool() const;
 		LONGLONG get_At() const;
 		int get_By() const;
 		void put_By(int);
 		bool get_IsUpdateRequired() const;
+		bool get_CursorChange() const;
+		void put_CursorChange(bool);
 
 		__declspec(property(get = get_At)) LONGLONG At;
 		__declspec(property(get = get_By, put = put_By)) int By;
 		__declspec(property(get = get_IsUpdateRequired)) bool IsUpdateRequired;
+		__declspec(property(get = get_CursorChange, put = put_CursorChange)) bool CursorChange;
 
 	private:
 
@@ -33,6 +38,7 @@ namespace hnrt
 		LONGLONG m_GracePeriod;
 		LONGLONG m_At;
 		int m_By;
+		bool m_bCursorChange;
 	};
 
 	inline LONGLONG LastModified::get_At() const
@@ -48,5 +54,10 @@ namespace hnrt
 	inline LastModified::operator bool() const
 	{
 		return m_At > 0;
+	}
+
+	inline bool LastModified::get_CursorChange() const
+	{
+		return m_bCursorChange;
 	}
 }
