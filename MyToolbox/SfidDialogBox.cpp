@@ -37,11 +37,19 @@
 #define CHECKSUM_LENGTH 3
 
 
+#define STATE_IDLE 1
+#define STATE_TYPING 2
+#define STATE_SUCCESSFUL 3
+#define STATE_ERROR 4
+
+
 using namespace hnrt;
 
 
 SfidDialogBox::SfidDialogBox()
     : MyDialogBox(IDD_SFID, L"SFID")
+    , m_State(STATE_IDLE)
+    , m_ActiveEdit(0)
 {
     m_LastModified.CursorChange = true;
 }
@@ -136,14 +144,22 @@ INT_PTR SfidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_SFID_KEYPREFIX_EDIT:
     case IDC_SFID_INSTANCE_EDIT:
     case IDC_SFID_UNIQUEID_EDIT:
-    case IDC_SFID_CHECKSUM_EDIT:
         if (idNotif == EN_CHANGE)
         {
             if (!m_LastModified)
             {
+                m_State = STATE_TYPING;
                 SetText(IDC_SFID_STATUS_STATIC, L"Changing...");
             }
             m_LastModified.By = idChild;
+        }
+        else if (idNotif == EN_SETFOCUS)
+        {
+            m_ActiveEdit = idChild;
+        }
+        else if (idNotif == EN_KILLFOCUS)
+        {
+            m_ActiveEdit = 0;
         }
         break;
     default:
@@ -170,7 +186,72 @@ INT_PTR SfidDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 }
 
 
+INT_PTR SfidDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
+{
+    HDC hdc = reinterpret_cast<HDC>(wParam);
+    int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
+    switch (id)
+    {
+    case IDC_SFID_STATUS_STATIC:
+        SetTextColor(hdc, m_State == STATE_TYPING ? RGB(200, 200, 0)
+            : m_State == STATE_SUCCESSFUL ? RGB(51, 102, 0)
+            : m_State == STATE_ERROR ? RGB(153, 0, 0)
+            : RGB(0, 0, 0));
+        SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
+    default:
+        break;
+    }
+    return 0;
+}
+
+
+void SfidDialogBox::OnCut()
+{
+    if (m_ActiveEdit)
+    {
+        EditCut(m_ActiveEdit);
+    }
+}
+
+
 void SfidDialogBox::OnCopy()
+{
+    if (m_ActiveEdit)
+    {
+        EditCopy(m_ActiveEdit);
+    }
+}
+
+
+void SfidDialogBox::OnPaste()
+{
+    if (m_ActiveEdit)
+    {
+        EditPaste(m_ActiveEdit);
+    }
+}
+
+
+void SfidDialogBox::OnDelete()
+{
+    if (m_ActiveEdit)
+    {
+        EditDelete(m_ActiveEdit);
+    }
+}
+
+
+void SfidDialogBox::OnSelectAll()
+{
+    if (m_ActiveEdit)
+    {
+        EditSelectAll(m_ActiveEdit);
+    }
+}
+
+
+void SfidDialogBox::OnCopyAll()
 {
     if (m_LastModified)
     {
@@ -179,6 +260,15 @@ void SfidDialogBox::OnCopy()
     if (!Clipboard::Write(hwnd, GetText(IDC_SFID_EDIT)))
     {
         MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+    }
+}
+
+
+void SfidDialogBox::OnClear()
+{
+    if (m_ActiveEdit)
+    {
+        EditClear(m_ActiveEdit);
     }
 }
 
@@ -202,8 +292,31 @@ void SfidDialogBox::NewContent()
 
 void SfidDialogBox::ChangeContent(LONGLONG delta)
 {
-    ULONGLONG value = ComputeSerialNumber(GetText(IDC_SFID_UNIQUEID_EDIT));
-    SetText(IDC_SFID_UNIQUEID_EDIT, Base62Encode(value + delta, UNIQUEID_LENGTH));
+    String szUniqueId = GetText(IDC_SFID_UNIQUEID_EDIT);
+    if (szUniqueId.Len > UNIQUEID_LENGTH)
+    {
+        m_State = STATE_ERROR;
+        SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Too long", UNIQUEID_NAME));
+        return;
+    }
+    LONGLONG value = ComputeSerialNumber(szUniqueId);
+    if (value < 0)
+    {
+        m_State = STATE_ERROR;
+        SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Invalid", UNIQUEID_NAME));
+        return;
+    }
+    LONGLONG max = ComputeSerialNumber(L"zzzzzzzzz");
+    value += delta;
+    if (value < 0)
+    {
+        value += max + 1;
+    }
+    else if (value > max)
+    {
+        value -= max + 1;
+    }
+    SetText(IDC_SFID_UNIQUEID_EDIT, Base62Encode(value, UNIQUEID_LENGTH));
     ApplyModification();
 }
 
@@ -213,6 +326,7 @@ static const WCHAR szZeros[] = { L'0', L'0', L'0', L'0', L'0', L'0', L'0', L'0',
 
 void SfidDialogBox::ApplyModification()
 {
+    m_State = STATE_ERROR;
     SetText(IDC_SFID_STATUS_STATIC);
     switch (m_LastModified.By)
     {
@@ -244,6 +358,7 @@ void SfidDialogBox::ApplyModification()
         }
         else if (sz.Len == INSTANCE_OFFSET + INSTANCE_LENGTH)
         {
+            m_State = STATE_SUCCESSFUL;
             break;
         }
         String szReserved(&sz[RESERVED_OFFSET], RESERVED_LENGTH);
@@ -254,6 +369,7 @@ void SfidDialogBox::ApplyModification()
         }
         else if (sz.Len == RESERVED_OFFSET + RESERVED_LENGTH)
         {
+            m_State = STATE_SUCCESSFUL;
             break;
         }
         String szUniqueId(&sz[UNIQUEID_OFFSET], UNIQUEID_LENGTH);
@@ -266,14 +382,16 @@ void SfidDialogBox::ApplyModification()
         SetText(IDC_SFID_CHECKSUM_EDIT, szExpected);
         if (sz.Len == CHECKSUM_OFFSET)
         {
+            m_State = STATE_SUCCESSFUL;
             SetText(IDC_SFID_EDIT, String(PRINTF, L"%s%s%s%s%s", szKeyPrefix, szInstance, RESERVED_VALUE, szUniqueId, szExpected));
-            //SetText(IDC_SFID_STATUS_STATIC, L"OK");
+            SetText(IDC_SFID_STATUS_STATIC, L"OK (Checksum computed)");
             break;
         }
         String szChecksum(&sz[CHECKSUM_OFFSET]);
         if (szChecksum == szExpected)
         {
-            //SetText(IDC_SFID_STATUS_STATIC, L"OK");
+            m_State = STATE_SUCCESSFUL;
+            SetText(IDC_SFID_STATUS_STATIC, L"OK");
         }
         else
         {
@@ -340,6 +458,8 @@ void SfidDialogBox::ApplyModification()
         String szChecksum = ComputeChecksum(sz);
         SetText(IDC_SFID_CHECKSUM_EDIT, szChecksum);
         SetText(IDC_SFID_EDIT, sz + szChecksum);
+        m_State = STATE_SUCCESSFUL;
+        SetText(IDC_SFID_STATUS_STATIC, L"OK");
         break;
     }
     default:
@@ -358,16 +478,22 @@ static const WCHAR SuffixTable[32] =
 
 String SfidDialogBox::ComputeChecksum(String sz) const
 {
-    int v1 = 0;
-    int v2 = 0;
-    int v3 = 0;
+    int a1 = 0;
+    int a2 = 0;
+    int a3 = 0;
     for (int index = 0; index < 5; index++)
     {
-        v1 = (v1 << 1) | ((L'A' <= sz[index + 0 * 5] && sz[index + 0 * 5] <= L'Z') ? 1 : 0);
-        v2 = (v2 << 1) | ((L'A' <= sz[index + 1 * 5] && sz[index + 1 * 5] <= L'Z') ? 1 : 0);
-        v3 = (v3 << 1) | ((L'A' <= sz[index + 2 * 5] && sz[index + 2 * 5] <= L'Z') ? 1 : 0);
+        WCHAR c1 = sz[1 * 5 - 1 - index];
+        WCHAR c2 = sz[2 * 5 - 1 - index];
+        WCHAR c3 = sz[3 * 5 - 1 - index];
+        int b1 = (static_cast<unsigned>(c1 - L'A') <= static_cast<unsigned>(L'Z' - L'A')) ? 1 : 0;
+        int b2 = (static_cast<unsigned>(c2 - L'A') <= static_cast<unsigned>(L'Z' - L'A')) ? 1 : 0;
+        int b3 = (static_cast<unsigned>(c3 - L'A') <= static_cast<unsigned>(L'Z' - L'A')) ? 1 : 0;
+        a1 = (a1 << 1) | b1;
+        a2 = (a2 << 1) | b2;
+        a3 = (a3 << 1) | b3;
     }
-    return String(PRINTF, L"%c%c%c", SuffixTable[v1], SuffixTable[v2], SuffixTable[v3]);
+    return String(PRINTF, L"%c%c%c", SuffixTable[a1], SuffixTable[a2], SuffixTable[a3]);
 }
 
 
@@ -416,7 +542,7 @@ static const int Base62DecodingTable[128] =
 };
 
 
-ULONGLONG SfidDialogBox::ComputeSerialNumber(String sz) const
+LONGLONG SfidDialogBox::ComputeSerialNumber(String sz) const
 {
     ULONGLONG value = 0;
     int length = static_cast<int>(sz.Len);
