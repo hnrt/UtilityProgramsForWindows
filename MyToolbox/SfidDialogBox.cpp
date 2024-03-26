@@ -111,7 +111,16 @@ void SfidDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
     m_menuEdit
+        .Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
         .Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
+        .Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
+        .Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE)
+        .AddSeparator()
+        .Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL)
+        .AddSeparator()
+        .Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR)
+        .AddSeparator()
+        .Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
         .AddSeparator()
         .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE)
         ;
