@@ -39,8 +39,9 @@
 
 #define STATE_IDLE 1
 #define STATE_TYPING 2
-#define STATE_SUCCESSFUL 3
-#define STATE_ERROR 4
+#define STATE_PROCESSING 3
+#define STATE_SUCCESSFUL 4
+#define STATE_ERROR 5
 
 
 using namespace hnrt;
@@ -86,7 +87,7 @@ void SfidDialogBox::OnDestroy()
 void SfidDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
     WindowLayout::UpdateLayout(hDlg, IDC_SFID_EDIT, 0, 0, cxDelta, 0);
-    WindowLayout::UpdateLayout(hDlg, IDC_SFID_STATUS_STATIC, 0, 0, cxDelta, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_SFID_STATUS_STATIC, 0, cyDelta, cxDelta, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_SFID_COPY_BUTTON, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_SFID_NEW_BUTTON, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_SFID_UP_BUTTON, cxDelta, 0, 0, 0);
@@ -111,19 +112,12 @@ void SfidDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
     m_menuEdit
-        .Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
-        .Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
-        .Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
-        .Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE)
-        .AddSeparator()
-        .Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL)
-        .AddSeparator()
-        .Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR)
-        .AddSeparator()
         .Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
+        .AddSeparator();
+    AddEditControlMenus(m_ActiveEdit);
+    m_menuEdit
         .AddSeparator()
-        .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE)
-        ;
+        .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE);
     m_menuView
         .Enable(IDM_VIEW_SFID, MF_DISABLED);
     SetTimer(hwnd, SFID_TIMER100MS, 100, NULL);
@@ -155,20 +149,31 @@ INT_PTR SfidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_SFID_UNIQUEID_EDIT:
         if (idNotif == EN_CHANGE)
         {
-            if (!m_LastModified)
+            if (m_State != STATE_PROCESSING)
             {
-                m_State = STATE_TYPING;
-                SetText(IDC_SFID_STATUS_STATIC, L"Changing...");
+                if (!m_LastModified)
+                {
+                    m_State = STATE_TYPING;
+                }
+                m_LastModified.By = idChild;
+                SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"Editing...%d / %d",
+                    GetTextLength(idChild),
+                    idChild == IDC_SFID_KEYPREFIX_EDIT ? KEYPREFIX_LENGTH :
+                    idChild == IDC_SFID_INSTANCE_EDIT ? INSTANCE_LENGTH :
+                    idChild == IDC_SFID_UNIQUEID_EDIT ? UNIQUEID_LENGTH :
+                    KEYPREFIX_LENGTH + INSTANCE_LENGTH + RESERVED_LENGTH + UNIQUEID_LENGTH + CHECKSUM_LENGTH));
+                UpdateEditControlMenus(idChild);
             }
-            m_LastModified.By = idChild;
         }
         else if (idNotif == EN_SETFOCUS)
         {
             m_ActiveEdit = idChild;
+            UpdateEditControlMenus(idChild);
         }
         else if (idNotif == EN_KILLFOCUS)
         {
             m_ActiveEdit = 0;
+            UpdateEditControlMenus();
         }
         break;
     default:
@@ -273,15 +278,6 @@ void SfidDialogBox::OnCopyAll()
 }
 
 
-void SfidDialogBox::OnClear()
-{
-    if (m_ActiveEdit)
-    {
-        EditClear(m_ActiveEdit);
-    }
-}
-
-
 void SfidDialogBox::OnExecute()
 {
     NewContent();
@@ -335,7 +331,7 @@ static const WCHAR szZeros[] = { L'0', L'0', L'0', L'0', L'0', L'0', L'0', L'0',
 
 void SfidDialogBox::ApplyModification()
 {
-    m_State = STATE_ERROR;
+    m_State = STATE_PROCESSING;
     SetText(IDC_SFID_STATUS_STATIC);
     switch (m_LastModified.By)
     {
@@ -367,18 +363,17 @@ void SfidDialogBox::ApplyModification()
         }
         else if (sz.Len == INSTANCE_OFFSET + INSTANCE_LENGTH)
         {
-            m_State = STATE_SUCCESSFUL;
             break;
         }
         String szReserved(&sz[RESERVED_OFFSET], RESERVED_LENGTH);
         if (szReserved != String(RESERVED_VALUE))
         {
-            SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Is not \"%s\"", RESERVED_NAME, RESERVED_VALUE));
+            m_State = STATE_ERROR;
+            SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Mismatch", RESERVED_NAME));
             break;
         }
         else if (sz.Len == RESERVED_OFFSET + RESERVED_LENGTH)
         {
-            m_State = STATE_SUCCESSFUL;
             break;
         }
         String szUniqueId(&sz[UNIQUEID_OFFSET], UNIQUEID_LENGTH);
@@ -391,9 +386,9 @@ void SfidDialogBox::ApplyModification()
         SetText(IDC_SFID_CHECKSUM_EDIT, szExpected);
         if (sz.Len == CHECKSUM_OFFSET)
         {
-            m_State = STATE_SUCCESSFUL;
             SetText(IDC_SFID_EDIT, String(PRINTF, L"%s%s%s%s%s", szKeyPrefix, szInstance, RESERVED_VALUE, szUniqueId, szExpected));
-            SetText(IDC_SFID_STATUS_STATIC, L"OK (Checksum computed)");
+            m_State = STATE_SUCCESSFUL;
+            SetText(IDC_SFID_STATUS_STATIC, L"OK -- Checksum computed --");
             break;
         }
         String szChecksum(&sz[CHECKSUM_OFFSET]);
@@ -404,7 +399,8 @@ void SfidDialogBox::ApplyModification()
         }
         else
         {
-            SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Incorrect", CHECKSUM_NAME));
+            m_State = STATE_ERROR;
+            SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Mismatch", CHECKSUM_NAME));
         }
         break;
     }
@@ -415,35 +411,6 @@ void SfidDialogBox::ApplyModification()
         String szKeyPrefix = GetText(IDC_SFID_KEYPREFIX_EDIT);
         String szInstance = GetText(IDC_SFID_INSTANCE_EDIT);
         String szUniqueId = GetText(IDC_SFID_UNIQUEID_EDIT);
-        String sz(PRINTF, L"%s%s%s%s", szKeyPrefix, szInstance, RESERVED_VALUE, szUniqueId);
-        SetText(IDC_SFID_EDIT, sz);
-        if (m_LastModified.By == IDC_SFID_KEYPREFIX_EDIT)
-        {
-            if (!ParseBase62(szKeyPrefix, KEYPREFIX_LENGTH, KEYPREFIX_NAME)
-                || !ParseBase62(szInstance, INSTANCE_LENGTH, INSTANCE_NAME)
-                || !ParseBase62(szUniqueId, UNIQUEID_LENGTH, UNIQUEID_NAME))
-            {
-                break;
-            }
-        }
-        else if (m_LastModified.By == IDC_SFID_INSTANCE_EDIT)
-        {
-            if (!ParseBase62(szInstance, INSTANCE_LENGTH, INSTANCE_NAME)
-                || !ParseBase62(szKeyPrefix, KEYPREFIX_LENGTH, KEYPREFIX_NAME)
-                || !ParseBase62(szUniqueId, UNIQUEID_LENGTH, UNIQUEID_NAME))
-            {
-                break;
-            }
-        }
-        else
-        {
-            if (!ParseBase62(szUniqueId, UNIQUEID_LENGTH, UNIQUEID_NAME)
-                || !ParseBase62(szKeyPrefix, KEYPREFIX_LENGTH, KEYPREFIX_NAME)
-                || !ParseBase62(szInstance, INSTANCE_LENGTH, INSTANCE_NAME))
-            {
-                break;
-            }
-        }
         if (szKeyPrefix.Len < KEYPREFIX_LENGTH)
         {
             szKeyPrefix = String(szZeros, KEYPREFIX_LENGTH - szKeyPrefix.Len) + szKeyPrefix;
@@ -459,10 +426,13 @@ void SfidDialogBox::ApplyModification()
             szUniqueId = String(szZeros, UNIQUEID_LENGTH - szUniqueId.Len) + szUniqueId;
             SetText(IDC_SFID_UNIQUEID_EDIT, szUniqueId);
         }
-        if (sz.Len < CHECKSUM_OFFSET)
+        String sz(PRINTF, L"%s%s%s%s", szKeyPrefix, szInstance, RESERVED_VALUE, szUniqueId);
+        SetText(IDC_SFID_EDIT, sz);
+        if (!ParseBase62(szKeyPrefix, KEYPREFIX_LENGTH, KEYPREFIX_NAME)
+            || !ParseBase62(szInstance, INSTANCE_LENGTH, INSTANCE_NAME)
+            || !ParseBase62(szUniqueId, UNIQUEID_LENGTH, UNIQUEID_NAME))
         {
-            sz = String(PRINTF, L"%s%s%s%s", szKeyPrefix, szInstance, RESERVED_VALUE, szUniqueId);
-            SetText(IDC_SFID_EDIT, sz);
+            break;
         }
         String szChecksum = ComputeChecksum(sz);
         SetText(IDC_SFID_CHECKSUM_EDIT, szChecksum);
@@ -474,6 +444,11 @@ void SfidDialogBox::ApplyModification()
     default:
         break;
     }
+    if (m_State == STATE_PROCESSING)
+    {
+        m_State = STATE_SUCCESSFUL;
+    }
+    UpdateEditControlMenus(m_ActiveEdit);
     m_LastModified.By = 0;
 }
 
@@ -569,19 +544,22 @@ LONGLONG SfidDialogBox::ComputeSerialNumber(String sz) const
 }
 
 
-bool SfidDialogBox::ParseBase62(PCWSTR psz, int length, PCWSTR pszName) const
+bool SfidDialogBox::ParseBase62(PCWSTR psz, int length, PCWSTR pszName)
 {
     for (int index = 0; index < length; index++)
     {
         WCHAR c = psz[index];
         if (!psz[index])
         {
-            return true;
+            m_State = STATE_ERROR;
+            SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Too short", pszName));
+            return false;
         }
         int d = c < 128 ? Base62DecodingTable[c] : -1;
         if (d < 0)
         {
-            SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: [%d] is invalid", pszName, index));
+            m_State = STATE_ERROR;
+            SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Invalid character at %d", pszName, index));
             return false;
         }
     }
@@ -591,6 +569,7 @@ bool SfidDialogBox::ParseBase62(PCWSTR psz, int length, PCWSTR pszName) const
     }
     else
     {
+        m_State = STATE_ERROR;
         SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Too long", pszName));
         return false;
     }

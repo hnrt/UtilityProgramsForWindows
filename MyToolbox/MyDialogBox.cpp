@@ -73,6 +73,31 @@ void MyDialogBox::OnTabSelectionChanged()
 }
 
 
+void MyDialogBox::AddEditControlMenus(int id)
+{
+	UINT flags = id != 0 && GetTextLength(id) > 0 ? MF_ENABLED : MF_DISABLED;
+	m_menuEdit
+		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT, flags)
+		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY, flags)
+		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
+		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE, flags)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL, flags);
+}
+
+
+void MyDialogBox::UpdateEditControlMenus(int id)
+{
+	UINT flags = id != 0 && GetTextLength(id) > 0 ? MF_ENABLED : MF_DISABLED;
+	m_menuEdit
+		.Enable(IDM_EDIT_CUT, flags)
+		.Enable(IDM_EDIT_COPY, flags)
+		.Enable(IDM_EDIT_PASTE, id != 0 ? MF_ENABLED : MF_DISABLED)
+		.Enable(IDM_EDIT_DELETE, flags)
+		.Enable(IDM_EDIT_SELECTALL, flags);
+}
+
+
 static UINT GetInputCodePageMenuCommand(UINT uCodePage)
 {
 	switch (uCodePage)

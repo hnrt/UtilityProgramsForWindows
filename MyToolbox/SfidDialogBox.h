@@ -21,7 +21,6 @@ namespace hnrt
 		virtual void OnDelete();
 		virtual void OnSelectAll();
 		virtual void OnCopyAll();
-		virtual void OnClear();
 		virtual void OnExecute();
 
 	private:
@@ -39,7 +38,7 @@ namespace hnrt
 		String ComputeChecksum(String) const;
 		String Base62Encode(ULONGLONG, int) const;
 		LONGLONG ComputeSerialNumber(String) const;
-		bool ParseBase62(PCWSTR, int, PCWSTR) const;
+		bool ParseBase62(PCWSTR, int, PCWSTR);
 
 		int m_State;
 		int m_ActiveEdit;

@@ -48,6 +48,8 @@ namespace hnrt
 
 		virtual void OnCreate();
 		virtual void OnDestroy();
+		void AddEditControlMenus(int id = 0);
+		void UpdateEditControlMenus(int id = 0);
 		void AddInputCodePageSettingMenus();
 		void AddOutputCodePageSettingMenus();
 		bool ApplyToInputCodePage(UINT);
