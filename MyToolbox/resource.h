@@ -200,7 +200,7 @@
 #define IDC_CRON_SECOND_EXPR_RADIO      4172
 #define IDC_CRON_SECOND_EDIT            4173
 #define IDC_CRON_SECOND_EVAL_STATIC     4179
-#define IDC_CRON_DESC_STATIC            4200
+#define IDC_CRON_DESC_EDIT              4200
 #define IDC_CRON_OFFSET_STATIC          4300
 #define IDC_CRON_OFFSET_COMBO           4301
 #define IDC_CRON_SECOND_CHECK           4302

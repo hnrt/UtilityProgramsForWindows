@@ -221,7 +221,6 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	{
 		after[IDC_CRON_EXPR_EDIT].cx += cxDelta;
 		MoveHorizontally(after[IDC_CRON_EXPR_COMBO], cxDelta);
-		after[IDC_CRON_EXPR_STATIC].cx += cxDelta;
 	}
 
 	LONG dx, dcx, dy, dcy;
@@ -243,7 +242,7 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 		dcx = after[IDC_CRON_YEAR_STATIC].cx - before[IDC_CRON_YEAR_STATIC].cx;
 		after[IDC_CRON_YEAR_EDIT].cx += dcx;
 		after[IDC_CRON_YEAR_EVAL_STATIC].cx += dcx;
-		after[IDC_CRON_DESC_STATIC].right = after[IDC_CRON_MONTH_STATIC].right + before[IDC_CRON_DESC_STATIC].right - before[IDC_CRON_MONTH_STATIC].right;
+		after[IDC_CRON_DESC_EDIT].right = after[IDC_CRON_MONTH_STATIC].right + before[IDC_CRON_DESC_EDIT].right - before[IDC_CRON_MONTH_STATIC].right;
 		after[IDC_CRON_HOUR_EDIT].cx += dcx;
 		after[IDC_CRON_HOUR_EVAL_STATIC].cx += dcx;
 		// COLUMN:MONTH-MINUTE (HORIZONTAL)
@@ -290,7 +289,7 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 		// ROW:DESC-DOW (VERTICAL)
 		dy = after[IDC_CRON_DOW_STATIC].y - before[IDC_CRON_DOW_STATIC].y;
 		dcy = after[IDC_CRON_DOW_STATIC].cy - before[IDC_CRON_DOW_STATIC].cy;
-		MoveVerticallyAndExtend(after[IDC_CRON_DESC_STATIC], dy, dcy);
+		MoveVerticallyAndExtend(after[IDC_CRON_DESC_EDIT], dy, dcy);
 		MoveVertically(after[IDC_CRON_DOW_ALL_RADIO], dy);
 		MoveVertically(after[IDC_CRON_DOW_ANY_RADIO], dy);
 		MoveVertically(after[IDC_CRON_DOW_EXPR_RADIO], dy);
@@ -319,6 +318,12 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 		MoveVertically(after[IDC_CRON_OFFSET_STATIC], cyDelta);
 		MoveVertically(after[IDC_CRON_OFFSET_COMBO], cyDelta);
 		MoveVertically(after[IDC_CRON_SECOND_CHECK], cyDelta);
+	}
+
+	// FOOTER
+	{
+		after[IDC_CRON_EXPR_STATIC].cx += cxDelta;
+		MoveVertically(after[IDC_CRON_EXPR_STATIC], cyDelta);
 	}
 
 	after.Apply();
@@ -1140,19 +1145,22 @@ void CronDialogBox::InitializeDescriptionStatic() const
 {
 	StringBuffer desc(260);
 	desc.AppendFormat(L"Year: %d-%d ( , - * / )", CronValue::Min(CRON_YEAR), CronValue::Max(CRON_YEAR));
-	desc.AppendFormat(L"  Month: %d-%d or %s-%s ( , - * / )", CronValue::Min(CRON_MONTH), CronValue::Max(CRON_MONTH), CronMonthWords[0], CronMonthWords[11]);
-	desc.AppendFormat(L"  Day: %d-%d ( , - * / ? L W )", CronValue::Min(CRON_DAYOFMONTH), CronValue::Max(CRON_DAYOFMONTH));
-	desc.AppendFormat(L"\nDay Of the Week: %d-%d or %s-%s ( , - * / ? L # )", CronValue::Min(CRON_DAYOFWEEK), CronValue::Max(CRON_DAYOFWEEK), CronDayOfWeekWords[0], CronDayOfWeekWords[6]);
-	desc.AppendFormat(L"\nHour: %d-%d ( , - * / )", CronValue::Min(CRON_HOUR), CronValue::Max(CRON_HOUR));
-	desc.AppendFormat(L"  Minute: %d-%d ( , - * / )", CronValue::Min(CRON_MINUTE), CronValue::Max(CRON_MINUTE));
-	desc.AppendFormat(L"  Second: %d-%d ( , - * / )", CronValue::Min(CRON_SECOND), CronValue::Max(CRON_SECOND));
-	desc.AppendFormat(L"\nAsterisk means every year|month|day|hour|minute|second.");
-	desc.AppendFormat(L"  Question mark matches any.");
-	desc.AppendFormat(L"  Comma separates numbers or expressions.");
-	desc.AppendFormat(L"  Hyphen specifies a range;");
-	desc.AppendFormat(L" X-Y is equivalent to X-Y/1.");
-	desc.AppendFormat(L"  Slash followed by a number specifies a step;");
-	desc.AppendFormat(L" X/N starts from X and increments by N.");
-	desc.AppendFormat(L" X-Y/N starts from X and increments by N until Y.");
-	SetText(IDC_CRON_DESC_STATIC, desc);
+	desc.AppendFormat(L"\r\nMonth: %d-%d or %s-%s ( , - * / )", CronValue::Min(CRON_MONTH), CronValue::Max(CRON_MONTH), CronMonthWords[0], CronMonthWords[11]);
+	desc.AppendFormat(L"\r\nDay: %d-%d ( , - * / ? L W )", CronValue::Min(CRON_DAYOFMONTH), CronValue::Max(CRON_DAYOFMONTH));
+	desc.Append(L"\r\n");
+	desc.AppendFormat(L"\r\nDay Of the Week: %d-%d or %s-%s ( , - * / ? L # )", CronValue::Min(CRON_DAYOFWEEK), CronValue::Max(CRON_DAYOFWEEK), CronDayOfWeekWords[0], CronDayOfWeekWords[6]);
+	desc.Append(L"\r\n");
+	desc.AppendFormat(L"\r\nHour: %d-%d ( , - * / )", CronValue::Min(CRON_HOUR), CronValue::Max(CRON_HOUR));
+	desc.AppendFormat(L"\r\nMinute: %d-%d ( , - * / )", CronValue::Min(CRON_MINUTE), CronValue::Max(CRON_MINUTE));
+	desc.AppendFormat(L"\r\nSecond: %d-%d ( , - * / )", CronValue::Min(CRON_SECOND), CronValue::Max(CRON_SECOND));
+	desc.Append(L"\r\n");
+	desc.AppendFormat(L"\r\nAsterisk means every year|month|day|hour|minute|second.");
+	desc.AppendFormat(L"\r\nQuestion mark matches any.");
+	desc.AppendFormat(L"\r\nComma separates numbers or expressions.");
+	desc.AppendFormat(L"\r\nHyphen specifies a range;");
+	desc.AppendFormat(L"\r\n    X-Y is equivalent to X-Y/1.");
+	desc.AppendFormat(L"\r\nSlash followed by a number specifies a step;");
+	desc.AppendFormat(L"\r\n    X/N starts from X and increments by N.");
+	desc.AppendFormat(L"\r\n    X-Y/N starts from X and increments by N until Y.");
+	SetText(IDC_CRON_DESC_EDIT, desc);
 }
