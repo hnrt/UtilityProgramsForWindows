@@ -134,7 +134,26 @@ RefPtr<CronValue> CronParser::Run(CronElement element, UINT flags)
 	if (m_next == L'*')
 	{
 		m_next = m_tokenizer.GetNext();
-		return CronValue::CreateAll(element);
+		int value2 = ~0;
+		if ((flags & CRON_WC_STEP) != 0 && ParseStep(element, value2))
+		{
+			int value1;
+			if (element == CRON_YEAR)
+			{
+				SYSTEMTIME st = { 0 };
+				::GetSystemTime(&st);
+				value1 = st.wYear;
+			}
+			else
+			{
+				value1 = CronValue::Min(element);
+			}
+			return CronValue::CreateSingle(element, value1, value2);
+		}
+		else
+		{
+			return CronValue::CreateAll(element);
+		}
 	}
 	else if ((flags & CRON_WC_ANY) != 0 && m_next == L'?')
 	{

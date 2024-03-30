@@ -75,7 +75,7 @@ int CronTokenizer::GetNext()
 	case L'?':
 		sym = m_c;
 		m_c = *m_q++;
-		if (m_c == L'\0' || m_c == L' ')
+		if (m_c == L'\0' || m_c == L' ' || m_c == L'/')
 		{
 			return sym;
 		}

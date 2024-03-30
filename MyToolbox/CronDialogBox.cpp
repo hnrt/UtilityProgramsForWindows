@@ -1089,7 +1089,7 @@ void CronDialogBox::SetEvalText(int id, const CronValue& value)
 		{
 			buf.AppendFormat(L" %d", *iter);
 		}
-		SetText(id, &buf[1]);
+		SetText(id, buf.Len > 0 ? &buf[1] : L"");
 	}
 }
 
@@ -1147,8 +1147,12 @@ void CronDialogBox::InitializeDescriptionStatic() const
 	desc.AppendFormat(L"Year: %d-%d ( , - * / )", CronValue::Min(CRON_YEAR), CronValue::Max(CRON_YEAR));
 	desc.AppendFormat(L"\r\nMonth: %d-%d or %s-%s ( , - * / )", CronValue::Min(CRON_MONTH), CronValue::Max(CRON_MONTH), CronMonthWords[0], CronMonthWords[11]);
 	desc.AppendFormat(L"\r\nDay: %d-%d ( , - * / ? L W )", CronValue::Min(CRON_DAYOFMONTH), CronValue::Max(CRON_DAYOFMONTH));
+	desc.AppendFormat(L"\r\n    L means the last day of the month.");
+	desc.AppendFormat(L"\r\n    nW means the weekday nearest day n of the month; e.g., 3W means the weekday nearest day 3 of the month.");
 	desc.Append(L"\r\n");
 	desc.AppendFormat(L"\r\nDay Of the Week: %d-%d or %s-%s ( , - * / ? L # )", CronValue::Min(CRON_DAYOFWEEK), CronValue::Max(CRON_DAYOFWEEK), CronDayOfWeekWords[0], CronDayOfWeekWords[6]);
+	desc.AppendFormat(L"\r\n    wL means the last w-day of the month; e.g., 1L means the last Sunday of the month.");
+	desc.AppendFormat(L"\r\n    w#n means the n-th w-day of the month; e.g., 7#1 means the first Saturday of the month.");
 	desc.Append(L"\r\n");
 	desc.AppendFormat(L"\r\nHour: %d-%d ( , - * / )", CronValue::Min(CRON_HOUR), CronValue::Max(CRON_HOUR));
 	desc.AppendFormat(L"\r\nMinute: %d-%d ( , - * / )", CronValue::Min(CRON_MINUTE), CronValue::Max(CRON_MINUTE));

@@ -59,6 +59,22 @@ namespace UnitTestCronLib
 			Assert::IsTrue(CRON_EMPTY == cron.Year.Type);
 		}
 
+		TEST_METHOD(Test0004)
+		{
+			Cron cron;
+			cron.SecondEnabled = true;
+			cron.Parse(L"*/5 * * * * ?");
+			Assert::IsTrue(CRON_SINGLE == cron.Second.Type);
+			Assert::AreEqual(0, cron.Second.Value);
+			Assert::AreEqual(5, cron.Second.Step);
+			Assert::IsTrue(CRON_ALL == cron.Minute.Type);
+			Assert::IsTrue(CRON_ALL == cron.Hour.Type);
+			Assert::IsTrue(CRON_ALL == cron.DayOfMonth.Type);
+			Assert::IsTrue(CRON_ALL == cron.Month.Type);
+			Assert::IsTrue(CRON_ANY == cron.DayOfWeek.Type);
+			Assert::IsTrue(CRON_EMPTY == cron.Year.Type);
+		}
+
 		TEST_METHOD(Test0101)
 		{
 			Cron cron;
