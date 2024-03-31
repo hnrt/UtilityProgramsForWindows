@@ -67,7 +67,6 @@ CryptographyDialogBox::CryptographyDialogBox()
 	, m_bStatusSuccessful(TRUE)
 	, m_szOriginalDataPath()
 	, m_szEncryptedDataPath()
-	, m_ActiveEditControlId(0)
 	, m_bWrapData(TRUE)
 {
 	m_hAlg.Open(BCRYPT_AES_ALGORITHM);
@@ -440,11 +439,6 @@ INT_PTR CryptographyDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 #pragma warning(default:4065)
 
 
-static const COLORREF RED = RGB(153, 0, 0);
-static const COLORREF GREEN = RGB(51, 102, 0);
-static const COLORREF BLUE = RGB(0, 0, 204);
-
-
 INT_PTR CryptographyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
@@ -455,25 +449,25 @@ INT_PTR CryptographyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 	case IDC_CRPT_KEY_EDIT:
 	{
 		size_t required = m_KeyLength;
-		SetTextColor(hdc, (m_Key.Len * 8 == required) ? GREEN : (m_Key.Len * 8 > required) ? BLUE : RED);
+		SetTextColor(hdc, (m_Key.Len * 8 == required) ? RGB_GOOD : (m_Key.Len * 8 > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
 		break;
 	}
 	case IDC_CRPT_IV_EDIT:
 	{
 		size_t required = m_hAlg.BlockLength;
-		SetTextColor(hdc, (m_IV.Len == required) ? GREEN : (m_IV.Len > required) ? BLUE : RED);
+		SetTextColor(hdc, (m_IV.Len == required) ? RGB_GOOD : (m_IV.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
 		break;
 	}
 	case IDC_CRPT_NONCE_EDIT:
 	{
 		size_t required = m_NonceLength;
-		SetTextColor(hdc, (m_Nonce.Len == required) ? GREEN : (m_Nonce.Len > required) ? BLUE : RED);
+		SetTextColor(hdc, (m_Nonce.Len == required) ? RGB_GOOD : (m_Nonce.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
 		break;
 	}
 	case IDC_CRPT_TAG_EDIT:
 	{
 		size_t required = m_TagLength;
-		SetTextColor(hdc, (m_Tag.Len == required) ? GREEN : (m_Tag.Len > required) ? BLUE : RED);
+		SetTextColor(hdc, (m_Tag.Len == required) ? RGB_GOOD : (m_Tag.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
 		break;
 	}
 	default:
@@ -493,7 +487,7 @@ INT_PTR CryptographyDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam
 	case IDC_CRPT_STATUS_STATIC:
 		if (m_bStatusSuccessful == FALSE)
 		{
-			SetTextColor(hdc, RED);
+			SetTextColor(hdc, RGB_ERROR);
 			SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
 			break;
 		}
@@ -650,35 +644,35 @@ void CryptographyDialogBox::OnSave2As()
 void CryptographyDialogBox::OnCut()
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	switch (m_ActiveEditControlId)
+	switch (m_CurrentEdit)
 	{
 	case IDC_CRPT_KEY_EDIT:
-		EditCut(m_ActiveEditControlId);
+		EditCut(m_CurrentEdit);
 		OnKeyChange();
 		break;
 	case IDC_CRPT_IV_EDIT:
-		EditCut(m_ActiveEditControlId);
+		EditCut(m_CurrentEdit);
 		OnIVChange();
 		break;
 	case IDC_CRPT_NONCE_EDIT:
-		EditCut(m_ActiveEditControlId);
+		EditCut(m_CurrentEdit);
 		OnNonceChange();
 		break;
 	case IDC_CRPT_TAG_EDIT:
-		EditCut(m_ActiveEditControlId);
+		EditCut(m_CurrentEdit);
 		OnTagChange();
 		break;
 	case IDC_CRPT_ORG_EDIT:
 		if (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION)
 		{
-			EditCut(m_ActiveEditControlId);
+			EditCut(m_CurrentEdit);
 			OnOriginalDataChange();
 		}
 		break;
 	case IDC_CRPT_ENC_EDIT:
 		if (m_Mode == MODE_IDLE || m_Mode == MODE_DECRYPTION)
 		{
-			EditCut(m_ActiveEditControlId);
+			EditCut(m_CurrentEdit);
 			OnEncryptedDataChange();
 		}
 		break;
@@ -688,47 +682,38 @@ void CryptographyDialogBox::OnCut()
 }
 
 
-void CryptographyDialogBox::OnCopy()
-{
-	if (m_ActiveEditControlId)
-	{
-		EditCopy(m_ActiveEditControlId);
-	}
-}
-
-
 void CryptographyDialogBox::OnPaste()
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	switch (m_ActiveEditControlId)
+	switch (m_CurrentEdit)
 	{
 	case IDC_CRPT_KEY_EDIT:
-		EditPaste(m_ActiveEditControlId);
+		EditPaste(m_CurrentEdit);
 		OnKeyChange();
 		break;
 	case IDC_CRPT_IV_EDIT:
-		EditPaste(m_ActiveEditControlId);
+		EditPaste(m_CurrentEdit);
 		OnIVChange();
 		break;
 	case IDC_CRPT_NONCE_EDIT:
-		EditPaste(m_ActiveEditControlId);
+		EditPaste(m_CurrentEdit);
 		OnNonceChange();
 		break;
 	case IDC_CRPT_TAG_EDIT:
-		EditPaste(m_ActiveEditControlId);
+		EditPaste(m_CurrentEdit);
 		OnTagChange();
 		break;
 	case IDC_CRPT_ORG_EDIT:
 		if (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION)
 		{
-			EditPaste(m_ActiveEditControlId);
+			EditPaste(m_CurrentEdit);
 			OnOriginalDataChange();
 		}
 		break;
 	case IDC_CRPT_ENC_EDIT:
 		if (m_Mode == MODE_IDLE || m_Mode == MODE_DECRYPTION)
 		{
-			EditPaste(m_ActiveEditControlId);
+			EditPaste(m_CurrentEdit);
 			OnEncryptedDataChange();
 		}
 		break;
@@ -741,59 +726,40 @@ void CryptographyDialogBox::OnPaste()
 void CryptographyDialogBox::OnDelete()
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	switch (m_ActiveEditControlId)
+	switch (m_CurrentEdit)
 	{
 	case IDC_CRPT_KEY_EDIT:
-		EditDelete(m_ActiveEditControlId);
+		EditDelete(m_CurrentEdit);
 		OnKeyChange();
 		break;
 	case IDC_CRPT_IV_EDIT:
-		EditDelete(m_ActiveEditControlId);
+		EditDelete(m_CurrentEdit);
 		OnIVChange();
 		break;
 	case IDC_CRPT_NONCE_EDIT:
-		EditDelete(m_ActiveEditControlId);
+		EditDelete(m_CurrentEdit);
 		OnNonceChange();
 		break;
 	case IDC_CRPT_TAG_EDIT:
-		EditDelete(m_ActiveEditControlId);
+		EditDelete(m_CurrentEdit);
 		OnTagChange();
 		break;
 	case IDC_CRPT_ORG_EDIT:
 		if (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION)
 		{
-			EditDelete(m_ActiveEditControlId);
+			EditDelete(m_CurrentEdit);
 			OnOriginalDataChange();
 		}
 		break;
 	case IDC_CRPT_ENC_EDIT:
 		if (m_Mode == MODE_IDLE || m_Mode == MODE_DECRYPTION)
 		{
-			EditDelete(m_ActiveEditControlId);
+			EditDelete(m_CurrentEdit);
 			OnEncryptedDataChange();
 		}
 		break;
 	default:
 		break;
-	}
-}
-
-
-void CryptographyDialogBox::OnSelectAll()
-{
-	if (m_ActiveEditControlId)
-	{
-		EditSelectAll(m_ActiveEditControlId);
-	}
-}
-
-
-void CryptographyDialogBox::OnCopyAll()
-{
-	if (m_ActiveEditControlId)
-	{
-		EditSelectAll(m_ActiveEditControlId);
-		EditCopy(m_ActiveEditControlId);
 	}
 }
 
@@ -1106,17 +1072,19 @@ void CryptographyDialogBox::OnTagLengthChange(int id)
 
 void CryptographyDialogBox::OnEditSetFocus(int id)
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	_InterlockedExchange(&m_ActiveEditControlId, id);
-	UpdateMenus();
+	if (m_CurrentEdit != id)
+	{
+		m_CurrentEdit = id;
+		UpdateMenus();
+	}
 }
 
 
 void CryptographyDialogBox::OnEditKillFocus(int id)
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	if (_InterlockedCompareExchange(&m_ActiveEditControlId, 0, id) == id)
+	if (m_CurrentEdit == id)
 	{
+		m_CurrentEdit = 0;
 		UpdateMenus();
 	}
 }
@@ -1560,7 +1528,7 @@ void CryptographyDialogBox::UpdateMenus()
 		.Add(ResourceString(IDS_MENU_SAVEENCAS), IDM_FILE_SAVE2AS, (m_EncryptedData.Len > 0) ? 0U : MF_DISABLED)
 		.AddSeparator()
 		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
-	switch (m_ActiveEditControlId)
+	switch (m_CurrentEdit)
 	{
 	case IDC_CRPT_KEY_EDIT:
 	case IDC_CRPT_IV_EDIT:

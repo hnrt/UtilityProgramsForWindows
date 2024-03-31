@@ -19,7 +19,7 @@ namespace hnrt
 		MyDialogBox(const MyDialogBox&) = delete;
 		virtual ~MyDialogBox() = default;
 		void operator =(const MyDialogBox&) = delete;
-		void SetId(INT id);
+		void SetId(int id);
 		bool IsActive() const;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
@@ -37,7 +37,7 @@ namespace hnrt
 		virtual void OnCopyAll();
 		virtual void OnClear();
 		virtual void OnExecute();
-		virtual void OnSettingChanged(UINT);
+		virtual void OnSettingChanged(int id);
 		virtual void OnFeederNotify(ULONGLONG);
 
 		INT get_id() const;
@@ -48,6 +48,9 @@ namespace hnrt
 
 		virtual void OnCreate();
 		virtual void OnDestroy();
+		void OnEditSetFocus(int id);
+		void OnEditKillFocus(int id);
+		void OnEditChanged(int id);
 		void AddEditControlMenus(int id = 0);
 		void UpdateEditControlMenus(int id = 0);
 		void AddInputCodePageSettingMenus();
@@ -68,7 +71,7 @@ namespace hnrt
 
 	private:
 
-		INT m_id;
+		int m_id;
 		bool m_bActive;
 
 	protected:
@@ -83,10 +86,11 @@ namespace hnrt
 		UINT m_uInputCodePage;
 		UINT m_uOutputCodePage;
 		bool m_bOutputBOM;
+		int m_CurrentEdit;
 		LastModified m_LastModified;
 	};
 
-	inline void MyDialogBox::SetId(INT id)
+	inline void MyDialogBox::SetId(int id)
 	{
 		m_id = id;
 	}
@@ -125,41 +129,17 @@ namespace hnrt
 	{
 	}
 
-	inline void MyDialogBox::OnCut()
-	{
-	}
-
-	inline void MyDialogBox::OnCopy()
-	{
-	}
-
-	inline void MyDialogBox::OnPaste()
-	{
-	}
-
-	inline void MyDialogBox::OnDelete()
-	{
-	}
-
-	inline void MyDialogBox::OnSelectAll()
-	{
-	}
-
-	inline void MyDialogBox::OnCopyAll()
-	{
-	}
-
 	inline void MyDialogBox::OnClear()
 	{
 	}
-	
+
 	inline void MyDialogBox::OnExecute()
 	{
 	}
 
-	inline void MyDialogBox::OnSettingChanged(UINT uId)
+	inline void MyDialogBox::OnSettingChanged(int id)
 	{
-		UNREFERENCED_PARAMETER(uId);
+		UNREFERENCED_PARAMETER(id);
 	}
 
 	inline void MyDialogBox::OnFeederNotify(ULONGLONG nbytes)
@@ -167,3 +147,10 @@ namespace hnrt
 		UNREFERENCED_PARAMETER(nbytes);
 	}
 }
+
+#define RGB_SUCCESSFUL RGB(51, 102, 0)
+#define RGB_ERROR RGB(153, 0, 0)
+#define RGB_CHANGING RGB(130, 130, 0)
+#define RGB_GOOD RGB_SUCCESSFUL
+#define RGB_TOO_MANY RGB(0, 0, 204) // BLUE
+#define RGB_TOO_FEW RGB_ERROR

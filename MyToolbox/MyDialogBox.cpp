@@ -11,6 +11,7 @@
 #include "hnrt/Buffer.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/Unicode.h"
+#include "hnrt/WhileInScope.h"
 #include <map>
 
 
@@ -31,6 +32,7 @@ MyDialogBox::MyDialogBox(UINT idTemplate, PCWSTR pszName)
 	, m_uInputCodePage(CP_AUTODETECT)
 	, m_uOutputCodePage(CP_UTF8)
 	, m_bOutputBOM(false)
+	, m_CurrentEdit(0)
 	, m_LastModified()
 {
 }
@@ -38,6 +40,7 @@ MyDialogBox::MyDialogBox(UINT idTemplate, PCWSTR pszName)
 
 void MyDialogBox::OnCreate()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	Menu menuBar(GetApp<MyToolbox>().hwnd);
 	m_menuFile.Set(menuBar[(size_t)0]);
 	m_menuEdit.Set(menuBar[1]);
@@ -49,11 +52,13 @@ void MyDialogBox::OnCreate()
 
 void MyDialogBox::OnDestroy()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 }
 
 
 void MyDialogBox::OnTabSelectionChanging()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_bActive = false;
 	m_LastModified.Forget();
 	m_menuFile
@@ -68,8 +73,39 @@ void MyDialogBox::OnTabSelectionChanging()
 
 void MyDialogBox::OnTabSelectionChanged()
 {
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_bActive = true;
 	m_LastModified.Recall();
+}
+
+
+void MyDialogBox::OnEditSetFocus(int id)
+{
+	if (m_CurrentEdit != id)
+	{
+		m_CurrentEdit = id;
+		UpdateEditControlMenus(m_CurrentEdit);
+	}
+}
+
+
+void MyDialogBox::OnEditKillFocus(int id)
+{
+	if (m_CurrentEdit == id)
+	{
+		m_CurrentEdit = 0;
+		UpdateEditControlMenus(0);
+	}
+}
+
+
+void MyDialogBox::OnEditChanged(int id)
+{
+	if (m_CurrentEdit == id)
+	{
+		UpdateEditControlMenus(m_CurrentEdit);
+	}
+	m_LastModified.By = id;
 }
 
 
@@ -95,6 +131,61 @@ void MyDialogBox::UpdateEditControlMenus(int id)
 		.Enable(IDM_EDIT_PASTE, id != 0 ? MF_ENABLED : MF_DISABLED)
 		.Enable(IDM_EDIT_DELETE, flags)
 		.Enable(IDM_EDIT_SELECTALL, flags);
+}
+
+
+void MyDialogBox::OnCut()
+{
+	if (m_CurrentEdit)
+	{
+		EditCut(m_CurrentEdit);
+	}
+}
+
+
+void MyDialogBox::OnCopy()
+{
+	if (m_CurrentEdit)
+	{
+		EditCopy(m_CurrentEdit);
+	}
+}
+
+
+void MyDialogBox::OnPaste()
+{
+	if (m_CurrentEdit)
+	{
+		EditPaste(m_CurrentEdit);
+	}
+}
+
+
+void MyDialogBox::OnDelete()
+{
+	if (m_CurrentEdit)
+	{
+		EditDelete(m_CurrentEdit);
+	}
+}
+
+
+void MyDialogBox::OnSelectAll()
+{
+	if (m_CurrentEdit)
+	{
+		EditSelectAll(m_CurrentEdit);
+	}
+}
+
+
+void MyDialogBox::OnCopyAll()
+{
+	if (m_CurrentEdit)
+	{
+		EditSelectAll(m_CurrentEdit);
+		EditPaste(m_CurrentEdit);
+	}
 }
 
 

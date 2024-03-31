@@ -15,11 +15,6 @@ namespace hnrt
 		void operator =(const SfidDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
-		virtual void OnCut();
-		virtual void OnCopy();
-		virtual void OnPaste();
-		virtual void OnDelete();
-		virtual void OnSelectAll();
 		virtual void OnCopyAll();
 		virtual void OnExecute();
 
@@ -31,6 +26,7 @@ namespace hnrt
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
+		void OnEditChanged(int id);
 
 		void NewContent();
 		void ChangeContent(LONGLONG);
@@ -39,8 +35,9 @@ namespace hnrt
 		String Base62Encode(ULONGLONG, int) const;
 		LONGLONG ComputeSerialNumber(String) const;
 		bool ParseBase62(PCWSTR, int, PCWSTR);
+		void SetStatusText(PCWSTR, ...);
+		void SetStatusTextOnError(PCWSTR, ...);
 
 		int m_State;
-		int m_ActiveEdit;
 	};
 }

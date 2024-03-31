@@ -22,11 +22,8 @@ namespace hnrt
 		virtual void OnLoad2From();
 		virtual void OnSave2As();
 		virtual void OnCut();
-		virtual void OnCopy();
 		virtual void OnPaste();
 		virtual void OnDelete();
-		virtual void OnSelectAll();
-		virtual void OnCopyAll();
 		virtual void OnClear();
 		virtual void OnSettingChanged(UINT);
 
@@ -94,7 +91,6 @@ namespace hnrt
 		BOOL m_bStatusSuccessful;
 		String m_szOriginalDataPath;
 		String m_szEncryptedDataPath;
-		long m_ActiveEditControlId;
 		BOOL m_bWrapData;
 	};
 }

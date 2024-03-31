@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "SfidDialogBox.h"
+#include "MyToolbox.h"
 #include "resource.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
@@ -7,6 +8,7 @@
 #include "hnrt/Clipboard.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Time.h"
+#include "hnrt/WhileInScope.h"
 
 
 #define REGVAL_LAST L"Last"
@@ -37,11 +39,9 @@
 #define CHECKSUM_LENGTH 3
 
 
-#define STATE_IDLE 1
-#define STATE_TYPING 2
-#define STATE_PROCESSING 3
-#define STATE_SUCCESSFUL 4
-#define STATE_ERROR 5
+#define STATE_SUCCESSFUL 1
+#define STATE_ERROR 2
+#define STATE_CHANGING 3
 
 
 using namespace hnrt;
@@ -49,8 +49,7 @@ using namespace hnrt;
 
 SfidDialogBox::SfidDialogBox()
     : MyDialogBox(IDD_SFID, L"SFID")
-    , m_State(STATE_IDLE)
-    , m_ActiveEdit(0)
+    , m_State(STATE_SUCCESSFUL)
 {
     m_LastModified.CursorChange = true;
 }
@@ -59,6 +58,12 @@ SfidDialogBox::SfidDialogBox()
 void SfidDialogBox::OnCreate()
 {
     MyDialogBox::OnCreate();
+    HFONT hFont = GetApp<MyToolbox>().GetFontForData();
+    SetFont(IDC_SFID_EDIT, hFont);
+    SetFont(IDC_SFID_KEYPREFIX_EDIT, hFont);
+    SetFont(IDC_SFID_INSTANCE_EDIT, hFont);
+    SetFont(IDC_SFID_UNIQUEID_EDIT, hFont);
+    SetFont(IDC_SFID_CHECKSUM_EDIT, hFont);
     SetText(IDC_SFID_STATUS_STATIC);
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_READ);
@@ -74,6 +79,7 @@ void SfidDialogBox::OnCreate()
 
 void SfidDialogBox::OnDestroy()
 {
+    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
     RegistryKey hKey;
     LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_WRITE);
     if (rc == ERROR_SUCCESS)
@@ -114,7 +120,7 @@ void SfidDialogBox::OnTabSelectionChanged()
     m_menuEdit
         .Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
         .AddSeparator();
-    AddEditControlMenus(m_ActiveEdit);
+    AddEditControlMenus(m_CurrentEdit);
     m_menuEdit
         .AddSeparator()
         .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE);
@@ -126,6 +132,10 @@ void SfidDialogBox::OnTabSelectionChanged()
 
 INT_PTR SfidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
+    if (m_cProcessing)
+    {
+        return TRUE;
+    }
     UNREFERENCED_PARAMETER(lParam);
     UINT idChild = LOWORD(wParam);
     UINT idNotif = HIWORD(wParam);
@@ -149,31 +159,15 @@ INT_PTR SfidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_SFID_UNIQUEID_EDIT:
         if (idNotif == EN_CHANGE)
         {
-            if (m_State != STATE_PROCESSING)
-            {
-                if (!m_LastModified)
-                {
-                    m_State = STATE_TYPING;
-                }
-                m_LastModified.By = idChild;
-                SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"Editing...%d / %d",
-                    GetTextLength(idChild),
-                    idChild == IDC_SFID_KEYPREFIX_EDIT ? KEYPREFIX_LENGTH :
-                    idChild == IDC_SFID_INSTANCE_EDIT ? INSTANCE_LENGTH :
-                    idChild == IDC_SFID_UNIQUEID_EDIT ? UNIQUEID_LENGTH :
-                    KEYPREFIX_LENGTH + INSTANCE_LENGTH + RESERVED_LENGTH + UNIQUEID_LENGTH + CHECKSUM_LENGTH));
-                UpdateEditControlMenus(idChild);
-            }
+            OnEditChanged(idChild);
         }
         else if (idNotif == EN_SETFOCUS)
         {
-            m_ActiveEdit = idChild;
-            UpdateEditControlMenus(idChild);
+            OnEditSetFocus(idChild);
         }
         else if (idNotif == EN_KILLFOCUS)
         {
-            m_ActiveEdit = 0;
-            UpdateEditControlMenus();
+            OnEditKillFocus(idChild);
         }
         break;
     default:
@@ -207,10 +201,11 @@ INT_PTR SfidDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
     switch (id)
     {
     case IDC_SFID_STATUS_STATIC:
-        SetTextColor(hdc, m_State == STATE_TYPING ? RGB(200, 200, 0)
-            : m_State == STATE_SUCCESSFUL ? RGB(51, 102, 0)
-            : m_State == STATE_ERROR ? RGB(153, 0, 0)
-            : RGB(0, 0, 0));
+        SetTextColor(hdc,
+            m_State == STATE_SUCCESSFUL ? RGB_SUCCESSFUL :
+            m_State == STATE_ERROR ? RGB_ERROR :
+            m_State == STATE_CHANGING ? RGB_CHANGING :
+            GetSysColor(COLOR_WINDOWTEXT));
         SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
         return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
     default:
@@ -220,48 +215,15 @@ INT_PTR SfidDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 }
 
 
-void SfidDialogBox::OnCut()
+void SfidDialogBox::OnEditChanged(int id)
 {
-    if (m_ActiveEdit)
-    {
-        EditCut(m_ActiveEdit);
-    }
-}
-
-
-void SfidDialogBox::OnCopy()
-{
-    if (m_ActiveEdit)
-    {
-        EditCopy(m_ActiveEdit);
-    }
-}
-
-
-void SfidDialogBox::OnPaste()
-{
-    if (m_ActiveEdit)
-    {
-        EditPaste(m_ActiveEdit);
-    }
-}
-
-
-void SfidDialogBox::OnDelete()
-{
-    if (m_ActiveEdit)
-    {
-        EditDelete(m_ActiveEdit);
-    }
-}
-
-
-void SfidDialogBox::OnSelectAll()
-{
-    if (m_ActiveEdit)
-    {
-        EditSelectAll(m_ActiveEdit);
-    }
+    MyDialogBox::OnEditChanged(id);
+    SetStatusText(L"Editing... %d / %d",
+        GetTextLength(id),
+        id == IDC_SFID_KEYPREFIX_EDIT ? KEYPREFIX_LENGTH :
+        id == IDC_SFID_INSTANCE_EDIT ? INSTANCE_LENGTH :
+        id == IDC_SFID_UNIQUEID_EDIT ? UNIQUEID_LENGTH :
+        KEYPREFIX_LENGTH + INSTANCE_LENGTH + RESERVED_LENGTH + UNIQUEID_LENGTH + CHECKSUM_LENGTH);
 }
 
 
@@ -288,8 +250,7 @@ void SfidDialogBox::NewContent()
 {
     LARGE_INTEGER value = { 0 };
     srand(static_cast<unsigned int>(FileTime().Intervals));
-    value.LowPart = rand();
-    value.HighPart = rand();
+    value.QuadPart = rand() + rand() * 32767LL;
     SetText(IDC_SFID_UNIQUEID_EDIT, Base62Encode(value.QuadPart, UNIQUEID_LENGTH));
     ApplyModification();
 }
@@ -300,15 +261,13 @@ void SfidDialogBox::ChangeContent(LONGLONG delta)
     String szUniqueId = GetText(IDC_SFID_UNIQUEID_EDIT);
     if (szUniqueId.Len > UNIQUEID_LENGTH)
     {
-        m_State = STATE_ERROR;
-        SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Too long", UNIQUEID_NAME));
+        SetStatusTextOnError(L"%s: Too long", UNIQUEID_NAME);
         return;
     }
     LONGLONG value = ComputeSerialNumber(szUniqueId);
     if (value < 0)
     {
-        m_State = STATE_ERROR;
-        SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Invalid", UNIQUEID_NAME));
+        SetStatusTextOnError(L"%s: Invalid", UNIQUEID_NAME);
         return;
     }
     LONGLONG max = ComputeSerialNumber(L"zzzzzzzzz");
@@ -331,8 +290,8 @@ static const WCHAR szZeros[] = { L'0', L'0', L'0', L'0', L'0', L'0', L'0', L'0',
 
 void SfidDialogBox::ApplyModification()
 {
-    m_State = STATE_PROCESSING;
-    SetText(IDC_SFID_STATUS_STATIC);
+    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+    SetStatusText(L"");
     switch (m_LastModified.By)
     {
     case IDC_SFID_EDIT:
@@ -368,8 +327,7 @@ void SfidDialogBox::ApplyModification()
         String szReserved(&sz[RESERVED_OFFSET], RESERVED_LENGTH);
         if (szReserved != String(RESERVED_VALUE))
         {
-            m_State = STATE_ERROR;
-            SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Mismatch", RESERVED_NAME));
+            SetStatusTextOnError(L"%s: Mismatch", RESERVED_NAME);
             break;
         }
         else if (sz.Len == RESERVED_OFFSET + RESERVED_LENGTH)
@@ -387,20 +345,17 @@ void SfidDialogBox::ApplyModification()
         if (sz.Len == CHECKSUM_OFFSET)
         {
             SetText(IDC_SFID_EDIT, String(PRINTF, L"%s%s%s%s%s", szKeyPrefix, szInstance, RESERVED_VALUE, szUniqueId, szExpected));
-            m_State = STATE_SUCCESSFUL;
-            SetText(IDC_SFID_STATUS_STATIC, L"OK -- Checksum computed --");
+            SetStatusText(L"OK [ Checksum computed ]");
             break;
         }
         String szChecksum(&sz[CHECKSUM_OFFSET]);
         if (szChecksum == szExpected)
         {
-            m_State = STATE_SUCCESSFUL;
-            SetText(IDC_SFID_STATUS_STATIC, L"OK");
+            SetStatusText(L"OK");
         }
         else
         {
-            m_State = STATE_ERROR;
-            SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Mismatch", CHECKSUM_NAME));
+            SetStatusTextOnError(L"%s: Mismatch", CHECKSUM_NAME);
         }
         break;
     }
@@ -437,18 +392,13 @@ void SfidDialogBox::ApplyModification()
         String szChecksum = ComputeChecksum(sz);
         SetText(IDC_SFID_CHECKSUM_EDIT, szChecksum);
         SetText(IDC_SFID_EDIT, sz + szChecksum);
-        m_State = STATE_SUCCESSFUL;
-        SetText(IDC_SFID_STATUS_STATIC, L"OK");
+        SetStatusText(L"OK");
         break;
     }
     default:
         break;
     }
-    if (m_State == STATE_PROCESSING)
-    {
-        m_State = STATE_SUCCESSFUL;
-    }
-    UpdateEditControlMenus(m_ActiveEdit);
+    UpdateEditControlMenus(m_CurrentEdit);
     m_LastModified.By = 0;
 }
 
@@ -551,15 +501,13 @@ bool SfidDialogBox::ParseBase62(PCWSTR psz, int length, PCWSTR pszName)
         WCHAR c = psz[index];
         if (!psz[index])
         {
-            m_State = STATE_ERROR;
-            SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Too short", pszName));
+            SetStatusTextOnError(L"%s: Too short", pszName);
             return false;
         }
         int d = c < 128 ? Base62DecodingTable[c] : -1;
         if (d < 0)
         {
-            m_State = STATE_ERROR;
-            SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Invalid character at %d", pszName, index));
+            SetStatusTextOnError(L"%s: Invalid character at %d", pszName, index);
             return false;
         }
     }
@@ -569,8 +517,27 @@ bool SfidDialogBox::ParseBase62(PCWSTR psz, int length, PCWSTR pszName)
     }
     else
     {
-        m_State = STATE_ERROR;
-        SetText(IDC_SFID_STATUS_STATIC, String(PRINTF, L"%s: Too long", pszName));
+        SetStatusTextOnError(L"%s: Too long", pszName);
         return false;
     }
+}
+
+
+void SfidDialogBox::SetStatusText(PCWSTR pszFormat, ...)
+{
+    m_State = m_cProcessing ? STATE_SUCCESSFUL : STATE_CHANGING;
+    va_list argList;
+    va_start(argList, pszFormat);
+    SetText(IDC_SFID_STATUS_STATIC, String(pszFormat, argList));
+    va_end(argList);
+}
+
+
+void SfidDialogBox::SetStatusTextOnError(PCWSTR pszFormat, ...)
+{
+    m_State = STATE_ERROR;
+    va_list argList;
+    va_start(argList, pszFormat);
+    SetText(IDC_SFID_STATUS_STATIC, String(pszFormat, argList));
+    va_end(argList);
 }

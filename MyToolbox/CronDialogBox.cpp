@@ -736,7 +736,7 @@ INT_PTR CronDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 	switch (id)
 	{
 	case IDC_CRON_EXPR_STATIC:
-		SetTextColor(hdc, m_bParseSuccessful ? RGB(51, 102, 0) : RGB(153, 0, 0));
+		SetTextColor(hdc, m_bParseSuccessful ? RGB_SUCCESSFUL : RGB_ERROR);
 		SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
 		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
 	case IDC_CRON_SECOND_EVAL_STATIC:
@@ -746,7 +746,7 @@ INT_PTR CronDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 	case IDC_CRON_MONTH_EVAL_STATIC:
 	case IDC_CRON_DOW_EVAL_STATIC:
 	case IDC_CRON_YEAR_EVAL_STATIC:
-		SetTextColor(hdc, (m_bFormatSuccessful & GetFormatFlag(id)) != 0 ? RGB(51, 102, 0) : RGB(153, 0, 0));
+		SetTextColor(hdc, (m_bFormatSuccessful & GetFormatFlag(id)) != 0 ? RGB_SUCCESSFUL : RGB_ERROR);
 		SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
 		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
 	default:
