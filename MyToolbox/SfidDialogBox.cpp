@@ -142,7 +142,7 @@ INT_PTR SfidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     switch (idChild)
     {
     case IDC_SFID_COPY_BUTTON:
-        OnCopy();
+        OnCopyAll();
         break;
     case IDC_SFID_NEW_BUTTON:
         NewContent();

@@ -156,11 +156,9 @@
 #define IDC_PCTC_COPY2_BUTTON           3010
 #define IDC_PCTC_COPY1_BUTTON           3011
 #define IDC_PCTC_USEPLUS_CHECK          3012
-#define IDC_CRON_EXPR_RADIO             4000
-#define IDC_CRON_EXPR_EDIT              4001
-#define IDC_CRON_EXPR_COMBO             4002
+#define IDC_CRON_EXPR_EDIT              4000
+#define IDC_CRON_EXPR_COMBO             4001
 #define IDC_CRON_EXPR_STATIC            4009
-#define IDC_CRON_INDI_RADIO             4100
 #define IDC_CRON_YEAR_STATIC            4110
 #define IDC_CRON_YEAR_ALL_RADIO         4111
 #define IDC_CRON_YEAR_EXPR_RADIO        4112
@@ -201,11 +199,9 @@
 #define IDC_CRON_SECOND_EDIT            4173
 #define IDC_CRON_SECOND_EVAL_STATIC     4179
 #define IDC_CRON_DESC_EDIT              4200
-#define IDC_CRON_OFFSET_STATIC          4300
-#define IDC_CRON_OFFSET_COMBO           4301
-#define IDC_CRON_SECOND_CHECK           4302
+#define IDC_CRON_OFFSET_COMBO           4300
+#define IDC_CRON_SECOND_CHECK           4301
 #define IDC_CRON_COPY_BUTTON            4900
-#define IDC_CRON_PASTE_BUTTON           4901
 #define IDC_NTOA_NATIVE_RADIO           5000
 #define IDC_NTOA_ASCII_RADIO            5001
 #define IDC_NTOA_NATIVE_EDIT            5002
