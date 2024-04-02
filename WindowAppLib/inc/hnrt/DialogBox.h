@@ -47,6 +47,7 @@ namespace hnrt
 		void EditPaste(int id) const;
 		void EditDelete(int id) const;
 		void EditSelectAll(int id) const;
+		BOOL EditGetReadOnly(int id) const;
 		void EditSetReadOnly(int id, BOOL bReadOnly = TRUE) const;
 		void EditClear(int id) const;
 		void ButtonCheck(int id, BOOL bCheck = TRUE) const;

@@ -111,26 +111,28 @@ void MyDialogBox::OnEditChanged(int id)
 
 void MyDialogBox::AddEditControlMenus(int id)
 {
-	UINT flags = id != 0 && GetTextLength(id) > 0 ? MF_ENABLED : MF_DISABLED;
+	UINT flagsR = id != 0 && GetTextLength(id) > 0 ? MF_ENABLED : MF_DISABLED;
+	UINT flagsW = id != 0 && !EditGetReadOnly(id) ? MF_ENABLED : MF_DISABLED;
 	m_menuEdit
-		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT, flags)
-		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY, flags)
-		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
-		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE, flags)
+		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT, flagsW)
+		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY, flagsR)
+		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE, flagsW)
+		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE, flagsW)
 		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL, flags);
+		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL, flagsR);
 }
 
 
 void MyDialogBox::UpdateEditControlMenus(int id)
 {
-	UINT flags = id != 0 && GetTextLength(id) > 0 ? MF_ENABLED : MF_DISABLED;
+	UINT flagsR = id != 0 && GetTextLength(id) > 0 ? MF_ENABLED : MF_DISABLED;
+	UINT flagsW = id != 0 && !EditGetReadOnly(id) ? MF_ENABLED : MF_DISABLED;
 	m_menuEdit
-		.Enable(IDM_EDIT_CUT, flags)
-		.Enable(IDM_EDIT_COPY, flags)
-		.Enable(IDM_EDIT_PASTE, id != 0 ? MF_ENABLED : MF_DISABLED)
-		.Enable(IDM_EDIT_DELETE, flags)
-		.Enable(IDM_EDIT_SELECTALL, flags);
+		.Enable(IDM_EDIT_CUT, flagsW)
+		.Enable(IDM_EDIT_COPY, flagsR)
+		.Enable(IDM_EDIT_PASTE, flagsW)
+		.Enable(IDM_EDIT_DELETE, flagsW)
+		.Enable(IDM_EDIT_SELECTALL, flagsR);
 }
 
 

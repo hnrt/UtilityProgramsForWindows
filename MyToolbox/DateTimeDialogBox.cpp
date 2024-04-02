@@ -9,6 +9,7 @@
 #include "hnrt/Clipboard.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/ErrorMessage.h"
+#include "hnrt/WhileInScope.h"
 #include "hnrt/Debug.h"
 
 
@@ -101,10 +102,12 @@ void DateTimeDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
     m_menuEdit
-        .Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
+        .Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
+        .AddSeparator();
+    AddEditControlMenus(m_CurrentEdit);
+    m_menuEdit
         .AddSeparator()
-        .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE)
-        ;
+        .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE);
     m_menuView
         .Enable(IDM_VIEW_DTTM, MF_DISABLED);
     SetTimer(hwnd, DTTM_TIMER100MS, 100, NULL);
@@ -113,13 +116,17 @@ void DateTimeDialogBox::OnTabSelectionChanged()
 
 INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
+    if (m_cProcessing)
+    {
+        return TRUE;
+    }
     UNREFERENCED_PARAMETER(lParam);
     UINT idChild = LOWORD(wParam);
     UINT idNotif = HIWORD(wParam);
     switch (idChild)
     {
     case IDC_DTTM_COPY_BUTTON:
-        OnCopy();
+        OnCopyAll();
         break;
     case IDC_DTTM_NEW_BUTTON:
         OnExecute();
@@ -134,7 +141,15 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_DTTM_MILLISECOND_EDIT:
         if (idNotif == EN_CHANGE)
         {
-            m_LastModified.By = idChild;
+            OnEditChanged(idChild);
+        }
+        else if (idNotif == EN_SETFOCUS)
+        {
+            OnEditSetFocus(idChild);
+        }
+        else if (idNotif == EN_KILLFOCUS)
+        {
+            OnEditKillFocus(idChild);
         }
         break;
     case IDC_DTTM_YEAR_CHECK:
@@ -211,7 +226,7 @@ INT_PTR DateTimeDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 }
 
 
-void DateTimeDialogBox::OnCopy()
+void DateTimeDialogBox::OnCopyAll()
 {
     if (m_LastModified)
     {
@@ -243,6 +258,7 @@ void DateTimeDialogBox::OnOffsetChange()
 
 void DateTimeDialogBox::ApplyModification()
 {
+    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
     if (m_LastModified.By == IDC_DTTM_EDIT)
     {
         BOOL bSuccessful = FALSE;
@@ -362,8 +378,9 @@ void DateTimeDialogBox::GetDateTimeInUTC(SYSTEMTIME& st) const
 }
 
 
-void DateTimeDialogBox::SetDateTimeInUTC(SYSTEMTIME& st) const
+void DateTimeDialogBox::SetDateTimeInUTC(SYSTEMTIME& st)
 {
+    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
     FileTime(st).AddMinutes(m_offset).ToSystemTime(st);
     if (!ButtonIsChecked(IDC_DTTM_YEAR_CHECK))
     {
@@ -396,7 +413,7 @@ void DateTimeDialogBox::SetDateTimeInUTC(SYSTEMTIME& st) const
 }
 
 
-void DateTimeDialogBox::UpdateDateTime() const
+void DateTimeDialogBox::UpdateDateTime()
 {
     SYSTEMTIME st = { 0 };
     ::GetSystemTime(&st);
@@ -422,6 +439,7 @@ static String ToBasicOffsetString(int offset)
 
 void DateTimeDialogBox::FormatString(int id)
 {
+    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
     if (id)
     {
         m_format = id;
@@ -584,7 +602,7 @@ void DateTimeDialogBox::FormatString(int id)
 }
 
 
-void DateTimeDialogBox::UpdateEditReadOnly() const
+void DateTimeDialogBox::UpdateEditReadOnly()
 {
     switch (m_format)
     {
@@ -596,6 +614,10 @@ void DateTimeDialogBox::UpdateEditReadOnly() const
     default:
         EditSetReadOnly(IDC_DTTM_EDIT, TRUE);
         break;
+    }
+    if (m_CurrentEdit == IDC_DTTM_EDIT)
+    {
+        UpdateEditControlMenus(m_CurrentEdit);
     }
 }
 

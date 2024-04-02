@@ -312,6 +312,13 @@ void DialogBox::EditSelectAll(int id) const
 }
 
 
+BOOL DialogBox::EditGetReadOnly(int id) const
+{
+    LONG value = GetWindowLongW(GetDlgItem(m_hwnd, id), GWL_STYLE);
+    return !!(value & ES_READONLY);
+}
+
+
 void DialogBox::EditSetReadOnly(int id, BOOL bReadOnly) const
 {
     SendMessage(id, EM_SETREADONLY, bReadOnly);

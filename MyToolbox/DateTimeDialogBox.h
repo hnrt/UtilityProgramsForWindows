@@ -15,7 +15,7 @@ namespace hnrt
 		void operator =(const DateTimeDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
-		virtual void OnCopy();
+		virtual void OnCopyAll();
 		virtual void OnExecute();
 
 	private:
@@ -29,10 +29,10 @@ namespace hnrt
 		void OnOffsetChange();
 		void ApplyModification();
 		void GetDateTimeInUTC(SYSTEMTIME&) const;
-		void SetDateTimeInUTC(SYSTEMTIME&) const;
-		void UpdateDateTime() const;
+		void SetDateTimeInUTC(SYSTEMTIME&);
+		void UpdateDateTime();
 		void FormatString(int id = 0);
-		void UpdateEditReadOnly() const;
+		void UpdateEditReadOnly();
 		void InitializeFixedButtons(DWORD) const;
 		DWORD GetFixedButtonFlags() const;
 
