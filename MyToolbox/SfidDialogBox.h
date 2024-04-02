@@ -29,6 +29,7 @@ namespace hnrt
 		virtual INT_PTR OnControlColorEdit(WPARAM wParam, LPARAM lParam);
 		void OnEditChanged(int id);
 
+		void FilterText(int id);
 		void NewContent();
 		void ChangeContent(LONGLONG);
 		void ApplyModification();

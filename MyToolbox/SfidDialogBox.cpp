@@ -9,6 +9,7 @@
 #include "hnrt/Exception.h"
 #include "hnrt/Time.h"
 #include "hnrt/WhileInScope.h"
+#include "hnrt/Buffer.h"
 
 
 #define REGVAL_LAST L"Last"
@@ -262,6 +263,7 @@ INT_PTR SfidDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 void SfidDialogBox::OnEditChanged(int id)
 {
     MyDialogBox::OnEditChanged(id);
+    FilterText(id);
     SetStatusText(L"Editing... %d / %d",
         GetTextLength(id),
         id == IDC_SFID_KEYPREFIX_EDIT ? KEYPREFIX_LENGTH :
@@ -287,6 +289,48 @@ void SfidDialogBox::OnCopyAll()
 void SfidDialogBox::OnExecute()
 {
     NewContent();
+}
+
+
+void SfidDialogBox::FilterText(int id)
+{
+    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+    int start = 0;
+    int end = 0;
+    EditGetSelection(id, start, end);
+    String sz = GetText(id);
+    Buffer<WCHAR> buf(sz.Len + 1);
+    const WCHAR* pQ = &sz[0];
+    const WCHAR* pR = pQ;
+    WCHAR* pW = &buf[0];
+    while (*pR)
+    {
+        if (iswalnum(*pR))
+        {
+            *pW++ = *pR++;
+        }
+        else
+        {
+            int cur = static_cast<int>(pR - pQ);
+            if (cur <= start)
+            {
+                start--;
+                end--;
+            }
+            else if (cur <= end)
+            {
+                end--;
+            }
+            pQ++;
+            pR++;
+        }
+    }
+    if (&sz[0] < pQ)
+    {
+        *pW = L'\0';
+        SetText(id, &buf[0]);
+        EditSetSelection(id, start, end);
+    }
 }
 
 
