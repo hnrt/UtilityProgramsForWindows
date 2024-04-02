@@ -76,11 +76,9 @@ void GuidDialogBox::OnDestroy()
 
 void GuidDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
-    WindowLayout::UpdateLayout(hDlg, IDC_GUID_NEW_BUTTON, cxDelta, 0, 0, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_GUID_RESULT_STATIC, 0, 0, cxDelta, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_GUID_COPY_BUTTON, cxDelta, 0, 0, 0);
-    WindowLayout::UpdateLayout(hDlg, IDC_GUID_FORMAT_GROUP, 0, 0, cxDelta, 0);
-    WindowLayout::UpdateLayout(hDlg, IDC_GUID_RESULT_GROUP, 0, 0, cxDelta, cyDelta);
-    WindowLayout::UpdateLayout(hDlg, IDC_GUID_RESULT_STATIC, 0, 0, cxDelta, cyDelta);
+    WindowLayout::UpdateLayout(hDlg, IDC_GUID_NEW_BUTTON, cxDelta, 0, 0, 0);
 }
 
 

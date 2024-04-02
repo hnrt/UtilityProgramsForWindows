@@ -141,8 +141,6 @@
 #define IDC_GUID_HEX_RADIO              2009
 #define IDC_GUID_COPY_BUTTON            2010
 #define IDC_GUID_NEW_BUTTON             2011
-#define IDC_GUID_FORMAT_GROUP           2012
-#define IDC_GUID_RESULT_GROUP           2013
 #define IDC_PCTC_CONTENT1_RADIO         3000
 #define IDC_PCTC_CONTENT2_RADIO         3001
 #define IDC_PCTC_DESC_STATIC            3002
