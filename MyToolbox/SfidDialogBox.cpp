@@ -215,6 +215,50 @@ INT_PTR SfidDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 }
 
 
+INT_PTR SfidDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
+{
+    HDC hdc = reinterpret_cast<HDC>(wParam);
+    int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
+    SIZE_T len = GetText(id).Trim().Len;
+    switch (id)
+    {
+    case IDC_SFID_EDIT:
+        SetTextColor(hdc,
+            len < CHECKSUM_OFFSET ? RGB_ERROR :
+            len == CHECKSUM_OFFSET ? GetSysColor(COLOR_WINDOWTEXT) :
+            len < CHECKSUM_OFFSET + CHECKSUM_LENGTH ? RGB_ERROR :
+            len == CHECKSUM_OFFSET + CHECKSUM_LENGTH ? GetSysColor(COLOR_WINDOWTEXT) :
+            RGB_ERROR);
+        SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
+    case IDC_SFID_KEYPREFIX_EDIT:
+        SetTextColor(hdc,
+            len < KEYPREFIX_LENGTH ? RGB_ERROR :
+            len == KEYPREFIX_LENGTH ? GetSysColor(COLOR_WINDOWTEXT) :
+            RGB_ERROR);
+        SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
+    case IDC_SFID_INSTANCE_EDIT:
+        SetTextColor(hdc,
+            len < INSTANCE_LENGTH ? RGB_ERROR :
+            len == INSTANCE_LENGTH ? GetSysColor(COLOR_WINDOWTEXT) :
+            RGB_ERROR);
+        SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
+    case IDC_SFID_UNIQUEID_EDIT:
+        SetTextColor(hdc,
+            len < UNIQUEID_LENGTH ? RGB_ERROR :
+            len == UNIQUEID_LENGTH ? GetSysColor(COLOR_WINDOWTEXT) :
+            RGB_ERROR);
+        SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
+    default:
+        break;
+    }
+    return 0;
+}
+
+
 void SfidDialogBox::OnEditChanged(int id)
 {
     MyDialogBox::OnEditChanged(id);
