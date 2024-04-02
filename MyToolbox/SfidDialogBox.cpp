@@ -226,7 +226,7 @@ INT_PTR SfidDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
     case IDC_SFID_EDIT:
         SetTextColor(hdc,
             len < CHECKSUM_OFFSET ? RGB_ERROR :
-            len == CHECKSUM_OFFSET ? GetSysColor(COLOR_WINDOWTEXT) :
+            len == CHECKSUM_OFFSET ? RGB_SUCCESSFUL :
             len < CHECKSUM_OFFSET + CHECKSUM_LENGTH ? RGB_ERROR :
             len == CHECKSUM_OFFSET + CHECKSUM_LENGTH ? GetSysColor(COLOR_WINDOWTEXT) :
             RGB_ERROR);
