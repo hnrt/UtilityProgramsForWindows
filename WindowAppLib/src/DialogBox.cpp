@@ -166,6 +166,15 @@ void DialogBox::EditGetSelection(int id, int& start, int& end) const
 }
 
 
+int DialogBox::EditGetSelectionLength(int id) const
+{
+    int start = 0;
+    int end = 0;
+    EditGetSelection(id, start, end);
+    return end - start;
+}
+
+
 void DialogBox::EditSetSelection(int id, int start, int end) const
 {
     SendMessage(id, EM_SETSEL, start, end);

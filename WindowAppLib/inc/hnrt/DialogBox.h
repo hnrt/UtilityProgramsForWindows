@@ -41,6 +41,7 @@ namespace hnrt
 		void SetText(int id, PCWSTR psz = L"") const;
 		void CopyAllText(int id) const;
 		void EditGetSelection(int id, int& start, int& end) const;
+		int EditGetSelectionLength(int id) const;
 		void EditSetSelection(int id, int start, int end) const;
 		void EditCut(int id) const;
 		void EditCopy(int id) const;

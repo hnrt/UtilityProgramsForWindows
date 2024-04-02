@@ -158,6 +158,7 @@ INT_PTR SfidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_SFID_KEYPREFIX_EDIT:
     case IDC_SFID_INSTANCE_EDIT:
     case IDC_SFID_UNIQUEID_EDIT:
+    case IDC_SFID_CHECKSUM_EDIT:
         if (idNotif == EN_CHANGE)
         {
             OnEditChanged(idChild);
@@ -262,8 +263,8 @@ INT_PTR SfidDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 
 void SfidDialogBox::OnEditChanged(int id)
 {
-    MyDialogBox::OnEditChanged(id);
     FilterText(id);
+    MyDialogBox::OnEditChanged(id);
     SetStatusText(L"Editing... %d / %d",
         GetTextLength(id),
         id == IDC_SFID_KEYPREFIX_EDIT ? KEYPREFIX_LENGTH :

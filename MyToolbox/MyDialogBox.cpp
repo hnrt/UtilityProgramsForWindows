@@ -111,28 +111,44 @@ void MyDialogBox::OnEditChanged(int id)
 
 void MyDialogBox::AddEditControlMenus(int id)
 {
-	UINT flagsR = id != 0 && GetTextLength(id) > 0 ? MF_ENABLED : MF_DISABLED;
-	UINT flagsW = id != 0 && !EditGetReadOnly(id) ? MF_ENABLED : MF_DISABLED;
 	m_menuEdit
-		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT, flagsW)
-		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY, flagsR)
-		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE, flagsW)
-		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE, flagsW)
+		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
+		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
+		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
+		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE)
 		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL, flagsR);
+		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL);
+	UpdateEditControlMenus(id);
 }
 
 
 void MyDialogBox::UpdateEditControlMenus(int id)
 {
-	UINT flagsR = id != 0 && GetTextLength(id) > 0 ? MF_ENABLED : MF_DISABLED;
-	UINT flagsW = id != 0 && !EditGetReadOnly(id) ? MF_ENABLED : MF_DISABLED;
+	UINT fCut, fCopy, fPaste, fDelete, fSelectAll;
+	if (id)
+	{
+		BOOL bEditable = !EditGetReadOnly(id);
+		int nContent = GetTextLength(id);
+		fCut = bEditable ? MF_ENABLED : MF_DISABLED;
+		fCopy = nContent > 0 ? MF_ENABLED : MF_DISABLED;
+		fPaste = bEditable ? MF_ENABLED : MF_DISABLED;
+		fDelete = bEditable && nContent > 0 ? MF_ENABLED : MF_DISABLED;
+		fSelectAll = nContent > 0 ? MF_ENABLED : MF_DISABLED;
+	}
+	else
+	{
+		fCut = MF_DISABLED;
+		fCopy = MF_DISABLED;
+		fPaste = MF_DISABLED;
+		fDelete = MF_DISABLED;
+		fSelectAll = MF_DISABLED;
+	}
 	m_menuEdit
-		.Enable(IDM_EDIT_CUT, flagsW)
-		.Enable(IDM_EDIT_COPY, flagsR)
-		.Enable(IDM_EDIT_PASTE, flagsW)
-		.Enable(IDM_EDIT_DELETE, flagsW)
-		.Enable(IDM_EDIT_SELECTALL, flagsR);
+		.Enable(IDM_EDIT_CUT, fCut)
+		.Enable(IDM_EDIT_COPY, fCopy)
+		.Enable(IDM_EDIT_PASTE, fPaste)
+		.Enable(IDM_EDIT_DELETE, fDelete)
+		.Enable(IDM_EDIT_SELECTALL, fSelectAll);
 }
 
 
@@ -186,7 +202,7 @@ void MyDialogBox::OnCopyAll()
 	if (m_CurrentEdit)
 	{
 		EditSelectAll(m_CurrentEdit);
-		EditPaste(m_CurrentEdit);
+		EditCopy(m_CurrentEdit);
 	}
 }
 
