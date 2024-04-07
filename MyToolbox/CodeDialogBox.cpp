@@ -6,11 +6,11 @@
 #include "hnrt/RegistryValue.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/Clipboard.h"
-#include "hnrt/Exception.h"
 #include "hnrt/Time.h"
 #include "hnrt/WhileInScope.h"
 #include "hnrt/StringCommons.h"
-#include "GTIN13.h"
+#include "hnrt/GTIN13.h"
+#include "hnrt/GTIN13Exception.h"
 
 
 #define REGVAL_GTIN13 L"GTIN13"
@@ -121,7 +121,14 @@ INT_PTR CodeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         if (idNotif == EN_CHANGE)
         {
             OnEditChanged(idChild);
-            m_nGTIN13Change++;
+            if (m_nGTIN13Change < 0)
+            {
+                m_nGTIN13Change = 1;
+            }
+            else
+            {
+                m_nGTIN13Change++;
+            }
         }
         else if (idNotif == EN_SETFOCUS)
         {
@@ -181,9 +188,8 @@ INT_PTR CodeDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
     {
     case IDC_CODE_GTIN13_EDIT:
         SetTextColor(hdc,
-            len == 12 ? RGB_GOOD :
-            m_nGTIN13Change && len == 13 ? RGB_GOOD :
-            len == 13 ? GetSysColor(COLOR_WINDOWTEXT) :
+            m_nGTIN13Change == 0 && len == GTIN13_LENGTH ? GetSysColor(COLOR_WINDOWTEXT) :
+            len == GTIN13_LENGTH_EXCLUDING_CD || (m_nGTIN13Change > 0 && len == GTIN13_LENGTH) ? RGB_GOOD :
             RGB_ERROR);
         SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
         return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
@@ -199,22 +205,30 @@ void CodeDialogBox::ApplyModification()
     WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
     if (m_nGTIN13Change)
     {
-        String sz = GetText(IDC_CODE_GTIN13_EDIT);
-        if (sz.Len == 12 || sz.Len == 13)
+        try
         {
-            int start = 0, end = 0;
-            EditGetSelection(IDC_CODE_GTIN13_EDIT, start, end);
-            GTIN13 jan(sz, m_GS1CPLength);
-            SetText(IDC_CODE_GTIN13_EDIT, jan);
-            if (start == sz.Len)
+            String sz = GetText(IDC_CODE_GTIN13_EDIT);
+            if (sz.Len == 12 || sz.Len == 13)
             {
-                EditSetSelection(IDC_CODE_GTIN13_EDIT, GTIN13_LENGTH, GTIN13_LENGTH);
+                int start = 0, end = 0;
+                EditGetSelection(IDC_CODE_GTIN13_EDIT, start, end);
+                GTIN13 jan = GTIN13::Parse(sz, m_GS1CPLength);
+                SetText(IDC_CODE_GTIN13_EDIT, jan);
+                if (start == sz.Len)
+                {
+                    EditSetSelection(IDC_CODE_GTIN13_EDIT, GTIN13_LENGTH, GTIN13_LENGTH);
+                }
+                else
+                {
+                    EditSetSelection(IDC_CODE_GTIN13_EDIT, start, end);
+                }
+                m_nGTIN13Change = 0;
             }
-            else
-            {
-                EditSetSelection(IDC_CODE_GTIN13_EDIT, start, end);
-            }
-            m_nGTIN13Change = 0;
+        }
+        catch (GTIN13Exception e)
+        {
+            m_nGTIN13Change = -1;
+            InvalidateRect(GetDlgItem(hwnd, IDC_CODE_GTIN13_EDIT), NULL, TRUE);
         }
     }
     UpdateEditControlMenus(m_CurrentEdit);
@@ -224,20 +238,21 @@ void CodeDialogBox::ApplyModification()
 
 void CodeDialogBox::GTIN13Add(int delta)
 {
-    String sz = GetText(IDC_CODE_GTIN13_EDIT);
-    if (sz.Len == 12 || sz.Len == 13)
+    try
     {
-        WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-        GTIN13 jan(sz, m_GS1CPLength);
-        int nItem = StrToLong(jan.ItemReference, nullptr, 10);
-        nItem += delta;
-        if (nItem < 0)
+        String sz = GetText(IDC_CODE_GTIN13_EDIT);
+        if (sz.Len == 12 || sz.Len == 13)
         {
-            nItem += static_cast<int>(pow(10, jan.ItemReferenceLenth));
+            WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+            GTIN13 jan = GTIN13::Parse(sz, m_GS1CPLength);
+            jan += delta;
+            SetText(IDC_CODE_GTIN13_EDIT, jan);
+            m_nGTIN13Change = 0;
         }
-        String szItem(PRINTF, L"%u", nItem);
-        sz.Format(L"%s%s", jan.GS1CompanyPrefix, &szItem[szItem.Len > jan.ItemReferenceLenth ? szItem.Len - jan.ItemReferenceLenth : 0]);
-        SetText(IDC_CODE_GTIN13_EDIT, GTIN13(sz, m_GS1CPLength));
-        m_nGTIN13Change = 0;
+    }
+    catch (GTIN13Exception e)
+    {
+        m_nGTIN13Change = -1;
+        InvalidateRect(GetDlgItem(hwnd, IDC_CODE_GTIN13_EDIT), NULL, TRUE);
     }
 }

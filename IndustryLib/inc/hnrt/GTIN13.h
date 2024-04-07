@@ -15,13 +15,21 @@ namespace hnrt
 	{
 	public:
 
+		static GTIN13 Parse(PCWSTR psz, int nGS1CompanyPrefixLength = GS1COMPANYPREFIX_LENGTH7);
+
+		/// <summary>
+		/// This static method computes the GTIN-13 check digit.
+		/// </summary>
+		/// <param name="s">String of 12 digits.</param>
+		/// <returns>The resulting check digit.</returns>
 		static WCHAR ComputeCheckDigit(const WCHAR s[]);
 
 		GTIN13(int nGS1CompanyPrefixLength = GS1COMPANYPREFIX_LENGTH7);
-		GTIN13(PCWSTR psz, int nGS1CompanyPrefixLength = GS1COMPANYPREFIX_LENGTH7);
 		GTIN13(const GTIN13&) = default;
 		~GTIN13() = default;
 		GTIN13& operator =(PCWSTR psz);
+		GTIN13& operator +=(int delta);
+		GTIN13& operator -=(int delta);
 		operator PCWSTR() const;
 		WCHAR get_CheckDigit() const;
 		int get_GS1CompanyPrefixLength() const;
@@ -35,19 +43,11 @@ namespace hnrt
 		__declspec(property(get = get_GS1CompanyPrefix)) String GS1CompanyPrefix;
 		__declspec(property(get = get_ItemReference)) String ItemReference;
 
-	private:
-
-		void Set(PCWSTR psz);
+	protected:
 
 		WCHAR m_d[GTIN13_LENGTH + 1];
 		int m_GS1CompanyPrefixLength;
 	};
-
-	inline GTIN13& GTIN13::operator =(PCWSTR psz)
-	{
-		Set(psz);
-		return *this;
-	}
 
 	inline GTIN13::operator PCWSTR() const
 	{

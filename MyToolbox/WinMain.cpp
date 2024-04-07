@@ -13,6 +13,7 @@
 #pragma comment(lib, "Core")
 #pragma comment(lib, "Cron")
 #pragma comment(lib, "WindowApp")
+#pragma comment(lib, "Industry")
 
 
 using namespace hnrt;
