@@ -11,7 +11,7 @@
 #include "NativeToAsciiDialogBox.h"
 #include "DateTimeDialogBox.h"
 #include "SfidDialogBox.h"
-#include "CodeDialogBox.h"
+#include "GtinDialogBox.h"
 #include "ClipDialogBox.h"
 
 namespace hnrt
@@ -54,7 +54,7 @@ namespace hnrt
 		NativeToAsciiDialogBox m_ntoaTab;
 		DateTimeDialogBox m_dttmTab;
 		SfidDialogBox m_sfidTab;
-		CodeDialogBox m_codeTab;
+		GtinDialogBox m_gtinTab;
 		ClipDialogBox m_clipTab;
 		HFONT m_hFont;
 		HFONT m_hFontForTab;

@@ -82,7 +82,7 @@ GTIN13& GTIN13::operator +=(int delta)
 	int nItemReference = StrToLong(ItemReference, nullptr, 10);
 	nItemReference += delta;
 	int nUpperBound = static_cast<int>(pow(10, ItemReferenceLenth));
-	if (nItemReference > nUpperBound)
+	if (nItemReference >= nUpperBound)
 	{
 		nItemReference %= nUpperBound;
 	}

@@ -129,10 +129,11 @@ void MyDialogBox::UpdateEditControlMenus(int id)
 	{
 		BOOL bEditable = !EditGetReadOnly(id);
 		int nContent = GetTextLength(id);
-		fCut = bEditable ? MF_ENABLED : MF_DISABLED;
-		fCopy = nContent > 0 ? MF_ENABLED : MF_DISABLED;
+		int nSelection = EditGetSelectionLength(id);
+		fCut = bEditable && nSelection ? MF_ENABLED : MF_DISABLED;
+		fCopy = nSelection ? MF_ENABLED : MF_DISABLED;
 		fPaste = bEditable ? MF_ENABLED : MF_DISABLED;
-		fDelete = bEditable && nContent > 0 ? MF_ENABLED : MF_DISABLED;
+		fDelete = bEditable && nSelection ? MF_ENABLED : MF_DISABLED;
 		fSelectAll = nContent > 0 ? MF_ENABLED : MF_DISABLED;
 	}
 	else

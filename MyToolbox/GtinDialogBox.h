@@ -4,15 +4,15 @@
 
 namespace hnrt
 {
-	class CodeDialogBox
+	class GtinDialogBox
 		: public MyDialogBox
 	{
 	public:
 
-		CodeDialogBox();
-		CodeDialogBox(const CodeDialogBox&) = delete;
-		virtual ~CodeDialogBox() = default;
-		void operator =(const CodeDialogBox&) = delete;
+		GtinDialogBox();
+		GtinDialogBox(const GtinDialogBox&) = delete;
+		virtual ~GtinDialogBox() = default;
+		void operator =(const GtinDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
 
@@ -24,8 +24,9 @@ namespace hnrt
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorEdit(WPARAM wParam, LPARAM lParam);
-		void ApplyModification();
+		void SetGS1CPLength(int length);
 		void GTIN13Add(int delta);
+		void ApplyModification(int id);
 
 		int m_GS1CPLength;
 		int m_nGTIN13Change;

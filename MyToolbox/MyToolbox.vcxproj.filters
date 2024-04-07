@@ -75,7 +75,7 @@
     <ClInclude Include="SfidDialogBox.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CodeDialogBox.h">
+    <ClInclude Include="GtinDialogBox.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
@@ -134,7 +134,7 @@
     <ClCompile Include="SfidDialogBox.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CodeDialogBox.cpp">
+    <ClCompile Include="GtinDialogBox.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
