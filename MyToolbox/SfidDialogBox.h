@@ -30,13 +30,8 @@ namespace hnrt
 		void OnEditChanged(int id);
 
 		void FilterText(int id);
-		void NewContent();
 		void ChangeContent(LONGLONG);
-		void ApplyModification();
-		String ComputeChecksum(String) const;
-		String Base62Encode(ULONGLONG, int) const;
-		LONGLONG ComputeSerialNumber(String) const;
-		bool ParseBase62(PCWSTR, int, PCWSTR);
+		void ApplyModification(int id);
 		void SetStatusText(PCWSTR, ...);
 		void SetStatusTextOnError(PCWSTR, ...);
 
