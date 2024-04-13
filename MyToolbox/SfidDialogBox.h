@@ -34,6 +34,7 @@ namespace hnrt
 		void ApplyModification(int id);
 		void SetStatusText(PCWSTR, ...);
 		void SetStatusTextOnError(PCWSTR, ...);
+		void SetLengthText(int id, int expected, int actual);
 
 		int m_State;
 	};

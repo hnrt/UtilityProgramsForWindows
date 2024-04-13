@@ -98,6 +98,8 @@
 #define IDS_SAVETEXTASFILE              218
 #define IDS_MSG_TEXT_ENCODING_CONVERSION_ERROR 219
 #define IDS_MSG_FILE_WRITE_ERROR        220
+#define IDS_SFID_LENGTH_FORMAT          221
+#define IDS_SFID_LENGTH2_FORMAT         222
 #define IDD_HASH                        800
 #define IDD_CRPT                        801
 #define IDD_GUID                        802
@@ -323,6 +325,10 @@
 #define IDC_SFID_NEW_BUTTON             10807
 #define IDC_SFID_UP_BUTTON              10808
 #define IDC_SFID_DOWN_BUTTON            10809
+#define IDC_SFID_LENGTH_STATIC          10810
+#define IDC_SFID_KLENGTH_STATIC         10811
+#define IDC_SFID_ILENGTH_STATIC         10812
+#define IDC_SFID_ULENGTH_STATIC         10813
 #define IDC_GTIN_STATIC                 10900
 #define IDC_GTIN_EDIT                   10901
 #define IDC_GTIN_CP_EDIT                10902
@@ -413,7 +419,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        223
 #define _APS_NEXT_COMMAND_VALUE         32787
-#define _APS_NEXT_CONTROL_VALUE         10921
+#define _APS_NEXT_CONTROL_VALUE         10925
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

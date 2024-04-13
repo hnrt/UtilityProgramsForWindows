@@ -36,6 +36,7 @@ namespace hnrt
 		static SFID Parse(PCWSTR pszKeyPrefix, PCWSTR pszInstance, PCWSTR pszUniqueId);
 		static String ComputeChecksum(const WCHAR s[]);
 		static LONGLONG ComputeSerialNumber(String sz);
+		static BOOL IsValid(WCHAR c);
 
 		SFID();
 		SFID(const SFID& other) = default;

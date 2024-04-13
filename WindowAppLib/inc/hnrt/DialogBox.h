@@ -42,7 +42,7 @@ namespace hnrt
 		void CopyAllText(int id) const;
 		void EditGetSelection(int id, int& start, int& end) const;
 		int EditGetSelectionLength(int id) const;
-		void EditSetSelection(int id, int start, int end) const;
+		void EditSetSelection(int id, int start, int end = -1) const;
 		void EditCut(int id) const;
 		void EditCopy(int id) const;
 		void EditPaste(int id) const;

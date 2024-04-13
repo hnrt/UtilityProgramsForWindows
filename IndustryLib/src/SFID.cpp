@@ -308,3 +308,9 @@ String SFID::Base62Encode(ULONGLONG value, int length)
     } while (index > 0 && value > 0ULL);
     return String(buf);
 }
+
+
+BOOL SFID::IsValid(WCHAR c)
+{
+    return (0 <= c && c < _countof(Base62DecodeTable) ? Base62DecodeTable[c] : -1) >= 0 ? TRUE : FALSE;
+}

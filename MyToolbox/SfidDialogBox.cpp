@@ -12,6 +12,7 @@
 #include "hnrt/Buffer.h"
 #include "hnrt/SFID.h"
 #include "hnrt/SFIDException.h"
+#include "hnrt/StringCommons.h"
 
 
 #define REGVAL_LAST L"Last"
@@ -187,6 +188,8 @@ INT_PTR SfidDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 {
     HDC hdc = reinterpret_cast<HDC>(wParam);
     int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
+    int length;
+    COLORREF color;
     switch (id)
     {
     case IDC_SFID_STATUS_STATIC:
@@ -195,6 +198,66 @@ INT_PTR SfidDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
             m_State == STATE_ERROR ? RGB_ERROR :
             m_State == STATE_CHANGING ? RGB_CHANGING :
             GetSysColor(COLOR_WINDOWTEXT));
+        SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
+    case IDC_SFID_LENGTH_STATIC:
+        length = GetTextLength(IDC_SFID_EDIT);
+        if (length == 0)
+        {
+            color = m_State == STATE_CHANGING ? RGB_ERROR : GetSysColor(COLOR_WINDOWTEXT);
+        }
+        else if (length == SFID_LENGTH_EXCLUDING_CHECKSUM || length == SFID_LENGTH)
+        {
+            color = m_State == STATE_CHANGING ? RGB_GOOD : GetSysColor(COLOR_WINDOWTEXT);
+        }
+        else if (SFID_LENGTH_EXCLUDING_CHECKSUM < length && length < SFID_LENGTH)
+        {
+            color = m_State == STATE_CHANGING ? RGB_TOO_MANY : RGB_ERROR;
+        }
+        else
+        {
+            color = RGB_ERROR;
+        }
+        SetTextColor(hdc, color);
+        SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
+    case IDC_SFID_KLENGTH_STATIC:
+        length = GetTextLength(IDC_SFID_KEYPREFIX_EDIT);
+        if (length == 0 || length == SFID_KEYPREFIX_LENGTH)
+        {
+            color = m_State == STATE_CHANGING ? RGB_GOOD : GetSysColor(COLOR_WINDOWTEXT);
+        }
+        else
+        {
+            color = RGB_ERROR;
+        }
+        SetTextColor(hdc, color);
+        SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
+    case IDC_SFID_ILENGTH_STATIC:
+        length = GetTextLength(IDC_SFID_INSTANCE_EDIT);
+        if (length == 0 || length == SFID_INSTANCE_LENGTH)
+        {
+            color = m_State == STATE_CHANGING ? RGB_GOOD : GetSysColor(COLOR_WINDOWTEXT);
+        }
+        else
+        {
+            color = RGB_ERROR;
+        }
+        SetTextColor(hdc, color);
+        SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
+    case IDC_SFID_ULENGTH_STATIC:
+        length = GetTextLength(IDC_SFID_UNIQUEID_EDIT);
+        if (length == 0 || length == SFID_UNIQUEID_LENGTH)
+        {
+            color = m_State == STATE_CHANGING ? RGB_GOOD : GetSysColor(COLOR_WINDOWTEXT);
+        }
+        else
+        {
+            color = RGB_ERROR;
+        }
+        SetTextColor(hdc, color);
         SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
         return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
     default:
@@ -270,13 +333,25 @@ void SfidDialogBox::OnEditChanged(int id)
             EditSetReadOnly(IDC_SFID_EDIT);
             break;
         }
+        SetStatusText(L"Editing...");
     }
-    SetStatusText(L"Editing... %d / %d",
-        GetTextLength(id),
-        id == IDC_SFID_KEYPREFIX_EDIT ? SFID_KEYPREFIX_LENGTH :
-        id == IDC_SFID_INSTANCE_EDIT ? SFID_INSTANCE_LENGTH :
-        id == IDC_SFID_UNIQUEID_EDIT ? SFID_UNIQUEID_LENGTH :
-        SFID_LENGTH);
+    switch (id)
+    {
+    case IDC_SFID_EDIT:
+        SetLengthText(IDC_SFID_LENGTH_STATIC, SFID_LENGTH, GetTextLength(IDC_SFID_EDIT));
+        break;
+    case IDC_SFID_KEYPREFIX_EDIT:
+        SetLengthText(IDC_SFID_KLENGTH_STATIC, SFID_KEYPREFIX_LENGTH, GetTextLength(IDC_SFID_KEYPREFIX_EDIT));
+        break;
+    case IDC_SFID_INSTANCE_EDIT:
+        SetLengthText(IDC_SFID_ILENGTH_STATIC, SFID_INSTANCE_LENGTH, GetTextLength(IDC_SFID_INSTANCE_EDIT));
+        break;
+    case IDC_SFID_UNIQUEID_EDIT:
+        SetLengthText(IDC_SFID_ULENGTH_STATIC, SFID_UNIQUEID_LENGTH, GetTextLength(IDC_SFID_UNIQUEID_EDIT));
+        break;
+    default:
+        break;
+    }
 }
 
 
@@ -312,7 +387,8 @@ void SfidDialogBox::FilterText(int id)
     WCHAR* pW = &buf[0];
     while (*pR)
     {
-        if (iswalnum(*pR))
+        // iswalnum does not work as expected for Japanese characters.
+        if (SFID::IsValid(*pR))
         {
             *pW++ = *pR++;
         }
@@ -371,23 +447,35 @@ void SfidDialogBox::ApplyModification(int id)
     case IDC_SFID_EDIT:
         try
         {
-            String sz = GetText(IDC_SFID_EDIT).Trim();
-            if (sz.Len == 0)
+            String sz = GetText(IDC_SFID_EDIT);
+            String sz2 = sz.Trim();
+            if (sz2.Len == 0)
             {
                 SetText(IDC_SFID_KEYPREFIX_EDIT);
                 SetText(IDC_SFID_INSTANCE_EDIT);
                 SetText(IDC_SFID_UNIQUEID_EDIT);
                 SetText(IDC_SFID_CHECKSUM_EDIT);
                 SetText(IDC_SFID_EDIT);
+                EditSetReadOnly(IDC_SFID_KEYPREFIX_EDIT, FALSE);
+                EditSetReadOnly(IDC_SFID_INSTANCE_EDIT, FALSE);
+                EditSetReadOnly(IDC_SFID_UNIQUEID_EDIT, FALSE);
                 break;
             }
-            SFID id = SFID::Parse(sz);
+            SFID id = SFID::Parse(sz2);
             SetText(IDC_SFID_KEYPREFIX_EDIT, id.KeyPrefix);
+            EditSetSelection(IDC_SFID_KEYPREFIX_EDIT, static_cast<int>(id.KeyPrefix.Len));
             SetText(IDC_SFID_INSTANCE_EDIT, id.Instance);
+            EditSetSelection(IDC_SFID_INSTANCE_EDIT, static_cast<int>(id.Instance.Len));
             SetText(IDC_SFID_UNIQUEID_EDIT, id.UniqueId);
+            EditSetSelection(IDC_SFID_UNIQUEID_EDIT, static_cast<int>(id.UniqueId.Len));
             SetText(IDC_SFID_CHECKSUM_EDIT, id.Checksum);
-            SetText(IDC_SFID_EDIT, id);
-            if (sz.Len == SFID_LENGTH_EXCLUDING_CHECKSUM)
+            EditSetSelection(IDC_SFID_CHECKSUM_EDIT, static_cast<int>(id.Checksum.Len));
+            if (StrCmp(id, -1, sz, sz.Len))
+            {
+                SetText(IDC_SFID_EDIT, id);
+                EditSetSelection(IDC_SFID_EDIT, static_cast<int>(StrLen(id)));
+            }
+            if (sz2.Len == SFID_LENGTH_EXCLUDING_CHECKSUM)
             {
                 SetStatusText(L"OK [ Checksum computed ]");
             }
@@ -412,12 +500,26 @@ void SfidDialogBox::ApplyModification(int id)
             String szKeyPrefix = GetText(IDC_SFID_KEYPREFIX_EDIT);
             String szInstance = GetText(IDC_SFID_INSTANCE_EDIT);
             String szUniqueId = GetText(IDC_SFID_UNIQUEID_EDIT);
-            SFID id = SFID::Parse(szKeyPrefix, szInstance, szUniqueId);
-            SetText(IDC_SFID_KEYPREFIX_EDIT, id.KeyPrefix);
-            SetText(IDC_SFID_INSTANCE_EDIT, id.Instance);
-            SetText(IDC_SFID_UNIQUEID_EDIT, id.UniqueId);
+            SFID id = SFID::Parse(szKeyPrefix.Trim(), szInstance.Trim(), szUniqueId.Trim());
+            if (id.KeyPrefix != szKeyPrefix)
+            {
+                SetText(IDC_SFID_KEYPREFIX_EDIT, id.KeyPrefix);
+                EditSetSelection(IDC_SFID_KEYPREFIX_EDIT, static_cast<int>(id.KeyPrefix.Len));
+            }
+            if (id.Instance != szInstance)
+            {
+                SetText(IDC_SFID_INSTANCE_EDIT, id.Instance);
+                EditSetSelection(IDC_SFID_INSTANCE_EDIT, static_cast<int>(id.Instance.Len));
+            }
+            if (id.UniqueId != szUniqueId)
+            {
+                SetText(IDC_SFID_UNIQUEID_EDIT, id.UniqueId);
+                EditSetSelection(IDC_SFID_UNIQUEID_EDIT, static_cast<int>(id.UniqueId.Len));
+            }
             SetText(IDC_SFID_CHECKSUM_EDIT, id.Checksum);
+            EditSetSelection(IDC_SFID_CHECKSUM_EDIT, static_cast<int>(id.Checksum.Len));
             SetText(IDC_SFID_EDIT, id);
+            EditSetSelection(IDC_SFID_EDIT, static_cast<int>(StrLen(id)));
             SetStatusText(L"OK");
             EditSetReadOnly(IDC_SFID_EDIT, FALSE);
         }
@@ -429,6 +531,10 @@ void SfidDialogBox::ApplyModification(int id)
     default:
         break;
     }
+    SetLengthText(IDC_SFID_LENGTH_STATIC, SFID_LENGTH, GetTextLength(IDC_SFID_EDIT));
+    SetLengthText(IDC_SFID_KLENGTH_STATIC, SFID_KEYPREFIX_LENGTH, GetTextLength(IDC_SFID_KEYPREFIX_EDIT));
+    SetLengthText(IDC_SFID_ILENGTH_STATIC, SFID_INSTANCE_LENGTH, GetTextLength(IDC_SFID_INSTANCE_EDIT));
+    SetLengthText(IDC_SFID_ULENGTH_STATIC, SFID_UNIQUEID_LENGTH, GetTextLength(IDC_SFID_UNIQUEID_EDIT));
     InvalidateRect(GetDlgItem(hwnd, IDC_SFID_EDIT), NULL, TRUE);
     InvalidateRect(GetDlgItem(hwnd, IDC_SFID_KEYPREFIX_EDIT), NULL, TRUE);
     InvalidateRect(GetDlgItem(hwnd, IDC_SFID_INSTANCE_EDIT), NULL, TRUE);
@@ -458,4 +564,21 @@ void SfidDialogBox::SetStatusTextOnError(PCWSTR pszFormat, ...)
     va_start(argList, pszFormat);
     SetText(IDC_SFID_STATUS_STATIC, String(pszFormat, argList));
     va_end(argList);
+}
+
+
+void SfidDialogBox::SetLengthText(int id, int expected, int actual)
+{
+    if (actual == 0 || actual == expected)
+    {
+        SetText(id, String(PRINTF, ResourceString(IDS_SFID_LENGTH_FORMAT), expected));
+    }
+    else if (actual < expected)
+    {
+        SetText(id, String(PRINTF, ResourceString(IDS_SFID_LENGTH2_FORMAT), expected, L'-', expected - actual));
+    }
+    else //if (actual > expected)
+    {
+        SetText(id, String(PRINTF, ResourceString(IDS_SFID_LENGTH2_FORMAT), expected, L'+', actual - expected));
+    }
 }
