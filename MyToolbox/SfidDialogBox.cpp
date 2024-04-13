@@ -78,9 +78,9 @@ void SfidDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
     WindowLayout::UpdateLayout(hDlg, IDC_SFID_EDIT, 0, 0, cxDelta, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_SFID_STATUS_STATIC, 0, 0, cxDelta, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_SFID_COPY_BUTTON, cxDelta, 0, 0, 0);
-    WindowLayout::UpdateLayout(hDlg, IDC_SFID_NEW_BUTTON, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_SFID_UP_BUTTON, cxDelta, 0, 0, 0);
-    WindowLayout::UpdateLayout(hDlg, IDC_SFID_DOWN_BUTTON, cxDelta, 0, 0, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_SFID_DN_BUTTON, cxDelta, 0, 0, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_SFID_RN_BUTTON, cxDelta, 0, 0, 0);
 }
 
 
@@ -107,9 +107,12 @@ void SfidDialogBox::OnTabSelectionChanged()
     AddEditControlMenus(m_CurrentEdit);
     m_menuEdit
         .AddSeparator()
-        .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE);
+        .Add(ResourceString(IDS_MENU_RENEW), IDM_EDIT_EXECUTE)
+        .AddSeparator()
+        .Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
     m_menuView
         .Enable(IDM_VIEW_SFID, MF_DISABLED);
+    UpdateControlsState();
     SetTimer(hwnd, SFID_TIMER100MS, 100, NULL);
     SetTimer(hwnd, SFID_TIMER1000MS, 1000, NULL);
     srand(static_cast<unsigned int>(FileTime().Intervals));
@@ -133,10 +136,10 @@ INT_PTR SfidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_SFID_UP_BUTTON:
         ChangeContent(1);
         break;
-    case IDC_SFID_DOWN_BUTTON:
+    case IDC_SFID_DN_BUTTON:
         ChangeContent(-1);
         break;
-    case IDC_SFID_NEW_BUTTON:
+    case IDC_SFID_RN_BUTTON:
         ChangeContent(rand() + rand() * 32767LL);
         break;
     case IDC_SFID_EDIT:
@@ -313,7 +316,7 @@ INT_PTR SfidDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 
 void SfidDialogBox::OnEditChanged(int id)
 {
-    FilterText(id);
+    FilterText(id, &SFID::IsValid);
     MyDialogBox::OnEditChanged(id);
     if (m_State != STATE_CHANGING)
     {
@@ -322,18 +325,15 @@ void SfidDialogBox::OnEditChanged(int id)
         {
         case IDC_SFID_EDIT:
             InvalidateRect(GetDlgItem(hwnd, IDC_SFID_EDIT), NULL, TRUE);
-            EditSetReadOnly(IDC_SFID_KEYPREFIX_EDIT);
-            EditSetReadOnly(IDC_SFID_INSTANCE_EDIT);
-            EditSetReadOnly(IDC_SFID_UNIQUEID_EDIT);
             break;
         default:
             InvalidateRect(GetDlgItem(hwnd, IDC_SFID_KEYPREFIX_EDIT), NULL, TRUE);
             InvalidateRect(GetDlgItem(hwnd, IDC_SFID_INSTANCE_EDIT), NULL, TRUE);
             InvalidateRect(GetDlgItem(hwnd, IDC_SFID_UNIQUEID_EDIT), NULL, TRUE);
-            EditSetReadOnly(IDC_SFID_EDIT);
             break;
         }
-        SetStatusText(L"Editing...");
+        SetStatusText(ResourceString(IDS_EDITING));
+        UpdateControlsState();
     }
     switch (id)
     {
@@ -368,52 +368,58 @@ void SfidDialogBox::OnCopyAll()
 }
 
 
+void SfidDialogBox::OnClear()
+{
+    SetText(IDC_SFID_EDIT);
+    ApplyModification(IDC_SFID_EDIT);
+}
+
+
 void SfidDialogBox::OnExecute()
 {
     ChangeContent(rand() + rand() * 32767LL);
 }
 
 
-void SfidDialogBox::FilterText(int id)
+void SfidDialogBox::UpdateControlsState()
 {
-    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-    int start = 0;
-    int end = 0;
-    EditGetSelection(id, start, end);
-    String sz = GetText(id);
-    Buffer<WCHAR> buf(sz.Len + 1);
-    const WCHAR* pQ = &sz[0];
-    const WCHAR* pR = pQ;
-    WCHAR* pW = &buf[0];
-    while (*pR)
+    if (m_State == STATE_SUCCESSFUL)
     {
-        // iswalnum does not work as expected for Japanese characters.
-        if (SFID::IsValid(*pR))
+        EditSetReadOnly(IDC_SFID_EDIT, FALSE);
+        EditSetReadOnly(IDC_SFID_KEYPREFIX_EDIT, FALSE);
+        EditSetReadOnly(IDC_SFID_INSTANCE_EDIT, FALSE);
+        EditSetReadOnly(IDC_SFID_UNIQUEID_EDIT, FALSE);
+    }
+    else
+    {
+        switch (m_LastModified.By)
         {
-            *pW++ = *pR++;
-        }
-        else
-        {
-            int cur = static_cast<int>(pR - pQ);
-            if (cur <= start)
-            {
-                start--;
-                end--;
-            }
-            else if (cur <= end)
-            {
-                end--;
-            }
-            pQ++;
-            pR++;
+        case IDC_SFID_EDIT:
+            EditSetReadOnly(IDC_SFID_EDIT, FALSE);
+            EditSetReadOnly(IDC_SFID_KEYPREFIX_EDIT, TRUE);
+            EditSetReadOnly(IDC_SFID_INSTANCE_EDIT, TRUE);
+            EditSetReadOnly(IDC_SFID_UNIQUEID_EDIT, TRUE);
+            break;
+        case IDC_SFID_KEYPREFIX_EDIT:
+        case IDC_SFID_INSTANCE_EDIT:
+        case IDC_SFID_UNIQUEID_EDIT:
+            EditSetReadOnly(IDC_SFID_EDIT, TRUE);
+            EditSetReadOnly(IDC_SFID_KEYPREFIX_EDIT, FALSE);
+            EditSetReadOnly(IDC_SFID_INSTANCE_EDIT, FALSE);
+            EditSetReadOnly(IDC_SFID_UNIQUEID_EDIT, FALSE);
+            break;
+        default:
+            break;
         }
     }
-    if (&sz[0] < pQ)
-    {
-        *pW = L'\0';
-        SetText(id, &buf[0]);
-        EditSetSelection(id, start, end);
-    }
+    BOOL bValid = (m_State == STATE_SUCCESSFUL && GetTextLength(IDC_SFID_EDIT) == SFID_LENGTH) ? TRUE : FALSE;
+    EnableWindow(IDC_SFID_COPY_BUTTON, bValid);
+    EnableWindow(IDC_SFID_UP_BUTTON, bValid);
+    EnableWindow(IDC_SFID_DN_BUTTON, bValid);
+    EnableWindow(IDC_SFID_RN_BUTTON, bValid);
+    m_menuEdit
+        .Enable(IDM_EDIT_COPYALL, bValid ? MF_ENABLED : MF_DISABLED)
+        .Enable(IDM_EDIT_EXECUTE, bValid ? MF_ENABLED : MF_DISABLED);
 }
 
 
@@ -448,20 +454,15 @@ void SfidDialogBox::ApplyModification(int id)
         try
         {
             String sz = GetText(IDC_SFID_EDIT);
-            String sz2 = sz.Trim();
-            if (sz2.Len == 0)
+            if (sz.Len == 0)
             {
                 SetText(IDC_SFID_KEYPREFIX_EDIT);
                 SetText(IDC_SFID_INSTANCE_EDIT);
                 SetText(IDC_SFID_UNIQUEID_EDIT);
                 SetText(IDC_SFID_CHECKSUM_EDIT);
-                SetText(IDC_SFID_EDIT);
-                EditSetReadOnly(IDC_SFID_KEYPREFIX_EDIT, FALSE);
-                EditSetReadOnly(IDC_SFID_INSTANCE_EDIT, FALSE);
-                EditSetReadOnly(IDC_SFID_UNIQUEID_EDIT, FALSE);
                 break;
             }
-            SFID id = SFID::Parse(sz2);
+            SFID id = SFID::Parse(sz);
             SetText(IDC_SFID_KEYPREFIX_EDIT, id.KeyPrefix);
             EditSetSelection(IDC_SFID_KEYPREFIX_EDIT, static_cast<int>(id.KeyPrefix.Len));
             SetText(IDC_SFID_INSTANCE_EDIT, id.Instance);
@@ -475,17 +476,14 @@ void SfidDialogBox::ApplyModification(int id)
                 SetText(IDC_SFID_EDIT, id);
                 EditSetSelection(IDC_SFID_EDIT, static_cast<int>(StrLen(id)));
             }
-            if (sz2.Len == SFID_LENGTH_EXCLUDING_CHECKSUM)
+            if (sz.Len == SFID_LENGTH_EXCLUDING_CHECKSUM)
             {
-                SetStatusText(L"OK [ Checksum computed ]");
+                SetStatusText(ResourceString(IDS_OK_CHECKSUM_COMPUTED));
             }
             else
             {
-                SetStatusText(L"OK");
+                SetStatusText(ResourceString(IDS_OK));
             }
-            EditSetReadOnly(IDC_SFID_KEYPREFIX_EDIT, FALSE);
-            EditSetReadOnly(IDC_SFID_INSTANCE_EDIT, FALSE);
-            EditSetReadOnly(IDC_SFID_UNIQUEID_EDIT, FALSE);
         }
         catch (SFIDException e)
         {
@@ -500,6 +498,12 @@ void SfidDialogBox::ApplyModification(int id)
             String szKeyPrefix = GetText(IDC_SFID_KEYPREFIX_EDIT);
             String szInstance = GetText(IDC_SFID_INSTANCE_EDIT);
             String szUniqueId = GetText(IDC_SFID_UNIQUEID_EDIT);
+            if (szKeyPrefix.Len == 0 && szInstance.Len == 0 && szUniqueId.Len == 0)
+            {
+                SetText(IDC_SFID_CHECKSUM_EDIT);
+                SetText(IDC_SFID_EDIT);
+                break;
+            }
             SFID id = SFID::Parse(szKeyPrefix.Trim(), szInstance.Trim(), szUniqueId.Trim());
             if (id.KeyPrefix != szKeyPrefix)
             {
@@ -520,8 +524,7 @@ void SfidDialogBox::ApplyModification(int id)
             EditSetSelection(IDC_SFID_CHECKSUM_EDIT, static_cast<int>(id.Checksum.Len));
             SetText(IDC_SFID_EDIT, id);
             EditSetSelection(IDC_SFID_EDIT, static_cast<int>(StrLen(id)));
-            SetStatusText(L"OK");
-            EditSetReadOnly(IDC_SFID_EDIT, FALSE);
+            SetStatusText(ResourceString(IDS_OK));
         }
         catch (SFIDException e)
         {
@@ -531,6 +534,7 @@ void SfidDialogBox::ApplyModification(int id)
     default:
         break;
     }
+    m_LastModified.By = 0;
     SetLengthText(IDC_SFID_LENGTH_STATIC, SFID_LENGTH, GetTextLength(IDC_SFID_EDIT));
     SetLengthText(IDC_SFID_KLENGTH_STATIC, SFID_KEYPREFIX_LENGTH, GetTextLength(IDC_SFID_KEYPREFIX_EDIT));
     SetLengthText(IDC_SFID_ILENGTH_STATIC, SFID_INSTANCE_LENGTH, GetTextLength(IDC_SFID_INSTANCE_EDIT));
@@ -540,7 +544,7 @@ void SfidDialogBox::ApplyModification(int id)
     InvalidateRect(GetDlgItem(hwnd, IDC_SFID_INSTANCE_EDIT), NULL, TRUE);
     InvalidateRect(GetDlgItem(hwnd, IDC_SFID_UNIQUEID_EDIT), NULL, TRUE);
     UpdateEditControlMenus(m_CurrentEdit);
-    m_LastModified.By = 0;
+    UpdateControlsState();
 }
 
 
@@ -566,19 +570,3 @@ void SfidDialogBox::SetStatusTextOnError(PCWSTR pszFormat, ...)
     va_end(argList);
 }
 
-
-void SfidDialogBox::SetLengthText(int id, int expected, int actual)
-{
-    if (actual == 0 || actual == expected)
-    {
-        SetText(id, String(PRINTF, ResourceString(IDS_SFID_LENGTH_FORMAT), expected));
-    }
-    else if (actual < expected)
-    {
-        SetText(id, String(PRINTF, ResourceString(IDS_SFID_LENGTH2_FORMAT), expected, L'-', expected - actual));
-    }
-    else //if (actual > expected)
-    {
-        SetText(id, String(PRINTF, ResourceString(IDS_SFID_LENGTH2_FORMAT), expected, L'+', actual - expected));
-    }
-}

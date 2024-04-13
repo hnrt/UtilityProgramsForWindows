@@ -68,6 +68,8 @@ namespace hnrt
 		void InitializeCodePageComboBox(int id, int initialSelection = CP_UTF8) const;
 		void InitializeLineBreakComboBox(int id, int initialSelection = 0x0d0a) const;
 		void InitializeOffsetComboBox(int id, int initialSelection = 0) const;
+		void SetLengthText(int id, int expected, int actual) const;
+		void FilterText(int id, BOOL (*pfnIsValid)(WCHAR));
 
 	private:
 

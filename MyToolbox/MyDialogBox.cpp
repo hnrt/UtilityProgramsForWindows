@@ -981,3 +981,63 @@ void MyDialogBox::InitializeOffsetComboBox(int id, int initialSelection) const
 	}
 	ComboBoxSetSelection(id, initialSelection);
 }
+
+
+void MyDialogBox::SetLengthText(int id, int expected, int actual) const
+{
+	String sz(PRINTF, ResourceString(IDS_LENGTH_FORMAT), expected);
+	if (actual > 0)
+	{
+		if (actual < expected)
+		{
+			sz.AppendFormat(L" [-%d]", expected - actual);
+		}
+		else if (actual > expected)
+		{
+			sz.AppendFormat(L" [+%d]", actual - expected);
+		}
+	}
+	SetText(id, sz);
+}
+
+
+void MyDialogBox::FilterText(int id, BOOL(*pfnIsValid)(WCHAR))
+{
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+	int start = 0;
+	int end = 0;
+	EditGetSelection(id, start, end);
+	String sz = GetText(id);
+	Buffer<WCHAR> buf(sz.Len + 1);
+	const WCHAR* pQ = &sz[0];
+	const WCHAR* pR = pQ;
+	WCHAR* pW = &buf[0];
+	while (*pR)
+	{
+		if ((*pfnIsValid)(*pR))
+		{
+			*pW++ = *pR++;
+		}
+		else
+		{
+			int cur = static_cast<int>(pR - pQ);
+			if (cur <= start)
+			{
+				start--;
+				end--;
+			}
+			else if (cur <= end)
+			{
+				end--;
+			}
+			pQ++;
+			pR++;
+		}
+	}
+	if (&sz[0] < pQ)
+	{
+		*pW = L'\0';
+		SetText(id, &buf[0]);
+		EditSetSelection(id, start, end);
+	}
+}

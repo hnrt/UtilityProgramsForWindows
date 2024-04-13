@@ -16,6 +16,7 @@ namespace hnrt
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
 		virtual void OnCopyAll();
+		virtual void OnClear();
 		virtual void OnExecute();
 
 	private:
@@ -28,13 +29,12 @@ namespace hnrt
 		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorEdit(WPARAM wParam, LPARAM lParam);
 		void OnEditChanged(int id);
+		void UpdateControlsState();
 
-		void FilterText(int id);
 		void ChangeContent(LONGLONG);
 		void ApplyModification(int id);
 		void SetStatusText(PCWSTR, ...);
 		void SetStatusTextOnError(PCWSTR, ...);
-		void SetLengthText(int id, int expected, int actual);
 
 		int m_State;
 	};

@@ -72,6 +72,7 @@
 #define IDS_MENU_LOADENCFROM            173
 #define IDS_MENU_SAVEENCAS              174
 #define IDS_MENU_WRAPDATA               175
+#define IDS_MENU_RENEW                  176
 #define IDS_TAB_HASH                    190
 #define IDS_TAB_CRPT                    191
 #define IDS_TAB_GUID                    192
@@ -98,8 +99,12 @@
 #define IDS_SAVETEXTASFILE              218
 #define IDS_MSG_TEXT_ENCODING_CONVERSION_ERROR 219
 #define IDS_MSG_FILE_WRITE_ERROR        220
-#define IDS_SFID_LENGTH_FORMAT          221
-#define IDS_SFID_LENGTH2_FORMAT         222
+#define IDS_LENGTH_FORMAT               221
+#define IDS_DELTA_FORMAT                222
+#define IDS_EDITING                     222
+#define IDS_OK                          223
+#define IDS_OK_CHECKSUM_COMPUTED        224
+#define IDS_OK_CHECKDIGIT_COMPUTED      225
 #define IDD_HASH                        800
 #define IDD_CRPT                        801
 #define IDD_GUID                        802
@@ -322,9 +327,9 @@
 #define IDC_SFID_UNIQUEID_EDIT          10804
 #define IDC_SFID_CHECKSUM_EDIT          10805
 #define IDC_SFID_COPY_BUTTON            10806
-#define IDC_SFID_NEW_BUTTON             10807
+#define IDC_SFID_RN_BUTTON              10807
 #define IDC_SFID_UP_BUTTON              10808
-#define IDC_SFID_DOWN_BUTTON            10809
+#define IDC_SFID_DN_BUTTON              10809
 #define IDC_SFID_LENGTH_STATIC          10810
 #define IDC_SFID_KLENGTH_STATIC         10811
 #define IDC_SFID_ILENGTH_STATIC         10812
