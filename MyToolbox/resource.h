@@ -347,6 +347,8 @@
 #define IDC_GTIN_UP_BUTTON              10910
 #define IDC_GTIN_DN_BUTTON              10911
 #define IDC_GTIN_RN_BUTTON              10912
+#define IDC_GTIN_LENGTH_STATIC          10925
+#define IDC_GTIN_STATUS_STATIC          10926
 #define IDM_FILE_EXIT                   11001
 #define IDM_FILE_LOADFROM               11002
 #define IDM_FILE_SAVEAS                 11003
@@ -424,7 +426,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        223
 #define _APS_NEXT_COMMAND_VALUE         32787
-#define _APS_NEXT_CONTROL_VALUE         10925
+#define _APS_NEXT_CONTROL_VALUE         10927
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

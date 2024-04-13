@@ -53,8 +53,8 @@ void SfidDialogBox::OnCreate()
     if (rc == ERROR_SUCCESS)
     {
         SetText(IDC_SFID_EDIT, RegistryValue::GetSZ(hKey, REGVAL_LAST));
-        ApplyModification(IDC_SFID_EDIT);
     }
+    ApplyModification(IDC_SFID_EDIT);
     m_menuView
         .Add(ResourceString(IDS_MENU_SFID), IDM_VIEW_SFID);
 }
@@ -62,7 +62,6 @@ void SfidDialogBox::OnCreate()
 
 void SfidDialogBox::OnDestroy()
 {
-    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
     RegistryKey hKey;
     LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_WRITE);
     if (rc == ERROR_SUCCESS)
@@ -140,7 +139,7 @@ INT_PTR SfidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         ChangeContent(-1);
         break;
     case IDC_SFID_RN_BUTTON:
-        ChangeContent(rand() + rand() * 32767LL);
+        OnExecute();
         break;
     case IDC_SFID_EDIT:
     case IDC_SFID_KEYPREFIX_EDIT:
@@ -314,6 +313,33 @@ INT_PTR SfidDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 }
 
 
+void SfidDialogBox::OnCopyAll()
+{
+    if (m_LastModified)
+    {
+        ApplyModification(m_LastModified.By);
+    }
+    if (!Clipboard::Write(hwnd, GetText(IDC_SFID_EDIT)))
+    {
+        MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+    }
+}
+
+
+void SfidDialogBox::OnClear()
+{
+    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+    SetText(IDC_SFID_EDIT);
+    ApplyModification(IDC_SFID_EDIT);
+}
+
+
+void SfidDialogBox::OnExecute()
+{
+    ChangeContent(rand() + rand() * 32767LL);
+}
+
+
 void SfidDialogBox::OnEditChanged(int id)
 {
     FilterText(id, &SFID::IsValid);
@@ -326,10 +352,14 @@ void SfidDialogBox::OnEditChanged(int id)
         case IDC_SFID_EDIT:
             InvalidateRect(GetDlgItem(hwnd, IDC_SFID_EDIT), NULL, TRUE);
             break;
-        default:
+        case IDC_SFID_KEYPREFIX_EDIT:
+        case IDC_SFID_INSTANCE_EDIT:
+        case IDC_SFID_UNIQUEID_EDIT:
             InvalidateRect(GetDlgItem(hwnd, IDC_SFID_KEYPREFIX_EDIT), NULL, TRUE);
             InvalidateRect(GetDlgItem(hwnd, IDC_SFID_INSTANCE_EDIT), NULL, TRUE);
             InvalidateRect(GetDlgItem(hwnd, IDC_SFID_UNIQUEID_EDIT), NULL, TRUE);
+            break;
+        default:
             break;
         }
         SetStatusText(ResourceString(IDS_EDITING));
@@ -352,32 +382,6 @@ void SfidDialogBox::OnEditChanged(int id)
     default:
         break;
     }
-}
-
-
-void SfidDialogBox::OnCopyAll()
-{
-    if (m_LastModified)
-    {
-        ApplyModification(m_LastModified.By);
-    }
-    if (!Clipboard::Write(hwnd, GetText(IDC_SFID_EDIT)))
-    {
-        MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-    }
-}
-
-
-void SfidDialogBox::OnClear()
-{
-    SetText(IDC_SFID_EDIT);
-    ApplyModification(IDC_SFID_EDIT);
-}
-
-
-void SfidDialogBox::OnExecute()
-{
-    ChangeContent(rand() + rand() * 32767LL);
 }
 
 
@@ -464,17 +468,17 @@ void SfidDialogBox::ApplyModification(int id)
             }
             SFID id = SFID::Parse(sz);
             SetText(IDC_SFID_KEYPREFIX_EDIT, id.KeyPrefix);
-            EditSetSelection(IDC_SFID_KEYPREFIX_EDIT, static_cast<int>(id.KeyPrefix.Len));
+            EditSetSelection(IDC_SFID_KEYPREFIX_EDIT, SFID_KEYPREFIX_LENGTH);
             SetText(IDC_SFID_INSTANCE_EDIT, id.Instance);
-            EditSetSelection(IDC_SFID_INSTANCE_EDIT, static_cast<int>(id.Instance.Len));
+            EditSetSelection(IDC_SFID_INSTANCE_EDIT, SFID_INSTANCE_LENGTH);
             SetText(IDC_SFID_UNIQUEID_EDIT, id.UniqueId);
-            EditSetSelection(IDC_SFID_UNIQUEID_EDIT, static_cast<int>(id.UniqueId.Len));
+            EditSetSelection(IDC_SFID_UNIQUEID_EDIT, SFID_UNIQUEID_LENGTH);
             SetText(IDC_SFID_CHECKSUM_EDIT, id.Checksum);
-            EditSetSelection(IDC_SFID_CHECKSUM_EDIT, static_cast<int>(id.Checksum.Len));
+            EditSetSelection(IDC_SFID_CHECKSUM_EDIT, SFID_CHECKSUM_LENGTH);
             if (StrCmp(id, -1, sz, sz.Len))
             {
                 SetText(IDC_SFID_EDIT, id);
-                EditSetSelection(IDC_SFID_EDIT, static_cast<int>(StrLen(id)));
+                EditSetSelection(IDC_SFID_EDIT, SFID_LENGTH);
             }
             if (sz.Len == SFID_LENGTH_EXCLUDING_CHECKSUM)
             {
@@ -504,26 +508,11 @@ void SfidDialogBox::ApplyModification(int id)
                 SetText(IDC_SFID_EDIT);
                 break;
             }
-            SFID id = SFID::Parse(szKeyPrefix.Trim(), szInstance.Trim(), szUniqueId.Trim());
-            if (id.KeyPrefix != szKeyPrefix)
-            {
-                SetText(IDC_SFID_KEYPREFIX_EDIT, id.KeyPrefix);
-                EditSetSelection(IDC_SFID_KEYPREFIX_EDIT, static_cast<int>(id.KeyPrefix.Len));
-            }
-            if (id.Instance != szInstance)
-            {
-                SetText(IDC_SFID_INSTANCE_EDIT, id.Instance);
-                EditSetSelection(IDC_SFID_INSTANCE_EDIT, static_cast<int>(id.Instance.Len));
-            }
-            if (id.UniqueId != szUniqueId)
-            {
-                SetText(IDC_SFID_UNIQUEID_EDIT, id.UniqueId);
-                EditSetSelection(IDC_SFID_UNIQUEID_EDIT, static_cast<int>(id.UniqueId.Len));
-            }
+            SFID id = SFID::Parse(szKeyPrefix, szInstance, szUniqueId);
             SetText(IDC_SFID_CHECKSUM_EDIT, id.Checksum);
-            EditSetSelection(IDC_SFID_CHECKSUM_EDIT, static_cast<int>(id.Checksum.Len));
+            EditSetSelection(IDC_SFID_CHECKSUM_EDIT, SFID_CHECKSUM_LENGTH);
             SetText(IDC_SFID_EDIT, id);
-            EditSetSelection(IDC_SFID_EDIT, static_cast<int>(StrLen(id)));
+            EditSetSelection(IDC_SFID_EDIT, SFID_LENGTH);
             SetStatusText(ResourceString(IDS_OK));
         }
         catch (SFIDException e)
@@ -569,4 +558,3 @@ void SfidDialogBox::SetStatusTextOnError(PCWSTR pszFormat, ...)
     SetText(IDC_SFID_STATUS_STATIC, String(pszFormat, argList));
     va_end(argList);
 }
-

@@ -24,7 +24,7 @@ SFID SFID::Parse(PCWSTR psz)
         String szChecksumExpected = ComputeChecksum(&psz[-SFID_LENGTH]);
         if (szChecksumActual != szChecksumExpected)
         {
-            throw SFIDException(SFID_INCORRECT_CHECKSUM, SFID_LENGTH_EXCLUDING_CHECKSUM, L"Incorrect checksum; %s!=%s", szChecksumActual, szChecksumExpected);
+            throw SFIDException(SFID_INCORRECT_CHECKSUM, SFID_LENGTH_EXCLUDING_CHECKSUM, L"Incorrect checksum. Expected=%s", szChecksumExpected);
         }
         return SFID(&psz[-SFID_LENGTH]);
     }

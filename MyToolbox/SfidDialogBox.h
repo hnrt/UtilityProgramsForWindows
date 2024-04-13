@@ -30,7 +30,6 @@ namespace hnrt
 		virtual INT_PTR OnControlColorEdit(WPARAM wParam, LPARAM lParam);
 		void OnEditChanged(int id);
 		void UpdateControlsState();
-
 		void ChangeContent(LONGLONG);
 		void ApplyModification(int id);
 		void SetStatusText(PCWSTR, ...);

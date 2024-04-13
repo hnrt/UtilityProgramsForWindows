@@ -24,6 +24,8 @@ namespace hnrt
 		/// <returns>The resulting check digit.</returns>
 		static WCHAR ComputeCheckDigit(const WCHAR s[]);
 
+		static BOOL IsValid(WCHAR c);
+
 		GTIN13(int nGS1CompanyPrefixLength = GS1COMPANYPREFIX_LENGTH7);
 		GTIN13(const GTIN13&) = default;
 		~GTIN13() = default;

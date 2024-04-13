@@ -11,6 +11,7 @@
 #include "hnrt/StringCommons.h"
 #include "hnrt/GTIN13.h"
 #include "hnrt/GTIN13Exception.h"
+#include "hnrt/StringCommons.h"
 #include "hnrt/Debug.h"
 
 
@@ -18,8 +19,13 @@
 #define REGVAL_GTIN13_GS1CPLEN L"GS1CompanyPrefixLength"
 
 
-#define CODE_TIMER100MS 9001
-#define CODE_TIMER1000MS 9002
+#define GTIN_TIMER100MS 9001
+#define GTIN_TIMER1000MS 9002
+
+
+#define STATE_SUCCESSFUL 1
+#define STATE_ERROR 2
+#define STATE_CHANGING 3
 
 
 using namespace hnrt;
@@ -28,7 +34,7 @@ using namespace hnrt;
 GtinDialogBox::GtinDialogBox()
 	: MyDialogBox(IDD_GTIN, L"GTIN")
     , m_GS1CPLength(GS1COMPANYPREFIX_LENGTH7)
-    , m_nGTIN13Change(0)
+    , m_State(STATE_SUCCESSFUL)
 {
 	m_LastModified.CursorChange = true;
 }
@@ -42,6 +48,7 @@ void GtinDialogBox::OnCreate()
     SetFont(IDC_GTIN_CP_EDIT, hFont);
     SetFont(IDC_GTIN_IR_EDIT, hFont);
     SetFont(IDC_GTIN_CD_EDIT, hFont);
+    SetText(IDC_GTIN_STATUS_STATIC);
     ComboBoxAdd(IDC_GTIN_CPL_COMBO, String(PRINTF, L"%d", GS1COMPANYPREFIX_LENGTH7), GS1COMPANYPREFIX_LENGTH7);
     ComboBoxAdd(IDC_GTIN_CPL_COMBO, String(PRINTF, L"%d", GS1COMPANYPREFIX_LENGTH9), GS1COMPANYPREFIX_LENGTH9);
     ComboBoxAdd(IDC_GTIN_CPL_COMBO, String(PRINTF, L"%d", GS1COMPANYPREFIX_LENGTH10), GS1COMPANYPREFIX_LENGTH10);
@@ -88,6 +95,7 @@ void GtinDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
     WindowLayout::UpdateLayout(hDlg, IDC_GTIN_STATIC, 0, 0, cxDelta, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_GTIN_EDIT, 0, 0, cxDelta, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_GTIN_STATUS_STATIC, 0, 0, cxDelta, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_GTIN_CPL_STATIC, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_GTIN_CPL_COMBO, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_GTIN_COPY_BUTTON, cxDelta, 0, 0, 0);
@@ -100,8 +108,8 @@ void GtinDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void GtinDialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
-    KillTimer(hwnd, CODE_TIMER100MS);
-    KillTimer(hwnd, CODE_TIMER1000MS);
+    KillTimer(hwnd, GTIN_TIMER100MS);
+    KillTimer(hwnd, GTIN_TIMER1000MS);
     if (m_LastModified)
     {
         ApplyModification(m_LastModified.By);
@@ -114,11 +122,20 @@ void GtinDialogBox::OnTabSelectionChanging()
 void GtinDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
+    m_menuEdit
+        .Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
+        .AddSeparator();
     AddEditControlMenus(m_CurrentEdit);
+    m_menuEdit
+        .AddSeparator()
+        .Add(ResourceString(IDS_MENU_RENEW), IDM_EDIT_EXECUTE)
+        .AddSeparator()
+        .Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
     m_menuView
         .Enable(IDM_VIEW_GTIN, MF_DISABLED);
-    SetTimer(hwnd, CODE_TIMER100MS, 100, NULL);
-    SetTimer(hwnd, CODE_TIMER1000MS, 1000, NULL);
+    UpdateControlsState();
+    SetTimer(hwnd, GTIN_TIMER100MS, 100, NULL);
+    SetTimer(hwnd, GTIN_TIMER1000MS, 1000, NULL);
     srand(static_cast<unsigned int>(FileTime().Intervals));
 }
 
@@ -134,6 +151,24 @@ INT_PTR GtinDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     UINT idNotif = HIWORD(wParam);
     switch (idChild)
     {
+    case IDC_GTIN_COPY_BUTTON:
+        OnCopyAll();
+        break;
+    case IDC_GTIN_UP_BUTTON:
+        GTIN13Add(1);
+        break;
+    case IDC_GTIN_DN_BUTTON:
+        GTIN13Add(-1);
+        break;
+    case IDC_GTIN_RN_BUTTON:
+        OnExecute();
+        break;
+    case IDC_GTIN_CPL_COMBO:
+        if (idNotif == CBN_SELCHANGE)
+        {
+            SetGS1CPLength(ComboBoxGetSelection(IDC_GTIN_CPL_COMBO, GS1COMPANYPREFIX_LENGTH7));
+        }
+        break;
     case IDC_GTIN_EDIT:
     case IDC_GTIN_CP_EDIT:
     case IDC_GTIN_IR_EDIT:
@@ -141,30 +176,6 @@ INT_PTR GtinDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         if (idNotif == EN_CHANGE)
         {
             OnEditChanged(idChild);
-            if (m_nGTIN13Change <= 0)
-            {
-                m_nGTIN13Change = 1;
-                switch (idChild)
-                {
-                case IDC_GTIN_EDIT:
-                    EditSetReadOnly(IDC_GTIN_CP_EDIT);
-                    EditSetReadOnly(IDC_GTIN_IR_EDIT);
-                    break;
-                case IDC_GTIN_CP_EDIT:
-                case IDC_GTIN_IR_EDIT:
-                default:
-                    EditSetReadOnly(IDC_GTIN_EDIT);
-                    SetText(IDC_GTIN_CD_EDIT);
-                    break;
-                }
-                EnableWindow(IDC_GTIN_COPY_BUTTON, FALSE);
-                EnableWindow(IDC_GTIN_UP_BUTTON, FALSE);
-                EnableWindow(IDC_GTIN_DN_BUTTON, FALSE);
-            }
-            else
-            {
-                m_nGTIN13Change++;
-            }
         }
         else if (idNotif == EN_SETFOCUS)
         {
@@ -174,31 +185,6 @@ INT_PTR GtinDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         {
             OnEditKillFocus(idChild);
         }
-        break;
-    case IDC_GTIN_CPL_COMBO:
-        if (idNotif == CBN_SELCHANGE)
-        {
-            SetGS1CPLength(ComboBoxGetSelection(IDC_GTIN_CPL_COMBO, GS1COMPANYPREFIX_LENGTH7));
-        }
-        break;
-    case IDC_GTIN_COPY_BUTTON:
-        if (m_LastModified)
-        {
-            ApplyModification(m_LastModified.By);
-        }
-        if (!Clipboard::Write(hwnd, GetText(IDC_GTIN_EDIT)))
-        {
-            MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-        }
-        break;
-    case IDC_GTIN_UP_BUTTON:
-        GTIN13Add(1);
-        break;
-    case IDC_GTIN_DN_BUTTON:
-        GTIN13Add(-1);
-        break;
-    case IDC_GTIN_RN_BUTTON:
-        GTIN13Add(rand());
         break;
     default:
         return FALSE;
@@ -211,15 +197,81 @@ INT_PTR GtinDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 {
     switch (wParam)
     {
-    case CODE_TIMER100MS:
+    case GTIN_TIMER100MS:
         if (m_LastModified.IsUpdateRequired)
         {
             ApplyModification(m_LastModified.By);
         }
         break;
-    case CODE_TIMER1000MS:
+    case GTIN_TIMER1000MS:
         UpdateEditControlMenus(m_CurrentEdit);
         break;
+    default:
+        break;
+    }
+    return 0;
+}
+
+
+INT_PTR GtinDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
+{
+    HDC hdc = reinterpret_cast<HDC>(wParam);
+    int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
+    int length;
+    COLORREF color;
+    switch (id)
+    {
+    case IDC_GTIN_STATUS_STATIC:
+        SetTextColor(hdc,
+            m_State == STATE_SUCCESSFUL ? RGB_SUCCESSFUL :
+            m_State == STATE_ERROR ? RGB_ERROR :
+            m_State == STATE_CHANGING ? RGB_CHANGING :
+            GetSysColor(COLOR_WINDOWTEXT));
+        SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
+    case IDC_GTIN_LENGTH_STATIC:
+        length = GetTextLength(IDC_GTIN_EDIT);
+        if (length == 0)
+        {
+            color = m_State == STATE_CHANGING ? RGB_ERROR : GetSysColor(COLOR_WINDOWTEXT);
+        }
+        else if (length == GTIN13_LENGTH_EXCLUDING_CD || length == GTIN13_LENGTH)
+        {
+            color = m_State == STATE_CHANGING ? RGB_GOOD : GetSysColor(COLOR_WINDOWTEXT);
+        }
+        else
+        {
+            color = RGB_ERROR;
+        }
+        SetTextColor(hdc, color);
+        SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
+    case IDC_GTIN_CP_STATIC:
+        length = GetTextLength(IDC_GTIN_CP_EDIT);
+        if (length == 0 || length == m_GS1CPLength)
+        {
+            color = m_State == STATE_CHANGING ? RGB_GOOD : GetSysColor(COLOR_WINDOWTEXT);
+        }
+        else
+        {
+            color = RGB_ERROR;
+        }
+        SetTextColor(hdc, color);
+        SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
+    case IDC_GTIN_IR_STATIC:
+        length = GetTextLength(IDC_GTIN_IR_EDIT);
+        if (length == 0 || length == GTIN13(m_GS1CPLength).ItemReferenceLenth)
+        {
+            color = m_State == STATE_CHANGING ? RGB_GOOD : GetSysColor(COLOR_WINDOWTEXT);
+        }
+        else
+        {
+            color = RGB_ERROR;
+        }
+        SetTextColor(hdc, color);
+        SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
     default:
         break;
     }
@@ -231,33 +283,28 @@ INT_PTR GtinDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 {
     HDC hdc = reinterpret_cast<HDC>(wParam);
     int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
-    SIZE_T len = GetText(id).Len;
+    int len = GetTextLength(id);
     switch (id)
     {
     case IDC_GTIN_EDIT:
         SetTextColor(hdc,
-            m_nGTIN13Change == 0 && len == GTIN13_LENGTH ? GetSysColor(COLOR_WINDOWTEXT) :
-            len == GTIN13_LENGTH_EXCLUDING_CD || (m_nGTIN13Change > 0 && len == GTIN13_LENGTH) ? RGB_GOOD :
+            len == GTIN13_LENGTH ? (m_State == STATE_CHANGING ? RGB_GOOD : GetSysColor(COLOR_WINDOWTEXT)) :
+            len == GTIN13_LENGTH_EXCLUDING_CD ? RGB_GOOD :
             RGB_ERROR);
         SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
         return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
     case IDC_GTIN_CP_EDIT:
         SetTextColor(hdc,
-            m_nGTIN13Change == 0 && len == m_GS1CPLength ? GetSysColor(COLOR_WINDOWTEXT) :
-            m_nGTIN13Change > 0 && len == m_GS1CPLength ? RGB_GOOD :
+            len == m_GS1CPLength ? (m_State == STATE_CHANGING ? RGB_GOOD : GetSysColor(COLOR_WINDOWTEXT)) :
             RGB_ERROR);
         SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
         return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
     case IDC_GTIN_IR_EDIT:
-    {
-        int expected = GTIN13(m_GS1CPLength).ItemReferenceLenth;
         SetTextColor(hdc,
-            m_nGTIN13Change == 0 && len == expected ? GetSysColor(COLOR_WINDOWTEXT) :
-            m_nGTIN13Change > 0 && len == expected ? RGB_GOOD :
+            len == GTIN13(m_GS1CPLength).ItemReferenceLenth ? (m_State == STATE_CHANGING ? RGB_GOOD : GetSysColor(COLOR_WINDOWTEXT)) :
             RGB_ERROR);
         SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
         return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
-    }
     default:
         break;
     }
@@ -265,12 +312,117 @@ INT_PTR GtinDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 }
 
 
+void GtinDialogBox::OnCopyAll()
+{
+    if (m_LastModified)
+    {
+        ApplyModification(m_LastModified.By);
+    }
+    if (!Clipboard::Write(hwnd, GetText(IDC_GTIN_EDIT)))
+    {
+        MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+    }
+}
+
+
+void GtinDialogBox::OnClear()
+{
+    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+    SetText(IDC_GTIN_EDIT);
+    ApplyModification(IDC_GTIN_EDIT);
+}
+
+
+void GtinDialogBox::OnExecute()
+{
+    GTIN13Add(rand());
+}
+
+
+void GtinDialogBox::OnEditChanged(int id)
+{
+    FilterText(id, &GTIN13::IsValid);
+    MyDialogBox::OnEditChanged(id);
+    if (m_State != STATE_CHANGING)
+    {
+        m_State = STATE_CHANGING;
+        switch (id)
+        {
+        case IDC_GTIN_EDIT:
+            InvalidateRect(GetDlgItem(hwnd, IDC_GTIN_EDIT), NULL, TRUE);
+            break;
+        case IDC_GTIN_CP_EDIT:
+        case IDC_GTIN_IR_EDIT:
+            InvalidateRect(GetDlgItem(hwnd, IDC_GTIN_CP_EDIT), NULL, TRUE);
+            InvalidateRect(GetDlgItem(hwnd, IDC_GTIN_IR_EDIT), NULL, TRUE);
+            break;
+        default:
+            break;
+        }
+        SetStatusText(ResourceString(IDS_EDITING));
+        UpdateControlsState();
+    }
+    switch (id)
+    {
+    case IDC_GTIN_EDIT:
+        SetLengthText(IDC_GTIN_LENGTH_STATIC, GTIN13_LENGTH, GetTextLength(IDC_GTIN_EDIT));
+        break;
+    case IDC_GTIN_CP_EDIT:
+        SetLengthText(IDC_GTIN_CP_STATIC, m_GS1CPLength, GetTextLength(IDC_GTIN_CP_EDIT));
+        break;
+    case IDC_GTIN_IR_EDIT:
+        SetLengthText(IDC_GTIN_IR_STATIC, GTIN13(m_GS1CPLength).ItemReferenceLenth, GetTextLength(IDC_GTIN_IR_EDIT));
+        break;
+    default:
+        break;
+    }
+}
+
+
+void GtinDialogBox::UpdateControlsState()
+{
+    if (m_State == STATE_SUCCESSFUL)
+    {
+        EditSetReadOnly(IDC_GTIN_EDIT, FALSE);
+        EditSetReadOnly(IDC_GTIN_CP_EDIT, FALSE);
+        EditSetReadOnly(IDC_GTIN_IR_EDIT, FALSE);
+    }
+    else
+    {
+        switch (m_LastModified.By)
+        {
+        case IDC_GTIN_EDIT:
+            EditSetReadOnly(IDC_GTIN_EDIT, FALSE);
+            EditSetReadOnly(IDC_GTIN_CP_EDIT, TRUE);
+            EditSetReadOnly(IDC_GTIN_IR_EDIT, TRUE);
+            break;
+        case IDC_GTIN_CP_EDIT:
+        case IDC_GTIN_IR_EDIT:
+            EditSetReadOnly(IDC_GTIN_EDIT, TRUE);
+            EditSetReadOnly(IDC_GTIN_CP_EDIT, FALSE);
+            EditSetReadOnly(IDC_GTIN_IR_EDIT, FALSE);
+            break;
+        default:
+            break;
+        }
+    }
+    BOOL bValid = (m_State == STATE_SUCCESSFUL && GetTextLength(IDC_GTIN_EDIT) == GTIN13_LENGTH) ? TRUE : FALSE;
+    EnableWindow(IDC_GTIN_COPY_BUTTON, bValid);
+    EnableWindow(IDC_GTIN_UP_BUTTON, bValid);
+    EnableWindow(IDC_GTIN_DN_BUTTON, bValid);
+    EnableWindow(IDC_GTIN_RN_BUTTON, bValid);
+    m_menuEdit
+        .Enable(IDM_EDIT_COPYALL, bValid ? MF_ENABLED : MF_DISABLED)
+        .Enable(IDM_EDIT_EXECUTE, bValid ? MF_ENABLED : MF_DISABLED);
+}
+
+
 void GtinDialogBox::SetGS1CPLength(int length)
 {
     m_GS1CPLength = length;
-    GTIN13 jan(length);
-    SetText(IDC_GTIN_CP_STATIC, String(PRINTF, L"%d chars", jan.GS1CompanyPrefixLength));
-    SetText(IDC_GTIN_IR_STATIC, String(PRINTF, L"%d chars", jan.ItemReferenceLenth));
+    SetLengthText(IDC_GTIN_LENGTH_STATIC, GTIN13_LENGTH, GetTextLength(IDC_GTIN_EDIT));
+    SetLengthText(IDC_GTIN_CP_STATIC, m_GS1CPLength, GetTextLength(IDC_GTIN_CP_EDIT));
+    SetLengthText(IDC_GTIN_IR_STATIC, GTIN13(m_GS1CPLength).ItemReferenceLenth, GetTextLength(IDC_GTIN_IR_EDIT));
     ApplyModification(IDC_GTIN_EDIT);
 }
 
@@ -298,91 +450,103 @@ void GtinDialogBox::GTIN13Add(int delta)
 void GtinDialogBox::ApplyModification(int id)
 {
     WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-    if (id == IDC_GTIN_EDIT)
+    SetStatusText(L"");
+    switch (id)
     {
+    case IDC_GTIN_EDIT:
         try
         {
             String sz = GetText(IDC_GTIN_EDIT);
-            if (sz.Len >= m_GS1CPLength)
-            {
-                GTIN13 jan(m_GS1CPLength);
-                String szCP(&sz[0], jan.GS1CompanyPrefixLength);
-                String szIR(&sz[jan.GS1CompanyPrefixLength], jan.ItemReferenceLenth);
-                SetText(IDC_GTIN_CP_EDIT, szCP);
-                EditSetSelection(IDC_GTIN_CP_EDIT, static_cast<int>(szCP.Len), static_cast<int>(szCP.Len));
-                SetText(IDC_GTIN_IR_EDIT, szIR);
-                EditSetSelection(IDC_GTIN_IR_EDIT, static_cast<int>(szIR.Len), static_cast<int>(szIR.Len));
-                SetText(IDC_GTIN_CD_EDIT);
-            }
-            else
+            if (sz.Len == 0)
             {
                 SetText(IDC_GTIN_CP_EDIT);
                 SetText(IDC_GTIN_IR_EDIT);
                 SetText(IDC_GTIN_CD_EDIT);
+                break;
             }
-            if (sz.Len == GTIN13_LENGTH_EXCLUDING_CD || sz.Len == GTIN13_LENGTH)
+            GTIN13 jan = GTIN13::Parse(sz, m_GS1CPLength);
+            SetText(IDC_GTIN_CP_EDIT, jan.GS1CompanyPrefix);
+            EditSetSelection(IDC_GTIN_CP_EDIT, jan.GS1CompanyPrefixLength);
+            SetText(IDC_GTIN_IR_EDIT, jan.ItemReference);
+            EditSetSelection(IDC_GTIN_IR_EDIT, jan.ItemReferenceLenth);
+            SetText(IDC_GTIN_CD_EDIT, String(PRINTF, L"%c", jan.CheckDigit));
+            EditSetSelection(IDC_GTIN_CD_EDIT, 1);
+            if (StrCmp(jan, -1, sz, sz.Len))
             {
-                int start = 0, end = 0;
-                EditGetSelection(IDC_GTIN_EDIT, start, end);
-                GTIN13 jan = GTIN13::Parse(sz, m_GS1CPLength);
-                m_nGTIN13Change = 0;
                 SetText(IDC_GTIN_EDIT, jan);
-                if (start == sz.Len)
-                {
-                    EditSetSelection(IDC_GTIN_EDIT, GTIN13_LENGTH, GTIN13_LENGTH);
-                }
-                else
-                {
-                    EditSetSelection(IDC_GTIN_EDIT, start, end);
-                }
-                SetText(IDC_GTIN_CD_EDIT, String(PRINTF, L"%c", jan.CheckDigit));
-                EditSetReadOnly(IDC_GTIN_CP_EDIT, FALSE);
-                EditSetReadOnly(IDC_GTIN_IR_EDIT, FALSE);
-                EnableWindow(IDC_GTIN_COPY_BUTTON);
-                EnableWindow(IDC_GTIN_UP_BUTTON);
-                EnableWindow(IDC_GTIN_DN_BUTTON);
+                EditSetSelection(IDC_GTIN_EDIT, GTIN13_LENGTH);
+            }
+            if (sz.Len == GTIN13_LENGTH_EXCLUDING_CD)
+            {
+                SetStatusText(ResourceString(IDS_OK_CHECKDIGIT_COMPUTED));
+            }
+            else
+            {
+                SetStatusText(ResourceString(IDS_OK));
             }
         }
         catch (GTIN13Exception e)
         {
-            m_nGTIN13Change = -1;
+            SetStatusTextOnError(L"%s", e.Message);
         }
-    }
-    else if (id == IDC_GTIN_CP_EDIT || id == IDC_GTIN_IR_EDIT)
-    {
+        break;
+    case IDC_GTIN_CP_EDIT:
+    case IDC_GTIN_IR_EDIT:
         try
         {
             String szCP = GetText(IDC_GTIN_CP_EDIT);
             String szIR = GetText(IDC_GTIN_IR_EDIT);
-            SetText(IDC_GTIN_CD_EDIT);
-            if (szCP.Len == m_GS1CPLength && szIR.Len == GTIN13(m_GS1CPLength).ItemReferenceLenth)
+            if (szCP.Len == 0 && szIR.Len == 0)
             {
-                GTIN13 jan = GTIN13::Parse(String(szCP, szIR), m_GS1CPLength);
-                m_nGTIN13Change = 0;
-                SetText(IDC_GTIN_CD_EDIT, String(PRINTF, L"%c", jan.CheckDigit));
-                SetText(IDC_GTIN_EDIT, jan);
-                EditSetSelection(IDC_GTIN_EDIT, GTIN13_LENGTH, GTIN13_LENGTH);
-                EditSetReadOnly(IDC_GTIN_EDIT, FALSE);
-                EnableWindow(IDC_GTIN_COPY_BUTTON);
-                EnableWindow(IDC_GTIN_UP_BUTTON);
-                EnableWindow(IDC_GTIN_DN_BUTTON);
-            }
-            else
-            {
-                String sz(szCP, szIR);
-                SetText(IDC_GTIN_EDIT, sz);
-                EditSetSelection(IDC_GTIN_EDIT, static_cast<int>(sz.Len), static_cast<int>(sz.Len));
                 SetText(IDC_GTIN_CD_EDIT);
+                SetText(IDC_GTIN_EDIT);
+                break;
             }
+            GTIN13 jan = GTIN13::Parse(String(szCP, szIR), m_GS1CPLength);
+            SetText(IDC_GTIN_CD_EDIT, String(PRINTF, L"%c", jan.CheckDigit));
+            EditSetSelection(IDC_GTIN_CD_EDIT, 1);
+            SetText(IDC_GTIN_EDIT, jan);
+            EditSetSelection(IDC_GTIN_EDIT, GTIN13_LENGTH);
+            SetStatusText(ResourceString(IDS_OK));
         }
         catch (GTIN13Exception e)
         {
-            m_nGTIN13Change = -1;
+            SetStatusTextOnError(L"%s", e.Message);
         }
+        break;
+    default:
+        break;
     }
+    m_LastModified.By = 0;
+    SetLengthText(IDC_GTIN_LENGTH_STATIC, GTIN13_LENGTH, GetTextLength(IDC_GTIN_EDIT));
+    SetLengthText(IDC_GTIN_CP_STATIC, m_GS1CPLength, GetTextLength(IDC_GTIN_CP_EDIT));
+    SetLengthText(IDC_GTIN_IR_STATIC, GTIN13(m_GS1CPLength).ItemReferenceLenth, GetTextLength(IDC_GTIN_IR_EDIT));
     InvalidateRect(GetDlgItem(hwnd, IDC_GTIN_EDIT), NULL, TRUE);
     InvalidateRect(GetDlgItem(hwnd, IDC_GTIN_CP_EDIT), NULL, TRUE);
     InvalidateRect(GetDlgItem(hwnd, IDC_GTIN_IR_EDIT), NULL, TRUE);
     UpdateEditControlMenus(m_CurrentEdit);
-    m_LastModified.By = 0;
+    UpdateControlsState();
+}
+
+
+void GtinDialogBox::SetStatusText(PCWSTR pszFormat, ...)
+{
+    if (m_cProcessing)
+    {
+        m_State = STATE_SUCCESSFUL;
+    }
+    va_list argList;
+    va_start(argList, pszFormat);
+    SetText(IDC_GTIN_STATUS_STATIC, String(pszFormat, argList));
+    va_end(argList);
+}
+
+
+void GtinDialogBox::SetStatusTextOnError(PCWSTR pszFormat, ...)
+{
+    m_State = STATE_ERROR;
+    va_list argList;
+    va_start(argList, pszFormat);
+    SetText(IDC_GTIN_STATUS_STATIC, String(pszFormat, argList));
+    va_end(argList);
 }

@@ -36,7 +36,7 @@ GTIN13 GTIN13::Parse(PCWSTR psz, int nGS1CompanyPrefixLength)
 	WCHAR cd = ComputeCheckDigit(psz);
 	if (psz[GTIN13_LENGTH_EXCLUDING_CD] != L'\0' && psz[GTIN13_LENGTH_EXCLUDING_CD] != cd)
 	{
-		throw GTIN13Exception(GTIN13_INCORRECT_CHECKDIGIT, GTIN13_LENGTH_EXCLUDING_CD, L"Incorrect check digit. Expected=%c Actual=%c", cd, psz[GTIN13_LENGTH_EXCLUDING_CD]);
+		throw GTIN13Exception(GTIN13_INCORRECT_CHECKDIGIT, GTIN13_LENGTH_EXCLUDING_CD, L"Incorrect check digit. Expected=%c", cd);
 	}
 	MemCpy(instance.m_d, psz, GTIN13_LENGTH_EXCLUDING_CD);
 	instance.m_d[GTIN13_LENGTH_EXCLUDING_CD] = cd;
@@ -102,4 +102,10 @@ GTIN13& GTIN13::operator +=(int delta)
 GTIN13& GTIN13::operator -=(int delta)
 {
 	return GTIN13::operator +=(-delta);
+}
+
+
+BOOL GTIN13::IsValid(WCHAR c)
+{
+	return IsDigit(c);
 }
