@@ -37,6 +37,7 @@ MyToolbox::MyToolbox()
     , m_dttmTab()
     , m_sfidTab()
     , m_gtinTab()
+    , m_bs64Tab()
     , m_clipTab()
     , m_hFont(NULL)
     , m_hFontForTab(NULL)
@@ -174,6 +175,7 @@ void MyToolbox::CreateChildren()
     m_tabs.Add(ResourceString(IDS_TAB_DTTM), &m_dttmTab);
     m_tabs.Add(ResourceString(IDS_TAB_SFID), &m_sfidTab);
     m_tabs.Add(ResourceString(IDS_TAB_GTIN), &m_gtinTab);
+    m_tabs.Add(ResourceString(IDS_TAB_BS64), &m_bs64Tab);
     m_tabs.Add(ResourceString(IDS_TAB_CLIP), &m_clipTab);
     for (int index = 0; index < m_tabs.ItemCount; index++)
     {
@@ -297,6 +299,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         break;
     case IDM_VIEW_GTIN:
         m_tabs.CurrentItem = m_gtinTab.Id;
+        break;
+    case IDM_VIEW_BS64:
+        m_tabs.CurrentItem = m_bs64Tab.Id;
         break;
     case IDM_VIEW_CLIP:
         m_tabs.CurrentItem = m_clipTab.Id;

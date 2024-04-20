@@ -897,6 +897,7 @@ void MyDialogBox::InitializeCodePageComboBox(int id, int initialSelection) const
 #define ADDCP(x) ADD(L"CP" L#x,x)
 	ADD(L"UTF-8", CP_UTF8);
 	ADD(L"UTF-16", CP_UTF16);
+	ADD(L"EUC-JP", CP_EUCJP);
 	ADDCP(932);
 	ADDCP(936);
 	ADDCP(949);

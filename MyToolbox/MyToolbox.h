@@ -12,6 +12,7 @@
 #include "DateTimeDialogBox.h"
 #include "SfidDialogBox.h"
 #include "GtinDialogBox.h"
+#include "Base64DialogBox.h"
 #include "ClipDialogBox.h"
 
 namespace hnrt
@@ -55,6 +56,7 @@ namespace hnrt
 		DateTimeDialogBox m_dttmTab;
 		SfidDialogBox m_sfidTab;
 		GtinDialogBox m_gtinTab;
+		Base64DialogBox m_bs64Tab;
 		ClipDialogBox m_clipTab;
 		HFONT m_hFont;
 		HFONT m_hFontForTab;

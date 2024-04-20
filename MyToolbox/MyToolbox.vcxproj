@@ -164,6 +164,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AboutBox.h" />
+    <ClInclude Include="Base64DialogBox.h" />
     <ClInclude Include="ClipDialogBox.h" />
     <ClInclude Include="ClipFile.h" />
     <ClInclude Include="GtinDialogBox.h" />
@@ -187,6 +188,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AboutBox.cpp" />
+    <ClCompile Include="Base64DialogBox.cpp" />
     <ClCompile Include="ClipDialogBox.cpp" />
     <ClCompile Include="ClipFile.cpp" />
     <ClCompile Include="GtinDialogBox.cpp" />

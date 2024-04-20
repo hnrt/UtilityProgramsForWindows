@@ -78,6 +78,9 @@
     <ClInclude Include="GtinDialogBox.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Base64DialogBox.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MyToolbox.cpp">
@@ -135,6 +138,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="GtinDialogBox.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Base64DialogBox.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
