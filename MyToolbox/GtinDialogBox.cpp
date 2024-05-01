@@ -349,12 +349,12 @@ void GtinDialogBox::OnEditChanged(int id)
         switch (id)
         {
         case IDC_GTIN_EDIT:
-            InvalidateRect(GetDlgItem(hwnd, IDC_GTIN_EDIT), NULL, TRUE);
+            InvalidateRect(IDC_GTIN_EDIT, NULL, TRUE);
             break;
         case IDC_GTIN_CP_EDIT:
         case IDC_GTIN_IR_EDIT:
-            InvalidateRect(GetDlgItem(hwnd, IDC_GTIN_CP_EDIT), NULL, TRUE);
-            InvalidateRect(GetDlgItem(hwnd, IDC_GTIN_IR_EDIT), NULL, TRUE);
+            InvalidateRect(IDC_GTIN_CP_EDIT, NULL, TRUE);
+            InvalidateRect(IDC_GTIN_IR_EDIT, NULL, TRUE);
             break;
         default:
             break;
@@ -521,9 +521,9 @@ void GtinDialogBox::ApplyModification(int id)
     SetLengthText(IDC_GTIN_LENGTH_STATIC, GTIN13_LENGTH, GetTextLength(IDC_GTIN_EDIT));
     SetLengthText(IDC_GTIN_CP_STATIC, m_GS1CPLength, GetTextLength(IDC_GTIN_CP_EDIT));
     SetLengthText(IDC_GTIN_IR_STATIC, GTIN13(m_GS1CPLength).ItemReferenceLenth, GetTextLength(IDC_GTIN_IR_EDIT));
-    InvalidateRect(GetDlgItem(hwnd, IDC_GTIN_EDIT), NULL, TRUE);
-    InvalidateRect(GetDlgItem(hwnd, IDC_GTIN_CP_EDIT), NULL, TRUE);
-    InvalidateRect(GetDlgItem(hwnd, IDC_GTIN_IR_EDIT), NULL, TRUE);
+    InvalidateRect(IDC_GTIN_EDIT, NULL, TRUE);
+    InvalidateRect(IDC_GTIN_CP_EDIT, NULL, TRUE);
+    InvalidateRect(IDC_GTIN_IR_EDIT, NULL, TRUE);
     UpdateEditControlMenus(m_CurrentEdit);
     UpdateControlsState();
 }

@@ -15,6 +15,10 @@ namespace hnrt
 		void operator =(const Base64DialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
+		virtual void OnLoad1From();
+		virtual void OnSave1As();
+		virtual void OnLoad2From();
+		virtual void OnSave2As();
 		virtual void OnClear();
 
 	private:
@@ -23,17 +27,22 @@ namespace hnrt
 		virtual void OnDestroy();
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
+		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorEdit(WPARAM wParam, LPARAM lParam);
 
 		void Encode();
 		void Decode();
-		void SetDecoded();
+		BOOL ParseOriginal(ByteString& bs);
+		void DisplayOriginal();
 		void UpdateControlsState();
+		void InitializeLineLengthComboBox();
 
 		BOOL m_bEncodingError;
 		BOOL m_bDecodingError;
-		ByteString m_Decoded;
+		ByteString m_Original;
 		BOOL m_bEncoded;
+		WCHAR m_szOriginalPath[MAX_PATH];
+		WCHAR m_szEncodedPath[MAX_PATH];
 	};
 }

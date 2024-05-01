@@ -75,6 +75,10 @@
 #define IDS_MENU_SAVEENCAS              175
 #define IDS_MENU_WRAPDATA               176
 #define IDS_MENU_RENEW                  177
+#define IDS_MENU_ORG_LOADFROM           178
+#define IDS_MENU_ORG_SAVEAS             179
+#define IDS_MENU_ENC_LOADFROM           180
+#define IDS_MENU_ENC_SAVEAS             181
 #define IDS_TAB_HASH                    201
 #define IDS_TAB_CRPT                    202
 #define IDS_TAB_GUID                    203
@@ -109,6 +113,10 @@
 #define IDS_OK_CHECKDIGIT_COMPUTED      271
 #define IDS_ORIGINAL                    272
 #define IDS_ENCODED                     273
+#define IDS_TITLE_LOAD_ORIGINAL         274
+#define IDS_TITLE_SAVE_ORIGINAL         275
+#define IDS_TITLE_LOAD_ENCODED          276
+#define IDS_TITLE_SAVE_ENCODED          277
 #define IDD_HASH                        800
 #define IDD_CRPT                        801
 #define IDD_GUID                        802
@@ -366,6 +374,8 @@
 #define IDC_BS64_ENC_EDIT               11009
 #define IDC_BS64_ENC_COPY_BUTTON        11010
 #define IDC_BS64_ENC_DECODE_BUTTON      11011
+#define IDC_BS64_ENC_LINELENGTH_STATIC  11012
+#define IDC_BS64_ENC_LINELENGTH_COMBO   11013
 #define IDM_FILE_EXIT                   21001
 #define IDM_FILE_LOADFROM               21002
 #define IDM_FILE_SAVEAS                 21003
@@ -444,7 +454,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        272
 #define _APS_NEXT_COMMAND_VALUE         32787
-#define _APS_NEXT_CONTROL_VALUE         11015
+#define _APS_NEXT_CONTROL_VALUE         11016
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

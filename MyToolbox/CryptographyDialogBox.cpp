@@ -147,10 +147,10 @@ void CryptographyDialogBox::OnCreate()
 	DisableWindow(IDC_CRPT_ENCRYPT_BUTTON);
 	DisableWindow(IDC_CRPT_DECRYPT_BUTTON);
 	ClearStatusText();
-	InvalidateRect(GetChild(IDC_CRPT_KEY_EDIT), NULL, FALSE);
-	InvalidateRect(GetChild(IDC_CRPT_IV_EDIT), NULL, FALSE);
-	InvalidateRect(GetChild(IDC_CRPT_NONCE_EDIT), NULL, FALSE);
-	InvalidateRect(GetChild(IDC_CRPT_TAG_EDIT), NULL, FALSE);
+	InvalidateRect(IDC_CRPT_KEY_EDIT, NULL, FALSE);
+	InvalidateRect(IDC_CRPT_IV_EDIT, NULL, FALSE);
+	InvalidateRect(IDC_CRPT_NONCE_EDIT, NULL, FALSE);
+	InvalidateRect(IDC_CRPT_TAG_EDIT, NULL, FALSE);
 	m_menuView
 		.Add(ResourceString(IDS_MENU_CRPT), IDM_VIEW_CRPT);
 }
@@ -1047,7 +1047,7 @@ void CryptographyDialogBox::OnKeyLengthChange(int id)
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_KeyLength = ControlIdToKeyLength(id);
-	InvalidateRect(GetChild(IDC_CRPT_KEY_EDIT), NULL, FALSE);
+	InvalidateRect(IDC_CRPT_KEY_EDIT, NULL, FALSE);
 	SetMode(m_Mode);
 }
 
@@ -1056,7 +1056,7 @@ void CryptographyDialogBox::OnNonceLengthChange(int id)
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_NonceLength = ControlIdToNonceLength(id);
-	InvalidateRect(GetChild(IDC_CRPT_NONCE_EDIT), NULL, FALSE);
+	InvalidateRect(IDC_CRPT_NONCE_EDIT, NULL, FALSE);
 	SetMode(m_Mode);
 }
 
@@ -1065,7 +1065,7 @@ void CryptographyDialogBox::OnTagLengthChange(int id)
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_TagLength = ControlIdToTagLength(id);
-	InvalidateRect(GetChild(IDC_CRPT_TAG_EDIT), NULL, FALSE);
+	InvalidateRect(IDC_CRPT_TAG_EDIT, NULL, FALSE);
 	SetMode(m_Mode);
 }
 
@@ -1101,7 +1101,7 @@ void CryptographyDialogBox::OnKeyChange()
 	{
 		m_Key.Resize(0);
 	}
-	InvalidateRect(GetChild(IDC_CRPT_KEY_EDIT), NULL, FALSE);
+	InvalidateRect(IDC_CRPT_KEY_EDIT, NULL, FALSE);
 	SetMode(m_Mode);
 	UpdateMenus();
 	UpdateButtons();
@@ -1119,7 +1119,7 @@ void CryptographyDialogBox::OnIVChange()
 	{
 		m_IV.Resize(0);
 	}
-	InvalidateRect(GetChild(IDC_CRPT_IV_EDIT), NULL, FALSE);
+	InvalidateRect(IDC_CRPT_IV_EDIT, NULL, FALSE);
 	SetMode(m_Mode);
 	UpdateMenus();
 	UpdateButtons();
@@ -1137,7 +1137,7 @@ void CryptographyDialogBox::OnNonceChange()
 	{
 		m_Nonce.Resize(0);
 	}
-	InvalidateRect(GetChild(IDC_CRPT_NONCE_EDIT), NULL, FALSE);
+	InvalidateRect(IDC_CRPT_NONCE_EDIT, NULL, FALSE);
 	SetMode(m_Mode);
 	UpdateMenus();
 	UpdateButtons();
@@ -1155,7 +1155,7 @@ void CryptographyDialogBox::OnTagChange()
 	{
 		m_Tag.Resize(0);
 	}
-	InvalidateRect(GetChild(IDC_CRPT_TAG_EDIT), NULL, FALSE);
+	InvalidateRect(IDC_CRPT_TAG_EDIT, NULL, FALSE);
 	SetMode(m_Mode);
 	UpdateMenus();
 	UpdateButtons();

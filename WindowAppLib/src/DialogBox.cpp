@@ -129,6 +129,12 @@ UINT DialogBox::GetTextLength(int id) const
 }
 
 
+BOOL DialogBox::InvalidateRect(int id, const RECT* pRect, BOOL bErase)
+{
+    return ::InvalidateRect(GetChild(id), pRect, bErase);
+}
+
+
 String DialogBox::GetText(int id) const
 {
     LRESULT cch = SendMessage(id, WM_GETTEXTLENGTH);

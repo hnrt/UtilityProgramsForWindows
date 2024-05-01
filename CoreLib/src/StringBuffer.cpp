@@ -144,6 +144,17 @@ StringBuffer& StringBuffer::Assign(PCWSTR psz, SSIZE_T cch)
 }
 
 
+StringBuffer& StringBuffer::Assign(WCHAR c)
+{
+    if (m_ptr)
+    {
+        m_len = 0;
+        m_ptr[0] = L'\0';
+    }
+    return Append(c);
+}
+
+
 StringBuffer& StringBuffer::Format(PCWSTR pszFormat, ...)
 {
     if (m_ptr)
@@ -215,6 +226,15 @@ StringBuffer& StringBuffer::Append(PCWSTR psz, SSIZE_T cch)
             m_len += StrCopy(m_ptr + m_len, psz, cch);
         }
     }
+    return *this;
+}
+
+
+StringBuffer& StringBuffer::Append(WCHAR c)
+{
+    CheckCapacity(1);
+    m_ptr[m_len++] = c;
+    m_ptr[m_len] = L'\0';
     return *this;
 }
 

@@ -350,14 +350,14 @@ void SfidDialogBox::OnEditChanged(int id)
         switch (id)
         {
         case IDC_SFID_EDIT:
-            InvalidateRect(GetDlgItem(hwnd, IDC_SFID_EDIT), NULL, TRUE);
+            InvalidateRect(IDC_SFID_EDIT, NULL, TRUE);
             break;
         case IDC_SFID_KEYPREFIX_EDIT:
         case IDC_SFID_INSTANCE_EDIT:
         case IDC_SFID_UNIQUEID_EDIT:
-            InvalidateRect(GetDlgItem(hwnd, IDC_SFID_KEYPREFIX_EDIT), NULL, TRUE);
-            InvalidateRect(GetDlgItem(hwnd, IDC_SFID_INSTANCE_EDIT), NULL, TRUE);
-            InvalidateRect(GetDlgItem(hwnd, IDC_SFID_UNIQUEID_EDIT), NULL, TRUE);
+            InvalidateRect(IDC_SFID_KEYPREFIX_EDIT, NULL, TRUE);
+            InvalidateRect(IDC_SFID_INSTANCE_EDIT, NULL, TRUE);
+            InvalidateRect(IDC_SFID_UNIQUEID_EDIT, NULL, TRUE);
             break;
         default:
             break;
@@ -528,10 +528,10 @@ void SfidDialogBox::ApplyModification(int id)
     SetLengthText(IDC_SFID_KLENGTH_STATIC, SFID_KEYPREFIX_LENGTH, GetTextLength(IDC_SFID_KEYPREFIX_EDIT));
     SetLengthText(IDC_SFID_ILENGTH_STATIC, SFID_INSTANCE_LENGTH, GetTextLength(IDC_SFID_INSTANCE_EDIT));
     SetLengthText(IDC_SFID_ULENGTH_STATIC, SFID_UNIQUEID_LENGTH, GetTextLength(IDC_SFID_UNIQUEID_EDIT));
-    InvalidateRect(GetDlgItem(hwnd, IDC_SFID_EDIT), NULL, TRUE);
-    InvalidateRect(GetDlgItem(hwnd, IDC_SFID_KEYPREFIX_EDIT), NULL, TRUE);
-    InvalidateRect(GetDlgItem(hwnd, IDC_SFID_INSTANCE_EDIT), NULL, TRUE);
-    InvalidateRect(GetDlgItem(hwnd, IDC_SFID_UNIQUEID_EDIT), NULL, TRUE);
+    InvalidateRect(IDC_SFID_EDIT, NULL, TRUE);
+    InvalidateRect(IDC_SFID_KEYPREFIX_EDIT, NULL, TRUE);
+    InvalidateRect(IDC_SFID_INSTANCE_EDIT, NULL, TRUE);
+    InvalidateRect(IDC_SFID_UNIQUEID_EDIT, NULL, TRUE);
     UpdateEditControlMenus(m_CurrentEdit);
     UpdateControlsState();
 }
