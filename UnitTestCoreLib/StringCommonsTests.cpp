@@ -82,11 +82,11 @@ namespace UnitTestCoreLib
 			Assert::AreEqual((SIZE_T)9, n);
 		}
 
-		TEST_METHOD(StrCopy_01)
+		TEST_METHOD(StrCpy_01)
 		{
 			const WCHAR s[16] = { L'A', L'B', L'C', L'‚ ', L'‚¢', L'‚¤', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0' };
 			WCHAR t[16] = { L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@' };
-			SIZE_T n = StrCopy(t, s);
+			SIZE_T n = StrCpy(t, s);
 			Assert::AreEqual((SIZE_T)6, n);
 			Assert::AreEqual(L'A', t[0]);
 			Assert::AreEqual(L'B', t[1]);
@@ -106,11 +106,11 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(L'@', t[15]);
 		}
 
-		TEST_METHOD(StrCopy_02)
+		TEST_METHOD(StrCpy_02)
 		{
 			const WCHAR s[16] = { L'A', L'B', L'C', L'‚ ', L'‚¢', L'‚¤', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0' };
 			WCHAR t[16] = { L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@' };
-			SIZE_T n = StrCopy(t, s, -100);
+			SIZE_T n = StrCpy(t, s, -100);
 			Assert::AreEqual((SIZE_T)6, n);
 			Assert::AreEqual(L'A', t[0]);
 			Assert::AreEqual(L'B', t[1]);
@@ -130,11 +130,11 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(L'@', t[15]);
 		}
 
-		TEST_METHOD(StrCopy_03)
+		TEST_METHOD(StrCpy_03)
 		{
 			const WCHAR s[16] = { L'A', L'B', L'C', L'‚ ', L'‚¢', L'‚¤', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0' };
 			WCHAR t[16] = { L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@' };
-			SIZE_T n = StrCopy(t, s, 0);
+			SIZE_T n = StrCpy(t, s, 0);
 			Assert::AreEqual((SIZE_T)0, n);
 			Assert::AreEqual(L'\0', t[0]);
 			Assert::AreEqual(L'@', t[1]);
@@ -154,11 +154,11 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(L'@', t[15]);
 		}
 
-		TEST_METHOD(StrCopy_04)
+		TEST_METHOD(StrCpy_04)
 		{
 			const WCHAR s[16] = { L'A', L'B', L'C', L'‚ ', L'‚¢', L'‚¤', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0' };
 			WCHAR t[16] = { L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@' };
-			SIZE_T n = StrCopy(t, s, 5);
+			SIZE_T n = StrCpy(t, s, 5);
 			Assert::AreEqual((SIZE_T)5, n);
 			Assert::AreEqual(L'A', t[0]);
 			Assert::AreEqual(L'B', t[1]);
@@ -178,11 +178,11 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(L'@', t[15]);
 		}
 
-		TEST_METHOD(StrCopy_05)
+		TEST_METHOD(StrCpy_05)
 		{
 			const WCHAR s[16] = { L'A', L'B', L'C', L'‚ ', L'‚¢', L'‚¤', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0' };
 			WCHAR t[16] = { L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@' };
-			SIZE_T n = StrCopy(t, s, _countof(s));
+			SIZE_T n = StrCpy(t, s, _countof(s));
 			Assert::AreEqual((SIZE_T)6, n);
 			Assert::AreEqual(L'A', t[0]);
 			Assert::AreEqual(L'B', t[1]);
@@ -202,11 +202,11 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(L'@', t[15]);
 		}
 
-		TEST_METHOD(StrCopy_01A)
+		TEST_METHOD(StrCpy_01A)
 		{
 			const CHAR s[16] = { 'A', 'B', 'C', '\x82', '\xa0', '\x82', '\xa2', '\x82', '\xa4', '\0', '\0', '\0', '\0', '\0', '\0', '\0' };
 			CHAR t[16] = { '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@' };
-			SIZE_T n = StrCopy(t, s);
+			SIZE_T n = StrCpy(t, s);
 			Assert::AreEqual((SIZE_T)9, n);
 			Assert::AreEqual('A', t[0]);
 			Assert::AreEqual('B', t[1]);
@@ -226,11 +226,11 @@ namespace UnitTestCoreLib
 			Assert::AreEqual('@', t[15]);
 		}
 
-		TEST_METHOD(StrCopy_02A)
+		TEST_METHOD(StrCpy_02A)
 		{
 			const CHAR s[16] = { 'A', 'B', 'C', '\x82', '\xa0', '\x82', '\xa2', '\x82', '\xa4', '\0', '\0', '\0', '\0', '\0', '\0', '\0' };
 			CHAR t[16] = { '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@' };
-			SIZE_T n = StrCopy(t, s, -100);
+			SIZE_T n = StrCpy(t, s, -100);
 			Assert::AreEqual((SIZE_T)9, n);
 			Assert::AreEqual('A', t[0]);
 			Assert::AreEqual('B', t[1]);
@@ -250,11 +250,11 @@ namespace UnitTestCoreLib
 			Assert::AreEqual('@', t[15]);
 		}
 
-		TEST_METHOD(StrCopy_03A)
+		TEST_METHOD(StrCpy_03A)
 		{
 			const CHAR s[16] = { 'A', 'B', 'C', '\x82', '\xa0', '\x82', '\xa2', '\x82', '\xa4', '\0', '\0', '\0', '\0', '\0', '\0', '\0' };
 			CHAR t[16] = { '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@' };
-			SIZE_T n = StrCopy(t, s, 0);
+			SIZE_T n = StrCpy(t, s, 0);
 			Assert::AreEqual((SIZE_T)0, n);
 			Assert::AreEqual('\0', t[0]);
 			Assert::AreEqual('@', t[1]);
@@ -274,11 +274,11 @@ namespace UnitTestCoreLib
 			Assert::AreEqual('@', t[15]);
 		}
 
-		TEST_METHOD(StrCopy_04A)
+		TEST_METHOD(StrCpy_04A)
 		{
 			const CHAR s[16] = { 'A', 'B', 'C', '\x82', '\xa0', '\x82', '\xa2', '\x82', '\xa4', '\0', '\0', '\0', '\0', '\0', '\0', '\0' };
 			CHAR t[16] = { '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@' };
-			SIZE_T n = StrCopy(t, s, 5);
+			SIZE_T n = StrCpy(t, s, 5);
 			Assert::AreEqual((SIZE_T)5, n);
 			Assert::AreEqual('A', t[0]);
 			Assert::AreEqual('B', t[1]);
@@ -298,11 +298,11 @@ namespace UnitTestCoreLib
 			Assert::AreEqual('@', t[15]);
 		}
 
-		TEST_METHOD(StrCopy_05A)
+		TEST_METHOD(StrCpy_05A)
 		{
 			const CHAR s[16] = { 'A', 'B', 'C', '\x82', '\xa0', '\x82', '\xa2', '\x82', '\xa4', '\0', '\0', '\0', '\0', '\0', '\0', '\0' };
 			CHAR t[16] = { '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@' };
-			SIZE_T n = StrCopy(t, s, _countof(t));
+			SIZE_T n = StrCpy(t, s, _countof(t));
 			Assert::AreEqual((SIZE_T)9, n);
 			Assert::AreEqual('A', t[0]);
 			Assert::AreEqual('B', t[1]);

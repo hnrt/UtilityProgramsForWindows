@@ -36,7 +36,7 @@ namespace hnrt
 	/// No characters beyond the terminating null character are to be copied from the source string buffer.
 	/// A negative value specifies to copy all the characters from the source string buffer.</param>
 	/// <returns>Number of WCHARs copied, not including the terminating null character.</returns>
-	SIZE_T StrCopy(WCHAR* dest, const WCHAR* src, SSIZE_T count = -1);
+	SIZE_T StrCpy(WCHAR* dest, const WCHAR* src, SSIZE_T count = -1);
 
 	/// <summary>
 	/// The function copies characters between string buffers.
@@ -48,7 +48,7 @@ namespace hnrt
 	/// No characters beyond the terminating null character are to be copied from the source string buffer.
 	/// A negative value specifies to copy all the characters from the source string buffer.</param>
 	/// <returns>Number of CHARs copied, not including the terminating null character.</returns>
-	SIZE_T StrCopy(CHAR* dest, const CHAR* src, SSIZE_T count = -1);
+	SIZE_T StrCpy(CHAR* dest, const CHAR* src, SSIZE_T count = -1);
 
 	/// <summary>
 	/// The function copies characters between string buffers.
@@ -332,12 +332,12 @@ namespace hnrt
 	/// The function searches a null-terminated string for a character.
 	/// </summary>
 	/// <param name="str">String to search.</param>
-	/// <param name="c">Character to search for.</param>
+	/// <param name="c">UNICODE codepoint to search for.</param>
 	/// <param name="size">Size of the string buffer in WCHARs.
 	/// A negative value indicates that the size is unspecified.</param>
 	/// <returns>Zero-based index of the character found in the string.
 	/// -1 if the character is not found.</returns>
-	int IndexOf(const WCHAR* str, WCHAR c, SSIZE_T size = -1);
+	int IndexOf(const WCHAR* str, int c, SSIZE_T size = -1);
 
 	/// <summary>
 	/// The function searches a null-terminated string for a character.
@@ -348,7 +348,7 @@ namespace hnrt
 	/// A negative value indicates that the size is unspecified.</param>
 	/// <returns>Zero-based index of the character found in the string.
 	/// -1 if the character is not found.</returns>
-	int IndexOf(const CHAR* str, CHAR c, SSIZE_T size = -1);
+	int IndexOf(const CHAR* str, int c, SSIZE_T size = -1);
 
 	/// <summary>
 	/// The function searches a null-terminated string for a sequence of characters.
@@ -376,12 +376,12 @@ namespace hnrt
 	/// The function searches a null-terminated string for a character in the reverse order.
 	/// </summary>
 	/// <param name="str">String to search.</param>
-	/// <param name="c">Character to search for.</param>
+	/// <param name="c">UNICODE codepoint to search for.</param>
 	/// <param name="size">Size of the string buffer in WCHARs.
 	/// A negative value indicates that the size is unspecified.</param>
 	/// <returns>Zero-based index of the sequence of characters found in the string.
 	/// -1 if the character is not found.</returns>
-	int LastIndexOf(const WCHAR* str, WCHAR c, SSIZE_T size = -1);
+	int LastIndexOf(const WCHAR* str, int c, SSIZE_T size = -1);
 
 	/// <summary>
 	/// The function searches a null-terminated string for a character in the reverse order.
@@ -392,7 +392,7 @@ namespace hnrt
 	/// A negative value indicates that the size is unspecified.</param>
 	/// <returns>Zero-based index of the sequence of characters found in the string.
 	/// -1 if the character is not found.</returns>
-	int LastIndexOf(const CHAR* str, CHAR c, SSIZE_T size = -1);
+	int LastIndexOf(const CHAR* str, int c, SSIZE_T size = -1);
 
 	/// <summary>
 	/// The function searches a null-terminated string for a sequence of characters in the reverse order.
@@ -598,3 +598,8 @@ namespace hnrt
 	/// Zero if no conversion can be performed or an underflow occurs.</returns>
 	double StrToDouble(PCSTR str, PSTR* endptr);
 }
+
+#define IS_BASIC_MULTILINGUAL_PLANE(c) (static_cast<unsigned int>(c)<0x10000)
+#define IS_BMP(c) IS_BASIC_MULTILINGUAL_PLANE(c)
+#define HIGH_SURROGATE(c) (HIGH_SURROGATE_START+((static_cast<unsigned int>(c)-0x10000)/0x400))
+#define  LOW_SURROGATE(c)  (LOW_SURROGATE_START+((static_cast<unsigned int>(c)-0x10000)%0x400))

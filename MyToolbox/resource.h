@@ -117,6 +117,7 @@
 #define IDS_TITLE_SAVE_ORIGINAL         275
 #define IDS_TITLE_LOAD_ENCODED          276
 #define IDS_TITLE_SAVE_ENCODED          277
+#define IDS_NO_LINE_BREAK               278
 #define IDD_HASH                        800
 #define IDD_CRPT                        801
 #define IDD_GUID                        802

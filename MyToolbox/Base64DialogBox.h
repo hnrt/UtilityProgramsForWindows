@@ -36,7 +36,7 @@ namespace hnrt
 		BOOL ParseOriginal(ByteString& bs);
 		void DisplayOriginal();
 		void UpdateControlsState();
-		void InitializeLineLengthComboBox();
+		void InitializeLineLengthComboBox() const;
 
 		BOOL m_bEncodingError;
 		BOOL m_bDecodingError;

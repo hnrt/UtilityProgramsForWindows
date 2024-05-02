@@ -22,13 +22,13 @@ namespace hnrt
         StringBuffer& Assign(const StringBuffer&);
         StringBuffer& Assign(const String&);
         StringBuffer& Assign(PCWSTR, SSIZE_T = -1);
-        StringBuffer& Assign(WCHAR);
+        StringBuffer& Assign(int);
         StringBuffer& Format(PCWSTR pszFormat, ...);
         StringBuffer& VaFormat(PCWSTR pszFormat, va_list argList);
         StringBuffer& Append(const StringBuffer&);
         StringBuffer& Append(const String&);
         StringBuffer& Append(PCWSTR, SSIZE_T = -1);
-        StringBuffer& Append(WCHAR);
+        StringBuffer& Append(int);
         StringBuffer& AppendFormat(PCWSTR pszFormat, ...);
         StringBuffer& VaAppendFormat(PCWSTR pszFormat, va_list argList);
         StringBuffer& Replace(WCHAR, WCHAR, SIZE_T = 0, int = -1, SIZE_T* = nullptr);
@@ -39,11 +39,11 @@ namespace hnrt
         StringBuffer& operator =(const StringBuffer&);
         StringBuffer& operator =(const String&);
         StringBuffer& operator =(PCWSTR);
-        StringBuffer& operator =(WCHAR);
+        StringBuffer& operator =(int);
         StringBuffer& operator +=(const StringBuffer&);
         StringBuffer& operator +=(const String&);
         StringBuffer& operator +=(PCWSTR);
-        StringBuffer& operator +=(WCHAR);
+        StringBuffer& operator +=(int);
         PWCHAR get_Ptr() const;
         SIZE_T get_Cap() const;
         SIZE_T get_Len() const;
@@ -98,7 +98,7 @@ namespace hnrt
         return Assign(psz);
     }
 
-    inline StringBuffer& StringBuffer::operator =(WCHAR c)
+    inline StringBuffer& StringBuffer::operator =(int c)
     {
         return Assign(c);
     }
@@ -118,7 +118,7 @@ namespace hnrt
         return Append(psz);
     }
 
-    inline StringBuffer& StringBuffer::operator +=(WCHAR c)
+    inline StringBuffer& StringBuffer::operator +=(int c)
     {
         return Append(c);
     }

@@ -340,7 +340,7 @@ XSTRING& XSTRING::TruncateTail(SIZE_T cch)
 }
 
 
-int XSTRING::IndexOf(XCHAR c, SIZE_T fromIndex) const
+int XSTRING::IndexOf(int c, SIZE_T fromIndex) const
 {
     SIZE_T length = Len;
     if (m_psz && fromIndex < length)
@@ -357,37 +357,8 @@ int XSTRING::IndexOf(const XSTRING& s, SIZE_T fromIndex) const
     SIZE_T length = Len;
     if (m_psz && fromIndex < length)
     {
-        PXSTR psz = s.m_psz;
-        SSIZE_T cch = s.Len;
-        if (cch)
-        {
-            cch--;
-            XCHAR c = *psz++;
-            int index = hnrt::IndexOf(m_psz + fromIndex, c, length - fromIndex);
-            PXSTR pCur = index >= 0 ? (m_psz + fromIndex + static_cast<SIZE_T>(index)) : nullptr;
-            if (cch)
-            {
-                PCXSTR pEnd = m_psz + length;
-                while (pCur)
-                {
-                    pCur++;
-                    if (pEnd < pCur + cch)
-                    {
-                        break;
-                    }
-                    if (!Compare(psz, cch, pCur, cch))
-                    {
-                        return static_cast<int>((pCur - 1) - m_psz);
-                    }
-                    int index = hnrt::IndexOf(pCur, c, pEnd - pCur);
-                    pCur = index >= 0 ? (pCur + index) : nullptr;
-                }
-            }
-            else if (pCur)
-            {
-                return static_cast<int>(pCur - m_psz);
-            }
-        }
+        int index = hnrt::IndexOf(m_psz + fromIndex, s, length - fromIndex);
+        return index >= 0 ? (static_cast<int>(fromIndex) + index) : -1;
     }
     return -1;
 }
@@ -429,6 +400,50 @@ bool XSTRING::EndsWith(PCXSTR psz, SSIZE_T cch) const
 }
 
 
+XSTRING XSTRING::Replace(PCXSTR psz1, PCXSTR psz2, int count) const
+{
+    if (m_psz)
+    {
+        SSIZE_T len = Len;
+        SSIZE_T len1 = StrLen(psz1);
+        PXCHAR pEnd = m_psz + len;
+        PXCHAR pCur = m_psz;
+        int cnt1 = 0;
+        while (pCur < pEnd)
+        {
+            SSIZE_T index = hnrt::IndexOf(pCur, psz1, pEnd - pCur);
+            if (index < 0 || ++cnt1 >= count)
+            {
+                break;
+            }
+            pCur += index + len1;
+        }
+        if (cnt1)
+        {
+            SSIZE_T len2 = StrLen(psz2);
+            SSIZE_T delta = (len2 - len1) * cnt1;
+            if (len + delta)
+            {
+                XSTRING sz(len + delta);
+                PXCHAR pDst = sz.m_psz;
+                pCur = m_psz;
+                while (cnt1--)
+                {
+                    SSIZE_T index = hnrt::IndexOf(pCur, psz1, pEnd - pCur);
+                    pDst += MemCpy(pDst, pCur, index);
+                    pDst += MemCpy(pDst, psz2, len2);
+                    pCur += index + len1;
+                }
+                pDst += MemCpy(pDst, pCur, pEnd - pCur);
+                pDst[0] = static_cast<XCHAR>(0);
+                return sz;
+            }
+        }
+    }
+    return *this;
+}
+
+
 XSTRING XSTRING::Wrap(UINT width, PCXSTR pszNewLine) const
 {
     if (!width)
@@ -441,15 +456,15 @@ XSTRING XSTRING::Wrap(UINT width, PCXSTR pszNewLine) const
     XSTRING sz(len + delta);
     PXCHAR pSrc = &m_psz[0];
     PXCHAR pEnd = &m_psz[len];
-    PXCHAR pDst = const_cast<PXCHAR>(sz.Ptr);
+    PXCHAR pDst = sz.m_psz;
     while (pSrc + width <= pEnd)
     {
-        pDst += StrCopy(pDst, pSrc, width);
-        pDst += StrCopy(pDst, pszNewLine, lenNewLine);
+        pDst += MemCpy(pDst, pSrc, width);
+        pDst += MemCpy(pDst, pszNewLine, lenNewLine);
         pSrc += width;
     }
-    pDst += StrCopy(pDst, pSrc, pEnd - pSrc);
-    pDst[0] = (XCHAR)0;
+    pDst += MemCpy(pDst, pSrc, pEnd - pSrc);
+    pDst[0] = static_cast<XCHAR>(0);
     return sz;
 }
 

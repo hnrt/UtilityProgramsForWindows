@@ -28,66 +28,9 @@
 using namespace hnrt;
 
 
-static String BreakLines(String sz, int lines)
+static String BreakLines(String sz, int charsPerLine)
 {
-    bool bContained = false;
-    for (PCWCH pCur = sz; *pCur; pCur++)
-    {
-        WCHAR c = *pCur;
-        if (c == L'\r' || c == L'\n')
-        {
-            bContained = true;
-            break;
-        }
-    }
-    if (bContained)
-    {
-        StringBuffer buf;
-        for (PCWCH pCur = sz; *pCur; pCur++)
-        {
-            WCHAR c = *pCur;
-            if (c != L'\r' && c != L'\n')
-            {
-                buf += c;
-            }
-        }
-        if (lines)
-        {
-            StringBuffer buf2;
-            PCWCH pCur = buf.Ptr;
-            PCWCH pEnd = buf.Ptr + buf.Len;
-            while (pCur + lines < pEnd)
-            {
-                buf2.Append(pCur, lines);
-                buf2.Append(L"\r\n");
-                pCur += lines;
-            }
-            buf2.Append(pCur, pEnd - pCur);
-            return String(buf2);
-        }
-        else
-        {
-            return String(buf);
-        }
-    }
-    else if (lines)
-    {
-        StringBuffer buf;
-        PCWCH pCur = sz.Ptr;
-        PCWCH pEnd = sz.Ptr + sz.Len;
-        while (pCur + lines < pEnd)
-        {
-            buf.Append(pCur, lines);
-            buf.Append(L"\r\n");
-            pCur += lines;
-        }
-        buf.Append(pCur, pEnd - pCur);
-        return String(buf);
-    }
-    else
-    {
-        return sz;
-    }
+    return sz.Replace(L"\r\n", L"").Replace(L"\n", L"").Wrap(charsPerLine);
 }
 
 
@@ -123,8 +66,8 @@ void Base64DialogBox::OnCreate()
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_READ);
     if (rc == ERROR_SUCCESS)
     {
-        StrCopy(m_szOriginalPath, RegistryValue::GetSZ(hKey, REGVAL_ORGPATH));
-        StrCopy(m_szEncodedPath, RegistryValue::GetSZ(hKey, REGVAL_ENCPATH));
+        StrCpy(m_szOriginalPath, RegistryValue::GetSZ(hKey, REGVAL_ORGPATH));
+        StrCpy(m_szEncodedPath, RegistryValue::GetSZ(hKey, REGVAL_ENCPATH));
         ComboBoxSetSelection(IDC_BS64_ENC_LINELENGTH_COMBO, RegistryValue::GetDWORD(hKey, REGVAL_CHARSPERLINE));
     }
     OnCommand(IDC_BS64_ORG_EDIT | (EN_CHANGE << 16), 0);
@@ -313,9 +256,11 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         }
         else
         {
-            DisableWindow(IDC_BS64_ORG_CODEPAGE_COMBO);
-            DisableWindow(IDC_BS64_ORG_LINEBREAK_COMBO);
+            m_bEncodingError = FALSE;
+            SetText(IDC_BS64_ORG_STATIC, ResourceString(IDS_ORIGINAL));
+            InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
         }
+        UpdateControlsState();
         break;
     case IDC_BS64_ORG_TEXT_RADIO:
         if (m_Original.Len)
@@ -324,9 +269,11 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         }
         else
         {
-            EnableWindow(IDC_BS64_ORG_CODEPAGE_COMBO);
-            EnableWindow(IDC_BS64_ORG_LINEBREAK_COMBO);
+            m_bEncodingError = FALSE;
+            SetText(IDC_BS64_ORG_STATIC, ResourceString(IDS_ORIGINAL));
+            InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
         }
+        UpdateControlsState();
         break;
     case IDC_BS64_ORG_CODEPAGE_COMBO:
         if (idNotif == CBN_SELCHANGE)
@@ -829,11 +776,10 @@ void Base64DialogBox::UpdateControlsState()
 }
 
 
-void Base64DialogBox::InitializeLineLengthComboBox()
+void Base64DialogBox::InitializeLineLengthComboBox() const
 {
-    ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"None", 0);
-    ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"72 ", 72);
+    ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, ResourceString(IDS_NO_LINE_BREAK), 0);
+    ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"72", 72);
     ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"144", 144);
     ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"216", 216);
-    ComboBoxSetSelection(IDC_BS64_ENC_LINELENGTH_COMBO, 0);
 }

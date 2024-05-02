@@ -34,10 +34,11 @@ namespace hnrt
         StringAcp& VaAppendFormat(PCSTR, va_list);
         StringAcp& TruncateHead(SIZE_T);
         StringAcp& TruncateTail(SIZE_T);
-        int IndexOf(CHAR, SIZE_T = 0) const;
+        int IndexOf(int, SIZE_T = 0) const;
         int IndexOf(const StringAcp&, SIZE_T = 0) const;
         bool StartsWith(PCSTR, SSIZE_T = -1) const;
         bool EndsWith(PCSTR, SSIZE_T = -1) const;
+        StringAcp Replace(PCSTR, PCSTR, int = INT_MAX) const;
         StringAcp Wrap(UINT, PCSTR = "\r\n") const;
         long ToLong(long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
         unsigned long ToUnsignedLong(unsigned long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);

@@ -17,7 +17,7 @@ StringBuffer::StringBuffer(const StringBuffer& other)
 {
     if (m_ptr)
     {
-        StrCopy(m_ptr, other.m_ptr, other.m_len);
+        StrCpy(m_ptr, other.m_ptr, other.m_len);
     }
 }
 
@@ -48,11 +48,11 @@ StringBuffer::StringBuffer(SSIZE_T capacity, PCWSTR psz)
         m_len = StrLen(psz, capacity);
         if (m_len < m_cap)
         {
-            StrCopy(m_ptr, psz, m_len);
+            StrCpy(m_ptr, psz, m_len);
         }
         else
         {
-            StrCopy(m_ptr, psz, m_len);
+            StrCpy(m_ptr, psz, m_len);
             set_Len(m_len - 1);
         }
     }
@@ -61,7 +61,7 @@ StringBuffer::StringBuffer(SSIZE_T capacity, PCWSTR psz)
         m_len = wcslen(psz);
         m_cap = m_len + 1;
         m_ptr = Allocate<WCHAR>(m_cap);
-        StrCopy(m_ptr, psz, m_len);
+        StrCpy(m_ptr, psz, m_len);
     }
 }
 
@@ -72,7 +72,7 @@ StringBuffer::StringBuffer(const String& other)
     , m_len(other.Len)
     , m_inc(1)
 {
-    StrCopy(m_ptr, other.Ptr, other.Len);
+    StrCpy(m_ptr, other.Ptr, other.Len);
 }
 
 
@@ -144,7 +144,7 @@ StringBuffer& StringBuffer::Assign(PCWSTR psz, SSIZE_T cch)
 }
 
 
-StringBuffer& StringBuffer::Assign(WCHAR c)
+StringBuffer& StringBuffer::Assign(int c)
 {
     if (m_ptr)
     {
@@ -186,7 +186,7 @@ StringBuffer& StringBuffer::Append(const StringBuffer& other)
     if (other.Len)
     {
         CheckCapacity(other.Len);
-        m_len += StrCopy(m_ptr + m_len, other.Ptr, other.Len);
+        m_len += StrCpy(m_ptr + m_len, other.Ptr, other.Len);
     }
     return *this;
 }
@@ -197,7 +197,7 @@ StringBuffer& StringBuffer::Append(const String& other)
     if (other.Len)
     {
         CheckCapacity(other.Len);
-        m_len += StrCopy(m_ptr + m_len, other.Ptr, other.Len);
+        m_len += StrCpy(m_ptr + m_len, other.Ptr, other.Len);
     }
     return *this;
 }
@@ -212,7 +212,7 @@ StringBuffer& StringBuffer::Append(PCWSTR psz, SSIZE_T cch)
             if (psz)
             {
                 CheckCapacity(cch);
-                m_len += StrCopy(m_ptr + m_len, psz, cch);
+                m_len += StrCpy(m_ptr + m_len, psz, cch);
             }
             else
             {
@@ -223,18 +223,28 @@ StringBuffer& StringBuffer::Append(PCWSTR psz, SSIZE_T cch)
         {
             cch = StrLen(psz);
             CheckCapacity(cch);
-            m_len += StrCopy(m_ptr + m_len, psz, cch);
+            m_len += StrCpy(m_ptr + m_len, psz, cch);
         }
     }
     return *this;
 }
 
 
-StringBuffer& StringBuffer::Append(WCHAR c)
+StringBuffer& StringBuffer::Append(int c)
 {
-    CheckCapacity(1);
-    m_ptr[m_len++] = c;
-    m_ptr[m_len] = L'\0';
+    if (IS_BMP(c))
+    {
+        CheckCapacity(1);
+        m_ptr[m_len++] = c;
+        m_ptr[m_len] = L'\0';
+    }
+    else
+    {
+        CheckCapacity(2);
+        m_ptr[m_len++] = HIGH_SURROGATE(c);
+        m_ptr[m_len++] = LOW_SURROGATE(c);
+        m_ptr[m_len] = L'\0';
+    }
     return *this;
 }
 

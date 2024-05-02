@@ -18,7 +18,7 @@ SIZE_T hnrt::StrLen(const CHAR* str, SSIZE_T numberOfElements)
 }
 
 
-SIZE_T hnrt::StrCopy(WCHAR* dest, const WCHAR* src, SSIZE_T count)
+SIZE_T hnrt::StrCpy(WCHAR* dest, const WCHAR* src, SSIZE_T count)
 {
 	SIZE_T cch = StrLen(src, count);
 	wmemcpy_s(dest, cch, src, cch);
@@ -27,7 +27,7 @@ SIZE_T hnrt::StrCopy(WCHAR* dest, const WCHAR* src, SSIZE_T count)
 }
 
 
-SIZE_T hnrt::StrCopy(CHAR* dest, const CHAR* src, SSIZE_T count)
+SIZE_T hnrt::StrCpy(CHAR* dest, const CHAR* src, SSIZE_T count)
 {
 	SIZE_T cch = StrLen(src, count);
 	memcpy_s(dest, cch, src, cch);
@@ -414,32 +414,32 @@ SIZE_T hnrt::VaStrCatLen(StringOptions option, const CHAR* str, va_list argptr)
 template<typename T>
 SIZE_T DoVaStrCat(StringOptions option, const T* str, va_list argptr, T* buf)
 {
-	T* pCur = buf + StrCopy(buf, str);
+	T* pCur = buf + StrCpy(buf, str);
 	switch (option)
 	{
 	case CONCAT9:
-		pCur += StrCopy(pCur, va_arg(argptr, const T*));
+		pCur += StrCpy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT8:
-		pCur += StrCopy(pCur, va_arg(argptr, const T*));
+		pCur += StrCpy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT7:
-		pCur += StrCopy(pCur, va_arg(argptr, const T*));
+		pCur += StrCpy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT6:
-		pCur += StrCopy(pCur, va_arg(argptr, const T*));
+		pCur += StrCpy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT5:
-		pCur += StrCopy(pCur, va_arg(argptr, const T*));
+		pCur += StrCpy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT4:
-		pCur += StrCopy(pCur, va_arg(argptr, const T*));
+		pCur += StrCpy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT3:
-		pCur += StrCopy(pCur, va_arg(argptr, const T*));
+		pCur += StrCpy(pCur, va_arg(argptr, const T*));
 		//FALLTHROUGH
 	case CONCAT2:
-		pCur += StrCopy(pCur, va_arg(argptr, const T*));
+		pCur += StrCpy(pCur, va_arg(argptr, const T*));
 		break;
 	case CONCAT:
 		while (true)
@@ -449,7 +449,7 @@ SIZE_T DoVaStrCat(StringOptions option, const T* str, va_list argptr, T* buf)
 			{
 				break;
 			}
-			pCur += StrCopy(pCur, psz);
+			pCur += StrCpy(pCur, psz);
 		}
 		break;
 	default:
@@ -471,14 +471,24 @@ SIZE_T hnrt::VaStrCat(StringOptions option, const CHAR* str, va_list argptr, CHA
 }
 
 
-int hnrt::IndexOf(const WCHAR* str, WCHAR c, SSIZE_T size)
+int hnrt::IndexOf(const WCHAR* str, int c, SSIZE_T size)
 {
-	const WCHAR* p = wmemchr(str, c, c ? StrLen(str, size) : (size >= 0 ? size : INT_MAX));
-	return p ? static_cast<int>(p - str) : -1;
+	if (IS_BMP(c))
+	{
+		const WCHAR* p = wmemchr(str, static_cast<wchar_t>(c), c ? StrLen(str, size) : (size >= 0 ? size : INT_MAX));
+		return p ? static_cast<int>(p - str) : -1;
+	}
+	else
+	{
+		WCHAR seq[3] = { 0 };
+		seq[0] = HIGH_SURROGATE(c);
+		seq[1] = LOW_SURROGATE(c);
+		return IndexOf(str, seq, size);
+	}
 }
 
 
-int hnrt::IndexOf(const CHAR* str, CHAR c, SSIZE_T size)
+int hnrt::IndexOf(const CHAR* str, int c, SSIZE_T size)
 {
 	const CHAR* p = reinterpret_cast<const CHAR*>(memchr(str, c & 0xFF, c ? StrLen(str, size) : (size >= 0 ? size : INT_MAX)));
 	return p ? static_cast<int>(p - str) : -1;
@@ -557,16 +567,32 @@ int hnrt::IndexOf(const CHAR* str, const CHAR* seq, SSIZE_T size)
 }
 
 
-int hnrt::LastIndexOf(const WCHAR* str, WCHAR c, SSIZE_T size)
+int hnrt::LastIndexOf(const WCHAR* str, int c, SSIZE_T size)
 {
 	if (c)
 	{
-		const WCHAR* pCur = str + StrLen(str, size);
-		while (str <= --pCur)
+		if (IS_BMP(c))
 		{
-			if (*pCur == c)
+			const WCHAR* pCur = str + StrLen(str, size);
+			while (str <= --pCur)
 			{
-				return static_cast<int>(pCur - str);
+				if (pCur[0] == c)
+				{
+					return static_cast<int>(pCur - str);
+				}
+			}
+		}
+		else
+		{
+			int c1 = HIGH_SURROGATE(c);
+			int c2 = LOW_SURROGATE(c);
+			const WCHAR* pCur = str + StrLen(str, size);
+			while (str < --pCur)
+			{
+				if (pCur[0] == c2 && pCur[-1] == c1)
+				{
+					return static_cast<int>(&pCur[-1] - str);
+				}
 			}
 		}
 		return -1;
@@ -587,7 +613,7 @@ int hnrt::LastIndexOf(const WCHAR* str, WCHAR c, SSIZE_T size)
 }
 
 
-int hnrt::LastIndexOf(const CHAR* str, CHAR c, SSIZE_T size)
+int hnrt::LastIndexOf(const CHAR* str, int c, SSIZE_T size)
 {
 	if (c)
 	{
