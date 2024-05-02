@@ -32,6 +32,7 @@ namespace hnrt
         ByteString& Resize(size_t);
         ByteString& Fill(int);
         ByteString Clone() const;
+        String ToString(UINT = CP_UTF8) const;
         void* get_Ptr() const;
         size_t get_Len() const;
 
@@ -47,6 +48,7 @@ namespace hnrt
         static int Compare(const ByteString&, const ByteString&);
         static ByteString FromHex(PCWSTR);
         static ByteString FromHex(PCSTR);
+        static ByteString ToText(UINT, PCWSTR, SSIZE_T = -1);
     };
 
     inline bool ByteString::operator ==(const ByteString& other) const

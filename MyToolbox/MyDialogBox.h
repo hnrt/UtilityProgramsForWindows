@@ -5,10 +5,6 @@
 #include "hnrt/LastModified.h"
 #include "hnrt/String.h"
 
-#define CP_AUTODETECT 0
-#define CP_UTF16 1200
-#define CP_EUCJP 20932
-
 namespace hnrt
 {
 	class MyDialogBox

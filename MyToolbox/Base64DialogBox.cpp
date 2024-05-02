@@ -8,7 +8,7 @@
 #include "hnrt/WhileInScope.h"
 #include "hnrt/Base64.h"
 #include "hnrt/StringBuffer.h"
-#include "hnrt/Exception.h"
+#include "hnrt/Win32Exception.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/FileMapper.h"
 #include "hnrt/FileWriter.h"
@@ -17,6 +17,9 @@
 #include "resource.h"
 
 
+#define REGVAL_FORMAT L"Format"
+#define REGVAL_CODEPAGE L"CodePage"
+#define REGVAL_LINEBREAK L"LineBreak"
 #define REGVAL_ORGPATH L"OriginalPath"
 #define REGVAL_ENCPATH L"EncodedPath"
 #define REGVAL_CHARSPERLINE L"CharsPerLine"
@@ -61,11 +64,25 @@ void Base64DialogBox::OnCreate()
     InitializeLineBreakComboBox(IDC_BS64_ORG_LINEBREAK_COMBO);
     InitializeLineLengthComboBox();
     ButtonCheck(IDC_BS64_ORG_HEX_RADIO);
-    OnCommand(IDC_BS64_ORG_HEX_RADIO, 0);
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_READ);
     if (rc == ERROR_SUCCESS)
     {
+        String szFormat = RegistryValue::GetSZ(hKey, REGVAL_FORMAT, String(L"Hex"));
+        if (!StrCmp(szFormat, -1, L"Text", -1))
+        {
+            ButtonCheck(IDC_BS64_ORG_HEX_RADIO, FALSE);
+            ButtonCheck(IDC_BS64_ORG_TEXT_RADIO, TRUE);
+            OnCommand(IDC_BS64_ORG_TEXT_RADIO, 0);
+        }
+        else
+        {
+            ButtonCheck(IDC_BS64_ORG_HEX_RADIO, TRUE);
+            ButtonCheck(IDC_BS64_ORG_TEXT_RADIO, FALSE);
+            OnCommand(IDC_BS64_ORG_HEX_RADIO, 0);
+        }
+        ComboBoxSetSelection(IDC_BS64_ORG_CODEPAGE_COMBO, RegistryValue::GetDWORD(hKey, REGVAL_CODEPAGE, CP_UTF8));
+        ComboBoxSetSelection(IDC_BS64_ORG_LINEBREAK_COMBO, RegistryValue::GetDWORD(hKey, REGVAL_LINEBREAK, 0x0d0a));
         StrCpy(m_szOriginalPath, RegistryValue::GetSZ(hKey, REGVAL_ORGPATH));
         StrCpy(m_szEncodedPath, RegistryValue::GetSZ(hKey, REGVAL_ENCPATH));
         ComboBoxSetSelection(IDC_BS64_ENC_LINELENGTH_COMBO, RegistryValue::GetDWORD(hKey, REGVAL_CHARSPERLINE));
@@ -83,6 +100,16 @@ void Base64DialogBox::OnDestroy()
     LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_WRITE);
     if (rc == ERROR_SUCCESS)
     {
+        if (ButtonIsChecked(IDC_BS64_ORG_HEX_RADIO))
+        {
+            RegistryValue::SetSZ(hKey, REGVAL_FORMAT, L"Hex");
+        }
+        else
+        {
+            RegistryValue::SetSZ(hKey, REGVAL_FORMAT, L"Text");
+        }
+        RegistryValue::SetDWORD(hKey, REGVAL_CODEPAGE, ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO));
+        RegistryValue::SetDWORD(hKey, REGVAL_LINEBREAK, ComboBoxGetSelection(IDC_BS64_ORG_LINEBREAK_COMBO));
         RegistryValue::SetSZ(hKey, REGVAL_ORGPATH, m_szOriginalPath);
         RegistryValue::SetSZ(hKey, REGVAL_ENCPATH, m_szEncodedPath);
         RegistryValue::SetDWORD(hKey, REGVAL_CHARSPERLINE, ComboBoxGetSelection(IDC_BS64_ENC_LINELENGTH_COMBO));
@@ -250,18 +277,6 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         }
         break;
     case IDC_BS64_ORG_HEX_RADIO:
-        if (m_Original.Len)
-        {
-            DisplayOriginal();
-        }
-        else
-        {
-            m_bEncodingError = FALSE;
-            SetText(IDC_BS64_ORG_STATIC, ResourceString(IDS_ORIGINAL));
-            InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
-        }
-        UpdateControlsState();
-        break;
     case IDC_BS64_ORG_TEXT_RADIO:
         if (m_Original.Len)
         {
@@ -494,66 +509,6 @@ void Base64DialogBox::OnClear()
 }
 
 
-static void ConvertToLF(StringBuffer& buf, String sz)
-{
-    PCWCH pCur = sz.Ptr;
-    PCWCH pEnd = sz.Ptr + sz.Len;
-    PCWCH pStop = pEnd - 1;
-    PCWCH pStart = pCur;
-    while (pCur < pStop)
-    {
-        if (pCur[0] == L'\r' && pCur[1] == L'\n')
-        {
-            buf.Append(pStart, pCur - pStart);
-            buf.Append(L"\n", 1);
-            pCur += 2;
-            pStart = pCur;
-        }
-        else
-        {
-            pCur++;
-        }
-    }
-    buf.Append(pStart, pEnd - pStart);
-}
-
-
-static void ConvertToCRLF(StringBuffer& buf, String sz)
-{
-    PCWCH pCur = sz.Ptr;
-    PCWCH pEnd = sz.Ptr + sz.Len;
-    PCWCH pStop = pEnd - 1;
-    PCWCH pStart = pCur;
-    while (pCur < pStop)
-    {
-        if (pCur[0] == L'\r' && pCur[1] == L'\n')
-        {
-            pCur += 2;
-        }
-        else if (pCur[0] == L'\n')
-        {
-            buf.Append(pStart, pCur - pStart);
-            buf.Append(L"\r\n", 2);
-            pCur++;
-            pStart = pCur;
-        }
-        else
-        {
-            pCur++;
-        }
-    }
-    if (pCur < pEnd && pCur[0] == L'\n')
-    {
-        buf.Append(pStart, pCur - pStart);
-        buf.Append(L"\r\n", 2);
-    }
-    else
-    {
-        buf.Append(pStart, pEnd - pStart);
-    }
-}
-
-
 void Base64DialogBox::Encode()
 {
     WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
@@ -605,62 +560,28 @@ void Base64DialogBox::Decode()
 BOOL Base64DialogBox::ParseOriginal(ByteString& bs)
 {
     m_bEncodingError = FALSE;
-    String szOriginal = GetText(IDC_BS64_ORG_EDIT);
-    if (szOriginal.Len)
+    String sz = GetText(IDC_BS64_ORG_EDIT);
+    if (sz.Len)
     {
-        if (ButtonIsChecked(IDC_BS64_ORG_HEX_RADIO))
+        try
         {
-            try
+            if (ButtonIsChecked(IDC_BS64_ORG_HEX_RADIO))
             {
-                bs = ByteString::FromHex(szOriginal);
+                bs = ByteString::FromHex(sz);
             }
-            catch (Exception e)
+            else
             {
-                m_bEncodingError = TRUE;
-                SetText(IDC_BS64_ORG_STATIC, String(PRINTF, L"%s [%s]", ResourceString(IDS_ORIGINAL), L"Parse error"));
+                if (ComboBoxGetSelection(IDC_BS64_ORG_LINEBREAK_COMBO) == 0x0a)
+                {
+                    sz = sz.Replace(L"\r\n", L"\n");
+                }
+                bs = ByteString::ToText(ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO), sz.Ptr, sz.Len);
             }
         }
-        else
+        catch (Exception e)
         {
-            StringBuffer buf(szOriginal.Len);
-            if (ComboBoxGetSelection(IDC_BS64_ORG_LINEBREAK_COMBO) == 0x0a)
-            {
-                ConvertToLF(buf, szOriginal);
-            }
-            else
-            {
-                ConvertToCRLF(buf, szOriginal);
-            }
-            if (szOriginal.Len != buf.Len)
-            {
-                szOriginal = buf;
-            }
-            int CodePage = ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO);
-            if (CodePage == CP_UTF16)
-            {
-                bs = ByteString(szOriginal.Ptr, szOriginal.Len * sizeof(WCHAR));
-            }
-            else
-            {
-                DWORD dwFlags = CodePage == CP_EUCJP ? 0 : WC_ERR_INVALID_CHARS;
-                int length = WideCharToMultiByte(CodePage, dwFlags, szOriginal.Ptr, static_cast<int>(szOriginal.Len), NULL, 0, NULL, NULL);
-                if (length > 0)
-                {
-                    bs.Resize(length);
-                    BOOL bConvError = FALSE;
-                    WideCharToMultiByte(CodePage, dwFlags, szOriginal.Ptr, static_cast<int>(szOriginal.Len), reinterpret_cast<LPSTR>(bs.Ptr), length, NULL, &bConvError);
-                    if (bConvError)
-                    {
-                        m_bEncodingError = TRUE;
-                        SetText(IDC_BS64_ORG_STATIC, String(PRINTF, L"%s [%s]", ResourceString(IDS_ORIGINAL), L"Conversion error"));
-                    }
-                }
-                else
-                {
-                    m_bEncodingError = TRUE;
-                    SetText(IDC_BS64_ORG_STATIC, String(PRINTF, L"%s [%s]", ResourceString(IDS_ORIGINAL), ErrorMessage::Get(GetLastError())));
-                }
-            }
+            m_bEncodingError = TRUE;
+            SetText(IDC_BS64_ORG_STATIC, String(PRINTF, L"%s [%s]", ResourceString(IDS_ORIGINAL), L"Parse error"));
         }
     }
     else
@@ -684,48 +605,19 @@ void Base64DialogBox::DisplayOriginal()
         }
         else
         {
-            int CodePage = ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO);
-            if (CodePage == CP_UTF16)
+            try
             {
-                if ((m_Original.Len % sizeof(WCHAR)) == 0)
-                {
-                    int length = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, reinterpret_cast<LPCWCH>(m_Original.Ptr), static_cast<int>(m_Original.Len / sizeof(WCHAR)), NULL, 0, NULL, NULL);
-                    if (length > 0)
-                    {
-                        sz = String(reinterpret_cast<LPCWCH>(m_Original.Ptr), static_cast<int>(m_Original.Len / sizeof(WCHAR)));
-                    }
-                    else
-                    {
-                        m_bEncodingError = TRUE;
-                        SetText(IDC_BS64_ORG_STATIC, String(PRINTF, L"%s [%s]", ResourceString(IDS_ORIGINAL), L"Conversion error"));
-                    }
-                }
-                else
-                {
-                    m_bEncodingError = TRUE;
-                    SetText(IDC_BS64_ORG_STATIC, String(PRINTF, L"%s [%s]", ResourceString(IDS_ORIGINAL), L"Invalid length"));
-                }
+                sz = m_Original.ToString(ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO));
             }
-            else
+            catch (Exception e)
             {
-                int length = MultiByteToWideChar(CodePage, MB_PRECOMPOSED, reinterpret_cast<LPCCH>(m_Original.Ptr), static_cast<int>(m_Original.Len), NULL, 0);
-                if (length > 0)
-                {
-                    StringBuffer buf(length);
-                    MultiByteToWideChar(CodePage, MB_PRECOMPOSED, reinterpret_cast<LPCCH>(m_Original.Ptr), static_cast<int>(m_Original.Len), buf, length);
-                    sz = String(buf, length);
-                }
-                else
-                {
-                    m_bEncodingError = TRUE;
-                    SetText(IDC_BS64_ORG_STATIC, String(PRINTF, L"%s [%s]", ResourceString(IDS_ORIGINAL), ErrorMessage::Get(GetLastError())));
-                }
+                m_bEncodingError = TRUE;
             }
         }
         if (m_bEncodingError)
         {
-            InvalidateRect(IDC_BS64_ORG_STATIC, NULL, TRUE);
             InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
+            SetText(IDC_BS64_ORG_STATIC, String(PRINTF, L"%s [%s]", ResourceString(IDS_ORIGINAL), L"No translation"));
         }
         else
         {

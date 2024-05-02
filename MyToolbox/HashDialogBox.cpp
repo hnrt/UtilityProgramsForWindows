@@ -18,6 +18,7 @@
 #include "hnrt/RegistryValue.h"
 #include "hnrt/WindowHandle.h"
 #include "hnrt/WhileInScope.h"
+#include "hnrt/StringCommons.h"
 #include "hnrt/Debug.h"
 
 

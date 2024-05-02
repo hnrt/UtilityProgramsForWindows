@@ -12,6 +12,7 @@
 #include "hnrt/WindowHandle.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/String.h"
+#include "hnrt/StringCommons.h"
 #include "hnrt/UnicodeEscape.h"
 #include "hnrt/Exception.h"
 

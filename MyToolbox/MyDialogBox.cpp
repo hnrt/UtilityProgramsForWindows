@@ -12,6 +12,7 @@
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/Unicode.h"
 #include "hnrt/WhileInScope.h"
+#include "hnrt/StringCommons.h"
 #include <map>
 
 

@@ -12,6 +12,7 @@
 #include "hnrt/Clipboard.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/Buffer.h"
+#include "hnrt/StringCommons.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Debug.h"
 

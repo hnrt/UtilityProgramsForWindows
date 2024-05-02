@@ -1,7 +1,8 @@
 #include "pch.h"
 #include "hnrt/ByteString.h"
 #include "hnrt/RefBin.h"
-#include "hnrt/Exception.h"
+#include "hnrt/StringCommons.h"
+#include "hnrt/Win32Exception.h"
 
 
 using namespace hnrt;
@@ -164,6 +165,46 @@ ByteString ByteString::Clone() const
     ByteString bs(len);
     memcpy_s(bs.m_ptr, len, m_ptr, len);
     return bs;
+}
+
+
+String ByteString::ToString(UINT uCodePage) const
+{
+    if (Len > 0)
+    {
+        if (uCodePage == CP_UTF16)
+        {
+            if ((Len % sizeof(WCHAR)) != 0)
+            {
+                throw Exception(L"ByteString::ToString: An extra byte follows.");
+            }
+            int len2 = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, reinterpret_cast<LPCWCH>(Ptr), static_cast<int>(Len / sizeof(WCHAR)), NULL, 0, NULL, NULL);
+            if (len2 == 0)
+            {
+                throw Exception(L"ByteString::ToString: No translation.");
+            }
+            return String(reinterpret_cast<LPCWCH>(Ptr), static_cast<int>(Len / sizeof(WCHAR)));
+        }
+        else
+        {
+            int len2 = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, reinterpret_cast<LPCCH>(Ptr), static_cast<int>(Len), NULL, 0);
+            if (len2 == 0)
+            {
+                throw Exception(L"ByteString::ToString: No translation.");
+            }
+            String sz(len2, L'\0');
+            len2 = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, reinterpret_cast<LPCCH>(Ptr), static_cast<int>(Len), const_cast<LPWCH>(sz.Ptr), static_cast<int>(sz.Len));
+            if (len2 == 0)
+            {
+                throw Exception(L"ByteString::ToString: No translation.");
+            }
+            return sz;
+        }
+    }
+    else
+    {
+        return String::Empty;
+    }
 }
 
 
@@ -344,4 +385,49 @@ ByteString ByteString::FromHex(PCSTR psz)
         c = *pCur++;
     }
     return bs;
+}
+
+
+ByteString ByteString::ToText(UINT uCodePage, PCWSTR psz, SSIZE_T len)
+{
+    if (len < 0)
+    {
+        len = StrLen(psz);
+    }
+    if (len > 0)
+    {
+        if (uCodePage == CP_UTF16)
+        {
+            return ByteString(psz, len * sizeof(WCHAR));
+        }
+        else
+        {
+            DWORD dwFlags = uCodePage == CP_EUCJP ? 0 : WC_ERR_INVALID_CHARS;
+            BOOL bConvError = FALSE;
+            int len2 = WideCharToMultiByte(uCodePage, dwFlags, psz, static_cast<int>(len), NULL, 0, NULL, &bConvError);
+            if (len2 == 0)
+            {
+                throw Win32Exception(GetLastError(), L"ByteString: Conversion error.");
+            }
+            else if (bConvError)
+            {
+                throw Win32Exception(ERROR_INVALID_DATA, L"ByteString: Conversion error.");
+            }
+            ByteString bs(len2);
+            len2 = WideCharToMultiByte(uCodePage, dwFlags, psz, static_cast<int>(len), reinterpret_cast<LPSTR>(bs.Ptr), static_cast<int>(bs.Len), NULL, &bConvError);
+            if (len2 == 0)
+            {
+                throw Win32Exception(GetLastError(), L"ByteString: Conversion error.");
+            }
+            else if (bConvError)
+            {
+                throw Win32Exception(ERROR_INVALID_DATA, L"ByteString: Conversion error.");
+            }
+            return bs;
+        }
+    }
+    else
+    {
+        return ByteString(0);
+    }
 }
