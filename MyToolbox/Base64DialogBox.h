@@ -34,9 +34,15 @@ namespace hnrt
 		void Encode();
 		void Decode();
 		BOOL ParseOriginal(ByteString& bs);
-		void DisplayOriginal();
+		void ApplyOriginal();
+		void SetOriginal(PCWSTR pszContent = L"");
+		void SetOriginalError(PCWSTR pszReason);
+		void SetEncoded(PCWSTR pszContent = L"", BOOL bEncoded = FALSE);
+		void SetEncodedError(PCWSTR pszReason);
 		void UpdateControlsState();
 		void InitializeLineLengthComboBox() const;
+		BOOL GetLoadFromFileName(PWSTR psz, PCWSTR pszTitle) const;
+		BOOL GetSaveAsFileName(PWSTR psz, PCWSTR pszTitle) const;
 
 		BOOL m_bEncodingError;
 		BOOL m_bDecodingError;
