@@ -8,11 +8,17 @@
 #include "hnrt/Clipboard.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/ErrorMessage.h"
+#include "hnrt/WhileInScope.h"
+#include "hnrt/StringCommons.h"
+#include "hnrt/Exception.h"
 #include "hnrt/Debug.h"
 
 
 #define REGVAL_FORMAT L"Format"
 #define REGVAL_LAST L"Last"
+
+
+#define GUID_TIMER1000MS 10200
 
 
 using namespace hnrt;
@@ -23,6 +29,7 @@ GuidDialogBox::GuidDialogBox()
     , m_guid()
     , m_szFormatted()
     , m_uCurrentlySelected(IDC_GUID_UPPERCASE_RADIO)
+    , m_bError(FALSE)
 {
 }
 
@@ -30,6 +37,7 @@ GuidDialogBox::GuidDialogBox()
 void GuidDialogBox::OnCreate()
 {
     MyDialogBox::OnCreate();
+    SetFont(IDC_GUID_EDIT, GetApp<MyToolbox>().GetFontForData());
     ByteString initData;
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_READ);
@@ -44,7 +52,7 @@ void GuidDialogBox::OnCreate()
         {
         }
     }
-    SetFont(IDC_GUID_RESULT_STATIC, GetApp<MyToolbox>().GetFontForData());
+    ButtonCheck(m_uCurrentlySelected);
     if (initData.Len == sizeof(m_guid))
     {
         memcpy_s(&m_guid, initData.Len, initData.Ptr, initData.Len);
@@ -54,7 +62,6 @@ void GuidDialogBox::OnCreate()
     {
         ChangeGuid();
     }
-    ButtonCheck(m_uCurrentlySelected);
     m_menuView
         .Add(ResourceString(IDS_MENU_GUID), IDM_VIEW_GUID);
 }
@@ -69,14 +76,14 @@ void GuidDialogBox::OnDestroy()
         RegistryValue::SetDWORD(hKey, REGVAL_FORMAT, m_uCurrentlySelected - IDC_GUID_UPPERCASE_RADIO + 1);
         RegistryValue::SetSZ(hKey, REGVAL_LAST, String::ToHex(&m_guid, sizeof(m_guid), UPPERCASE));
     }
-    SetFont(IDC_GUID_RESULT_STATIC, NULL);
+    SetFont(IDC_GUID_EDIT, NULL);
     MyDialogBox::OnDestroy();
 }
 
 
 void GuidDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
-    WindowLayout::UpdateLayout(hDlg, IDC_GUID_RESULT_STATIC, 0, 0, cxDelta, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_GUID_EDIT, 0, 0, cxDelta, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_GUID_COPY_BUTTON, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_GUID_NEW_BUTTON, cxDelta, 0, 0, 0);
 }
@@ -85,6 +92,7 @@ void GuidDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void GuidDialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
+    KillTimer(hwnd, GUID_TIMER1000MS);
     m_menuView
         .Enable(IDM_VIEW_GUID, MF_ENABLED);
 }
@@ -94,15 +102,24 @@ void GuidDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
     m_menuEdit
-        .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE)
-        .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPY);
+        .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPY)
+        .AddSeparator();
+    AddEditControlMenus(m_CurrentEdit);
+    m_menuEdit
+        .AddSeparator()
+        .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE);
     m_menuView
         .Enable(IDM_VIEW_GUID, MF_DISABLED);
+    SetTimer(hwnd, GUID_TIMER1000MS, 1000, NULL);
 }
 
 
 INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
+    if (m_cProcessing)
+    {
+        return TRUE;
+    }
     UNREFERENCED_PARAMETER(lParam);
     UINT idChild = LOWORD(wParam);
     UINT idNotif = HIWORD(wParam);
@@ -118,6 +135,21 @@ INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         if (idNotif == BN_CLICKED)
         {
             ChangeGuid();
+        }
+        break;
+    case IDC_GUID_EDIT:
+        if (idNotif == EN_CHANGE)
+        {
+            OnEditChanged(idChild);
+            ParseContent();
+        }
+        else if (idNotif == EN_SETFOCUS)
+        {
+            OnEditSetFocus(idChild);
+        }
+        else if (idNotif == EN_KILLFOCUS)
+        {
+            OnEditKillFocus(idChild);
         }
         break;
     case IDC_GUID_UPPERCASE_RADIO:
@@ -141,6 +173,40 @@ INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
+INT_PTR GuidDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
+{
+    switch (wParam)
+    {
+    case GUID_TIMER1000MS:
+        UpdateEditControlMenus(m_CurrentEdit);
+        break;
+    default:
+        break;
+    }
+    return 0;
+}
+
+
+INT_PTR GuidDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
+{
+    HDC hdc = reinterpret_cast<HDC>(wParam);
+    int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
+    int len = GetTextLength(id);
+    switch (id)
+    {
+    case IDC_GUID_EDIT:
+        SetTextColor(hdc,
+            m_bError ? RGB_ERROR :
+            GetSysColor(COLOR_WINDOWTEXT));
+        SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
+    default:
+        break;
+    }
+    return 0;
+}
+
+
 void GuidDialogBox::OnCopy()
 {
     if (!Clipboard::Write(hwnd, m_szFormatted))
@@ -161,12 +227,15 @@ void GuidDialogBox::ChangeGuid()
     HRESULT hRes = CoCreateGuid(&m_guid);
     if (hRes == S_OK)
     {
+        m_bError = FALSE;
         ChangeFormat();
+        EnableWindow(IDC_GUID_COPY_BUTTON);
     }
     else
     {
+        m_bError = TRUE;
         m_szFormatted.Format(L"CoCreateGuid failed. (%08X)", (int)hRes);
-        SetText(IDC_GUID_RESULT_STATIC, m_szFormatted);
+        SetText(IDC_GUID_EDIT, m_szFormatted);
         DisableWindow(IDC_GUID_COPY_BUTTON);
     }
 }
@@ -174,6 +243,7 @@ void GuidDialogBox::ChangeGuid()
 
 void GuidDialogBox::ChangeFormat(UINT uSelected)
 {
+    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
     if (uSelected)
     {
         m_uCurrentlySelected = uSelected;
@@ -181,8 +251,9 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
     OLECHAR buf[64];
     if (!StringFromGUID2(m_guid, buf, _countof(buf)))
     {
+        m_bError = TRUE;
         m_szFormatted = L"StringFromGUID2 failed.";
-        SetText(IDC_GUID_RESULT_STATIC, m_szFormatted);
+        SetText(IDC_GUID_EDIT, m_szFormatted);
         DisableWindow(IDC_GUID_COPY_BUTTON);
         return;
     }
@@ -251,6 +322,271 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
         m_szFormatted.Assign(&buf[1], 36);
         break;
     }
-    SetText(IDC_GUID_RESULT_STATIC, m_szFormatted);
+    m_bError = FALSE;
+    SetText(IDC_GUID_EDIT, m_szFormatted);
     EnableWindow(IDC_GUID_COPY_BUTTON);
+}
+
+
+void GuidDialogBox::ParseContent()
+{
+    try
+    {
+        String sz = GetText(IDC_GUID_EDIT);
+        PCWCHAR pCur = sz;
+        GUID guid = { 0 };
+        switch (m_uCurrentlySelected)
+        {
+        case IDC_GUID_UPPERCASE_RADIO:
+        case IDC_GUID_LOWERCASE_RADIO:
+            pCur = ParseChar(Parse32Bits(SkipWS(pCur), guid.Data1), L'-');
+            pCur = ParseChar(Parse16Bits(pCur, guid.Data2), L'-');
+            pCur = ParseChar(Parse16Bits(pCur, guid.Data3), L'-');
+            pCur = ParseChar(Parse8Bits(pCur, &guid.Data4[0], 2), L'-');
+            ParseChar(SkipWS(Parse8Bits(pCur, &guid.Data4[2], 6)), L'\0');
+            break;
+        case IDC_GUID_IMPLEMENT_RADIO:
+            /*
+            * // {CC9CCEEF-195A-4539-9378-D083818A61C6}
+            * IMPLEMENT_OLECREATE(<<class>>, <<external_name>>,
+            * 0xcc9cceef, 0x195a, 0x4539, 0x93, 0x78, 0xd0, 0x83, 0x81, 0x8a, 0x61, 0xc6);
+            */
+        case IDC_GUID_DEFINE_RADIO:
+            /*
+            * // {CC9CCEEF-195A-4539-9378-D083818A61C6}
+            * DEFINE_GUID(<<name>>,
+            * 0xcc9cceef, 0x195a, 0x4539, 0x93, 0x78, 0xd0, 0x83, 0x81, 0x8a, 0x61, 0xc6);
+            */
+            pCur = ParseChar(SkipWS(Parse32Bits(SkipTo(pCur, L"0x"), guid.Data1)), L',');
+            pCur = ParseChar(SkipWS(Parse16Bits(ParseString(SkipWS(pCur), L"0x"), guid.Data2)), L',');
+            pCur = ParseChar(SkipWS(Parse16Bits(ParseString(SkipWS(pCur), L"0x"), guid.Data3)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[0], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[1], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[2], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[3], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[4], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[5], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[6], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[7], 1)), L')');
+            break;
+        case IDC_GUID_STRUCT_RADIO:
+            /*
+            * // {CC9CCEEF-195A-4539-9378-D083818A61C6}
+            * static const GUID <<name>> =
+            * { 0xcc9cceef, 0x195a, 0x4539, { 0x93, 0x78, 0xd0, 0x83, 0x81, 0x8a, 0x61, 0xc6 } };
+            */
+            pCur = ParseChar(Parse32Bits(SkipTo(pCur, L"0x"), guid.Data1), L',');
+            pCur = ParseChar(Parse16Bits(ParseString(SkipWS(pCur), L"0x"), guid.Data2), L',');
+            pCur = ParseChar(Parse16Bits(ParseString(SkipWS(pCur), L"0x"), guid.Data3), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(ParseChar(SkipWS(pCur), L'{')), L"0x"), &guid.Data4[0], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[1], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[2], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[3], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[4], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[5], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[6], 1)), L',');
+            pCur = ParseChar(SkipWS(Parse8Bits(ParseString(SkipWS(pCur), L"0x"), &guid.Data4[7], 1)), L'}');
+            break;
+        case IDC_GUID_REGISTRY_RADIO:
+            /*
+            * {CC9CCEEF-195A-4539-9378-D083818A61C6}
+            */
+            pCur = ParseChar(Parse32Bits(ParseChar(SkipWS(pCur), L'{'), guid.Data1), L'-');
+            pCur = ParseChar(Parse16Bits(pCur, guid.Data2), L'-');
+            pCur = ParseChar(Parse16Bits(pCur, guid.Data3), L'-');
+            pCur = ParseChar(Parse8Bits(pCur, &guid.Data4[0], 2), L'-');
+            pCur = ParseChar(Parse8Bits(pCur, &guid.Data4[2], 6), L'}');
+            break;
+        case IDC_GUID_SQUARE_RADIO:
+            /*
+            * [Guid("CC9CCEEF-195A-4539-9378-D083818A61C6")]
+            */
+            pCur = ParseChar(Parse32Bits(ParseString(SkipWS(pCur), L"[Guid(\""), guid.Data1), L'-');
+            pCur = ParseChar(Parse16Bits(pCur, guid.Data2), L'-');
+            pCur = ParseChar(Parse16Bits(pCur, guid.Data3), L'-');
+            pCur = ParseChar(Parse8Bits(pCur, &guid.Data4[0], 2), L'-');
+            pCur = ParseString(Parse8Bits(pCur, &guid.Data4[2], 6), L"\")]");
+            break;
+        case IDC_GUID_ANGLE_RADIO:
+            /*
+            * <Guid("CC9CCEEF-195A-4539-9378-D083818A61C6")>
+            */
+            pCur = ParseChar(Parse32Bits(ParseString(SkipWS(pCur), L"<Guid(\""), guid.Data1), L'-');
+            pCur = ParseChar(Parse16Bits(pCur, guid.Data2), L'-');
+            pCur = ParseChar(Parse16Bits(pCur, guid.Data3), L'-');
+            pCur = ParseChar(Parse8Bits(pCur, &guid.Data4[0], 2), L'-');
+            pCur = ParseString(Parse8Bits(pCur, &guid.Data4[2], 6), L"\")>");
+            break;
+        case IDC_GUID_HEX_RADIO:
+            ParseChar(SkipWS(Parse8Bits(SkipWS(pCur), reinterpret_cast<unsigned char*>(&guid), sizeof(guid))), L'\0');
+            break;
+        default:
+            return;
+        }
+        if (m_bError)
+        {
+            m_bError = FALSE;
+            InvalidateRect(IDC_GUID_EDIT, NULL, TRUE);
+        }
+        m_guid = guid;
+    }
+    catch (Exception e)
+    {
+        if (!m_bError)
+        {
+            m_bError = TRUE;
+            InvalidateRect(IDC_GUID_EDIT, NULL, TRUE);
+        }
+    }
+}
+
+
+PCWCHAR GuidDialogBox::Parse32Bits(PCWCHAR pCur, unsigned long& parsed)
+{
+    PWCHAR pStop = nullptr;
+    unsigned long value = StrToUnsignedLong(pCur, &pStop, 16);
+    if (pStop == pCur + 8)
+    {
+        parsed = value;
+        return pStop;
+    }
+    else
+    {
+        throw Exception(L"Parse error.");
+    }
+}
+
+
+PCWCHAR GuidDialogBox::Parse16Bits(PCWCHAR pCur, unsigned short& parsed)
+{
+    PWCHAR pStop = nullptr;
+    unsigned long value = StrToUnsignedLong(pCur, &pStop, 16);
+    if (pStop == pCur + 4)
+    {
+        parsed = value;
+        return pStop;
+    }
+    else
+    {
+        throw Exception(L"Parse error.");
+    }
+}
+
+
+PCWCHAR GuidDialogBox::Parse8Bits(PCWCHAR pCur, unsigned char parsed[], size_t length)
+{
+    for (size_t index = 0; index < length; index++)
+    {
+        unsigned char b;
+        WCHAR c = *pCur++;
+        if (L'0' <= c && c <= L'9')
+        {
+            b = c - L'0';
+        }
+        else if (L'A' <= c && c <= L'F')
+        {
+            b = c - L'A' + 10;
+        }
+        else if (L'a' <= c && c <= L'f')
+        {
+            b = c - L'a' + 10;
+        }
+        else
+        {
+            throw Exception(L"Parse error.");
+        }
+        b <<= 4;
+        c = *pCur++;
+        if (L'0' <= c && c <= L'9')
+        {
+            b |= c - L'0';
+        }
+        else if (L'A' <= c && c <= L'F')
+        {
+            b |= c - L'A' + 10;
+        }
+        else if (L'a' <= c && c <= L'f')
+        {
+            b |= c - L'a' + 10;
+        }
+        else
+        {
+            throw Exception(L"Parse error.");
+        }
+        parsed[index] = b;
+    }
+    return pCur;
+}
+
+
+PCWCHAR GuidDialogBox::ParseChar(PCWCHAR pCur, WCHAR c)
+{
+    if (*pCur == c)
+    {
+        return pCur + 1;
+    }
+    else
+    {
+        throw Exception(L"Parse error.");
+    }
+}
+
+
+PCWCHAR GuidDialogBox::ParseString(PCWCHAR pCur, PCWSTR psz)
+{
+    SIZE_T m = StrLen(pCur);
+    SIZE_T n = StrLen(psz);
+    if (m >= n && !StrCmp(pCur, n, psz, n))
+    {
+        return pCur + n;
+    }
+    else
+    {
+        throw Exception(L"Parse error.");
+    }
+}
+
+
+PCWCHAR GuidDialogBox::SkipTo(PCWCHAR pCur, WCHAR c)
+{
+    while (true)
+    {
+        WCHAR next = *pCur++;
+        if (next == c)
+        {
+            break;
+        }
+        else if (next == L'\0')
+        {
+            throw Exception(L"Parse error.");
+        }
+
+    }
+    return pCur;
+}
+
+
+PCWCHAR GuidDialogBox::SkipTo(PCWCHAR pCur, PCWSTR psz)
+{
+    PCWCHAR pEnd = pCur + StrLen(pCur);
+    WCHAR c = *psz++;
+    SIZE_T n = StrLen(psz);
+    while (true)
+    {
+        pCur = SkipTo(pCur, c);
+        if (pCur + n <= pEnd && !StrCmp(pCur, n, psz, n))
+        {
+            return pCur + n;
+        }
+    }
+}
+
+
+PCWCHAR GuidDialogBox::SkipWS(PCWCHAR pCur)
+{
+    while (iswspace(*pCur))
+    {
+        pCur++;
+    }
+    return pCur;
 }

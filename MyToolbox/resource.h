@@ -168,7 +168,7 @@
 #define IDC_GUID_REGISTRY_RADIO         10205
 #define IDC_GUID_SQUARE_RADIO           10206
 #define IDC_GUID_ANGLE_RADIO            10207
-#define IDC_GUID_RESULT_STATIC          10208
+#define IDC_GUID_EDIT                   10208
 #define IDC_GUID_HEX_RADIO              10209
 #define IDC_GUID_COPY_BUTTON            10210
 #define IDC_GUID_NEW_BUTTON             10211
@@ -455,7 +455,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        272
 #define _APS_NEXT_COMMAND_VALUE         32787
-#define _APS_NEXT_CONTROL_VALUE         11016
+#define _APS_NEXT_CONTROL_VALUE         11017
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif
