@@ -17,16 +17,11 @@ namespace hnrt
 		void operator =(const PercentCodecDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
-		virtual void OnLoadFrom();
-		virtual void OnSaveAs();
-		virtual void OnCut();
-		virtual void OnCopy();
-		virtual void OnPaste();
-		virtual void OnDelete();
-		virtual void OnSelectAll();
-		virtual void OnCopyAll();
+		virtual void OnLoad1From();
+		virtual void OnSave1As();
+		virtual void OnLoad2From();
+		virtual void OnSave2As();
 		virtual void OnClear();
-		virtual void OnExecute();
 		virtual void OnSettingChanged(UINT);
 
 	private:
@@ -35,8 +30,8 @@ namespace hnrt
 		virtual void OnDestroy();
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
+		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
-		void OnSelectSource(int);
 		bool OnEncode();
 		bool OnDecode();
 		UINT GetCodePage() const;
@@ -44,15 +39,8 @@ namespace hnrt
 		void Encode(WCHAR c, UINT uCodePage, PWCHAR& pOut, PWCHAR pOutBound, UINT offset);
 		void Decode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut);
 		UINT GetDecodedOffset(PCWSTR pszIn, UINT cbOut);
-		void ClearStatus();
-		void UpdateMenus();
-
-		int get_CurrentEdit() const;
-		String& get_CurrentPath() const;
-		void set_CurrentPath(const String&);
-
-		__declspec(property(get = get_CurrentEdit)) int CurrentEdit;
-		__declspec(property(get = get_CurrentPath, put = set_CurrentPath)) String& CurrentPath;
+		void ClearStatus(int id = 0);
+		void UpdateControlsState();
 
 		bool m_bEncodingError;
 		bool m_bDecodingError;
