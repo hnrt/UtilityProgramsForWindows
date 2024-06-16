@@ -463,7 +463,7 @@ PCWCHAR GuidDialogBox::Parse16Bits(PCWCHAR pCur, unsigned short& parsed)
     unsigned long value = StrToUnsignedLong(pCur, &pStop, 16);
     if (pStop == pCur + 4)
     {
-        parsed = value;
+        parsed = static_cast<unsigned short>(value);
         return pStop;
     }
     else
