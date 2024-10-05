@@ -13,6 +13,7 @@
 #include "hnrt/Unicode.h"
 #include "hnrt/WhileInScope.h"
 #include "hnrt/StringCommons.h"
+#include "hnrt/Debug.h"
 #include <map>
 
 
@@ -121,6 +122,7 @@ INT_PTR MyDialogBox::OnEditCommand(int idChild, int idNotif)
 
 void MyDialogBox::OnEditSetFocus(int id)
 {
+	DBGPUT(L"MyDialogBox::OnEditSetFocus(%d)", id);
 	if (m_CurrentEdit != id)
 	{
 		m_CurrentEdit = id;
@@ -131,6 +133,7 @@ void MyDialogBox::OnEditSetFocus(int id)
 
 void MyDialogBox::OnEditKillFocus(int id)
 {
+	DBGPUT(L"MyDialogBox::OnEditKillFocus(%d)", id);
 	if (m_CurrentEdit == id)
 	{
 		m_CurrentEdit = 0;
@@ -141,6 +144,7 @@ void MyDialogBox::OnEditKillFocus(int id)
 
 void MyDialogBox::OnEditChanged(int id)
 {
+	DBGPUT(L"MyDialogBox::OnEditChanged(%d)", id);
 	if (m_CurrentEdit == id)
 	{
 		UpdateEditControlMenus(m_CurrentEdit);
@@ -202,15 +206,18 @@ void MyDialogBox::UpdateEditControlMenus(int id)
 
 void MyDialogBox::OnCut()
 {
+	DBGPUT(L"MyDialogBox::OnCut: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditCut(m_CurrentEdit);
+		OnEditChanged(m_CurrentEdit);
 	}
 }
 
 
 void MyDialogBox::OnCopy()
 {
+	DBGPUT(L"MyDialogBox::OnCopy: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditCopy(m_CurrentEdit);
@@ -220,24 +227,29 @@ void MyDialogBox::OnCopy()
 
 void MyDialogBox::OnPaste()
 {
+	DBGPUT(L"MyDialogBox::OnPaste: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditPaste(m_CurrentEdit);
+		OnEditChanged(m_CurrentEdit);
 	}
 }
 
 
 void MyDialogBox::OnDelete()
 {
+	DBGPUT(L"MyDialogBox::OnDelete: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditDelete(m_CurrentEdit);
+		OnEditChanged(m_CurrentEdit);
 	}
 }
 
 
 void MyDialogBox::OnSelectAll()
 {
+	DBGPUT(L"MyDialogBox::OnSelectAll: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditSelectAll(m_CurrentEdit);
@@ -247,10 +259,22 @@ void MyDialogBox::OnSelectAll()
 
 void MyDialogBox::OnCopyAll()
 {
+	DBGPUT(L"MyDialogBox::OnCopyAll: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditSelectAll(m_CurrentEdit);
 		EditCopy(m_CurrentEdit);
+	}
+}
+
+
+void MyDialogBox::OnClear()
+{
+	DBGPUT(L"MyDialogBox::OnClear: m_CurrentEdit=%d", m_CurrentEdit);
+	if (m_CurrentEdit)
+	{
+		EditClear(m_CurrentEdit);
+		OnEditChanged(m_CurrentEdit);
 	}
 }
 

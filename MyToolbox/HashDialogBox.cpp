@@ -31,6 +31,9 @@
 #define LOWERCASE_LETTER 2
 
 
+#define HASH_TIMER1000MS 10100
+
+
 using namespace hnrt;
 
 
@@ -48,6 +51,12 @@ HashDialogBox::HashDialogBox()
 void HashDialogBox::OnCreate()
 {
     MyDialogBox::OnCreate();
+    m_EditControls.Add(IDC_HASH_PATH_EDIT);
+    m_EditControls.Add(IDC_HASH_CONTENT_EDIT);
+    HFONT hFont = GetApp<MyToolbox>().GetFontForData();
+    SetFont(IDC_HASH_PATH_EDIT, hFont);
+    SetFont(IDC_HASH_CONTENT_EDIT, hFont);
+    SetFont(IDC_HASH_VALUE_STATIC, hFont);
     UINT uSource = IDC_HASH_FILE_RADIO;
     UINT uMethod = IDC_HASH_MD5_RADIO;
     RegistryKey hKey;
@@ -62,10 +71,6 @@ void HashDialogBox::OnCreate()
     {
         m_uLettercase = UPPERCASE_LETTER;
     }
-    HFONT hFont = GetApp<MyToolbox>().GetFontForData();
-    SetFont(IDC_HASH_PATH_EDIT, hFont);
-    SetFont(IDC_HASH_CONTENT_EDIT, hFont);
-    SetFont(IDC_HASH_VALUE_STATIC, hFont);
     ButtonCheck(uSource);
     ButtonCheck(uMethod);
     ButtonCheck(IDC_HASH_UPPERCASE_CHECK, m_uLettercase == UPPERCASE_LETTER);
@@ -82,9 +87,6 @@ void HashDialogBox::OnCreate()
 
 void HashDialogBox::OnDestroy()
 {
-    SetFont(IDC_HASH_PATH_EDIT, NULL);
-    SetFont(IDC_HASH_CONTENT_EDIT, NULL);
-    SetFont(IDC_HASH_VALUE_STATIC, NULL);
     RegistryKey hKey;
     LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName);
     if (rc == ERROR_SUCCESS)
@@ -93,6 +95,10 @@ void HashDialogBox::OnDestroy()
         RegistryValue::SetDWORD(hKey, REGVAL_METHOD, m_uMethod - IDC_HASH_MD5_RADIO + 1);
         RegistryValue::SetDWORD(hKey, REGVAL_LETTERCASE, m_uLettercase);
     }
+    SetFont(IDC_HASH_PATH_EDIT, NULL);
+    SetFont(IDC_HASH_CONTENT_EDIT, NULL);
+    SetFont(IDC_HASH_VALUE_STATIC, NULL);
+    m_EditControls.RemoveAll();
     MyDialogBox::OnDestroy();
 }
 
@@ -123,6 +129,7 @@ void HashDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void HashDialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
+    KillTimer(hwnd, HASH_TIMER1000MS);
     m_menuView
         .Enable(IDM_VIEW_HASH, MF_ENABLED);
 }
@@ -134,13 +141,13 @@ void HashDialogBox::OnTabSelectionChanged()
     SwitchMenu();
     m_menuView
         .Enable(IDM_VIEW_HASH, MF_DISABLED);
+    SetTimer(hwnd, HASH_TIMER1000MS, 1000, NULL);
 }
 
 
 INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
-    UNREFERENCED_PARAMETER(lParam);
-    if (m_cProcessing)
+    if (MyDialogBox::OnCommand(wParam, lParam))
     {
         return TRUE;
     }
@@ -158,7 +165,7 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_HASH_COPY_BUTTON:
         if (idNotif == BN_CLICKED)
         {
-            OnCopy();
+            OnCopyResult();
         }
         break;
 
@@ -174,29 +181,6 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         if (idNotif == BN_CLICKED && ButtonIsChecked(idChild))
         {
             OnSelectSource(idChild);
-        }
-        break;
-
-    case IDC_HASH_PATH_EDIT:
-        if (idNotif == EN_CHANGE)
-        {
-            if (HasResult())
-            {
-                ClearResult();
-            }
-            bool bCanCalculate = CanCalculate();
-            EnableWindow(IDC_HASH_CALCULATE_BUTTON, bCanCalculate ? TRUE : FALSE);
-            m_menuEdit.Enable(IDM_EDIT_EXECUTE, bCanCalculate ? MF_ENABLED : MF_DISABLED);
-        }
-        break;
-
-    case IDC_HASH_CONTENT_EDIT:
-        if (idNotif == EN_CHANGE)
-        {
-            if (HasResult())
-            {
-                ClearResult();
-            }
         }
         break;
 
@@ -222,6 +206,35 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         return FALSE;
     }
     return TRUE;
+}
+
+
+INT_PTR HashDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
+{
+    switch (wParam)
+    {
+    case HASH_TIMER1000MS:
+        UpdateEditControlMenus(m_CurrentEdit);
+        break;
+    default:
+        break;
+    }
+    return 0;
+}
+
+
+void HashDialogBox::UpdateControlsState(int id)
+{
+    if (HasResult())
+    {
+        ClearResult();
+    }
+    if (id == IDC_HASH_PATH_EDIT)
+    {
+        bool bCanCalculate = CanCalculate();
+        EnableWindow(IDC_HASH_CALCULATE_BUTTON, bCanCalculate ? TRUE : FALSE);
+        m_menuEdit.Enable(IDM_EDIT_EXECUTE, bCanCalculate ? MF_ENABLED : MF_DISABLED);
+    }
 }
 
 
@@ -266,65 +279,26 @@ void HashDialogBox::OnSaveAs()
 }
 
 
-void HashDialogBox::OnCut()
-{
-    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-    if (ButtonIsChecked(IDC_HASH_TEXT_RADIO))
-    {
-        EditCut(IDC_HASH_CONTENT_EDIT);
-        ClearResult();
-    }
-}
-
-
-void HashDialogBox::OnCopy()
-{
-    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-    if (!HasResult())
-    {
-        EditCopy(IDC_HASH_CONTENT_EDIT);
-        return;
-    }
-    if (!m_hash.Value)
-    {
-        return;
-    }
-    String szHash = String::ToHex(m_hash.Value, m_hash.ValueLength, m_uLettercase == UPPERCASE_LETTER ? UPPERCASE : LOWERCASE);
-    if (!Clipboard::Write(hwnd, szHash, szHash.Len))
-    {
-        MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-    }
-}
-
-
-void HashDialogBox::OnPaste()
-{
-    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-    if (ButtonIsChecked(IDC_HASH_TEXT_RADIO))
-    {
-        EditPaste(IDC_HASH_CONTENT_EDIT);
-        ClearResult();
-    }
-}
-
-
-void HashDialogBox::OnSelectAll()
-{
-    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-    if (ButtonIsChecked(IDC_HASH_TEXT_RADIO))
-    {
-        EditSelectAll(IDC_HASH_CONTENT_EDIT);
-    }
-}
-
-
 void HashDialogBox::OnClear()
 {
-    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-    if (ButtonIsChecked(IDC_HASH_TEXT_RADIO))
+    MyDialogBox::OnClear();
+    if (ButtonIsChecked(IDC_HASH_FILE_RADIO))
     {
-        EditClear(IDC_HASH_CONTENT_EDIT);
+        if (m_CurrentEdit == 0)
+        {
+            EditClear(IDC_HASH_PATH_EDIT);
+        }
+    }
+    else if (ButtonIsChecked(IDC_HASH_TEXT_RADIO))
+    {
+        if (m_CurrentEdit == 0)
+        {
+            EditClear(IDC_HASH_CONTENT_EDIT);
+        }
         m_szTextPath = String::Empty;
+    }
+    if (HasResult())
+    {
         ClearResult();
     }
 }
@@ -395,6 +369,19 @@ void HashDialogBox::OnExecute()
 }
 
 
+void HashDialogBox::OnCopyResult()
+{
+    if (m_hash.ValueLength)
+    {
+        String sz = String::ToHex(m_hash.Value, m_hash.ValueLength, m_uLettercase == UPPERCASE_LETTER ? UPPERCASE : LOWERCASE);
+        if (!Clipboard::Write(hwnd, sz))
+        {
+            MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+        }
+    }
+}
+
+
 void HashDialogBox::OnSettingChanged(UINT uId)
 {
     WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
@@ -448,10 +435,10 @@ void HashDialogBox::OnSelectSource(UINT uSource)
         {
             m_uSource = uSource;
             ClearResult();
+            SwitchMenu();
         }
         else
         {
-            SwitchMenu();
         }
     }
     EnableWindow(IDC_HASH_CALCULATE_BUTTON, uSource == IDC_HASH_FILE_RADIO && GetTextLength(IDC_HASH_PATH_EDIT) > 0 || uSource == IDC_HASH_TEXT_RADIO ? TRUE : FALSE);
@@ -531,7 +518,9 @@ void HashDialogBox::SwitchMenu()
         m_menuEdit
             .RemoveAll()
             .Add(ResourceString(IDS_MENU_CALCULATE), IDM_EDIT_EXECUTE, CanCalculate() ? MF_ENABLED : MF_DISABLED)
-            .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPY, HasResult() ? MF_ENABLED : MF_DISABLED);
+            .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT, HasResult() ? MF_ENABLED : MF_DISABLED)
+            .AddSeparator();
+        AddEditControlMenus(IDC_HASH_PATH_EDIT);
         m_menuSettings
             .RemoveAll();
     }
@@ -543,40 +532,17 @@ void HashDialogBox::SwitchMenu()
             .Add(ResourceString(IDS_MENU_SAVEAS), IDM_FILE_SAVEAS)
             .AddSeparator()
             .Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
-        if (HasResult())
-        {
-            m_menuEdit
-                .RemoveAll()
-                .Add(ResourceString(IDS_MENU_CALCULATE), IDM_EDIT_EXECUTE)
-                .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPY)
-                .AddSeparator()
-                .Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
-                .Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
-                .Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE)
-                .AddSeparator()
-                .Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL)
-                .AddSeparator()
-                .Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
-                .AddSeparator()
-                .Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
-        }
-        else
-        {
-            m_menuEdit
-                .RemoveAll()
-                .Add(ResourceString(IDS_MENU_CALCULATE), IDM_EDIT_EXECUTE)
-                .AddSeparator()
-                .Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT)
-                .Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY)
-                .Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
-                .Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE)
-                .AddSeparator()
-                .Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL)
-                .AddSeparator()
-                .Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
-                .AddSeparator()
-                .Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
-        }
+        m_menuEdit
+            .RemoveAll()
+            .Add(ResourceString(IDS_MENU_CALCULATE), IDM_EDIT_EXECUTE)
+            .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT, HasResult() ? MF_ENABLED : MF_DISABLED)
+            .AddSeparator();
+        AddEditControlMenus(IDC_HASH_CONTENT_EDIT);
+        m_menuEdit
+            .AddSeparator()
+            .Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
+            .AddSeparator()
+            .Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
         m_menuSettings
             .RemoveAll();
         AddInputCodePageSettingMenus();
@@ -694,7 +660,7 @@ void HashDialogBox::SetResult(PCWSTR psz)
 {
     SetText(IDC_HASH_VALUE_STATIC, psz);
     EnableWindow(IDC_HASH_COPY_BUTTON, *psz ? TRUE : FALSE);
-    m_menuEdit.Enable(IDM_EDIT_COPY, *psz ? MF_ENABLED : MF_DISABLED);
+    m_menuEdit.Enable(IDM_EDIT_COPYRESULT, *psz ? MF_ENABLED : MF_DISABLED);
 }
 
 

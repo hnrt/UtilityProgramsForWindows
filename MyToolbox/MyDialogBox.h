@@ -36,6 +36,7 @@ namespace hnrt
 		virtual void OnCopyAll();
 		virtual void OnClear();
 		virtual void OnExecute();
+		virtual void OnCopyResult();
 		virtual void OnSettingChanged(int id);
 		virtual void OnFeederNotify(ULONGLONG);
 
@@ -134,11 +135,11 @@ namespace hnrt
 	{
 	}
 
-	inline void MyDialogBox::OnClear()
+	inline void MyDialogBox::OnExecute()
 	{
 	}
 
-	inline void MyDialogBox::OnExecute()
+	inline void MyDialogBox::OnCopyResult()
 	{
 	}
 

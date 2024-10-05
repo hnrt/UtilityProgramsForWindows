@@ -390,6 +390,7 @@
 #define IDM_EDIT_COPYALL                22006
 #define IDM_EDIT_CLEAR                  22007
 #define IDM_EDIT_EXECUTE                22008
+#define IDM_EDIT_COPYRESULT             22009
 #define IDM_VIEW_HASH                   23001
 #define IDM_VIEW_CRPT                   23002
 #define IDM_VIEW_GUID                   23003
@@ -452,7 +453,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        272
-#define _APS_NEXT_COMMAND_VALUE         32787
+#define _APS_NEXT_COMMAND_VALUE         32789
 #define _APS_NEXT_CONTROL_VALUE         11019
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

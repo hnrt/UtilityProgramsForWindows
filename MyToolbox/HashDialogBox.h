@@ -21,12 +21,9 @@ namespace hnrt
 		virtual void OnTabSelectionChanged();
 		virtual void OnLoadFrom();
 		virtual void OnSaveAs();
-		virtual void OnCut();
-		virtual void OnCopy();
-		virtual void OnPaste();
-		virtual void OnSelectAll();
 		virtual void OnClear();
 		virtual void OnExecute();
+		virtual void OnCopyResult();
 		virtual void OnSettingChanged(UINT);
 		virtual void OnFeederNotify(ULONGLONG);
 
@@ -36,6 +33,8 @@ namespace hnrt
 		virtual void OnDestroy();
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
+		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
+		virtual void UpdateControlsState(int id);
 
 		void OnBrowse();
 		void OnSelectSource(UINT uSource);

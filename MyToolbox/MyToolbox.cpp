@@ -273,6 +273,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_EDIT_EXECUTE:
         m_tabs[m_tabs.CurrentItem].OnExecute();
         break;
+    case IDM_EDIT_COPYRESULT:
+        m_tabs[m_tabs.CurrentItem].OnCopyResult();
+        break;
     case IDM_VIEW_HASH:
         m_tabs.CurrentItem = m_hashTab.Id;
         break;
