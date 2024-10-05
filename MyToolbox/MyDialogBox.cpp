@@ -80,6 +80,45 @@ void MyDialogBox::OnTabSelectionChanged()
 }
 
 
+INT_PTR MyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+	if (m_cProcessing)
+	{
+		return TRUE;
+	}
+	UINT idChild = LOWORD(wParam);
+	UINT idNotif = HIWORD(wParam);
+	if (m_EditControls.Contains(idChild))
+	{
+		return OnEditCommand(idChild, idNotif);
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+INT_PTR MyDialogBox::OnEditCommand(int idChild, int idNotif)
+{
+	switch (idNotif)
+	{
+	case EN_CHANGE:
+		OnEditChanged(idChild);
+		return TRUE;
+	case EN_SETFOCUS:
+		OnEditSetFocus(idChild);
+		return TRUE;
+	case EN_KILLFOCUS:
+		OnEditKillFocus(idChild);
+		return TRUE;
+	default:
+		return FALSE;
+	}
+}
+
+
 void MyDialogBox::OnEditSetFocus(int id)
 {
 	if (m_CurrentEdit != id)
@@ -107,6 +146,13 @@ void MyDialogBox::OnEditChanged(int id)
 		UpdateEditControlMenus(m_CurrentEdit);
 	}
 	m_LastModified.By = id;
+	UpdateControlsState(id);
+}
+
+
+void MyDialogBox::UpdateControlsState(int id)
+{
+	UNREFERENCED_PARAMETER(id);
 }
 
 

@@ -229,11 +229,11 @@
 #define IDC_CRON_OFFSET_COMBO           10481
 #define IDC_CRON_SECOND_CHECK           10482
 #define IDC_CRON_COPY_BUTTON            10490
-#define IDC_NTOA_NATIVE_RADIO           10500
-#define IDC_NTOA_ASCII_RADIO            10501
-#define IDC_NTOA_NATIVE_EDIT            10502
-#define IDC_NTOA_COPY1_BUTTON           10503
-#define IDC_NTOA_ENCODE_BUTTON          10504
+#define IDC_NTOA_NATIVE_STATIC          10500
+#define IDC_NTOA_NATIVE_EDIT            10501
+#define IDC_NTOA_COPY1_BUTTON           10502
+#define IDC_NTOA_ENCODE_BUTTON          10503
+#define IDC_NTOA_ASCII_STATIC           10504
 #define IDC_NTOA_ASCII_EDIT             10505
 #define IDC_NTOA_COPY2_BUTTON           10506
 #define IDC_NTOA_DECODE_BUTTON          10507
@@ -453,7 +453,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        272
 #define _APS_NEXT_COMMAND_VALUE         32787
-#define _APS_NEXT_CONTROL_VALUE         11017
+#define _APS_NEXT_CONTROL_VALUE         11019
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

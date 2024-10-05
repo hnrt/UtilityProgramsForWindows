@@ -4,6 +4,8 @@
 #include "hnrt/Menu.h"
 #include "hnrt/LastModified.h"
 #include "hnrt/String.h"
+#include "ControlIdCollection.h"
+
 
 namespace hnrt
 {
@@ -45,9 +47,12 @@ namespace hnrt
 
 		virtual void OnCreate();
 		virtual void OnDestroy();
-		void OnEditSetFocus(int id);
-		void OnEditKillFocus(int id);
-		void OnEditChanged(int id);
+		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
+		virtual INT_PTR OnEditCommand(int idChild, int idNotif);
+		virtual void OnEditSetFocus(int id);
+		virtual void OnEditKillFocus(int id);
+		virtual void OnEditChanged(int id);
+		virtual void UpdateControlsState(int id);
 		void AddEditControlMenus(int id = 0);
 		void UpdateEditControlMenus(int id = 0);
 		void AddInputCodePageSettingMenus();
@@ -87,6 +92,7 @@ namespace hnrt
 		bool m_bOutputBOM;
 		int m_CurrentEdit;
 		LastModified m_LastModified;
+		ControlIdCollection m_EditControls;
 	};
 
 	inline void MyDialogBox::SetId(int id)

@@ -167,6 +167,7 @@
     <ClInclude Include="Base64DialogBox.h" />
     <ClInclude Include="ClipDialogBox.h" />
     <ClInclude Include="ClipFile.h" />
+    <ClInclude Include="ControlIdCollection.h" />
     <ClInclude Include="GtinDialogBox.h" />
     <ClInclude Include="CronDialogBox.h" />
     <ClInclude Include="CryptographyDialogBox.h" />
@@ -191,6 +192,7 @@
     <ClCompile Include="Base64DialogBox.cpp" />
     <ClCompile Include="ClipDialogBox.cpp" />
     <ClCompile Include="ClipFile.cpp" />
+    <ClCompile Include="ControlIdCollection.cpp" />
     <ClCompile Include="GtinDialogBox.cpp" />
     <ClCompile Include="CronDialogBox.cpp" />
     <ClCompile Include="CryptographyDialogBox.cpp" />

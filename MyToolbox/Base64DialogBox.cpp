@@ -114,6 +114,8 @@ void Base64DialogBox::OnDestroy()
         RegistryValue::SetSZ(hKey, REGVAL_ENCPATH, m_szEncodedPath);
         RegistryValue::SetDWORD(hKey, REGVAL_CHARSPERLINE, ComboBoxGetSelection(IDC_BS64_ENC_LINELENGTH_COMBO));
     }
+    SetFont(IDC_BS64_ORG_EDIT, NULL);
+    SetFont(IDC_BS64_ENC_EDIT, NULL);
     MyDialogBox::OnDestroy();
 }
 
@@ -190,32 +192,38 @@ void Base64DialogBox::OnTabSelectionChanged()
 
 INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
+    UNREFERENCED_PARAMETER(lParam);
     if (m_cProcessing)
     {
         return TRUE;
     }
-    UNREFERENCED_PARAMETER(lParam);
     UINT idChild = LOWORD(wParam);
     UINT idNotif = HIWORD(wParam);
     switch (idChild)
     {
     case IDC_BS64_ORG_COPY_BUTTON:
-        if (!Clipboard::Write(hwnd, GetText(IDC_BS64_ORG_EDIT)))
+        if (idNotif == BN_CLICKED)
         {
-            MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+            CopyAllText(IDC_BS64_ORG_EDIT);
         }
         break;
     case IDC_BS64_ORG_ENCODE_BUTTON:
-        Encode();
+        if (idNotif == BN_CLICKED)
+        {
+            Encode();
+        }
         break;
     case IDC_BS64_ENC_COPY_BUTTON:
-        if (!Clipboard::Write(hwnd, GetText(IDC_BS64_ENC_EDIT)))
+        if (idNotif == BN_CLICKED)
         {
-            MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+            CopyAllText(IDC_BS64_ENC_EDIT);
         }
         break;
     case IDC_BS64_ENC_DECODE_BUTTON:
-        Decode();
+        if (idNotif == BN_CLICKED)
+        {
+            Decode();
+        }
         break;
     case IDC_BS64_ORG_EDIT:
         if (idNotif == EN_CHANGE)
