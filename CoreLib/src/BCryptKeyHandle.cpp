@@ -142,13 +142,15 @@ ByteString BCryptKeyHandle::Encrypt(void* pData, size_t cbData, BCryptAuthentica
         throw CryptographyException(status, L"BCryptEncrypt(%p,%zu) failed with status of %s.", pData, cbData, BCryptErrorLabel(status));
     }
 
-    ByteString encrypted(cbData);
+    ByteString encrypted(cbCipherText + info.cbTag);
 
     status = BCryptEncrypt(m_h, reinterpret_cast<PUCHAR>(pData), static_cast<ULONG>(cbData), &info, reinterpret_cast<PUCHAR>(pIV), static_cast<ULONG>(cbIV), encrypted, cbCipherText, &cbCipherText, 0);
     if (status != STATUS_SUCCESS)
     {
         throw CryptographyException(status, L"BCryptEncrypt(%p,%zu,%lu) failed with status of %s.", pData, cbData, cbCipherText, BCryptErrorLabel(status));
     }
+
+    memcpy_s(reinterpret_cast<unsigned char*>(encrypted.Ptr) + cbCipherText, info.cbTag, info.pbTag, info.cbTag);
 
     return encrypted;
 }

@@ -246,21 +246,17 @@
 #define IDC_CRPT_KEY128_RADIO           10621
 #define IDC_CRPT_KEY192_RADIO           10622
 #define IDC_CRPT_KEY256_RADIO           10623
-#define IDC_CRPT_IV_EDIT                10630
-#define IDC_CRPT_IVLEN_STATIC           10631
-#define IDC_CRPT_NONCE_EDIT             10640
-#define IDC_CRPT_NONCE11_RADIO          10641
-#define IDC_CRPT_NONCE12_RADIO          10642
-#define IDC_CRPT_NONCE13_RADIO          10643
-#define IDC_CRPT_NONCE14_RADIO          10644
-#define IDC_CRPT_TAG_EDIT               10650
-#define IDC_CRPT_TAG4_RADIO             10651
-#define IDC_CRPT_TAG6_RADIO             10652
-#define IDC_CRPT_TAG8_RADIO             10653
-#define IDC_CRPT_TAG10_RADIO            10654
-#define IDC_CRPT_TAG12_RADIO            10655
-#define IDC_CRPT_TAG14_RADIO            10656
-#define IDC_CRPT_TAG16_RADIO            10657
+#define IDC_CRPT_IV_STATIC              10630
+#define IDC_CRPT_IV_EDIT                10631
+#define IDC_CRPT_IVLEN_STATIC           10632
+#define IDC_CRPT_TAG_STATIC             10640
+#define IDC_CRPT_TAG12_RADIO            10641
+#define IDC_CRPT_TAG13_RADIO            10642
+#define IDC_CRPT_TAG14_RADIO            10643
+#define IDC_CRPT_TAG15_RADIO            10644
+#define IDC_CRPT_TAG16_RADIO            10645
+#define IDC_CRPT_AAD_STATIC             10650
+#define IDC_CRPT_AAD_EDIT               10651
 #define IDC_CRPT_ORG_EDIT               10661
 #define IDC_CRPT_ORG_HEX_RADIO          10662
 #define IDC_CRPT_ORG_BASE64_RADIO       10663
@@ -454,7 +450,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        272
 #define _APS_NEXT_COMMAND_VALUE         32789
-#define _APS_NEXT_CONTROL_VALUE         11019
+#define _APS_NEXT_CONTROL_VALUE         11022
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

@@ -32,6 +32,8 @@ namespace hnrt
         ByteString& Resize(size_t);
         ByteString& Fill(int);
         ByteString Clone() const;
+        ByteString Pkcs5Padding(DWORD dwBlockLength) const;
+        ByteString& RemovePkcs5Padding(DWORD dwBlockLength);
         String ToString(UINT = CP_UTF8) const;
         void* get_Ptr() const;
         size_t get_Len() const;

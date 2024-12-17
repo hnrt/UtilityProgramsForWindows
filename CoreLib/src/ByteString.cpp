@@ -135,18 +135,29 @@ unsigned char& ByteString::operator [](INT_PTR index)
 ByteString& ByteString::Resize(size_t len)
 {
     size_t len0 = Len;
-    void* ptr0 = _InterlockedExchangePointer(&m_ptr, len ? RefBin::Create(len) : nullptr);
-    if (ptr0)
+    if (len != len0)
     {
-        if (m_ptr)
+        void* ptr0 = _InterlockedExchangePointer(&m_ptr, len ? RefBin::Create(len) : nullptr);
+        if (ptr0)
         {
-            if (len0 > len)
+            if (m_ptr)
             {
-                len0 = len;
+                if (len0 > len)
+                {
+                    len0 = len;
+                }
+                memcpy_s(m_ptr, len, ptr0, len0);
             }
-            memcpy_s(m_ptr, len, ptr0, len0);
+            RefBin::Get(ptr0).Release();
         }
-        RefBin::Get(ptr0).Release();
+        else
+        {
+            len0 = 0;
+        }
+        if (len0 < len)
+        {
+            memset(reinterpret_cast<unsigned char*>(m_ptr) + len0, 0, len - len0);
+        }
     }
     return *this;
 }
@@ -165,6 +176,33 @@ ByteString ByteString::Clone() const
     ByteString bs(len);
     memcpy_s(bs.m_ptr, len, m_ptr, len);
     return bs;
+}
+
+
+ByteString ByteString::Pkcs5Padding(DWORD dwBlockLength) const
+{
+    size_t PayloadLength = Len;
+    size_t PaddingLength = dwBlockLength - Len % dwBlockLength;
+    ByteString bs(PayloadLength + PaddingLength);
+    memcpy_s(bs.m_ptr, PayloadLength, m_ptr, PayloadLength);
+    memset(reinterpret_cast<unsigned char*>(bs.m_ptr) + PayloadLength, static_cast<int>(PaddingLength), PaddingLength);
+    return bs;
+}
+
+
+ByteString& ByteString::RemovePkcs5Padding(DWORD dwBlockLength)
+{
+    size_t len = Len;
+    if (len < dwBlockLength)
+    {
+        throw Exception(L"ByteString is too short.");
+    }
+    size_t PaddingLength = reinterpret_cast<unsigned char*>(m_ptr)[len - 1];
+    if (PaddingLength > dwBlockLength)
+    {
+        throw Exception(L"Padding looks broken.");
+    }
+    return Resize(len - PaddingLength);
 }
 
 

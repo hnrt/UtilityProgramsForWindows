@@ -19,7 +19,13 @@
 #include "hnrt/FileMapper.h"
 #include "hnrt/FileWriter.h"
 #include "hnrt/StringCommons.h"
+#include "hnrt/Debug.h"
 #include <map>
+
+
+#define AES_GCM_NONCE_LENGTH 12
+#define AES_CCM_NONCE_LENGTH 12
+#define AES_CCM_TAG_LENGTH 16
 
 
 #define REG_NAME_CHAININGMODE L"ChainingMode"
@@ -27,8 +33,6 @@
 #define REG_NAME_KEY L"Key"
 #define REG_NAME_IV L"IV"
 #define REG_NAME_NONCE L"Nonce"
-#define REG_NAME_NONCELENGTH L"NonceLength"
-#define REG_NAME_TAG L"Tag"
 #define REG_NAME_TAGLENGTH L"TagLength"
 #define REG_NAME_ORGDISPMODE L"OriginalDataDisplayMode"
 #define REG_NAME_ENCDISPMODE L"EncryptedDataDisplayMode"
@@ -56,8 +60,6 @@ CryptographyDialogBox::CryptographyDialogBox()
 	, m_Key()
 	, m_IV()
 	, m_Nonce()
-	, m_NonceLength(12)
-	, m_Tag()
 	, m_TagLength(16)
 	, m_OriginalData()
 	, m_OriginalDataDisplayMode(2)
@@ -82,8 +84,7 @@ void CryptographyDialogBox::OnCreate()
 	HFONT hFont = GetApp<MyToolbox>().GetFontForData();
 	SetFont(IDC_CRPT_KEY_EDIT, hFont);
 	SetFont(IDC_CRPT_IV_EDIT, hFont);
-	SetFont(IDC_CRPT_NONCE_EDIT, hFont);
-	SetFont(IDC_CRPT_TAG_EDIT, hFont);
+	SetFont(IDC_CRPT_AAD_EDIT, hFont);
 	SetFont(IDC_CRPT_ORG_EDIT, hFont);
 	SetFont(IDC_CRPT_ENC_EDIT, hFont);
 	int cm = ChainingModeToControlId(m_hAlg.ChainingMode);
@@ -119,24 +120,13 @@ void CryptographyDialogBox::OnCreate()
 		{
 			m_Nonce.Resize(0);
 		}
-		m_NonceLength = RegistryValue::GetDWORD(hKey, REG_NAME_NONCELENGTH, m_NonceLength);
-		try
-		{
-			m_Tag = ByteString::FromHex(RegistryValue::GetSZ(hKey, REG_NAME_TAG, String::Empty));
-		}
-		catch (...)
-		{
-			m_Tag.Resize(0);
-		}
 		m_TagLength = RegistryValue::GetDWORD(hKey, REG_NAME_TAGLENGTH, m_TagLength);
 		od = OriginalDataDisplayModeToControlId(RegistryValue::GetDWORD(hKey, REG_NAME_ORGDISPMODE));
 		ed = EncryptedDataDisplayModeToControlId(RegistryValue::GetDWORD(hKey, REG_NAME_ENCDISPMODE));
 	}
 	SetText(IDC_CRPT_KEY_EDIT, String::ToHex(m_Key.Ptr, m_Key.Len));
-	SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes (Block Size)", m_hAlg.BlockLength));
 	ButtonCheck(cm);
 	ButtonCheck(KeyLengthToControlId(m_KeyLength));
-	ButtonCheck(NonceLengthToControlId(m_NonceLength));
 	ButtonCheck(TagLengthToControlId(m_TagLength));
 	InitializeCodePageComboBox(IDC_CRPT_ORG_ENC_COMBO);
 	ComboBoxSetSelection(IDC_CRPT_ORG_ENC_COMBO, m_OriginalDataCodePage);
@@ -150,8 +140,6 @@ void CryptographyDialogBox::OnCreate()
 	ClearStatusText();
 	InvalidateRect(IDC_CRPT_KEY_EDIT, NULL, FALSE);
 	InvalidateRect(IDC_CRPT_IV_EDIT, NULL, FALSE);
-	InvalidateRect(IDC_CRPT_NONCE_EDIT, NULL, FALSE);
-	InvalidateRect(IDC_CRPT_TAG_EDIT, NULL, FALSE);
 	m_menuView
 		.Add(ResourceString(IDS_MENU_CRPT), IDM_VIEW_CRPT);
 }
@@ -169,16 +157,13 @@ void CryptographyDialogBox::OnDestroy()
 		RegistryValue::SetSZ(hKey, REG_NAME_KEY, String::ToHex(m_Key.Ptr, m_Key.Len));
 		RegistryValue::SetSZ(hKey, REG_NAME_IV, String::ToHex(m_IV.Ptr, m_IV.Len));
 		RegistryValue::SetSZ(hKey, REG_NAME_NONCE, String::ToHex(m_Nonce.Ptr, m_Nonce.Len));
-		RegistryValue::SetDWORD(hKey, REG_NAME_NONCELENGTH, m_NonceLength);
-		RegistryValue::SetSZ(hKey, REG_NAME_TAG, String::ToHex(m_Tag.Ptr, m_Tag.Len));
 		RegistryValue::SetDWORD(hKey, REG_NAME_TAGLENGTH, m_TagLength);
 		RegistryValue::SetDWORD(hKey, REG_NAME_ORGDISPMODE, m_OriginalDataDisplayMode);
 		RegistryValue::SetDWORD(hKey, REG_NAME_ENCDISPMODE, m_EncryptedDataDisplayMode);
 	}
 	SetFont(IDC_CRPT_KEY_EDIT, NULL);
 	SetFont(IDC_CRPT_IV_EDIT, NULL);
-	SetFont(IDC_CRPT_NONCE_EDIT, NULL);
-	SetFont(IDC_CRPT_TAG_EDIT, NULL);
+	SetFont(IDC_CRPT_AAD_EDIT, NULL);
 	SetFont(IDC_CRPT_ORG_EDIT, NULL);
 	SetFont(IDC_CRPT_ENC_EDIT, NULL);
 	MyDialogBox::OnDestroy();
@@ -266,21 +251,10 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			OnKeyLengthChange(idChild);
 		}
 		break;
-	case IDC_CRPT_NONCE11_RADIO:
-	case IDC_CRPT_NONCE12_RADIO:
-	case IDC_CRPT_NONCE13_RADIO:
-	case IDC_CRPT_NONCE14_RADIO:
-		if (ButtonIsChecked(idChild))
-		{
-			OnNonceLengthChange(idChild);
-		}
-		break;
-	case IDC_CRPT_TAG4_RADIO:
-	case IDC_CRPT_TAG6_RADIO:
-	case IDC_CRPT_TAG8_RADIO:
-	case IDC_CRPT_TAG10_RADIO:
 	case IDC_CRPT_TAG12_RADIO:
+	case IDC_CRPT_TAG13_RADIO:
 	case IDC_CRPT_TAG14_RADIO:
+	case IDC_CRPT_TAG15_RADIO:
 	case IDC_CRPT_TAG16_RADIO:
 		if (ButtonIsChecked(idChild))
 		{
@@ -314,38 +288,6 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			break;
 		case EN_CHANGE:
 			OnIVChange();
-			break;
-		default:
-			break;
-		}
-		break;
-	case IDC_CRPT_NONCE_EDIT:
-		switch (idNotif)
-		{
-		case EN_SETFOCUS:
-			OnEditSetFocus(idChild);
-			break;
-		case EN_KILLFOCUS:
-			OnEditKillFocus(idChild);
-			break;
-		case EN_CHANGE:
-			OnNonceChange();
-			break;
-		default:
-			break;
-		}
-		break;
-	case IDC_CRPT_TAG_EDIT:
-		switch (idNotif)
-		{
-		case EN_SETFOCUS:
-			OnEditSetFocus(idChild);
-			break;
-		case EN_KILLFOCUS:
-			OnEditKillFocus(idChild);
-			break;
-		case EN_CHANGE:
-			OnTagChange();
 			break;
 		default:
 			break;
@@ -455,20 +397,21 @@ INT_PTR CryptographyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 	}
 	case IDC_CRPT_IV_EDIT:
 	{
-		size_t required = m_hAlg.BlockLength;
-		SetTextColor(hdc, (m_IV.Len == required) ? RGB_GOOD : (m_IV.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
-		break;
-	}
-	case IDC_CRPT_NONCE_EDIT:
-	{
-		size_t required = m_NonceLength;
-		SetTextColor(hdc, (m_Nonce.Len == required) ? RGB_GOOD : (m_Nonce.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
-		break;
-	}
-	case IDC_CRPT_TAG_EDIT:
-	{
-		size_t required = m_TagLength;
-		SetTextColor(hdc, (m_Tag.Len == required) ? RGB_GOOD : (m_Tag.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
+		if (IS_AES_CCM(m_hAlg.ChainingMode))
+		{
+			size_t required = AES_CCM_NONCE_LENGTH;
+			SetTextColor(hdc, (m_Nonce.Len == required) ? RGB_GOOD : (m_Nonce.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
+		}
+		else if (IS_AES_GCM(m_hAlg.ChainingMode))
+		{
+			size_t required = AES_GCM_NONCE_LENGTH;
+			SetTextColor(hdc, (m_Nonce.Len == required) ? RGB_GOOD : (m_Nonce.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
+		}
+		else
+		{
+			size_t required = m_hAlg.BlockLength;
+			SetTextColor(hdc, (m_IV.Len == required) ? RGB_GOOD : (m_IV.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
+		}
 		break;
 	}
 	default:
@@ -655,14 +598,6 @@ void CryptographyDialogBox::OnCut()
 		EditCut(m_CurrentEdit);
 		OnIVChange();
 		break;
-	case IDC_CRPT_NONCE_EDIT:
-		EditCut(m_CurrentEdit);
-		OnNonceChange();
-		break;
-	case IDC_CRPT_TAG_EDIT:
-		EditCut(m_CurrentEdit);
-		OnTagChange();
-		break;
 	case IDC_CRPT_ORG_EDIT:
 		if (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION)
 		{
@@ -696,14 +631,6 @@ void CryptographyDialogBox::OnPaste()
 		EditPaste(m_CurrentEdit);
 		OnIVChange();
 		break;
-	case IDC_CRPT_NONCE_EDIT:
-		EditPaste(m_CurrentEdit);
-		OnNonceChange();
-		break;
-	case IDC_CRPT_TAG_EDIT:
-		EditPaste(m_CurrentEdit);
-		OnTagChange();
-		break;
 	case IDC_CRPT_ORG_EDIT:
 		if (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION)
 		{
@@ -736,14 +663,6 @@ void CryptographyDialogBox::OnDelete()
 	case IDC_CRPT_IV_EDIT:
 		EditDelete(m_CurrentEdit);
 		OnIVChange();
-		break;
-	case IDC_CRPT_NONCE_EDIT:
-		EditDelete(m_CurrentEdit);
-		OnNonceChange();
-		break;
-	case IDC_CRPT_TAG_EDIT:
-		EditDelete(m_CurrentEdit);
-		OnTagChange();
 		break;
 	case IDC_CRPT_ORG_EDIT:
 		if (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION)
@@ -814,34 +733,45 @@ void CryptographyDialogBox::OnEncrypt()
 		hKey.Generate(m_hAlg, m_Key.Ptr, m_Key.Len);
 		if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
 		{
-			size_t required = m_hAlg.BlockLength;
-			if (m_IV.Len < required)
-			{
-				throw Exception(L"IV is shorter than %zu bytes long.", required);
-			}
-			Buffer<CHAR> iv(required);
-			memcpy_s(iv.Ptr, iv.Len, m_IV.Ptr, iv.Len);
-			encrypted = hKey.Encrypt(m_OriginalData.Ptr, m_OriginalData.Len, iv.Ptr, iv.Len);
+			ByteString plaintext = m_OriginalData.Pkcs5Padding(m_hAlg.BlockLength);
+			ByteString iv = m_IV.Clone().Resize(m_hAlg.BlockLength);
+			Debug::Put(L"OnEncrypt: iv=%s", String::ToHex(iv.Ptr, iv.Len));
+			encrypted = hKey.Encrypt(plaintext.Ptr, plaintext.Len, iv.Ptr, iv.Len, 0);
 		}
 		else if (IS_AES_ECB(m_hAlg.ChainingMode))
 		{
-			encrypted = hKey.Encrypt(m_OriginalData.Ptr, m_OriginalData.Len);
+			ByteString plaintext = m_OriginalData.Pkcs5Padding(m_hAlg.BlockLength);
+			encrypted = hKey.Encrypt(plaintext.Ptr, plaintext.Len, nullptr, 0, 0);
 		}
-		else if (IS_AES_CCM(m_hAlg.ChainingMode) || IS_AES_GCM(m_hAlg.ChainingMode))
+		else if (IS_AES_CCM(m_hAlg.ChainingMode))
 		{
-			if (m_Nonce.Len < m_NonceLength)
+			ByteString nonce = m_Nonce.Clone().Resize(AES_CCM_NONCE_LENGTH);
+			Debug::Put(L"OnEncrypt: nonce=%s", String::ToHex(nonce.Ptr, nonce.Len));
+			BCryptAuthenticatedCipherModeInfo info;
+			info
+				.SetNonce(nonce.Ptr, nonce.Len)
+				.SetTagSize(AES_CCM_TAG_LENGTH);
+			if (GetTextLength(IDC_CRPT_AAD_EDIT) > 0)
 			{
-				throw Exception(L"Nonce is shorter than %d bytes long.", m_NonceLength);
+				StringUTF8 aad(GetText(IDC_CRPT_AAD_EDIT));
+				info.SetAuthData(aad.Ptr, aad.Len);
 			}
-			Buffer<CHAR> nonce(m_NonceLength);
-			memcpy_s(nonce.Ptr, nonce.Len, m_Nonce.Ptr, nonce.Len);
+			encrypted = hKey.Encrypt(m_OriginalData.Ptr, m_OriginalData.Len, info, NULL, 0);
+		}
+		else if (IS_AES_GCM(m_hAlg.ChainingMode))
+		{
+			ByteString nonce = m_Nonce.Clone().Resize(AES_GCM_NONCE_LENGTH);
+			Debug::Put(L"OnEncrypt: nonce=%s", String::ToHex(nonce.Ptr, nonce.Len));
 			BCryptAuthenticatedCipherModeInfo info;
 			info
 				.SetNonce(nonce.Ptr, nonce.Len)
 				.SetTagSize(m_TagLength);
+			if (GetTextLength(IDC_CRPT_AAD_EDIT) > 0)
+			{
+				StringUTF8 aad(GetText(IDC_CRPT_AAD_EDIT));
+				info.SetAuthData(aad.Ptr, aad.Len);
+			}
 			encrypted = hKey.Encrypt(m_OriginalData.Ptr, m_OriginalData.Len, info, NULL, 0);
-			m_Tag = ByteString(info.pbTag, info.cbTag);
-			SetText(IDC_CRPT_TAG_EDIT, String::ToHex(m_Tag.Ptr, m_Tag.Len));
 		}
 		else
 		{
@@ -879,38 +809,61 @@ void CryptographyDialogBox::OnDecrypt()
 		hKey.Generate(m_hAlg, m_Key.Ptr, m_Key.Len);
 		if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
 		{
-			size_t required = m_hAlg.BlockLength;
-			if (m_IV.Len < required)
-			{
-				throw Exception(L"IV is shorter than %zu bytes long.", required);
-			}
-			Buffer<CHAR> iv(required);
-			memcpy_s(iv.Ptr, iv.Len, m_IV.Ptr, iv.Len);
-			decrypted = hKey.Decrypt(m_EncryptedData.Ptr, m_EncryptedData.Len, iv.Ptr, iv.Len);
+			ByteString iv = m_IV.Clone().Resize(m_hAlg.BlockLength);
+			Debug::Put(L"OnDecrypt: iv=%s", String::ToHex(iv.Ptr, iv.Len));
+			decrypted = hKey.Decrypt(m_EncryptedData.Ptr, m_EncryptedData.Len, iv.Ptr, iv.Len, 0);
+			decrypted.RemovePkcs5Padding(m_hAlg.BlockLength);
 		}
 		else if (IS_AES_ECB(m_hAlg.ChainingMode))
 		{
-			decrypted = hKey.Decrypt(m_EncryptedData.Ptr, m_EncryptedData.Len);
+			decrypted = hKey.Decrypt(m_EncryptedData.Ptr, m_EncryptedData.Len, nullptr, 0, 0);
+			decrypted.RemovePkcs5Padding(m_hAlg.BlockLength);
 		}
-		else if (IS_AES_CCM(m_hAlg.ChainingMode) || IS_AES_GCM(m_hAlg.ChainingMode))
+		else if (IS_AES_CCM(m_hAlg.ChainingMode))
 		{
-			if (m_Nonce.Len < m_NonceLength)
+			if (m_EncryptedData.Len < AES_CCM_TAG_LENGTH)
 			{
-				throw Exception(L"Nonce is shorter than %d bytes long.", m_NonceLength);
+				throw Exception(L"Encrypted data is too short.");
 			}
-			Buffer<CHAR> nonce(m_NonceLength);
-			memcpy_s(nonce.Ptr, nonce.Len, m_Nonce.Ptr, nonce.Len);
-			if (m_Tag.Len < m_TagLength)
-			{
-				throw Exception(L"Tag is shorter than %d bytes long.", m_TagLength);
-			}
-			Buffer<CHAR> tag(m_NonceLength);
-			memcpy_s(tag.Ptr, tag.Len, m_Tag.Ptr, tag.Len);
+			ByteString nonce = m_Nonce.Clone().Resize(AES_CCM_NONCE_LENGTH);
+			Buffer<CHAR> tag(AES_CCM_TAG_LENGTH);
+			memcpy_s(tag.Ptr, tag.Len, reinterpret_cast<unsigned char*>(m_EncryptedData.Ptr) + m_EncryptedData.Len - tag.Len, tag.Len);
+			Debug::Put(L"OnDecrypt: nonce=%s", String::ToHex(nonce.Ptr, nonce.Len));
+			Debug::Put(L"OnDecrypt: tag=%s", String::ToHex(tag.Ptr, tag.Len));
 			BCryptAuthenticatedCipherModeInfo info;
 			info
 				.SetNonce(nonce.Ptr, nonce.Len)
 				.SetTag(tag.Ptr, tag.Len);
-			decrypted = hKey.Decrypt(m_EncryptedData.Ptr, m_EncryptedData.Len, info, NULL, 0);
+			if (GetTextLength(IDC_CRPT_AAD_EDIT) > 0)
+			{
+				StringUTF8 aad(GetText(IDC_CRPT_AAD_EDIT));
+				Debug::Put(L"OnDecrypt: aad=%s", String::ToHex(aad.Ptr, aad.Len));
+				info.SetAuthData(aad.Ptr, aad.Len);
+			}
+			decrypted = hKey.Decrypt(m_EncryptedData.Ptr, m_EncryptedData.Len - tag.Len, info, NULL, 0);
+		}
+		else if (IS_AES_GCM(m_hAlg.ChainingMode))
+		{
+			if (m_EncryptedData.Len < m_TagLength)
+			{
+				throw Exception(L"Encrypted data is too short.");
+			}
+			ByteString nonce = m_Nonce.Clone().Resize(AES_GCM_NONCE_LENGTH);
+			Buffer<CHAR> tag(m_TagLength);
+			memcpy_s(tag.Ptr, tag.Len, reinterpret_cast<unsigned char*>(m_EncryptedData.Ptr) + m_EncryptedData.Len - tag.Len, tag.Len);
+			Debug::Put(L"OnDecrypt: nonce=%s", String::ToHex(nonce.Ptr, nonce.Len));
+			Debug::Put(L"OnDecrypt: tag=%s", String::ToHex(tag.Ptr, tag.Len));
+			BCryptAuthenticatedCipherModeInfo info;
+			info
+				.SetNonce(nonce.Ptr, nonce.Len)
+				.SetTag(tag.Ptr, tag.Len);
+			if (GetTextLength(IDC_CRPT_AAD_EDIT) > 0)
+			{
+				StringUTF8 aad(GetText(IDC_CRPT_AAD_EDIT));
+				Debug::Put(L"OnDecrypt: aad=%s", String::ToHex(aad.Ptr, aad.Len));
+				info.SetAuthData(aad.Ptr, aad.Len);
+			}
+			decrypted = hKey.Decrypt(m_EncryptedData.Ptr, m_EncryptedData.Len - tag.Len, info, NULL, 0);
 		}
 		else
 		{
@@ -940,103 +893,92 @@ void CryptographyDialogBox::OnChainingModeChange(int id)
 	case IDC_CRPT_AESCBC_RADIO:
 	default:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CBC;
+		EnableWindow(IDC_CRPT_IV_STATIC);
 		EnableWindow(IDC_CRPT_IV_EDIT);
-		DisableWindow(IDC_CRPT_NONCE_EDIT);
-		DisableWindow(IDC_CRPT_NONCE11_RADIO);
-		DisableWindow(IDC_CRPT_NONCE12_RADIO);
-		DisableWindow(IDC_CRPT_NONCE13_RADIO);
-		DisableWindow(IDC_CRPT_NONCE14_RADIO);
-		DisableWindow(IDC_CRPT_TAG_EDIT);
-		DisableWindow(IDC_CRPT_TAG4_RADIO);
-		DisableWindow(IDC_CRPT_TAG6_RADIO);
-		DisableWindow(IDC_CRPT_TAG8_RADIO);
-		DisableWindow(IDC_CRPT_TAG10_RADIO);
-		DisableWindow(IDC_CRPT_TAG12_RADIO);
-		DisableWindow(IDC_CRPT_TAG14_RADIO);
-		DisableWindow(IDC_CRPT_TAG16_RADIO);
+		EnableWindow(IDC_CRPT_IVLEN_STATIC);
+		SetText(IDC_CRPT_IV_STATIC, L"IV");
 		SetText(IDC_CRPT_IV_EDIT, String::ToHex(m_IV.Ptr, m_IV.Len));
-		SetText(IDC_CRPT_NONCE_EDIT);
-		SetText(IDC_CRPT_TAG_EDIT);
+		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes (Block Size)", m_hAlg.BlockLength));
+		DisableWindow(IDC_CRPT_TAG_STATIC);
+		DisableWindow(IDC_CRPT_TAG12_RADIO);
+		DisableWindow(IDC_CRPT_TAG13_RADIO);
+		DisableWindow(IDC_CRPT_TAG14_RADIO);
+		DisableWindow(IDC_CRPT_TAG15_RADIO);
+		DisableWindow(IDC_CRPT_TAG16_RADIO);
+		DisableWindow(IDC_CRPT_AAD_STATIC);
+		DisableWindow(IDC_CRPT_AAD_EDIT);
 		break;
 	case IDC_CRPT_AESECB_RADIO:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_ECB;
+		DisableWindow(IDC_CRPT_IV_STATIC);
 		DisableWindow(IDC_CRPT_IV_EDIT);
-		DisableWindow(IDC_CRPT_NONCE_EDIT);
-		DisableWindow(IDC_CRPT_NONCE11_RADIO);
-		DisableWindow(IDC_CRPT_NONCE12_RADIO);
-		DisableWindow(IDC_CRPT_NONCE13_RADIO);
-		DisableWindow(IDC_CRPT_NONCE14_RADIO);
-		DisableWindow(IDC_CRPT_TAG_EDIT);
-		DisableWindow(IDC_CRPT_TAG4_RADIO);
-		DisableWindow(IDC_CRPT_TAG6_RADIO);
-		DisableWindow(IDC_CRPT_TAG8_RADIO);
-		DisableWindow(IDC_CRPT_TAG10_RADIO);
-		DisableWindow(IDC_CRPT_TAG12_RADIO);
-		DisableWindow(IDC_CRPT_TAG14_RADIO);
-		DisableWindow(IDC_CRPT_TAG16_RADIO);
+		DisableWindow(IDC_CRPT_IVLEN_STATIC);
+		SetText(IDC_CRPT_IV_STATIC, L"IV");
 		SetText(IDC_CRPT_IV_EDIT);
-		SetText(IDC_CRPT_NONCE_EDIT);
-		SetText(IDC_CRPT_TAG_EDIT);
+		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes (Block Size)", m_hAlg.BlockLength));
+		DisableWindow(IDC_CRPT_TAG_STATIC);
+		DisableWindow(IDC_CRPT_TAG12_RADIO);
+		DisableWindow(IDC_CRPT_TAG13_RADIO);
+		DisableWindow(IDC_CRPT_TAG14_RADIO);
+		DisableWindow(IDC_CRPT_TAG15_RADIO);
+		DisableWindow(IDC_CRPT_TAG16_RADIO);
+		DisableWindow(IDC_CRPT_AAD_STATIC);
+		DisableWindow(IDC_CRPT_AAD_EDIT);
 		break;
 	case IDC_CRPT_AESCFB_RADIO:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CFB;
+		EnableWindow(IDC_CRPT_IV_STATIC);
 		EnableWindow(IDC_CRPT_IV_EDIT);
-		DisableWindow(IDC_CRPT_NONCE_EDIT);
-		DisableWindow(IDC_CRPT_NONCE11_RADIO);
-		DisableWindow(IDC_CRPT_NONCE12_RADIO);
-		DisableWindow(IDC_CRPT_NONCE13_RADIO);
-		DisableWindow(IDC_CRPT_NONCE14_RADIO);
-		DisableWindow(IDC_CRPT_TAG_EDIT);
-		DisableWindow(IDC_CRPT_TAG4_RADIO);
-		DisableWindow(IDC_CRPT_TAG6_RADIO);
-		DisableWindow(IDC_CRPT_TAG8_RADIO);
-		DisableWindow(IDC_CRPT_TAG10_RADIO);
-		DisableWindow(IDC_CRPT_TAG12_RADIO);
-		DisableWindow(IDC_CRPT_TAG14_RADIO);
-		DisableWindow(IDC_CRPT_TAG16_RADIO);
+		EnableWindow(IDC_CRPT_IVLEN_STATIC);
+		SetText(IDC_CRPT_IV_STATIC, L"IV");
 		SetText(IDC_CRPT_IV_EDIT, String::ToHex(m_IV.Ptr, m_IV.Len));
-		SetText(IDC_CRPT_NONCE_EDIT);
-		SetText(IDC_CRPT_TAG_EDIT);
+		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes (Block Size)", m_hAlg.BlockLength));
+		DisableWindow(IDC_CRPT_TAG_STATIC);
+		DisableWindow(IDC_CRPT_TAG12_RADIO);
+		DisableWindow(IDC_CRPT_TAG13_RADIO);
+		DisableWindow(IDC_CRPT_TAG14_RADIO);
+		DisableWindow(IDC_CRPT_TAG15_RADIO);
+		DisableWindow(IDC_CRPT_TAG16_RADIO);
+		DisableWindow(IDC_CRPT_AAD_STATIC);
+		DisableWindow(IDC_CRPT_AAD_EDIT);
 		break;
 	case IDC_CRPT_AESCCM_RADIO:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CCM;
+		EnableWindow(IDC_CRPT_IV_STATIC);
 		EnableWindow(IDC_CRPT_IV_EDIT);
-		EnableWindow(IDC_CRPT_NONCE_EDIT);
-		EnableWindow(IDC_CRPT_NONCE11_RADIO);
-		EnableWindow(IDC_CRPT_NONCE12_RADIO);
-		EnableWindow(IDC_CRPT_NONCE13_RADIO);
-		EnableWindow(IDC_CRPT_NONCE14_RADIO);
-		EnableWindow(IDC_CRPT_TAG_EDIT);
-		EnableWindow(IDC_CRPT_TAG4_RADIO);
-		EnableWindow(IDC_CRPT_TAG6_RADIO);
-		EnableWindow(IDC_CRPT_TAG8_RADIO);
-		EnableWindow(IDC_CRPT_TAG10_RADIO);
-		EnableWindow(IDC_CRPT_TAG12_RADIO);
-		EnableWindow(IDC_CRPT_TAG14_RADIO);
+		EnableWindow(IDC_CRPT_IVLEN_STATIC);
+		SetText(IDC_CRPT_IV_STATIC, L"Nonce");
+		SetText(IDC_CRPT_IV_EDIT, String::ToHex(m_Nonce.Ptr, m_Nonce.Len));
+		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes", m_Nonce.Len));
+		EnableWindow(IDC_CRPT_TAG_STATIC);
+		DisableWindow(IDC_CRPT_TAG12_RADIO);
+		DisableWindow(IDC_CRPT_TAG13_RADIO);
+		DisableWindow(IDC_CRPT_TAG14_RADIO);
+		DisableWindow(IDC_CRPT_TAG15_RADIO);
 		EnableWindow(IDC_CRPT_TAG16_RADIO);
-		SetText(IDC_CRPT_IV_EDIT, String::ToHex(m_IV.Ptr, m_IV.Len));
-		SetText(IDC_CRPT_NONCE_EDIT, String::ToHex(m_Nonce.Ptr, m_Nonce.Len));
-		SetText(IDC_CRPT_TAG_EDIT, String::ToHex(m_Tag.Ptr, m_Tag.Len));
+		ButtonUncheck(TagLengthToControlId(m_TagLength));
+		ButtonCheck(IDC_CRPT_TAG16_RADIO);
+		EnableWindow(IDC_CRPT_AAD_STATIC);
+		EnableWindow(IDC_CRPT_AAD_EDIT);
 		break;
 	case IDC_CRPT_AESGCM_RADIO:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_GCM;
+		EnableWindow(IDC_CRPT_IV_STATIC);
 		EnableWindow(IDC_CRPT_IV_EDIT);
-		EnableWindow(IDC_CRPT_NONCE_EDIT);
-		EnableWindow(IDC_CRPT_NONCE11_RADIO);
-		EnableWindow(IDC_CRPT_NONCE12_RADIO);
-		EnableWindow(IDC_CRPT_NONCE13_RADIO);
-		EnableWindow(IDC_CRPT_NONCE14_RADIO);
-		EnableWindow(IDC_CRPT_TAG_EDIT);
-		EnableWindow(IDC_CRPT_TAG4_RADIO);
-		EnableWindow(IDC_CRPT_TAG6_RADIO);
-		EnableWindow(IDC_CRPT_TAG8_RADIO);
-		EnableWindow(IDC_CRPT_TAG10_RADIO);
+		EnableWindow(IDC_CRPT_IVLEN_STATIC);
+		SetText(IDC_CRPT_IV_STATIC, L"Nonce");
+		SetText(IDC_CRPT_IV_EDIT, String::ToHex(m_Nonce.Ptr, m_Nonce.Len));
+		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes", m_Nonce.Len));
+		EnableWindow(IDC_CRPT_TAG_STATIC);
 		EnableWindow(IDC_CRPT_TAG12_RADIO);
+		EnableWindow(IDC_CRPT_TAG13_RADIO);
 		EnableWindow(IDC_CRPT_TAG14_RADIO);
+		EnableWindow(IDC_CRPT_TAG15_RADIO);
 		EnableWindow(IDC_CRPT_TAG16_RADIO);
-		SetText(IDC_CRPT_IV_EDIT, String::ToHex(m_IV.Ptr, m_IV.Len));
-		SetText(IDC_CRPT_NONCE_EDIT, String::ToHex(m_Nonce.Ptr, m_Nonce.Len));
-		SetText(IDC_CRPT_TAG_EDIT, String::ToHex(m_Tag.Ptr, m_Tag.Len));
+		ButtonUncheck(IDC_CRPT_TAG16_RADIO);
+		ButtonCheck(TagLengthToControlId(m_TagLength));
+		EnableWindow(IDC_CRPT_AAD_STATIC);
+		EnableWindow(IDC_CRPT_AAD_EDIT);
 		break;
 	}
 	SetMode(m_Mode);
@@ -1053,20 +995,10 @@ void CryptographyDialogBox::OnKeyLengthChange(int id)
 }
 
 
-void CryptographyDialogBox::OnNonceLengthChange(int id)
-{
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	m_NonceLength = ControlIdToNonceLength(id);
-	InvalidateRect(IDC_CRPT_NONCE_EDIT, NULL, FALSE);
-	SetMode(m_Mode);
-}
-
-
 void CryptographyDialogBox::OnTagLengthChange(int id)
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_TagLength = ControlIdToTagLength(id);
-	InvalidateRect(IDC_CRPT_TAG_EDIT, NULL, FALSE);
 	SetMode(m_Mode);
 }
 
@@ -1112,51 +1044,29 @@ void CryptographyDialogBox::OnKeyChange()
 void CryptographyDialogBox::OnIVChange()
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	try
+	if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
 	{
-		m_IV = ByteString::FromHex(GetText(IDC_CRPT_IV_EDIT).Trim());
+		try
+		{
+			m_IV = ByteString::FromHex(GetText(IDC_CRPT_IV_EDIT).Trim());
+		}
+		catch (...)
+		{
+			m_IV.Resize(0);
+		}
 	}
-	catch (...)
+	else if (IS_AES_CCM(m_hAlg.ChainingMode) || IS_AES_GCM(m_hAlg.ChainingMode))
 	{
-		m_IV.Resize(0);
+		try
+		{
+			m_Nonce = ByteString::FromHex(GetText(IDC_CRPT_IV_EDIT).Trim());
+		}
+		catch (...)
+		{
+			m_Nonce.Resize(0);
+		}
 	}
 	InvalidateRect(IDC_CRPT_IV_EDIT, NULL, FALSE);
-	SetMode(m_Mode);
-	UpdateMenus();
-	UpdateButtons();
-}
-
-
-void CryptographyDialogBox::OnNonceChange()
-{
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	try
-	{
-		m_Nonce = ByteString::FromHex(GetText(IDC_CRPT_NONCE_EDIT).Trim());
-	}
-	catch (...)
-	{
-		m_Nonce.Resize(0);
-	}
-	InvalidateRect(IDC_CRPT_NONCE_EDIT, NULL, FALSE);
-	SetMode(m_Mode);
-	UpdateMenus();
-	UpdateButtons();
-}
-
-
-void CryptographyDialogBox::OnTagChange()
-{
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	try
-	{
-		m_Tag = ByteString::FromHex(GetText(IDC_CRPT_TAG_EDIT).Trim());
-	}
-	catch (...)
-	{
-		m_Tag.Resize(0);
-	}
-	InvalidateRect(IDC_CRPT_TAG_EDIT, NULL, FALSE);
 	SetMode(m_Mode);
 	UpdateMenus();
 	UpdateButtons();
@@ -1409,10 +1319,6 @@ void CryptographyDialogBox::SetMode(int value)
 				SetText(IDC_CRPT_ENC_EDIT);
 			}
 			EditSetReadOnly(IDC_CRPT_ENC_EDIT, FALSE);
-			if (IS_AES_CCM(m_hAlg.ChainingMode) || IS_AES_GCM(m_hAlg.ChainingMode))
-			{
-				EditSetReadOnly(IDC_CRPT_TAG_EDIT, FALSE);
-			}
 			EnableWindow(IDC_CRPT_ORG_ENC_COMBO);
 			break;
 		case MODE_DECRYPTION:
@@ -1433,10 +1339,6 @@ void CryptographyDialogBox::SetMode(int value)
 		{
 		case MODE_IDLE:
 			EditSetReadOnly(IDC_CRPT_ENC_EDIT);
-			if (IS_AES_CCM(m_hAlg.ChainingMode) || IS_AES_GCM(m_hAlg.ChainingMode))
-			{
-				EditSetReadOnly(IDC_CRPT_TAG_EDIT);
-			}
 			DisableWindow(IDC_CRPT_ORG_ENC_COMBO);
 			break;
 		case MODE_ENCRYPTION:
@@ -1533,8 +1435,6 @@ void CryptographyDialogBox::UpdateMenus()
 	{
 	case IDC_CRPT_KEY_EDIT:
 	case IDC_CRPT_IV_EDIT:
-	case IDC_CRPT_NONCE_EDIT:
-	case IDC_CRPT_TAG_EDIT:
 		uFlagsR = 0U;
 		uFlagsW = 0U;
 		break;
@@ -1589,12 +1489,20 @@ void CryptographyDialogBox::UpdateButtons()
 			bDecrypt = m_EncryptedData.Len > 0 && m_OriginalData.Len == 0 ? TRUE : FALSE;
 		}
 	}
-	else if (IS_AES_CCM(m_hAlg.ChainingMode) || IS_AES_GCM(m_hAlg.ChainingMode))
+	else if (IS_AES_CCM(m_hAlg.ChainingMode))
 	{
 		if (m_Key.Len * 8 >= m_KeyLength)
 		{
-			bEncrypt = m_Nonce.Len >= m_NonceLength && m_OriginalData.Len > 0 && m_EncryptedData.Len == 0 ? TRUE : FALSE;
-			bDecrypt = m_Nonce.Len >= m_NonceLength && m_Tag.Len >= m_TagLength && m_EncryptedData.Len > 0 && m_OriginalData.Len == 0 ? TRUE : FALSE;
+			bEncrypt = m_Nonce.Len >= AES_CCM_NONCE_LENGTH && m_OriginalData.Len > 0 && m_EncryptedData.Len == 0 ? TRUE : FALSE;
+			bDecrypt = m_Nonce.Len >= AES_CCM_NONCE_LENGTH && m_EncryptedData.Len > AES_CCM_TAG_LENGTH && m_OriginalData.Len == 0 ? TRUE : FALSE;
+		}
+	}
+	else if (IS_AES_GCM(m_hAlg.ChainingMode))
+	{
+		if (m_Key.Len * 8 >= m_KeyLength)
+		{
+			bEncrypt = m_Nonce.Len >= AES_GCM_NONCE_LENGTH && m_OriginalData.Len > 0 && m_EncryptedData.Len == 0 ? TRUE : FALSE;
+			bDecrypt = m_Nonce.Len >= AES_GCM_NONCE_LENGTH && m_EncryptedData.Len > m_TagLength && m_OriginalData.Len == 0 ? TRUE : FALSE;
 		}
 	}
 	EnableWindow(IDC_CRPT_ENCRYPT_BUTTON, bEncrypt);
@@ -1663,44 +1571,14 @@ int CryptographyDialogBox::KeyLengthToControlId(int length)
 }
 
 
-int CryptographyDialogBox::ControlIdToNonceLength(int id)
-{
-	switch (id)
-	{
-	case IDC_CRPT_NONCE11_RADIO: return 11;
-	case IDC_CRPT_NONCE12_RADIO: return 12;
-	case IDC_CRPT_NONCE13_RADIO: return 13;
-	case IDC_CRPT_NONCE14_RADIO: return 14;
-	default:
-		throw Exception(L"CryptographyDialogBox::ControlIdToNonceLength: Bad ID: %d", id);
-	}
-}
-
-
-int CryptographyDialogBox::NonceLengthToControlId(int length)
-{
-	switch (length)
-	{
-	case 11: return IDC_CRPT_NONCE11_RADIO;
-	case 12: return IDC_CRPT_NONCE12_RADIO;
-	case 13: return IDC_CRPT_NONCE13_RADIO;
-	case 14: return IDC_CRPT_NONCE14_RADIO;
-	default:
-		throw Exception(L"CryptographyDialogBox::NonceLengthToControlId: Bad length: %d", length);
-	}
-}
-
-
 int CryptographyDialogBox::ControlIdToTagLength(int id)
 {
 	switch (id)
 	{
-	case IDC_CRPT_TAG4_RADIO: return 4;
-	case IDC_CRPT_TAG6_RADIO: return 6;
-	case IDC_CRPT_TAG8_RADIO: return 8;
-	case IDC_CRPT_TAG10_RADIO: return 10;
 	case IDC_CRPT_TAG12_RADIO: return 12;
+	case IDC_CRPT_TAG13_RADIO: return 13;
 	case IDC_CRPT_TAG14_RADIO: return 14;
+	case IDC_CRPT_TAG15_RADIO: return 15;
 	case IDC_CRPT_TAG16_RADIO: return 16;
 	default:
 		throw Exception(L"CryptographyDialogBox::ControlIdToTagLength: Bad ID: %d", id);
@@ -1712,12 +1590,10 @@ int CryptographyDialogBox::TagLengthToControlId(int length)
 {
 	switch (length)
 	{
-	case 4: return IDC_CRPT_TAG4_RADIO;
-	case 6: return IDC_CRPT_TAG6_RADIO;
-	case 8: return IDC_CRPT_TAG8_RADIO;
-	case 10: return IDC_CRPT_TAG10_RADIO;
 	case 12: return IDC_CRPT_TAG12_RADIO;
+	case 13: return IDC_CRPT_TAG13_RADIO;
 	case 14: return IDC_CRPT_TAG14_RADIO;
+	case 15: return IDC_CRPT_TAG15_RADIO;
 	case 16: return IDC_CRPT_TAG16_RADIO;
 	default:
 		throw Exception(L"CryptographyDialogBox::TagLengthToControlId: Bad length: %d", length);

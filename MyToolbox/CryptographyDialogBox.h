@@ -40,14 +40,11 @@ namespace hnrt
 		void OnDecrypt();
 		void OnChainingModeChange(int);
 		void OnKeyLengthChange(int);
-		void OnNonceLengthChange(int);
 		void OnTagLengthChange(int);
 		void OnEditSetFocus(int);
 		void OnEditKillFocus(int);
 		void OnKeyChange();
 		void OnIVChange();
-		void OnNonceChange();
-		void OnTagChange();
 		void OnOriginalDataChange();
 		void OnOriginalDataDisplayModeChange(int);
 		void OnOriginalDataDisplayCodePageChange();
@@ -67,8 +64,6 @@ namespace hnrt
 		static int ChainingModeToControlId(PCWSTR);
 		static int ControlIdToKeyLength(int);
 		static int KeyLengthToControlId(int);
-		static int ControlIdToNonceLength(int);
-		static int NonceLengthToControlId(int);
 		static int ControlIdToTagLength(int);
 		static int TagLengthToControlId(int);
 		static int OriginalDataDisplayModeToControlId(int);
@@ -79,8 +74,6 @@ namespace hnrt
 		ByteString m_Key;
 		ByteString m_IV;
 		ByteString m_Nonce;
-		int m_NonceLength;
-		ByteString m_Tag;
 		int m_TagLength;
 		ByteString m_OriginalData;
 		int m_OriginalDataDisplayMode; // 0=HEX 1=BASE64 2=TEXT
