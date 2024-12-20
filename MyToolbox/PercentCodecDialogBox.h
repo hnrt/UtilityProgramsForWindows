@@ -32,6 +32,7 @@ namespace hnrt
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
+		virtual void UpdateControlsState(int id);
 		bool OnEncode();
 		bool OnDecode();
 		UINT GetCodePage() const;
@@ -40,7 +41,6 @@ namespace hnrt
 		void Decode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut);
 		UINT GetDecodedOffset(PCWSTR pszIn, UINT cbOut);
 		void ClearStatus(int id = 0);
-		void UpdateControlsState();
 
 		bool m_bEncodingError;
 		bool m_bDecodingError;

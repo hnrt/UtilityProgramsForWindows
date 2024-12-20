@@ -63,7 +63,7 @@ void PercentCodecDialogBox::OnCreate()
 	SetText(IDC_PCTC_ENC_STATIC, ResourceString(IDS_ENCODED));
 	m_menuView
 		.Add(ResourceString(IDS_MENU_PCTC), IDM_VIEW_PCTC);
-	UpdateControlsState();
+	UpdateControlsState(0);
 }
 
 
@@ -184,7 +184,7 @@ INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			if (OnEncode())
 			{
-				UpdateControlsState();
+				UpdateControlsState(IDC_PCTC_ENC_EDIT);
 				SetFocus(IDC_PCTC_ENC_COPY_BUTTON);
 			}
 		}
@@ -194,7 +194,7 @@ INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			if (OnDecode())
 			{
-				UpdateControlsState();
+				UpdateControlsState(IDC_PCTC_ORG_EDIT);
 				SetFocus(IDC_PCTC_ORG_COPY_BUTTON);
 			}
 		}
@@ -204,8 +204,6 @@ INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		if (idNotif == EN_CHANGE)
 		{
 			OnEditChanged(idChild);
-			ClearStatus(idChild);
-			UpdateControlsState();
 		}
 		else if (idNotif == EN_SETFOCUS)
 		{
@@ -229,7 +227,6 @@ INT_PTR PercentCodecDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 	{
 	case PCTC_TIMER1000MS:
 		UpdateEditControlMenus(m_CurrentEdit);
-		UpdateControlsState();
 		break;
 	default:
 		break;
@@ -691,7 +688,7 @@ void PercentCodecDialogBox::ClearStatus(int id)
 }
 
 
-void PercentCodecDialogBox::UpdateControlsState()
+void PercentCodecDialogBox::UpdateControlsState(int id)
 {
 	if (GetTextLength(IDC_PCTC_ORG_EDIT) > 0)
 	{
@@ -713,4 +710,5 @@ void PercentCodecDialogBox::UpdateControlsState()
 		DisableWindow(IDC_PCTC_ENC_COPY_BUTTON);
 		DisableWindow(IDC_PCTC_DECODE_BUTTON);
 	}
+	ClearStatus(id);
 }

@@ -45,9 +45,7 @@
 #define IS_AES_GCM(x) (!wcscmp(x,BCRYPT_CHAIN_MODE_GCM))
 
 
-#if 0
-#define CRYPTOGRAPHY_TIMER1SEC 201
-#endif
+#define CRYPTOGRAPHY_TIMER1000MS 10600
 
 
 using namespace hnrt;
@@ -173,9 +171,7 @@ void CryptographyDialogBox::OnDestroy()
 void CryptographyDialogBox::OnTabSelectionChanging()
 {
 	MyDialogBox::OnTabSelectionChanging();
-#ifdef CRYPTOGRAPHY_TIMER1SEC
-	KillTimer(hwnd, CRYPTOGRAPHY_TIMER1SEC);
-#endif
+	KillTimer(hwnd, CRYPTOGRAPHY_TIMER1000MS);
 	m_menuView
 		.Enable(IDM_VIEW_CRPT, MF_ENABLED);
 }
@@ -187,9 +183,7 @@ void CryptographyDialogBox::OnTabSelectionChanged()
 	UpdateMenus();
 	m_menuView
 		.Enable(IDM_VIEW_CRPT, MF_DISABLED);
-#ifdef CRYPTOGRAPHY_TIMER1SEC
-	SetTimer(hwnd, CRYPTOGRAPHY_TIMER1SEC, 1000, NULL);
-#endif
+	SetTimer(hwnd, CRYPTOGRAPHY_TIMER1000MS, 1000, NULL);
 }
 
 
@@ -271,6 +265,7 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			OnEditKillFocus(idChild);
 			break;
 		case EN_CHANGE:
+			OnEditChanged(idChild);
 			OnKeyChange();
 			break;
 		default:
@@ -287,7 +282,24 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			OnEditKillFocus(idChild);
 			break;
 		case EN_CHANGE:
+			OnEditChanged(idChild);
 			OnIVChange();
+			break;
+		default:
+			break;
+		}
+		break;
+	case IDC_CRPT_AAD_EDIT:
+		switch (idNotif)
+		{
+		case EN_SETFOCUS:
+			OnEditSetFocus(idChild);
+			break;
+		case EN_KILLFOCUS:
+			OnEditKillFocus(idChild);
+			break;
+		case EN_CHANGE:
+			OnEditChanged(idChild);
 			break;
 		default:
 			break;
@@ -303,6 +315,7 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			OnEditKillFocus(idChild);
 			break;
 		case EN_CHANGE:
+			OnEditChanged(idChild);
 			OnOriginalDataChange();
 			break;
 		default:
@@ -333,6 +346,7 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			OnEditKillFocus(idChild);
 			break;
 		case EN_CHANGE:
+			OnEditChanged(idChild);
 			OnEncryptedDataChange();
 			break;
 		default:
@@ -365,21 +379,18 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
-#pragma warning(disable:4065)
 INT_PTR CryptographyDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 {
 	switch (wParam)
 	{
-#ifdef CRYPTOGRAPHY_TIMER1SEC
-	case CRYPTOGRAPHY_TIMER1SEC:
+	case CRYPTOGRAPHY_TIMER1000MS:
+		UpdateEditControlMenus(m_CurrentEdit);
 		break;
-#endif
 	default:
 		break;
 	}
 	return 0;
 }
-#pragma warning(default:4065)
 
 
 INT_PTR CryptographyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
@@ -1117,7 +1128,7 @@ void CryptographyDialogBox::OnOriginalDataChange()
 		}
 		else // if (m_OriginalDataDisplayMode == 2)
 		{
-			if (m_OriginalDataCodePage == 1200)
+			if (m_OriginalDataCodePage == CP_UTF16)
 			{
 				m_OriginalData = ByteString(szText.Ptr, szText.Len * sizeof(WCHAR));
 				ClearStatusText();
@@ -1431,36 +1442,12 @@ void CryptographyDialogBox::UpdateMenus()
 		.Add(ResourceString(IDS_MENU_SAVEENCAS), IDM_FILE_SAVE2AS, (m_EncryptedData.Len > 0) ? 0U : MF_DISABLED)
 		.AddSeparator()
 		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
-	switch (m_CurrentEdit)
-	{
-	case IDC_CRPT_KEY_EDIT:
-	case IDC_CRPT_IV_EDIT:
-		uFlagsR = 0U;
-		uFlagsW = 0U;
-		break;
-	case IDC_CRPT_ORG_EDIT:
-		uFlagsR = 0U;
-		uFlagsW = (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION) ? 0U : MF_DISABLED;
-		break;
-	case IDC_CRPT_ENC_EDIT:
-		uFlagsR = 0U;
-		uFlagsW = (m_Mode == MODE_IDLE || m_Mode == MODE_DECRYPTION) ? 0U : MF_DISABLED;
-		break;
-	default:
-		uFlagsR = MF_DISABLED;
-		uFlagsW = MF_DISABLED;
-		break;
-	}
 	m_menuEdit
-		.RemoveAll()
-		.Add(ResourceString(IDS_MENU_CUT), IDM_EDIT_CUT, uFlagsW)
-		.Add(ResourceString(IDS_MENU_COPY), IDM_EDIT_COPY, uFlagsR)
-		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE, uFlagsW)
-		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE, uFlagsW)
+		.RemoveAll();
+	AddEditControlMenus(m_CurrentEdit);
+	m_menuEdit
 		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL, uFlagsR)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL, uFlagsR)
+		.Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
 		.AddSeparator()
 		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR, (m_Mode == MODE_ENCRYPTION || m_Mode == MODE_DECRYPTION) ? 0U : MF_DISABLED);
 	m_menuSettings
