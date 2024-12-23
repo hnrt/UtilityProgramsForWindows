@@ -607,3 +607,4 @@ namespace hnrt
 #define CP_AUTODETECT 0
 #define CP_UTF16 1200
 #define CP_EUCJP 20932
+#define CP_GB18030 54936 // Simplified Chinese

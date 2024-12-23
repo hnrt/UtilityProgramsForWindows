@@ -182,7 +182,6 @@
 #define IDC_PCTC_ENC_EDIT               10307
 #define IDC_PCTC_ENC_COPY_BUTTON        10308
 #define IDC_PCTC_DECODE_BUTTON          10309
-#define IDC_PCTC_DESC_STATIC            10310
 #define IDC_CRON_EXPR_EDIT              10400
 #define IDC_CRON_EXPR_COMBO             10401
 #define IDC_CRON_EXPR_STATIC            10409
