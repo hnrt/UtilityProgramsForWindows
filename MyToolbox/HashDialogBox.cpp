@@ -53,10 +53,12 @@ void HashDialogBox::OnCreate()
     MyDialogBox::OnCreate();
     m_EditControls.Add(IDC_HASH_PATH_EDIT);
     m_EditControls.Add(IDC_HASH_CONTENT_EDIT);
+    m_EditControls.Add(IDC_HASH_VERIFY_EDIT);
     HFONT hFont = GetApp<MyToolbox>().GetFontForData();
     SetFont(IDC_HASH_PATH_EDIT, hFont);
     SetFont(IDC_HASH_CONTENT_EDIT, hFont);
     SetFont(IDC_HASH_VALUE_STATIC, hFont);
+    SetFont(IDC_HASH_VERIFY_EDIT, hFont);
     UINT uSource = IDC_HASH_FILE_RADIO;
     UINT uMethod = IDC_HASH_MD5_RADIO;
     RegistryKey hKey;
@@ -75,7 +77,7 @@ void HashDialogBox::OnCreate()
     ButtonCheck(uMethod);
     ButtonCheck(IDC_HASH_UPPERCASE_CHECK, m_uLettercase == UPPERCASE_LETTER);
     SetPath();
-    SetResult();
+    SetValue();
     InitializeCodePageComboBox(IDC_HASH_CODEPAGE_COMBO);
     InitializeLineBreakComboBox(IDC_HASH_LINEBREAK_COMBO);
     OnSelectSource(uSource);
@@ -98,6 +100,7 @@ void HashDialogBox::OnDestroy()
     SetFont(IDC_HASH_PATH_EDIT, NULL);
     SetFont(IDC_HASH_CONTENT_EDIT, NULL);
     SetFont(IDC_HASH_VALUE_STATIC, NULL);
+    SetFont(IDC_HASH_VERIFY_EDIT, NULL);
     m_EditControls.RemoveAll();
     MyDialogBox::OnDestroy();
 }
@@ -107,8 +110,10 @@ void HashDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 {
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_CALCULATE_BUTTON, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_COPY_BUTTON, cxDelta, 0, 0, 0);
-    WindowLayout::UpdateLayout(hDlg, IDC_HASH_RESULT_GROUP, 0, cyDelta, cxDelta, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_HASH_VALUE_GROUP, 0, cyDelta, cxDelta, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_VALUE_STATIC, 0, cyDelta, cxDelta, 0, TRUE);
+    WindowLayout::UpdateLayout(hDlg, IDC_HASH_VERIFY_GROUP, 0, cyDelta, cxDelta, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_HASH_VERIFY_EDIT, 0, cyDelta, cxDelta, 0, TRUE);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_ALGORITHM_GROUP, cxDelta, 0, 0, cyDelta, TRUE);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_MD5_RADIO, cxDelta, 0, 0, 0, TRUE);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_SHA1_RADIO, cxDelta, 0, 0, 0, TRUE);
@@ -117,6 +122,8 @@ void HashDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_SHA512_RADIO, cxDelta, 0, 0, 0, TRUE);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_FORMAT_GROUP, cxDelta, cyDelta, 0, 0, TRUE);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_UPPERCASE_CHECK, cxDelta, cyDelta, 0, 0, TRUE);
+    WindowLayout::UpdateLayout(hDlg, IDC_HASH_RESULT_GROUP, cxDelta, cyDelta, 0, 0);
+    WindowLayout::UpdateLayout(hDlg, IDC_HASH_RESULT_STATIC, cxDelta, cyDelta, 0, 0, TRUE);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_SOURCE_GROUP, 0, 0, cxDelta, cyDelta);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_BROWSE_BUTTON, cxDelta, 0, 0, 0);
     WindowLayout::UpdateLayout(hDlg, IDC_HASH_CODEPAGE_COMBO, cxDelta, 0, 0, 0);
@@ -223,11 +230,57 @@ INT_PTR HashDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 }
 
 
+INT_PTR HashDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
+{
+    HDC hdc = reinterpret_cast<HDC>(wParam);
+    int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
+    switch (id)
+    {
+    case IDC_HASH_RESULT_STATIC:
+    {
+        COLORREF colorText, colorBack;
+        String s = GetText(IDC_HASH_RESULT_STATIC).Trim();
+        if (s == ResourceString(IDS_MATCH))
+        {
+            colorText = RGB(240, 240, 240);
+            colorBack = RGB_SUCCESSFUL;
+        }
+        else if (s == ResourceString(IDS_MISMATCH))
+        {
+            colorText = RGB(240, 240, 240);
+            colorBack = RGB_ERROR;
+        }
+        else
+        {
+            colorText = GetSysColor(COLOR_WINDOWTEXT);
+            colorBack = GetSysColor(COLOR_3DFACE);
+        }
+        SetTextColor(hdc, colorText);
+        SetBkColor(hdc, colorBack);
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
+    }
+    default:
+        return 0;
+    }
+}
+
+
 void HashDialogBox::UpdateControlsState(int id)
 {
-    if (HasResult())
+    if (id == IDC_HASH_VERIFY_EDIT)
     {
-        ClearResult();
+        if (HasValue() && GetTextLength(IDC_HASH_VERIFY_EDIT) > 0)
+        {
+            VerifyValue();
+        }
+        else
+        {
+            SetVerificationResult();
+        }
+    }
+    else if (HasValue())
+    {
+        ClearValue();
     }
     if (id == IDC_HASH_PATH_EDIT)
     {
@@ -297,9 +350,9 @@ void HashDialogBox::OnClear()
         }
         m_szTextPath = String::Empty;
     }
-    if (HasResult())
+    if (HasValue())
     {
-        ClearResult();
+        ClearValue();
     }
 }
 
@@ -341,7 +394,7 @@ void HashDialogBox::OnExecute()
                 nBytesIn = length;
             }
         }
-        SetResultHeader(nBytesIn, m_hash.ValueLength);
+        SetValueHeader(nBytesIn, m_hash.ValueLength);
     }
     catch (Win32Exception e)
     {
@@ -404,7 +457,7 @@ void HashDialogBox::OnSettingChanged(UINT uId)
     if (ApplyToLettercase(uId, m_uLettercase, UPPERCASE_LETTER))
     {
         ButtonCheck(IDC_HASH_UPPERCASE_CHECK, m_uLettercase == UPPERCASE_LETTER);
-        ResetResultCase();
+        ResetValueLetterCase();
         return;
     }
 }
@@ -412,7 +465,7 @@ void HashDialogBox::OnSettingChanged(UINT uId)
 
 void HashDialogBox::OnFeederNotify(ULONGLONG nBytesIn)
 {
-    SetResultHeader(nBytesIn);
+    SetValueHeader(nBytesIn);
 }
 
 
@@ -434,7 +487,7 @@ void HashDialogBox::OnSelectSource(UINT uSource)
         if (m_uSource != uSource)
         {
             m_uSource = uSource;
-            ClearResult();
+            ClearValue();
             SwitchMenu();
         }
         else
@@ -460,8 +513,8 @@ void HashDialogBox::OnSelectMethod(UINT uMethod)
         {
             ApplyToHashAlgorithm(IDM_SETTINGS_MD5 + uMethod - IDC_HASH_MD5_RADIO, m_uMethod, IDC_HASH_MD5_RADIO);
             m_hash.Close();
-            SetResultHeader();
-            SetResult();
+            SetValueHeader();
+            SetValue();
         }
         if (m_uSource == IDC_HASH_FILE_RADIO)
         {
@@ -496,12 +549,12 @@ void HashDialogBox::OnUppercase()
     if (ButtonIsChecked(IDC_HASH_UPPERCASE_CHECK))
     {
         ApplyToLettercase(IDM_SETTINGS_UPPERCASE, m_uLettercase, UPPERCASE_LETTER);
-        ResetResultCase();
+        ResetValueLetterCase();
     }
     else
     {
         ApplyToLettercase(IDM_SETTINGS_LOWERCASE, m_uLettercase, UPPERCASE_LETTER);
-        ResetResultCase();
+        ResetValueLetterCase();
     }
 }
 
@@ -518,7 +571,7 @@ void HashDialogBox::SwitchMenu()
         m_menuEdit
             .RemoveAll()
             .Add(ResourceString(IDS_MENU_CALCULATE), IDM_EDIT_EXECUTE, CanCalculate() ? MF_ENABLED : MF_DISABLED)
-            .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT, HasResult() ? MF_ENABLED : MF_DISABLED)
+            .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT, HasValue() ? MF_ENABLED : MF_DISABLED)
             .AddSeparator();
         AddEditControlMenus(IDC_HASH_PATH_EDIT);
         m_menuSettings
@@ -535,7 +588,7 @@ void HashDialogBox::SwitchMenu()
         m_menuEdit
             .RemoveAll()
             .Add(ResourceString(IDS_MENU_CALCULATE), IDM_EDIT_EXECUTE)
-            .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT, HasResult() ? MF_ENABLED : MF_DISABLED)
+            .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT, HasValue() ? MF_ENABLED : MF_DISABLED)
             .AddSeparator();
         AddEditControlMenus(IDC_HASH_CONTENT_EDIT);
         m_menuEdit
@@ -555,37 +608,37 @@ void HashDialogBox::SwitchMenu()
 
 void HashDialogBox::Calculate(RefPtr<DataFeeder> pDataFeeder)
 {
-    SetResult();
+    SetValue();
     switch (m_uMethod)
     {
     case IDC_HASH_MD5_RADIO:
     {
         MD5Hash hash(pDataFeeder);
-        SetResult(hash);
+        SetValue(hash);
         break;
     }
     case IDC_HASH_SHA1_RADIO:
     {
         SHA1Hash hash(pDataFeeder);
-        SetResult(hash);
+        SetValue(hash);
         break;
     }
     case IDC_HASH_SHA256_RADIO:
     {
         SHA256Hash hash(pDataFeeder);
-        SetResult(hash);
+        SetValue(hash);
         break;
     }
     case IDC_HASH_SHA384_RADIO:
     {
         SHA384Hash hash(pDataFeeder);
-        SetResult(hash);
+        SetValue(hash);
         break;
     }
     case IDC_HASH_SHA512_RADIO:
     {
         SHA512Hash hash(pDataFeeder);
-        SetResult(hash);
+        SetValue(hash);
         break;
     }
     default:
@@ -597,7 +650,7 @@ void HashDialogBox::Calculate(RefPtr<DataFeeder> pDataFeeder)
 void HashDialogBox::SetPath(PCWSTR psz)
 {
     SetText(IDC_HASH_PATH_EDIT, psz);
-    ClearResult();
+    ClearValue();
     EnableWindow(IDC_HASH_CALCULATE_BUTTON, TRUE);
     m_menuEdit.Enable(IDM_EDIT_EXECUTE, MF_ENABLED);
 }
@@ -622,56 +675,64 @@ bool HashDialogBox::CanCalculate() const
 }
 
 
-bool HashDialogBox::HasResult() const
+bool HashDialogBox::HasValue() const
 {
     return GetTextLength(IDC_HASH_VALUE_STATIC) > 0;
 }
 
 
-void HashDialogBox::ClearResult()
+void HashDialogBox::ClearValue()
 {
     m_hash.Close();
-    SetResultHeader();
-    SetResult();
+    SetValueHeader();
+    SetValue();
     SwitchMenu();
 }
 
 
-void HashDialogBox::SetResultHeader() const
+void HashDialogBox::SetValueHeader() const
 {
-    SetText(IDC_HASH_RESULT_GROUP, ResourceString(IDS_RESULT));
+    SetText(IDC_HASH_VALUE_GROUP, ResourceString(IDS_VALUE));
 }
 
 
-void HashDialogBox::SetResultHeader(ULONGLONG nBytesIn) const
+void HashDialogBox::SetValueHeader(ULONGLONG nBytesIn) const
 {
-    SetText(IDC_HASH_RESULT_GROUP, String(PRINTF, ResourceString(IDS_RESULT_IN), NumberText(nBytesIn).Ptr));
+    SetText(IDC_HASH_VALUE_GROUP, String(PRINTF, ResourceString(IDS_VALUE_IN), NumberText(nBytesIn).Ptr));
 }
 
 
-void HashDialogBox::SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut) const
+void HashDialogBox::SetValueHeader(ULONGLONG nBytesIn, ULONG nBytesOut) const
 {
     ULONG nBitsOut = nBytesOut * 8;
-    SetText(IDC_HASH_RESULT_GROUP, String(PRINTF, ResourceString(IDS_RESULT_IN_OUT), NumberText(nBytesIn).Ptr, NumberText(nBytesOut).Ptr, NumberText(nBitsOut).Ptr));
+    SetText(IDC_HASH_VALUE_GROUP, String(PRINTF, ResourceString(IDS_VALUE_IN_OUT), NumberText(nBytesIn).Ptr, NumberText(nBytesOut).Ptr, NumberText(nBitsOut).Ptr));
 }
 
 
-void HashDialogBox::SetResult(PCWSTR psz)
+void HashDialogBox::SetValue(PCWSTR psz)
 {
     SetText(IDC_HASH_VALUE_STATIC, psz);
     EnableWindow(IDC_HASH_COPY_BUTTON, *psz ? TRUE : FALSE);
     m_menuEdit.Enable(IDM_EDIT_COPYRESULT, *psz ? MF_ENABLED : MF_DISABLED);
+    if (!*psz)
+    {
+        SetVerificationResult();
+    }
 }
 
 
-void HashDialogBox::SetResult(Hash& rHash)
+void HashDialogBox::SetValue(Hash& rHash)
 {
     m_hash = rHash;
-    SetResult(String::ToHex(m_hash.Value, m_hash.ValueLength, m_uLettercase == UPPERCASE_LETTER ? UPPERCASE : LOWERCASE));
+    SetValue(String::ToHex(m_hash.Value, m_hash.ValueLength, m_uLettercase == UPPERCASE_LETTER ? UPPERCASE : LOWERCASE));
+    if (GetTextLength(IDC_HASH_VERIFY_EDIT) > 0)
+    {
+        VerifyValue();
+    }
 }
 
 
-void HashDialogBox::ResetResultCase()
+void HashDialogBox::ResetValueLetterCase()
 {
     String szValue = GetText(IDC_HASH_VALUE_STATIC);
     if (m_uLettercase == UPPERCASE_LETTER)
@@ -682,7 +743,34 @@ void HashDialogBox::ResetResultCase()
     {
         szValue.Lowercase();
     }
-    SetResult(szValue);
+    SetValue(szValue);
+}
+
+
+void HashDialogBox::VerifyValue()
+{
+    try
+    {
+        ByteString bs = ByteString::FromHex(GetText(IDC_HASH_VERIFY_EDIT));
+        if (bs.Len == m_hash.ValueLength && !memcmp(bs, m_hash.Value, m_hash.ValueLength))
+        {
+            SetVerificationResult(String(PRINTF, L" %s ", ResourceString(IDS_MATCH)));
+        }
+        else
+        {
+            SetVerificationResult(String(PRINTF, L" %s ", ResourceString(IDS_MISMATCH)));
+        }
+    }
+    catch (...)
+    {
+        SetVerificationResult(L"?");
+    }
+}
+
+
+void HashDialogBox::SetVerificationResult(PCWSTR psz)
+{
+    SetText(IDC_HASH_RESULT_STATIC, psz);
 }
 
 

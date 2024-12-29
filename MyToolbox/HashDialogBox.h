@@ -34,6 +34,7 @@ namespace hnrt
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
+		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
 		virtual void UpdateControlsState(int id);
 
 		void OnBrowse();
@@ -43,14 +44,16 @@ namespace hnrt
 		void SwitchMenu();
 		void Calculate(RefPtr<DataFeeder> pDataFeeder);
 		bool CanCalculate() const;
-		bool HasResult() const;
-		void ClearResult();
-		void SetResultHeader() const;
-		void SetResultHeader(ULONGLONG nBytesIn) const;
-		void SetResultHeader(ULONGLONG nBytesIn, ULONG nBytesOut) const;
-		void SetResult(PCWSTR psz = L"");
-		void SetResult(Hash& rHash);
-		void ResetResultCase();
+		bool HasValue() const;
+		void ClearValue();
+		void SetValueHeader() const;
+		void SetValueHeader(ULONGLONG nBytesIn) const;
+		void SetValueHeader(ULONGLONG nBytesIn, ULONG nBytesOut) const;
+		void SetValue(PCWSTR psz = L"");
+		void SetValue(Hash& rHash);
+		void ResetValueLetterCase();
+		void VerifyValue();
+		void SetVerificationResult(PCWSTR psz = L"");
 		void SetPath(PCWSTR psz = L"");
 		UINT GetCodePage() const;
 		UINT GetLineBreak() const;

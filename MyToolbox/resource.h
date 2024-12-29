@@ -92,9 +92,9 @@
 #define IDS_TAB_CLIP                    211
 #define IDS_OUT_OF_MEMORY               250
 #define IDS_UNKNOWN_FAILURE             251
-#define IDS_RESULT                      252
-#define IDS_RESULT_IN                   254
-#define IDS_RESULT_IN_OUT               255
+#define IDS_VALUE                       252
+#define IDS_VALUE_IN                    254
+#define IDS_VALUE_IN_OUT                255
 #define IDS_OPENFILE_FAILURE            256
 #define IDS_READFILE_FAILURE            257
 #define IDS_PCTC_ERROR                  258
@@ -118,6 +118,8 @@
 #define IDS_TITLE_LOAD_ENCODED          276
 #define IDS_TITLE_SAVE_ENCODED          277
 #define IDS_NO_LINE_BREAK               278
+#define IDS_MATCH                       279
+#define IDS_MISMATCH                    280
 #define IDD_HASH                        800
 #define IDD_CRPT                        801
 #define IDD_GUID                        802
@@ -152,14 +154,18 @@
 #define IDC_HASH_SHA256_RADIO           10109
 #define IDC_HASH_SHA384_RADIO           10110
 #define IDC_HASH_SHA512_RADIO           10111
-#define IDC_HASH_VALUE_STATIC           10112
-#define IDC_HASH_UPPERCASE_CHECK        10113
-#define IDC_HASH_CALCULATE_BUTTON       10114
-#define IDC_HASH_COPY_BUTTON            10115
-#define IDC_HASH_RESULT_GROUP           10116
+#define IDC_HASH_UPPERCASE_CHECK        10112
+#define IDC_HASH_CALCULATE_BUTTON       10113
+#define IDC_HASH_COPY_BUTTON            10114
+#define IDC_HASH_VALUE_GROUP            10115
+#define IDC_HASH_VALUE_STATIC           10116
 #define IDC_HASH_ALGORITHM_GROUP        10117
 #define IDC_HASH_FORMAT_GROUP           10118
 #define IDC_HASH_SOURCE_GROUP           10119
+#define IDC_HASH_VERIFY_GROUP           10120
+#define IDC_HASH_VERIFY_EDIT            10121
+#define IDC_HASH_RESULT_GROUP           10122
+#define IDC_HASH_RESULT_STATIC          10123
 #define IDC_GUID_UPPERCASE_RADIO        10200
 #define IDC_GUID_LOWERCASE_RADIO        10201
 #define IDC_GUID_IMPLEMENT_RADIO        10202
@@ -449,7 +455,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        272
 #define _APS_NEXT_COMMAND_VALUE         32789
-#define _APS_NEXT_CONTROL_VALUE         11022
+#define _APS_NEXT_CONTROL_VALUE         11025
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif
