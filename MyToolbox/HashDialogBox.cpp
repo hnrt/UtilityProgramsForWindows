@@ -48,9 +48,6 @@ HashDialogBox::HashDialogBox()
 void HashDialogBox::OnCreate()
 {
     MyDialogBox::OnCreate();
-    m_EditControls.Add(IDC_HASH_PATH_EDIT);
-    m_EditControls.Add(IDC_HASH_CONTENT_EDIT);
-    m_EditControls.Add(IDC_HASH_VERIFY_EDIT);
     HFONT hFont = GetApp<MyToolbox>().GetFontForData();
     SetFont(IDC_HASH_PATH_EDIT, hFont);
     SetFont(IDC_HASH_CONTENT_EDIT, hFont);
@@ -98,7 +95,6 @@ void HashDialogBox::OnDestroy()
     SetFont(IDC_HASH_CONTENT_EDIT, NULL);
     SetFont(IDC_HASH_VALUE_STATIC, NULL);
     SetFont(IDC_HASH_VERIFY_EDIT, NULL);
-    m_EditControls.RemoveAll();
     MyDialogBox::OnDestroy();
 }
 
@@ -142,20 +138,18 @@ void HashDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
     m_menuEdit
-        .RemoveAll()
-        .Add(ResourceString(IDS_MENU_CALCULATE), IDM_EDIT_EXECUTE)
-        .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT)
-        .AddSeparator();
-    AddEditControlMenus(IDC_HASH_CONTENT_EDIT);
-    SwitchMenu();
+        .Insert(0, ResourceString(IDS_MENU_CALCULATE), IDM_EDIT_EXECUTE)
+        .Insert(1, ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT)
+        .InsertSeparator(2);
     m_menuView
         .Enable(IDM_VIEW_HASH, MF_DISABLED);
+    SwitchMenu();
 }
 
 
 INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
-    if (MyDialogBox::OnCommand(wParam, lParam))
+    if (m_cProcessing)
     {
         return TRUE;
     }
@@ -168,30 +162,49 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         {
             OnExecute();
         }
+        else
+        {
+            return FALSE;
+        }
         break;
-
     case IDC_HASH_COPY_BUTTON:
         if (idNotif == BN_CLICKED)
         {
             OnCopyResult();
         }
+        else
+        {
+            return FALSE;
+        }
         break;
-
     case IDC_HASH_BROWSE_BUTTON:
         if (idNotif == BN_CLICKED)
         {
             OnBrowse();
         }
-        break;
-
-    case IDC_HASH_FILE_RADIO:
-    case IDC_HASH_TEXT_RADIO:
-        if (idNotif == BN_CLICKED && ButtonIsChecked(idChild))
+        else
         {
-            OnSelectSource(idChild);
+            return FALSE;
         }
         break;
-
+    case IDC_HASH_FILE_RADIO:
+    case IDC_HASH_TEXT_RADIO:
+        if (idNotif == BN_CLICKED)
+        {
+            if (ButtonIsChecked(idChild))
+            {
+                OnSelectSource(idChild);
+            }
+        }
+        else
+        {
+            return FALSE;
+        }
+        break;
+    case IDC_HASH_PATH_EDIT:
+    case IDC_HASH_CONTENT_EDIT:
+    case IDC_HASH_VERIFY_EDIT:
+        return OnEditCommand(wParam, lParam);
     case IDC_HASH_MD5_RADIO:
     case IDC_HASH_SHA1_RADIO:
     case IDC_HASH_SHA256_RADIO:
@@ -201,15 +214,21 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         {
             OnSelectMethod(idChild);
         }
+        else
+        {
+            return FALSE;
+        }
         break;
-
     case IDC_HASH_UPPERCASE_CHECK:
         if (idNotif == BN_CLICKED)
         {
             OnUppercase();
         }
+        else
+        {
+            return FALSE;
+        }
         break;
-
     default:
         return FALSE;
     }

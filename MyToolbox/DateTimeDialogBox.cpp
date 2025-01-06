@@ -97,16 +97,14 @@ void DateTimeDialogBox::OnTabSelectionChanging()
 void DateTimeDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
+    SetTimer(100);
     m_menuEdit
-        .Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
-        .AddSeparator();
-    AddEditControlMenus(m_CurrentEdit);
-    m_menuEdit
+        .Insert(0, ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT)
+        .InsertSeparator(1)
         .AddSeparator()
         .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE);
     m_menuView
         .Enable(IDM_VIEW_DTTM, MF_DISABLED);
-    SetTimer(100);
 }
 
 
@@ -116,16 +114,29 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     {
         return TRUE;
     }
-    UNREFERENCED_PARAMETER(lParam);
     UINT idChild = LOWORD(wParam);
     UINT idNotif = HIWORD(wParam);
     switch (idChild)
     {
     case IDC_DTTM_COPY_BUTTON:
-        OnCopyAll();
+        if (idNotif == BN_CLICKED)
+        {
+            OnCopyResult();
+        }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_DTTM_NEW_BUTTON:
-        OnExecute();
+        if (idNotif == BN_CLICKED)
+        {
+            OnExecute();
+        }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_DTTM_EDIT:
     case IDC_DTTM_YEAR_EDIT:
@@ -135,19 +146,7 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_DTTM_MINUTE_EDIT:
     case IDC_DTTM_SECOND_EDIT:
     case IDC_DTTM_MILLISECOND_EDIT:
-        if (idNotif == EN_CHANGE)
-        {
-            OnEditChanged(idChild);
-        }
-        else if (idNotif == EN_SETFOCUS)
-        {
-            OnEditSetFocus(idChild);
-        }
-        else if (idNotif == EN_KILLFOCUS)
-        {
-            OnEditKillFocus(idChild);
-        }
-        break;
+        return OnEditCommand(wParam, lParam);
     case IDC_DTTM_YEAR_CHECK:
     case IDC_DTTM_MONTH_CHECK:
     case IDC_DTTM_DAY_CHECK:
@@ -155,12 +154,23 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_DTTM_MINUTE_CHECK:
     case IDC_DTTM_SECOND_CHECK:
     case IDC_DTTM_MILLISECOND_CHECK:
-        EditSetReadOnly(idChild - 1, ButtonIsChecked(idChild));
+        if (idNotif == BN_CLICKED)
+        {
+            EditSetReadOnly(idChild - 1, ButtonIsChecked(idChild));
+        }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_DTTM_OFFSET_COMBO:
         if (idNotif == CBN_SELCHANGE)
         {
             OnOffsetChange();
+        }
+        else
+        {
+            return FALSE;
         }
         break;
     case IDC_DTTM_DTZ_EXTENDED_RADIO:
@@ -196,7 +206,14 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_DTTM_SECONDS_RADIO:
     case IDC_DTTM_MILLISECONDS_RADIO:
     case IDC_DTTM_FILETIME_RADIO:
-        FormatString(idChild);
+        if (idNotif == BN_CLICKED)
+        {
+            FormatString(idChild);
+        }
+        else
+        {
+            return FALSE;
+        }
         break;
     default:
         return FALSE;
@@ -222,7 +239,7 @@ INT_PTR DateTimeDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 }
 
 
-void DateTimeDialogBox::OnCopyAll()
+void DateTimeDialogBox::OnCopyResult()
 {
     if (m_LastModified)
     {

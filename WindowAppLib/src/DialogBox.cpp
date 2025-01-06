@@ -99,6 +99,12 @@ HWND DialogBox::GetChild(int id) const
 }
 
 
+DWORD DialogBox::GetChildStyle(int id) const
+{
+    return GetWindowLongW(GetChild(id), GWL_STYLE);
+}
+
+
 BOOL DialogBox::EnableWindow(int id, BOOL bEnabled) const
 {
     return ::EnableWindow(GetChild(id), bEnabled);
@@ -333,8 +339,7 @@ void DialogBox::EditSelectAll(int id) const
 
 BOOL DialogBox::EditGetReadOnly(int id) const
 {
-    LONG value = GetWindowLongW(GetDlgItem(m_hwnd, id), GWL_STYLE);
-    return !!(value & ES_READONLY);
+    return (GetChildStyle(id) & ES_READONLY) == ES_READONLY;
 }
 
 
@@ -348,6 +353,12 @@ void DialogBox::EditClear(int id) const
 {
     SetText(id);
     SetFocus(id);
+}
+
+
+BOOL DialogBox::EditIsMultiLine(int id) const
+{
+    return (GetChildStyle(id) & ES_MULTILINE) == ES_MULTILINE;
 }
 
 

@@ -21,10 +21,6 @@ namespace hnrt
 		virtual void OnSave1As();
 		virtual void OnLoad2From();
 		virtual void OnSave2As();
-		virtual void OnCut();
-		virtual void OnPaste();
-		virtual void OnDelete();
-		virtual void OnClear();
 		virtual void OnSettingChanged(UINT);
 
 	private:
@@ -35,13 +31,12 @@ namespace hnrt
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorEdit(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
+		virtual void OnEditChanged(int id);
 		void OnEncrypt();
 		void OnDecrypt();
 		void OnChainingModeChange(int);
 		void OnKeyLengthChange(int);
 		void OnTagLengthChange(int);
-		void OnEditSetFocus(int);
-		void OnEditKillFocus(int);
 		void OnKeyChange();
 		void OnIVChange();
 		void OnOriginalDataChange();

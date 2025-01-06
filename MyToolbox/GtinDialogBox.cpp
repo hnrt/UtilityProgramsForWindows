@@ -116,17 +116,15 @@ void GtinDialogBox::OnTabSelectionChanging()
 void GtinDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
+    SetTimer(100);
     m_menuEdit
-        .Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
-        .AddSeparator();
-    AddEditControlMenus(m_CurrentEdit);
-    m_menuEdit
+        .Insert(0, ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT)
+        .InsertSeparator(1)
         .AddSeparator()
         .Add(ResourceString(IDS_MENU_RENEW), IDM_EDIT_EXECUTE);
     m_menuView
         .Enable(IDM_VIEW_GTIN, MF_DISABLED);
     UpdateControlsState();
-    SetTimer(100);
     srand(static_cast<unsigned int>(FileTime().Intervals));
 }
 
@@ -137,46 +135,65 @@ INT_PTR GtinDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     {
         return TRUE;
     }
-    UNREFERENCED_PARAMETER(lParam);
     UINT idChild = LOWORD(wParam);
     UINT idNotif = HIWORD(wParam);
     switch (idChild)
     {
     case IDC_GTIN_COPY_BUTTON:
-        OnCopyAll();
+        if (idNotif == BN_CLICKED)
+        {
+            OnCopyResult();
+        }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_GTIN_UP_BUTTON:
-        GTIN13Add(1);
+        if (idNotif == BN_CLICKED)
+        {
+            GTIN13Add(1);
+        }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_GTIN_DN_BUTTON:
-        GTIN13Add(-1);
+        if (idNotif == BN_CLICKED)
+        {
+            GTIN13Add(-1);
+        }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_GTIN_RN_BUTTON:
-        OnExecute();
+        if (idNotif == BN_CLICKED)
+        {
+            OnExecute();
+        }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_GTIN_CPL_COMBO:
         if (idNotif == CBN_SELCHANGE)
         {
             SetGS1CPLength(ComboBoxGetSelection(IDC_GTIN_CPL_COMBO, GS1COMPANYPREFIX_LENGTH7));
         }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_GTIN_EDIT:
     case IDC_GTIN_CP_EDIT:
     case IDC_GTIN_IR_EDIT:
     case IDC_GTIN_CD_EDIT:
-        if (idNotif == EN_CHANGE)
-        {
-            OnEditChanged(idChild);
-        }
-        else if (idNotif == EN_SETFOCUS)
-        {
-            OnEditSetFocus(idChild);
-        }
-        else if (idNotif == EN_KILLFOCUS)
-        {
-            OnEditKillFocus(idChild);
-        }
-        break;
+        return OnEditCommand(wParam, lParam);
     default:
         return FALSE;
     }
@@ -300,7 +317,7 @@ INT_PTR GtinDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 }
 
 
-void GtinDialogBox::OnCopyAll()
+void GtinDialogBox::OnCopyResult()
 {
     if (m_LastModified)
     {

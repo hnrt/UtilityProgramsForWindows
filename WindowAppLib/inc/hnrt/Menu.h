@@ -26,6 +26,10 @@ namespace hnrt
 		Menu& Add(PCWSTR psz, HMENU h);
 		Menu& Add(PCWSTR psz, UINT id, UINT flags = 0);
 		Menu& AddSeparator();
+		Menu& Insert(UINT position, PCWSTR psz, UINT id, UINT flags = 0);
+		Menu& InsertSeparator(UINT position);
+		Menu& Prepend(PCWSTR psz, UINT id, UINT flags = 0);
+		Menu& PrependSeparator();
 		Menu& Modify(UINT uPosition, UINT uFlags, UINT_PTR id = 0, PCWSTR psz = nullptr);
 		Menu& Enable(UINT uItem, UINT uEnable = MF_BYCOMMAND | MF_ENABLED);
 		Menu& RemoveAll();
@@ -40,5 +44,15 @@ namespace hnrt
 	inline Menu::operator HMENU() const
 	{
 		return m_h;
+	}
+
+	inline Menu& Menu::Prepend(PCWSTR psz, UINT id, UINT flags)
+	{
+		return Insert(0, psz, id, flags);
+	}
+
+	inline Menu& Menu::PrependSeparator()
+	{
+		return InsertSeparator(0);
 	}
 }

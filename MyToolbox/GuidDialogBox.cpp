@@ -98,10 +98,8 @@ void GuidDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
     m_menuEdit
-        .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPY)
-        .AddSeparator();
-    AddEditControlMenus(m_CurrentEdit);
-    m_menuEdit
+        .Insert(0, ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT)
+        .InsertSeparator(1)
         .AddSeparator()
         .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE);
     m_menuView
@@ -115,7 +113,6 @@ INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     {
         return TRUE;
     }
-    UNREFERENCED_PARAMETER(lParam);
     UINT idChild = LOWORD(wParam);
     UINT idNotif = HIWORD(wParam);
     switch (idChild)
@@ -123,7 +120,11 @@ INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_GUID_COPY_BUTTON:
         if (idNotif == BN_CLICKED)
         {
-            OnCopy();
+            OnCopyResult();
+        }
+        else
+        {
+            return FALSE;
         }
         break;
     case IDC_GUID_NEW_BUTTON:
@@ -131,22 +132,13 @@ INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         {
             ChangeGuid();
         }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_GUID_EDIT:
-        if (idNotif == EN_CHANGE)
-        {
-            OnEditChanged(idChild);
-            ParseContent();
-        }
-        else if (idNotif == EN_SETFOCUS)
-        {
-            OnEditSetFocus(idChild);
-        }
-        else if (idNotif == EN_KILLFOCUS)
-        {
-            OnEditKillFocus(idChild);
-        }
-        break;
+        return OnEditCommand(wParam, lParam);
     case IDC_GUID_UPPERCASE_RADIO:
     case IDC_GUID_LOWERCASE_RADIO:
     case IDC_GUID_IMPLEMENT_RADIO:
@@ -159,6 +151,10 @@ INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         if (idNotif == BN_CLICKED)
         {
             ChangeFormat(idChild);
+        }
+        else
+        {
+            return FALSE;
         }
         break;
     default:
@@ -188,7 +184,7 @@ INT_PTR GuidDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 }
 
 
-void GuidDialogBox::OnCopy()
+void GuidDialogBox::OnCopyResult()
 {
     if (!Clipboard::Write(hwnd, m_szFormatted))
     {

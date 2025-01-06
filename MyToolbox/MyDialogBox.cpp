@@ -66,13 +66,6 @@ void MyDialogBox::OnTabSelectionChanging()
 	KillTimers();
 	m_bActive = false;
 	m_LastModified.Forget();
-	m_menuFile
-		.RemoveAll()
-		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
-	m_menuEdit
-		.RemoveAll();
-	m_menuSettings
-		.RemoveAll();
 }
 
 
@@ -82,32 +75,21 @@ void MyDialogBox::OnTabSelectionChanged()
 	m_bActive = true;
 	m_LastModified.Recall();
 	SetTimer(1000);
-}
-
-
-INT_PTR MyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-	if (m_cProcessing)
-	{
-		return TRUE;
-	}
-	UINT idChild = LOWORD(wParam);
-	UINT idNotif = HIWORD(wParam);
-	if (m_EditControls.Contains(idChild))
-	{
-		return OnEditCommand(idChild, idNotif);
-	}
-	else
-	{
-		return FALSE;
-	}
+	m_menuFile
+		.RemoveAll()
+		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
+	m_menuEdit
+		.RemoveAll();
+	AddEditControlMenus(m_CurrentEdit);
+	m_menuSettings
+		.RemoveAll();
 }
 
 
 INT_PTR MyDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 {
-	if (wParam == TIMERID(m_id, 1000))
+	//DBGFNC(L"MyDialogBox::OnTimer(%zu,%zu): Id=%u CurrentEdit=%u", wParam, lParam, Id, m_CurrentEdit);
+	if (wParam == TIMERID(Id, 1000))
 	{
 		UpdateEditControlMenus(m_CurrentEdit);
 	}
@@ -115,18 +97,21 @@ INT_PTR MyDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 }
 
 
-INT_PTR MyDialogBox::OnEditCommand(int idChild, int idNotif)
+INT_PTR MyDialogBox::OnEditCommand(WPARAM wParam, LPARAM lParam)
 {
+	UNREFERENCED_PARAMETER(lParam);
+	UINT idChild = LOWORD(wParam);
+	UINT idNotif = HIWORD(wParam);
 	switch (idNotif)
 	{
-	case EN_CHANGE:
-		OnEditChanged(idChild);
-		return TRUE;
 	case EN_SETFOCUS:
 		OnEditSetFocus(idChild);
 		return TRUE;
 	case EN_KILLFOCUS:
 		OnEditKillFocus(idChild);
+		return TRUE;
+	case EN_CHANGE:
+		OnEditChanged(idChild);
 		return TRUE;
 	default:
 		return FALSE;
@@ -148,7 +133,7 @@ void MyDialogBox::OnEditSetFocus(int id)
 void MyDialogBox::OnEditKillFocus(int id)
 {
 	DBGFNC(L"MyDialogBox::OnEditKillFocus(%d)", id);
-	if (m_CurrentEdit == id)
+	if (m_CurrentEdit != 0)
 	{
 		m_CurrentEdit = 0;
 		UpdateEditControlMenus(0);
@@ -235,6 +220,7 @@ void MyDialogBox::AddEditControlMenus(int id)
 
 void MyDialogBox::UpdateEditControlMenus(int id)
 {
+	//DBGFNC(L"MyDialogBox::UpdateEditControlMenus(%d)", id);
 	UINT fCut, fCopy, fPaste, fDelete, fSelectAll, fClear;
 	if (id)
 	{
@@ -273,6 +259,10 @@ void MyDialogBox::OnCut()
 	if (m_CurrentEdit)
 	{
 		EditCut(m_CurrentEdit);
+		if (EditIsMultiLine(m_CurrentEdit))
+		{
+			OnEditChanged(m_CurrentEdit);
+		}
 	}
 }
 
@@ -293,6 +283,10 @@ void MyDialogBox::OnPaste()
 	if (m_CurrentEdit)
 	{
 		EditPaste(m_CurrentEdit);
+		if (EditIsMultiLine(m_CurrentEdit))
+		{
+			OnEditChanged(m_CurrentEdit);
+		}
 	}
 }
 
@@ -303,6 +297,10 @@ void MyDialogBox::OnDelete()
 	if (m_CurrentEdit)
 	{
 		EditDelete(m_CurrentEdit);
+		if (EditIsMultiLine(m_CurrentEdit))
+		{
+			OnEditChanged(m_CurrentEdit);
+		}
 	}
 }
 
@@ -334,7 +332,10 @@ void MyDialogBox::OnClear()
 	if (m_CurrentEdit)
 	{
 		EditClear(m_CurrentEdit);
-		OnEditChanged(m_CurrentEdit);
+		if (EditIsMultiLine(m_CurrentEdit))
+		{
+			OnEditChanged(m_CurrentEdit);
+		}
 	}
 }
 

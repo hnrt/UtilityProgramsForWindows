@@ -70,6 +70,31 @@ Menu& Menu::AddSeparator()
 }
 
 
+Menu& Menu::Insert(UINT position, PCWSTR psz, UINT id, UINT flags)
+{
+    MENUITEMINFOW info = { 0 };
+    info.cbSize = sizeof(info);
+    info.fMask = MIIM_ID | MIIM_FTYPE | MIIM_STRING | MIIM_STATE;
+    info.wID = id;
+    info.fType = MFT_STRING;
+    info.dwTypeData = const_cast<LPWSTR>(psz);
+    info.fState = flags;
+    InsertMenuItemW(m_h, position, TRUE, &info);
+    return *this;
+}
+
+
+Menu& Menu::InsertSeparator(UINT position)
+{
+    MENUITEMINFOW info = { 0 };
+    info.cbSize = sizeof(info);
+    info.fMask = MIIM_FTYPE;
+    info.fType = MFT_SEPARATOR;
+    InsertMenuItemW(m_h, position, TRUE, &info);
+    return *this;
+}
+
+
 Menu& Menu::Modify(UINT uPosition, UINT uFlags, UINT_PTR id, PCWSTR psz)
 {
     ModifyMenuW(m_h, uPosition, MF_STRING | uFlags, id, psz);

@@ -15,7 +15,7 @@ namespace hnrt
 		void operator =(const SfidDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
-		virtual void OnCopyAll();
+		virtual void OnCopyResult();
 		virtual void OnClear();
 		virtual void OnExecute();
 

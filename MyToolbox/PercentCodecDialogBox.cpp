@@ -40,6 +40,9 @@ PercentCodecDialogBox::PercentCodecDialogBox()
 void PercentCodecDialogBox::OnCreate()
 {
 	MyDialogBox::OnCreate();
+	HFONT hFont = GetApp<MyToolbox>().GetFontForData();
+	SetFont(IDC_PCTC_ORG_EDIT, hFont);
+	SetFont(IDC_PCTC_ENC_EDIT, hFont);
 	RegistryKey hKey;
 	LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName);
 	if (rc == ERROR_SUCCESS)
@@ -50,9 +53,6 @@ void PercentCodecDialogBox::OnCreate()
 		m_szOriginalPath = RegistryValue::GetSZ(hKey, REGVAL_ORIGINAL_PATH);
 		m_szEncodedPath = RegistryValue::GetSZ(hKey, REGVAL_ENCODED_PATH);
 	}
-	HFONT hFont = GetApp<MyToolbox>().GetFontForData();
-	SetFont(IDC_PCTC_ORG_EDIT, hFont);
-	SetFont(IDC_PCTC_ENC_EDIT, hFont);
 	InitializeCodePageComboBox(IDC_PCTC_CODEPAGE_COMBO);
 	ButtonCheck(IDC_PCTC_USEPLUS_CHECK);
 	ComboBoxRemove(IDC_PCTC_CODEPAGE_COMBO, CP_UTF16);
@@ -127,21 +127,14 @@ void PercentCodecDialogBox::OnTabSelectionChanged()
 {
 	MyDialogBox::OnTabSelectionChanged();
 	m_menuFile
-		.RemoveAll()
-		.Add(ResourceString(IDS_MENU_ORG_LOADFROM), IDM_FILE_LOAD1FROM)
-		.Add(ResourceString(IDS_MENU_ORG_SAVEAS), IDM_FILE_SAVE1AS)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_ENC_LOADFROM), IDM_FILE_LOAD2FROM)
-		.Add(ResourceString(IDS_MENU_ENC_SAVEAS), IDM_FILE_SAVE2AS)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
-	m_menuEdit
-		.RemoveAll();
-	AddEditControlMenus(m_CurrentEdit);
+		.Insert(0, ResourceString(IDS_MENU_ORG_LOADFROM), IDM_FILE_LOAD1FROM)
+		.Insert(1, ResourceString(IDS_MENU_ORG_SAVEAS), IDM_FILE_SAVE1AS)
+		.InsertSeparator(2)
+		.Insert(3, ResourceString(IDS_MENU_ENC_LOADFROM), IDM_FILE_LOAD2FROM)
+		.Insert(4, ResourceString(IDS_MENU_ENC_SAVEAS), IDM_FILE_SAVE2AS)
+		.InsertSeparator(5);
 	m_menuView
 		.Enable(IDM_VIEW_PCTC, MF_DISABLED);
-	m_menuSettings
-		.RemoveAll();
 	AddInputCodePageSettingMenus();
 	AddOutputCodePageSettingMenus();
 }
@@ -149,7 +142,6 @@ void PercentCodecDialogBox::OnTabSelectionChanged()
 
 INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
-	UNREFERENCED_PARAMETER(lParam);
 	if (m_cProcessing)
 	{
 		return TRUE;
@@ -163,11 +155,19 @@ INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			CopyAllText(IDC_PCTC_ORG_EDIT);
 		}
+		else
+		{
+			return FALSE;
+		}
 		break;
 	case IDC_PCTC_ENC_COPY_BUTTON:
 		if (idNotif == BN_CLICKED)
 		{
 			CopyAllText(IDC_PCTC_ENC_EDIT);
+		}
+		else
+		{
+			return FALSE;
 		}
 		break;
 	case IDC_PCTC_ENCODE_BUTTON:
@@ -178,6 +178,10 @@ INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 				SetFocus(IDC_PCTC_ENC_COPY_BUTTON);
 			}
 		}
+		else
+		{
+			return FALSE;
+		}
 		break;
 	case IDC_PCTC_DECODE_BUTTON:
 		if (idNotif == BN_CLICKED)
@@ -187,24 +191,14 @@ INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 				SetFocus(IDC_PCTC_ORG_COPY_BUTTON);
 			}
 		}
+		else
+		{
+			return FALSE;
+		}
 		break;
 	case IDC_PCTC_ORG_EDIT:
 	case IDC_PCTC_ENC_EDIT:
-		switch (idNotif)
-		{
-		case EN_SETFOCUS:
-			OnEditSetFocus(idChild);
-			break;
-		case EN_KILLFOCUS:
-			OnEditKillFocus(idChild);
-			break;
-		case EN_CHANGE:
-			OnEditChanged(idChild);
-			break;
-		default:
-			break;
-		}
-		break;
+		return OnEditCommand(wParam, lParam);
 	default:
 		return FALSE;
 	}

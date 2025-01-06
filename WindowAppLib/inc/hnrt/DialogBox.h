@@ -32,6 +32,7 @@ namespace hnrt
 		void SetFont(HFONT hFont);
 		void SetFont(int id, HFONT hFont);
 		HWND GetChild(int id) const;
+		DWORD GetChildStyle(int id) const;
 		BOOL EnableWindow(int id, BOOL bEnabled = TRUE) const;
 		BOOL DisableWindow(int id) const;
 		void SetFocus(int id) const;
@@ -52,6 +53,7 @@ namespace hnrt
 		BOOL EditGetReadOnly(int id) const;
 		void EditSetReadOnly(int id, BOOL bReadOnly = TRUE) const;
 		void EditClear(int id) const;
+		BOOL EditIsMultiLine(int id) const;
 		void ButtonCheck(int id, BOOL bCheck = TRUE) const;
 		void ButtonUncheck(int id) const;
 		BOOL ButtonIsChecked(int id) const;

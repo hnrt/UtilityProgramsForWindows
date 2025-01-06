@@ -29,6 +29,7 @@ namespace hnrt
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorEdit(WPARAM wParam, LPARAM lParam);
+		virtual void OnEditChanged(int id);
 
 		void Encode();
 		void Decode();

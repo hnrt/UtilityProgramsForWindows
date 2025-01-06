@@ -94,17 +94,15 @@ void SfidDialogBox::OnTabSelectionChanging()
 void SfidDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
+    SetTimer(100);
     m_menuEdit
-        .Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
-        .AddSeparator();
-    AddEditControlMenus(m_CurrentEdit);
-    m_menuEdit
+        .Insert(0, ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT)
+        .InsertSeparator(1)
         .AddSeparator()
         .Add(ResourceString(IDS_MENU_RENEW), IDM_EDIT_EXECUTE);
     m_menuView
         .Enable(IDM_VIEW_SFID, MF_DISABLED);
     UpdateControlsState();
-    SetTimer(100);
     srand(static_cast<unsigned int>(FileTime().Intervals));
 }
 
@@ -115,41 +113,56 @@ INT_PTR SfidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     {
         return TRUE;
     }
-    UNREFERENCED_PARAMETER(lParam);
     UINT idChild = LOWORD(wParam);
     UINT idNotif = HIWORD(wParam);
     switch (idChild)
     {
     case IDC_SFID_COPY_BUTTON:
-        OnCopyAll();
+        if (idNotif == BN_CLICKED)
+        {
+            OnCopyResult();
+        }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_SFID_UP_BUTTON:
-        ChangeContent(1);
+        if (idNotif == BN_CLICKED)
+        {
+            ChangeContent(1);
+        }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_SFID_DN_BUTTON:
-        ChangeContent(-1);
+        if (idNotif == BN_CLICKED)
+        {
+            ChangeContent(-1);
+        }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_SFID_RN_BUTTON:
-        OnExecute();
+        if (idNotif == BN_CLICKED)
+        {
+            OnExecute();
+        }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_SFID_EDIT:
     case IDC_SFID_KEYPREFIX_EDIT:
     case IDC_SFID_INSTANCE_EDIT:
     case IDC_SFID_UNIQUEID_EDIT:
     case IDC_SFID_CHECKSUM_EDIT:
-        if (idNotif == EN_CHANGE)
-        {
-            OnEditChanged(idChild);
-        }
-        else if (idNotif == EN_SETFOCUS)
-        {
-            OnEditSetFocus(idChild);
-        }
-        else if (idNotif == EN_KILLFOCUS)
-        {
-            OnEditKillFocus(idChild);
-        }
-        break;
+        return OnEditCommand(wParam, lParam);
     default:
         return FALSE;
     }
@@ -301,7 +314,7 @@ INT_PTR SfidDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 }
 
 
-void SfidDialogBox::OnCopyAll()
+void SfidDialogBox::OnCopyResult()
 {
     if (m_LastModified)
     {

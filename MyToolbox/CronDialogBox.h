@@ -19,7 +19,7 @@ namespace hnrt
 		void operator =(const CronDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
-		virtual void OnCopyAll();
+		virtual void OnCopyResult();
 		virtual void OnSettingChanged(UINT);
 
 	private:
@@ -30,7 +30,7 @@ namespace hnrt
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
-		void OnEditChanged(int id);
+		virtual void OnEditChanged(int id);
 		void OnSecondChanged();
 		void OnOffsetChanged();
 		void Parse();

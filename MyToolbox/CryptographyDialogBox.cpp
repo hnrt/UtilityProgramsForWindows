@@ -177,19 +177,13 @@ void CryptographyDialogBox::OnTabSelectionChanged()
 {
 	MyDialogBox::OnTabSelectionChanged();
 	m_menuFile
-		.RemoveAll()
-		.Add(ResourceString(IDS_MENU_LOADORGFROM), IDM_FILE_LOAD1FROM)
-		.Add(ResourceString(IDS_MENU_SAVEORGAS), IDM_FILE_SAVE1AS)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_LOADENCFROM), IDM_FILE_LOAD2FROM)
-		.Add(ResourceString(IDS_MENU_SAVEENCAS), IDM_FILE_SAVE2AS)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
-	m_menuEdit
-		.RemoveAll();
-	AddEditControlMenus(m_CurrentEdit);
+		.Insert(0, ResourceString(IDS_MENU_LOADORGFROM), IDM_FILE_LOAD1FROM)
+		.Insert(1, ResourceString(IDS_MENU_SAVEORGAS), IDM_FILE_SAVE1AS)
+		.InsertSeparator(2)
+		.Insert(3, ResourceString(IDS_MENU_LOADENCFROM), IDM_FILE_LOAD2FROM)
+		.Insert(4, ResourceString(IDS_MENU_SAVEENCAS), IDM_FILE_SAVE2AS)
+		.InsertSeparator(5);
 	m_menuSettings
-		.RemoveAll()
 		.Add(ResourceString(IDS_MENU_WRAPDATA), IDM_SETTINGS_WRAPDATA);
 	m_menuView
 		.Enable(IDM_VIEW_CRPT, MF_DISABLED);
@@ -228,9 +222,9 @@ void CryptographyDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 
 INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
-	UNREFERENCED_PARAMETER(lParam);
 	if (m_cProcessing)
 	{
+		DBGPUT(L"CryptographyDialogBox::OnCommand(%zx,%zx): m_cProcessing=%d", wParam, lParam, m_cProcessing);
 		return TRUE;
 	}
 	UINT idChild = LOWORD(wParam);
@@ -242,17 +236,31 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_CRPT_AESCFB_RADIO:
 	case IDC_CRPT_AESCCM_RADIO:
 	case IDC_CRPT_AESGCM_RADIO:
-		if (ButtonIsChecked(idChild))
+		if (idNotif == BN_CLICKED)
 		{
-			OnChainingModeChange(idChild);
+			if (ButtonIsChecked(idChild))
+			{
+				OnChainingModeChange(idChild);
+			}
+		}
+		else
+		{
+			return FALSE;
 		}
 		break;
 	case IDC_CRPT_KEY128_RADIO:
 	case IDC_CRPT_KEY192_RADIO:
 	case IDC_CRPT_KEY256_RADIO:
-		if (ButtonIsChecked(idChild))
+		if (idNotif == BN_CLICKED)
 		{
-			OnKeyLengthChange(idChild);
+			if (ButtonIsChecked(idChild))
+			{
+				OnKeyLengthChange(idChild);
+			}
+		}
+		else
+		{
+			return FALSE;
 		}
 		break;
 	case IDC_CRPT_TAG12_RADIO:
@@ -260,84 +268,37 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_CRPT_TAG14_RADIO:
 	case IDC_CRPT_TAG15_RADIO:
 	case IDC_CRPT_TAG16_RADIO:
-		if (ButtonIsChecked(idChild))
+		if (idNotif == BN_CLICKED)
 		{
-			OnTagLengthChange(idChild);
+			if (ButtonIsChecked(idChild))
+			{
+				OnTagLengthChange(idChild);
+			}
+		}
+		else
+		{
+			return FALSE;
 		}
 		break;
 	case IDC_CRPT_KEY_EDIT:
-		switch (idNotif)
-		{
-		case EN_SETFOCUS:
-			OnEditSetFocus(idChild);
-			break;
-		case EN_KILLFOCUS:
-			OnEditKillFocus(idChild);
-			break;
-		case EN_CHANGE:
-			OnEditChanged(idChild);
-			OnKeyChange();
-			break;
-		default:
-			break;
-		}
-		break;
 	case IDC_CRPT_IV_EDIT:
-		switch (idNotif)
-		{
-		case EN_SETFOCUS:
-			OnEditSetFocus(idChild);
-			break;
-		case EN_KILLFOCUS:
-			OnEditKillFocus(idChild);
-			break;
-		case EN_CHANGE:
-			OnEditChanged(idChild);
-			OnIVChange();
-			break;
-		default:
-			break;
-		}
-		break;
 	case IDC_CRPT_AAD_EDIT:
-		switch (idNotif)
-		{
-		case EN_SETFOCUS:
-			OnEditSetFocus(idChild);
-			break;
-		case EN_KILLFOCUS:
-			OnEditKillFocus(idChild);
-			break;
-		case EN_CHANGE:
-			OnEditChanged(idChild);
-			break;
-		default:
-			break;
-		}
-		break;
 	case IDC_CRPT_ORG_EDIT:
-		switch (idNotif)
-		{
-		case EN_SETFOCUS:
-			OnEditSetFocus(idChild);
-			break;
-		case EN_KILLFOCUS:
-			OnEditKillFocus(idChild);
-			break;
-		case EN_CHANGE:
-			OnEditChanged(idChild);
-			OnOriginalDataChange();
-			break;
-		default:
-			break;
-		}
-		break;
+	case IDC_CRPT_ENC_EDIT:
+		return OnEditCommand(wParam, lParam);
 	case IDC_CRPT_ORG_HEX_RADIO:
 	case IDC_CRPT_ORG_BASE64_RADIO:
 	case IDC_CRPT_ORG_RAW_RADIO:
-		if (ButtonIsChecked(idChild))
+		if (idNotif == BN_CLICKED)
 		{
-			OnOriginalDataDisplayModeChange(idChild);
+			if (ButtonIsChecked(idChild))
+			{
+				OnOriginalDataDisplayModeChange(idChild);
+			}
+		}
+		else
+		{
+			return FALSE;
 		}
 		break;
 	case IDC_CRPT_ORG_ENC_COMBO:
@@ -345,29 +306,23 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			OnOriginalDataDisplayCodePageChange();
 		}
-		break;
-	case IDC_CRPT_ENC_EDIT:
-		switch (idNotif)
+		else
 		{
-		case EN_SETFOCUS:
-			OnEditSetFocus(idChild);
-			break;
-		case EN_KILLFOCUS:
-			OnEditKillFocus(idChild);
-			break;
-		case EN_CHANGE:
-			OnEditChanged(idChild);
-			OnEncryptedDataChange();
-			break;
-		default:
-			break;
+			return FALSE;
 		}
 		break;
 	case IDC_CRPT_ENC_HEX_RADIO:
 	case IDC_CRPT_ENC_BASE64_RADIO:
-		if (ButtonIsChecked(idChild))
+		if (idNotif == BN_CLICKED)
 		{
-			OnEncryptedDataDisplayModeChange(idChild);
+			if (ButtonIsChecked(idChild))
+			{
+				OnEncryptedDataDisplayModeChange(idChild);
+			}
+		}
+		else
+		{
+			return FALSE;
 		}
 		break;
 	case IDC_CRPT_ENCRYPT_BUTTON:
@@ -375,11 +330,19 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			OnEncrypt();
 		}
+		else
+		{
+			return FALSE;
+		}
 		break;
 	case IDC_CRPT_DECRYPT_BUTTON:
 		if (idNotif == BN_CLICKED)
 		{
 			OnDecrypt();
+		}
+		else
+		{
+			return FALSE;
 		}
 		break;
 	default:
@@ -447,6 +410,29 @@ INT_PTR CryptographyDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam
 		return 0;
 	}
 	return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
+}
+
+
+void CryptographyDialogBox::OnEditChanged(int id)
+{
+	MyDialogBox::OnEditChanged(id);
+	switch (id)
+	{
+	case IDC_CRPT_KEY_EDIT:
+		OnKeyChange();
+		break;
+	case IDC_CRPT_IV_EDIT:
+		OnIVChange();
+		break;
+	case IDC_CRPT_ORG_EDIT:
+		OnOriginalDataChange();
+		break;
+	case IDC_CRPT_ENC_EDIT:
+		OnEncryptedDataChange();
+		break;
+	default:
+		break;
+	}
 }
 
 
@@ -589,119 +575,6 @@ void CryptographyDialogBox::OnSave2As()
 	{
 		MessageBoxW(hwnd, ResourceString(IDS_MSG_FILE_WRITE_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 	}
-}
-
-
-void CryptographyDialogBox::OnCut()
-{
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	switch (m_CurrentEdit)
-	{
-	case IDC_CRPT_KEY_EDIT:
-		EditCut(m_CurrentEdit);
-		OnKeyChange();
-		break;
-	case IDC_CRPT_IV_EDIT:
-		EditCut(m_CurrentEdit);
-		OnIVChange();
-		break;
-	case IDC_CRPT_ORG_EDIT:
-		if (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION)
-		{
-			EditCut(m_CurrentEdit);
-			OnOriginalDataChange();
-		}
-		break;
-	case IDC_CRPT_ENC_EDIT:
-		if (m_Mode == MODE_IDLE || m_Mode == MODE_DECRYPTION)
-		{
-			EditCut(m_CurrentEdit);
-			OnEncryptedDataChange();
-		}
-		break;
-	default:
-		break;
-	}
-}
-
-
-void CryptographyDialogBox::OnPaste()
-{
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	switch (m_CurrentEdit)
-	{
-	case IDC_CRPT_KEY_EDIT:
-		EditPaste(m_CurrentEdit);
-		OnKeyChange();
-		break;
-	case IDC_CRPT_IV_EDIT:
-		EditPaste(m_CurrentEdit);
-		OnIVChange();
-		break;
-	case IDC_CRPT_ORG_EDIT:
-		if (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION)
-		{
-			EditPaste(m_CurrentEdit);
-			OnOriginalDataChange();
-		}
-		break;
-	case IDC_CRPT_ENC_EDIT:
-		if (m_Mode == MODE_IDLE || m_Mode == MODE_DECRYPTION)
-		{
-			EditPaste(m_CurrentEdit);
-			OnEncryptedDataChange();
-		}
-		break;
-	default:
-		break;
-	}
-}
-
-
-void CryptographyDialogBox::OnDelete()
-{
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	switch (m_CurrentEdit)
-	{
-	case IDC_CRPT_KEY_EDIT:
-		EditDelete(m_CurrentEdit);
-		OnKeyChange();
-		break;
-	case IDC_CRPT_IV_EDIT:
-		EditDelete(m_CurrentEdit);
-		OnIVChange();
-		break;
-	case IDC_CRPT_ORG_EDIT:
-		if (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION)
-		{
-			EditDelete(m_CurrentEdit);
-			OnOriginalDataChange();
-		}
-		break;
-	case IDC_CRPT_ENC_EDIT:
-		if (m_Mode == MODE_IDLE || m_Mode == MODE_DECRYPTION)
-		{
-			EditDelete(m_CurrentEdit);
-			OnEncryptedDataChange();
-		}
-		break;
-	default:
-		break;
-	}
-}
-
-
-void CryptographyDialogBox::OnClear()
-{
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	SetMode(MODE_IDLE);
-	m_OriginalData.Resize(0);
-	SetText(IDC_CRPT_ORG_EDIT);
-	m_EncryptedData.Resize(0);
-	SetText(IDC_CRPT_ENC_EDIT);
-	ClearStatusText();
-	UpdateMenus();
-	UpdateButtons();
 }
 
 
@@ -1007,26 +880,6 @@ void CryptographyDialogBox::OnTagLengthChange(int id)
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_TagLength = ControlIdToTagLength(id);
 	SetMode(m_Mode);
-}
-
-
-void CryptographyDialogBox::OnEditSetFocus(int id)
-{
-	if (m_CurrentEdit != id)
-	{
-		m_CurrentEdit = id;
-		UpdateMenus();
-	}
-}
-
-
-void CryptographyDialogBox::OnEditKillFocus(int id)
-{
-	if (m_CurrentEdit == id)
-	{
-		m_CurrentEdit = 0;
-		UpdateMenus();
-	}
 }
 
 

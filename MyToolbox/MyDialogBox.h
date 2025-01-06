@@ -50,7 +50,7 @@ namespace hnrt
 		virtual void OnDestroy();
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
-		virtual INT_PTR OnEditCommand(int idChild, int idNotif);
+		virtual INT_PTR OnEditCommand(WPARAM wParam, LPARAM lParam);
 		virtual void OnEditSetFocus(int id);
 		virtual void OnEditKillFocus(int id);
 		virtual void OnEditChanged(int id);
@@ -97,7 +97,6 @@ namespace hnrt
 		bool m_bOutputBOM;
 		UINT m_CurrentEdit;
 		LastModified m_LastModified;
-		ControlIdCollection m_EditControls;
 		UINT m_timers[4];
 	};
 
@@ -114,6 +113,13 @@ namespace hnrt
 	inline INT MyDialogBox::get_id() const
 	{
 		return m_id;
+	}
+
+	inline INT_PTR MyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
+	{
+		UNREFERENCED_PARAMETER(lParam);
+		UNREFERENCED_PARAMETER(wParam);
+		return FALSE;
 	}
 
 	inline void MyDialogBox::OnLoadFrom()

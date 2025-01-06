@@ -168,15 +168,12 @@ void Base64DialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
     m_menuFile
-        .RemoveAll()
-        .Add(ResourceString(IDS_MENU_ORG_LOADFROM), IDM_FILE_LOAD1FROM)
-        .Add(ResourceString(IDS_MENU_ORG_SAVEAS), IDM_FILE_SAVE1AS)
-        .AddSeparator()
-        .Add(ResourceString(IDS_MENU_ENC_LOADFROM), IDM_FILE_LOAD2FROM)
-        .Add(ResourceString(IDS_MENU_ENC_SAVEAS), IDM_FILE_SAVE2AS)
-        .AddSeparator()
-        .Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
-    AddEditControlMenus(m_CurrentEdit);
+        .Insert(0, ResourceString(IDS_MENU_ORG_LOADFROM), IDM_FILE_LOAD1FROM)
+        .Insert(1, ResourceString(IDS_MENU_ORG_SAVEAS), IDM_FILE_SAVE1AS)
+        .InsertSeparator(2)
+        .Insert(3, ResourceString(IDS_MENU_ENC_LOADFROM), IDM_FILE_LOAD2FROM)
+        .Insert(4, ResourceString(IDS_MENU_ENC_SAVEAS), IDM_FILE_SAVE2AS)
+        .InsertSeparator(5);
     m_menuView
         .Enable(IDM_VIEW_BS64, MF_DISABLED);
 }
@@ -184,7 +181,6 @@ void Base64DialogBox::OnTabSelectionChanged()
 
 INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
-    UNREFERENCED_PARAMETER(lParam);
     if (m_cProcessing)
     {
         return TRUE;
@@ -198,11 +194,19 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         {
             CopyAllText(IDC_BS64_ORG_EDIT);
         }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_BS64_ORG_ENCODE_BUTTON:
         if (idNotif == BN_CLICKED)
         {
             Encode();
+        }
+        else
+        {
+            return FALSE;
         }
         break;
     case IDC_BS64_ENC_COPY_BUTTON:
@@ -210,85 +214,44 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         {
             CopyAllText(IDC_BS64_ENC_EDIT);
         }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_BS64_ENC_DECODE_BUTTON:
         if (idNotif == BN_CLICKED)
         {
             Decode();
         }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_BS64_ORG_EDIT:
-        if (idNotif == EN_CHANGE)
+    case IDC_BS64_ENC_EDIT:
+        return OnEditCommand(wParam, lParam);
+    case IDC_BS64_ORG_HEX_RADIO:
+    case IDC_BS64_ORG_TEXT_RADIO:
+        if (idNotif == BN_CLICKED)
         {
-            OnEditChanged(idChild);
             if (m_Original.Len)
             {
-                m_Original.Resize(0);
-                InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
-                if (ButtonIsChecked(IDC_BS64_ORG_HEX_RADIO))
-                {
-                    DisableWindow(IDC_BS64_ORG_CODEPAGE_COMBO);
-                    DisableWindow(IDC_BS64_ORG_LINEBREAK_COMBO);
-                }
+                ApplyOriginal();
             }
-            if (m_bEncodingError)
+            else
             {
                 m_bEncodingError = FALSE;
                 SetText(IDC_BS64_ORG_STATIC, ResourceString(IDS_ORIGINAL));
-                InvalidateRect(IDC_BS64_ORG_STATIC, NULL, TRUE);
                 InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
             }
             UpdateControlsState();
         }
-        else if (idNotif == EN_SETFOCUS)
-        {
-            OnEditSetFocus(idChild);
-        }
-        else if (idNotif == EN_KILLFOCUS)
-        {
-            OnEditKillFocus(idChild);
-        }
-        break;
-    case IDC_BS64_ENC_EDIT:
-        if (idNotif == EN_CHANGE)
-        {
-            OnEditChanged(idChild);
-            if (m_bEncoded)
-            {
-                m_bEncoded = FALSE;
-                InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
-            }
-            if (m_bDecodingError)
-            {
-                m_bDecodingError = FALSE;
-                SetText(IDC_BS64_ENC_STATIC, ResourceString(IDS_ENCODED));
-                InvalidateRect(IDC_BS64_ENC_STATIC, NULL, TRUE);
-                InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
-            }
-            UpdateControlsState();
-        }
-        else if (idNotif == EN_SETFOCUS)
-        {
-            OnEditSetFocus(idChild);
-        }
-        else if (idNotif == EN_KILLFOCUS)
-        {
-            OnEditKillFocus(idChild);
-        }
-        break;
-    case IDC_BS64_ORG_HEX_RADIO:
-    case IDC_BS64_ORG_TEXT_RADIO:
-        if (m_Original.Len)
-        {
-            ApplyOriginal();
-        }
         else
         {
-            m_bEncodingError = FALSE;
-            SetText(IDC_BS64_ORG_STATIC, ResourceString(IDS_ORIGINAL));
-            InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
+            return FALSE;
         }
-        UpdateControlsState();
         break;
     case IDC_BS64_ORG_CODEPAGE_COMBO:
         if (idNotif == CBN_SELCHANGE)
@@ -298,11 +261,19 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
                 ApplyOriginal();
             }
         }
+        else
+        {
+            return FALSE;
+        }
         break;
     case IDC_BS64_ENC_LINELENGTH_COMBO:
         if (idNotif == CBN_SELCHANGE)
         {
             SetText(IDC_BS64_ENC_EDIT, BreakLines(GetText(IDC_BS64_ENC_EDIT), ComboBoxGetSelection(IDC_BS64_ENC_LINELENGTH_COMBO)));
+        }
+        else
+        {
+            return FALSE;
         }
         break;
     default:
@@ -362,6 +333,51 @@ INT_PTR Base64DialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
         break;
     }
     return 0;
+}
+
+
+void Base64DialogBox::OnEditChanged(int id)
+{
+    MyDialogBox::OnEditChanged(id);
+    switch (id)
+    {
+    case IDC_BS64_ORG_EDIT:
+        if (m_Original.Len)
+        {
+            m_Original.Resize(0);
+            InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
+            if (ButtonIsChecked(IDC_BS64_ORG_HEX_RADIO))
+            {
+                DisableWindow(IDC_BS64_ORG_CODEPAGE_COMBO);
+                DisableWindow(IDC_BS64_ORG_LINEBREAK_COMBO);
+            }
+        }
+        if (m_bEncodingError)
+        {
+            m_bEncodingError = FALSE;
+            SetText(IDC_BS64_ORG_STATIC, ResourceString(IDS_ORIGINAL));
+            InvalidateRect(IDC_BS64_ORG_STATIC, NULL, TRUE);
+            InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
+        }
+        break;
+    case IDC_BS64_ENC_EDIT:
+        if (m_bEncoded)
+        {
+            m_bEncoded = FALSE;
+            InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
+        }
+        if (m_bDecodingError)
+        {
+            m_bDecodingError = FALSE;
+            SetText(IDC_BS64_ENC_STATIC, ResourceString(IDS_ENCODED));
+            InvalidateRect(IDC_BS64_ENC_STATIC, NULL, TRUE);
+            InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
+        }
+        break;
+    default:
+        return;
+    }
+    UpdateControlsState();
 }
 
 

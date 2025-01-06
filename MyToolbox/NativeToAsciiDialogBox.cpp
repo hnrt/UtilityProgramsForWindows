@@ -38,8 +38,6 @@ NativeToAsciiDialogBox::NativeToAsciiDialogBox()
 void NativeToAsciiDialogBox::OnCreate()
 {
 	MyDialogBox::OnCreate();
-	m_EditControls.Add(IDC_NTOA_NATIVE_EDIT);
-	m_EditControls.Add(IDC_NTOA_ASCII_EDIT);
 	HFONT hFont = GetApp<MyToolbox>().GetFontForData();
 	SetFont(IDC_NTOA_NATIVE_EDIT, hFont);
 	SetFont(IDC_NTOA_ASCII_EDIT, hFont);
@@ -73,7 +71,6 @@ void NativeToAsciiDialogBox::OnDestroy()
 	}
 	SetFont(IDC_NTOA_NATIVE_EDIT, NULL);
 	SetFont(IDC_NTOA_ASCII_EDIT, NULL);
-	m_EditControls.RemoveAll();
 	MyDialogBox::OnDestroy();
 }
 
@@ -118,19 +115,14 @@ void NativeToAsciiDialogBox::OnTabSelectionChanged()
 {
 	MyDialogBox::OnTabSelectionChanged();
 	m_menuFile
-		.RemoveAll()
-		.Add(ResourceString(IDS_MENU_ORG_LOADFROM), IDM_FILE_LOAD1FROM)
-		.Add(ResourceString(IDS_MENU_ORG_SAVEAS), IDM_FILE_SAVE1AS)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_ENC_LOADFROM), IDM_FILE_LOAD2FROM)
-		.Add(ResourceString(IDS_MENU_ENC_SAVEAS), IDM_FILE_SAVE2AS)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
-	AddEditControlMenus(m_CurrentEdit);
+		.Insert(0, ResourceString(IDS_MENU_ORG_LOADFROM), IDM_FILE_LOAD1FROM)
+		.Insert(1, ResourceString(IDS_MENU_ORG_SAVEAS), IDM_FILE_SAVE1AS)
+		.InsertSeparator(2)
+		.Insert(3, ResourceString(IDS_MENU_ENC_LOADFROM), IDM_FILE_LOAD2FROM)
+		.Insert(4, ResourceString(IDS_MENU_ENC_SAVEAS), IDM_FILE_SAVE2AS)
+		.InsertSeparator(5);
 	m_menuView
 		.Enable(IDM_VIEW_NTOA, MF_DISABLED);
-	m_menuSettings
-		.RemoveAll();
 	AddInputCodePageSettingMenus();
 	AddOutputCodePageSettingMenus();
 }
@@ -138,7 +130,7 @@ void NativeToAsciiDialogBox::OnTabSelectionChanged()
 
 INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
-	if (MyDialogBox::OnCommand(wParam, lParam))
+	if (m_cProcessing)
 	{
 		return TRUE;
 	}
@@ -151,6 +143,10 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			CopyAllText(IDC_NTOA_NATIVE_EDIT);
 		}
+		else
+		{
+			return FALSE;
+		}
 		break;
 	case IDC_NTOA_ENCODE_BUTTON:
 		if (idNotif == BN_CLICKED)
@@ -158,11 +154,19 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			OnEncode();
 			SetFocus(IDC_NTOA_COPY2_BUTTON);
 		}
+		else
+		{
+			return FALSE;
+		}
 		break;
 	case IDC_NTOA_COPY2_BUTTON:
 		if (idNotif == BN_CLICKED)
 		{
 			CopyAllText(IDC_NTOA_ASCII_EDIT);
+		}
+		else
+		{
+			return FALSE;
 		}
 		break;
 	case IDC_NTOA_DECODE_BUTTON:
@@ -171,7 +175,14 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			OnDecode();
 			SetFocus(IDC_NTOA_COPY1_BUTTON);
 		}
+		else
+		{
+			return FALSE;
+		}
 		break;
+	case IDC_NTOA_NATIVE_EDIT:
+	case IDC_NTOA_ASCII_EDIT:
+		return OnEditCommand(wParam, lParam);
 	default:
 		return FALSE;
 	}
