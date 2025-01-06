@@ -705,7 +705,7 @@ void CryptographyDialogBox::OnClear()
 }
 
 
-void CryptographyDialogBox::OnSettingChanged(int id)
+void CryptographyDialogBox::OnSettingChanged(UINT id)
 {
 	switch (id)
 	{

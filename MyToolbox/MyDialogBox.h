@@ -18,7 +18,7 @@ namespace hnrt
 		MyDialogBox(const MyDialogBox&) = delete;
 		virtual ~MyDialogBox() = default;
 		void operator =(const MyDialogBox&) = delete;
-		void SetId(int id);
+		void SetId(UINT id);
 		bool IsActive() const;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
@@ -37,7 +37,7 @@ namespace hnrt
 		virtual void OnClear();
 		virtual void OnExecute();
 		virtual void OnCopyResult();
-		virtual void OnSettingChanged(int id);
+		virtual void OnSettingChanged(UINT id);
 		virtual void OnFeederNotify(ULONGLONG);
 
 		INT get_id() const;
@@ -80,7 +80,7 @@ namespace hnrt
 
 		void KillTimers();
 
-		int m_id;
+		UINT m_id;
 		bool m_bActive;
 
 	protected:
@@ -95,13 +95,13 @@ namespace hnrt
 		UINT m_uInputCodePage;
 		UINT m_uOutputCodePage;
 		bool m_bOutputBOM;
-		int m_CurrentEdit;
+		UINT m_CurrentEdit;
 		LastModified m_LastModified;
 		ControlIdCollection m_EditControls;
 		UINT m_timers[4];
 	};
 
-	inline void MyDialogBox::SetId(int id)
+	inline void MyDialogBox::SetId(UINT id)
 	{
 		m_id = id;
 	}
@@ -148,7 +148,7 @@ namespace hnrt
 	{
 	}
 
-	inline void MyDialogBox::OnSettingChanged(int id)
+	inline void MyDialogBox::OnSettingChanged(UINT id)
 	{
 		UNREFERENCED_PARAMETER(id);
 	}
