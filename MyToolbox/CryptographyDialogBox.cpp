@@ -705,7 +705,7 @@ void CryptographyDialogBox::OnClear()
 }
 
 
-void CryptographyDialogBox::OnSettingChanged(UINT id)
+void CryptographyDialogBox::OnSettingChanged(int id)
 {
 	switch (id)
 	{
@@ -1435,7 +1435,7 @@ void CryptographyDialogBox::UpdateMenus()
 		.Enable(IDM_FILE_LOAD2FROM, (m_Mode == MODE_IDLE || m_Mode == MODE_DECRYPTION) ? MF_ENABLED : MF_DISABLED)
 		.Enable(IDM_FILE_SAVE2AS, (m_EncryptedData.Len > 0) ? MF_ENABLED : MF_DISABLED);
 	m_menuSettings
-		.Enable(IDM_SETTINGS_WRAPDATA, MF_ENABLED | (m_bWrapData ? MF_CHECKED : MFS_UNCHECKED));
+		.Modify(IDM_SETTINGS_WRAPDATA, MF_BYCOMMAND | (m_bWrapData ? MF_CHECKED : MFS_UNCHECKED), IDM_SETTINGS_WRAPDATA, ResourceString(IDS_MENU_WRAPDATA));
 }
 
 

@@ -25,7 +25,7 @@ namespace hnrt
 		virtual void OnPaste();
 		virtual void OnDelete();
 		virtual void OnClear();
-		virtual void OnSettingChanged(UINT);
+		virtual void OnSettingChanged(int);
 
 	private:
 
