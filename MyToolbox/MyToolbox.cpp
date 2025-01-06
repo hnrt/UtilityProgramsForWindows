@@ -13,12 +13,12 @@
 #include "hnrt/Interlocked.h"
 
 
-#define REGVAL_FACENAME L"FaceName"
-#define REGVAL_FACENAME_TAB L"FaceNameForTab"
-#define REGVAL_FACENAME_DATA L"FaceNameForData"
-
-
 using namespace hnrt;
+
+
+static const WCHAR s_szRegValFaceName[] = L"FaceName";
+static const WCHAR s_szRegValFaceNameForTab[] = L"FaceNameForTab";
+static const WCHAR s_szRegValFaceNameForData[] = L"FaceNameForData";
 
 
 static const WCHAR s_szClassName[] = { L"HNRT_MyToolbox" };
@@ -123,9 +123,9 @@ void MyToolbox::OnCreate()
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, REGKEY_ROOT);
     if (rc == ERROR_SUCCESS)
     {
-        szFaceName = RegistryValue::GetSZ(hKey, REGVAL_FACENAME, szFaceName);
-        szFaceNameForTab = RegistryValue::GetSZ(hKey, REGVAL_FACENAME_TAB, szFaceNameForTab);
-        szFaceNameForData = RegistryValue::GetSZ(hKey, REGVAL_FACENAME_DATA, szFaceNameForData);
+        szFaceName = RegistryValue::GetSZ(hKey, s_szRegValFaceName, szFaceName);
+        szFaceNameForTab = RegistryValue::GetSZ(hKey, s_szRegValFaceNameForTab, szFaceNameForTab);
+        szFaceNameForData = RegistryValue::GetSZ(hKey, s_szRegValFaceNameForData, szFaceNameForData);
     }
     m_hFont = LogicalFont()
         .SetFaceName(szFaceName)

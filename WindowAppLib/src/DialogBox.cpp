@@ -87,7 +87,7 @@ void DialogBox::SetFont(HFONT hFont)
 }
 
 
-void DialogBox::SetFont(int id, HFONT hFont)
+void DialogBox::SetFont(int id, HFONT hFont) const
 {
     SendMessage(id, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), TRUE);
 }
@@ -135,7 +135,7 @@ UINT DialogBox::GetTextLength(int id) const
 }
 
 
-BOOL DialogBox::InvalidateRect(int id, const RECT* pRect, BOOL bErase)
+BOOL DialogBox::InvalidateRect(int id, const RECT* pRect, BOOL bErase) const
 {
     return ::InvalidateRect(GetChild(id), pRect, bErase);
 }
