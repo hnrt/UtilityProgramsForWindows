@@ -45,9 +45,6 @@
 #define IS_AES_GCM(x) (!wcscmp(x,BCRYPT_CHAIN_MODE_GCM))
 
 
-#define CRYPTOGRAPHY_TIMER1000MS 10600
-
-
 using namespace hnrt;
 
 
@@ -171,7 +168,6 @@ void CryptographyDialogBox::OnDestroy()
 void CryptographyDialogBox::OnTabSelectionChanging()
 {
 	MyDialogBox::OnTabSelectionChanging();
-	KillTimer(hwnd, CRYPTOGRAPHY_TIMER1000MS);
 	m_menuView
 		.Enable(IDM_VIEW_CRPT, MF_ENABLED);
 }
@@ -180,10 +176,24 @@ void CryptographyDialogBox::OnTabSelectionChanging()
 void CryptographyDialogBox::OnTabSelectionChanged()
 {
 	MyDialogBox::OnTabSelectionChanged();
-	UpdateMenus();
+	m_menuFile
+		.RemoveAll()
+		.Add(ResourceString(IDS_MENU_LOADORGFROM), IDM_FILE_LOAD1FROM)
+		.Add(ResourceString(IDS_MENU_SAVEORGAS), IDM_FILE_SAVE1AS)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_LOADENCFROM), IDM_FILE_LOAD2FROM)
+		.Add(ResourceString(IDS_MENU_SAVEENCAS), IDM_FILE_SAVE2AS)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
+	m_menuEdit
+		.RemoveAll();
+	AddEditControlMenus(m_CurrentEdit);
+	m_menuSettings
+		.RemoveAll()
+		.Add(ResourceString(IDS_MENU_WRAPDATA), IDM_SETTINGS_WRAPDATA);
 	m_menuView
 		.Enable(IDM_VIEW_CRPT, MF_DISABLED);
-	SetTimer(hwnd, CRYPTOGRAPHY_TIMER1000MS, 1000, NULL);
+	UpdateMenus();
 }
 
 
@@ -376,20 +386,6 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		return FALSE;
 	}
 	return TRUE;
-}
-
-
-INT_PTR CryptographyDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
-{
-	switch (wParam)
-	{
-	case CRYPTOGRAPHY_TIMER1000MS:
-		UpdateEditControlMenus(m_CurrentEdit);
-		break;
-	default:
-		break;
-	}
-	return 0;
 }
 
 
@@ -1434,25 +1430,12 @@ void CryptographyDialogBox::UpdateMenus()
 	UINT uFlagsR = 0U;
 	UINT uFlagsW = 0U;
 	m_menuFile
-		.RemoveAll()
-		.Add(ResourceString(IDS_MENU_LOADORGFROM), IDM_FILE_LOAD1FROM, (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION) ? 0U : MF_DISABLED)
-		.Add(ResourceString(IDS_MENU_SAVEORGAS), IDM_FILE_SAVE1AS, (m_OriginalData.Len > 0) ? 0U : MF_DISABLED)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_LOADENCFROM), IDM_FILE_LOAD2FROM, (m_Mode == MODE_IDLE || m_Mode == MODE_DECRYPTION) ? 0U : MF_DISABLED)
-		.Add(ResourceString(IDS_MENU_SAVEENCAS), IDM_FILE_SAVE2AS, (m_EncryptedData.Len > 0) ? 0U : MF_DISABLED)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
-	m_menuEdit
-		.RemoveAll();
-	AddEditControlMenus(m_CurrentEdit);
-	m_menuEdit
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR, (m_Mode == MODE_ENCRYPTION || m_Mode == MODE_DECRYPTION) ? 0U : MF_DISABLED);
+		.Enable(IDM_FILE_LOAD1FROM, (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION) ? MF_ENABLED : MF_DISABLED)
+		.Enable(IDM_FILE_SAVE1AS, (m_OriginalData.Len > 0) ? MF_ENABLED : MF_DISABLED)
+		.Enable(IDM_FILE_LOAD2FROM, (m_Mode == MODE_IDLE || m_Mode == MODE_DECRYPTION) ? MF_ENABLED : MF_DISABLED)
+		.Enable(IDM_FILE_SAVE2AS, (m_EncryptedData.Len > 0) ? MF_ENABLED : MF_DISABLED);
 	m_menuSettings
-		.RemoveAll()
-		.Add(ResourceString(IDS_MENU_WRAPDATA), IDM_SETTINGS_WRAPDATA, m_bWrapData ? MF_CHECKED : MFS_UNCHECKED);
+		.Enable(IDM_SETTINGS_WRAPDATA, MF_ENABLED | (m_bWrapData ? MF_CHECKED : MFS_UNCHECKED));
 }
 
 

@@ -31,9 +31,6 @@
 #define LOWERCASE_LETTER 2
 
 
-#define HASH_TIMER1000MS 10100
-
-
 using namespace hnrt;
 
 
@@ -136,7 +133,6 @@ void HashDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void HashDialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
-    KillTimer(hwnd, HASH_TIMER1000MS);
     m_menuView
         .Enable(IDM_VIEW_HASH, MF_ENABLED);
 }
@@ -145,10 +141,15 @@ void HashDialogBox::OnTabSelectionChanging()
 void HashDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
+    m_menuEdit
+        .RemoveAll()
+        .Add(ResourceString(IDS_MENU_CALCULATE), IDM_EDIT_EXECUTE)
+        .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT)
+        .AddSeparator();
+    AddEditControlMenus(IDC_HASH_CONTENT_EDIT);
     SwitchMenu();
     m_menuView
         .Enable(IDM_VIEW_HASH, MF_DISABLED);
-    SetTimer(hwnd, HASH_TIMER1000MS, 1000, NULL);
 }
 
 
@@ -216,20 +217,6 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
-INT_PTR HashDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
-{
-    switch (wParam)
-    {
-    case HASH_TIMER1000MS:
-        UpdateEditControlMenus(m_CurrentEdit);
-        break;
-    default:
-        break;
-    }
-    return 0;
-}
-
-
 INT_PTR HashDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 {
     HDC hdc = reinterpret_cast<HDC>(wParam);
@@ -267,6 +254,7 @@ INT_PTR HashDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 
 void HashDialogBox::UpdateControlsState(int id)
 {
+    DBGFNC(L"HashDialogBox::UpdateControlsState(%d)", id);
     if (id == IDC_HASH_VERIFY_EDIT)
     {
         if (HasValue() && GetTextLength(IDC_HASH_VERIFY_EDIT) > 0)
@@ -569,11 +557,8 @@ void HashDialogBox::SwitchMenu()
             .AddSeparator()
             .Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
         m_menuEdit
-            .RemoveAll()
-            .Add(ResourceString(IDS_MENU_CALCULATE), IDM_EDIT_EXECUTE, CanCalculate() ? MF_ENABLED : MF_DISABLED)
-            .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT, HasValue() ? MF_ENABLED : MF_DISABLED)
-            .AddSeparator();
-        AddEditControlMenus(IDC_HASH_PATH_EDIT);
+            .Enable(IDM_EDIT_EXECUTE, CanCalculate() ? MF_ENABLED : MF_DISABLED)
+            .Enable(IDM_EDIT_COPYRESULT, HasValue() ? MF_ENABLED : MF_DISABLED);
         m_menuSettings
             .RemoveAll();
     }
@@ -586,16 +571,8 @@ void HashDialogBox::SwitchMenu()
             .AddSeparator()
             .Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
         m_menuEdit
-            .RemoveAll()
-            .Add(ResourceString(IDS_MENU_CALCULATE), IDM_EDIT_EXECUTE)
-            .Add(ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT, HasValue() ? MF_ENABLED : MF_DISABLED)
-            .AddSeparator();
-        AddEditControlMenus(IDC_HASH_CONTENT_EDIT);
-        m_menuEdit
-            .AddSeparator()
-            .Add(ResourceString(IDS_MENU_COPYALL), IDM_EDIT_COPYALL)
-            .AddSeparator()
-            .Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
+            .Enable(IDM_EDIT_EXECUTE, MF_ENABLED)
+            .Enable(IDM_EDIT_COPYRESULT, HasValue() ? MF_ENABLED : MF_DISABLED);
         m_menuSettings
             .RemoveAll();
         AddInputCodePageSettingMenus();

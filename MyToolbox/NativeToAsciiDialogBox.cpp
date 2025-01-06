@@ -24,9 +24,6 @@
 #define REGVAL_ASCII_PATH L"AsciiPath"
 
 
-#define NTOA_TIMER1000MS 10500
-
-
 using namespace hnrt;
 
 
@@ -112,7 +109,6 @@ void NativeToAsciiDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void NativeToAsciiDialogBox::OnTabSelectionChanging()
 {
 	MyDialogBox::OnTabSelectionChanging();
-	KillTimer(hwnd, NTOA_TIMER1000MS);
 	m_menuView
 		.Enable(IDM_VIEW_NTOA, MF_ENABLED);
 }
@@ -131,16 +127,12 @@ void NativeToAsciiDialogBox::OnTabSelectionChanged()
 		.AddSeparator()
 		.Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
 	AddEditControlMenus(m_CurrentEdit);
-	m_menuEdit
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
 	m_menuView
 		.Enable(IDM_VIEW_NTOA, MF_DISABLED);
 	m_menuSettings
 		.RemoveAll();
 	AddInputCodePageSettingMenus();
 	AddOutputCodePageSettingMenus();
-	SetTimer(hwnd, NTOA_TIMER1000MS, 1000, NULL);
 }
 
 
@@ -189,14 +181,10 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 
 INT_PTR NativeToAsciiDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 {
-	switch (wParam)
+	MyDialogBox::OnTimer(wParam, lParam);
+	if (wParam == TIMERID(Id, 1000))
 	{
-	case NTOA_TIMER1000MS:
-		UpdateEditControlMenus(m_CurrentEdit);
 		UpdateControlsState();
-		break;
-	default:
-		break;
 	}
 	return 0;
 }

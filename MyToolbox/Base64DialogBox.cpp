@@ -25,9 +25,6 @@
 #define REGVAL_CHARSPERLINE L"CharsPerLine"
 
 
-#define BS64_TIMER1000MS 11000
-
-
 using namespace hnrt;
 
 
@@ -159,7 +156,6 @@ void Base64DialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void Base64DialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
-    KillTimer(hwnd, BS64_TIMER1000MS);
     if (m_LastModified)
     {
     }
@@ -181,12 +177,8 @@ void Base64DialogBox::OnTabSelectionChanged()
         .AddSeparator()
         .Add(ResourceString(IDS_MENU_EXIT), IDM_FILE_EXIT);
     AddEditControlMenus(m_CurrentEdit);
-    m_menuEdit
-        .AddSeparator()
-        .Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
     m_menuView
         .Enable(IDM_VIEW_BS64, MF_DISABLED);
-    SetTimer(hwnd, BS64_TIMER1000MS, 1000, NULL);
 }
 
 
@@ -317,20 +309,6 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         return FALSE;
     }
     return TRUE;
-}
-
-
-INT_PTR Base64DialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
-{
-    switch (wParam)
-    {
-    case BS64_TIMER1000MS:
-        UpdateEditControlMenus(m_CurrentEdit);
-        break;
-    default:
-        break;
-    }
-    return 0;
 }
 
 

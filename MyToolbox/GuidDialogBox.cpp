@@ -18,9 +18,6 @@
 #define REGVAL_LAST L"Last"
 
 
-#define GUID_TIMER1000MS 10200
-
-
 using namespace hnrt;
 
 
@@ -92,7 +89,6 @@ void GuidDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void GuidDialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
-    KillTimer(hwnd, GUID_TIMER1000MS);
     m_menuView
         .Enable(IDM_VIEW_GUID, MF_ENABLED);
 }
@@ -110,7 +106,6 @@ void GuidDialogBox::OnTabSelectionChanged()
         .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE);
     m_menuView
         .Enable(IDM_VIEW_GUID, MF_DISABLED);
-    SetTimer(hwnd, GUID_TIMER1000MS, 1000, NULL);
 }
 
 
@@ -170,20 +165,6 @@ INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         return FALSE;
     }
     return TRUE;
-}
-
-
-INT_PTR GuidDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
-{
-    switch (wParam)
-    {
-    case GUID_TIMER1000MS:
-        UpdateEditControlMenus(m_CurrentEdit);
-        break;
-    default:
-        break;
-    }
-    return 0;
 }
 
 

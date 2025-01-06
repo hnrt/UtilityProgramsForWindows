@@ -24,9 +24,6 @@
 #define REGVAL_ENCODED_PATH L"EncodedPath"
 
 
-#define PCTC_TIMER1000MS 10300
-
-
 using namespace hnrt;
 
 
@@ -121,7 +118,6 @@ void PercentCodecDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void PercentCodecDialogBox::OnTabSelectionChanging()
 {
 	MyDialogBox::OnTabSelectionChanging();
-	KillTimer(hwnd, PCTC_TIMER1000MS);
 	m_menuView
 		.Enable(IDM_VIEW_PCTC, MF_ENABLED);
 }
@@ -142,16 +138,12 @@ void PercentCodecDialogBox::OnTabSelectionChanged()
 	m_menuEdit
 		.RemoveAll();
 	AddEditControlMenus(m_CurrentEdit);
-	m_menuEdit
-		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
 	m_menuView
 		.Enable(IDM_VIEW_PCTC, MF_DISABLED);
 	m_menuSettings
 		.RemoveAll();
 	AddInputCodePageSettingMenus();
 	AddOutputCodePageSettingMenus();
-	SetTimer(hwnd, PCTC_TIMER1000MS, 1000, NULL);
 }
 
 
@@ -217,20 +209,6 @@ INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		return FALSE;
 	}
 	return TRUE;
-}
-
-
-INT_PTR PercentCodecDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
-{
-	switch (wParam)
-	{
-	case PCTC_TIMER1000MS:
-		UpdateEditControlMenus(m_CurrentEdit);
-		break;
-	default:
-		break;
-	}
-	return 0;
 }
 
 

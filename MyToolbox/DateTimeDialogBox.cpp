@@ -19,9 +19,6 @@
 #define REGVAL_FIXED L"Fixed"
 
 
-#define DTTM_TIMER100MS 7001
-
-
 using namespace hnrt;
 
 
@@ -88,7 +85,6 @@ void DateTimeDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void DateTimeDialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
-    KillTimer(hwnd, DTTM_TIMER100MS);
     if (m_LastModified)
     {
         ApplyModification();
@@ -110,7 +106,7 @@ void DateTimeDialogBox::OnTabSelectionChanged()
         .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE);
     m_menuView
         .Enable(IDM_VIEW_DTTM, MF_DISABLED);
-    SetTimer(hwnd, DTTM_TIMER100MS, 100, NULL);
+    SetTimer(100);
 }
 
 
@@ -211,16 +207,16 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 
 INT_PTR DateTimeDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 {
-    switch (wParam)
+    if (wParam == TIMERID(Id, 100))
     {
-    case DTTM_TIMER100MS:
         if (m_LastModified.IsUpdateRequired)
         {
             ApplyModification();
         }
-        break;
-    default:
-        break;
+    }
+    else
+    {
+        MyDialogBox::OnTimer(wParam, lParam);
     }
     return 0;
 }

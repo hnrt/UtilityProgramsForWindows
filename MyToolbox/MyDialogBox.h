@@ -49,11 +49,13 @@ namespace hnrt
 		virtual void OnCreate();
 		virtual void OnDestroy();
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
+		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnEditCommand(int idChild, int idNotif);
 		virtual void OnEditSetFocus(int id);
 		virtual void OnEditKillFocus(int id);
 		virtual void OnEditChanged(int id);
 		virtual void UpdateControlsState(int id);
+		void SetTimer(UINT uElapse);
 		void AddEditControlMenus(int id = 0);
 		void UpdateEditControlMenus(int id = 0);
 		void AddInputCodePageSettingMenus();
@@ -76,6 +78,8 @@ namespace hnrt
 
 	private:
 
+		void KillTimers();
+
 		int m_id;
 		bool m_bActive;
 
@@ -94,6 +98,7 @@ namespace hnrt
 		int m_CurrentEdit;
 		LastModified m_LastModified;
 		ControlIdCollection m_EditControls;
+		UINT m_timers[4];
 	};
 
 	inline void MyDialogBox::SetId(int id)
@@ -160,3 +165,5 @@ namespace hnrt
 #define RGB_GOOD RGB_SUCCESSFUL
 #define RGB_TOO_MANY RGB(0, 0, 204) // BLUE
 #define RGB_TOO_FEW RGB_ERROR
+
+#define TIMERID(id,uElapse) ((id)*10000+(uElapse))

@@ -25,10 +25,6 @@
 #define REGVAL_EXPRESSION L"Expression"
 
 
-#define CRON_TIMER0100MS 5001
-#define CRON_TIMER1000MS 5002
-
-
 #define CRON_FORMAT_SECOND		(1U<<0)
 #define CRON_FORMAT_MINUTE		(1U<<1)
 #define CRON_FORMAT_HOUR		(1U<<2)
@@ -328,8 +324,6 @@ void CronDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void CronDialogBox::OnTabSelectionChanging()
 {
 	MyDialogBox::OnTabSelectionChanging();
-	KillTimer(hwnd, CRON_TIMER0100MS);
-	KillTimer(hwnd, CRON_TIMER1000MS);
 	m_menuView
 		.Enable(IDM_VIEW_CRON, MF_ENABLED);
 }
@@ -347,8 +341,7 @@ void CronDialogBox::OnTabSelectionChanged()
 	m_menuSettings
 		.RemoveAll()
 		.Add(ResourceString(IDS_MENU_USESECOND), IDM_SETTINGS_USESECOND, m_cron.SecondEnabled ? MF_CHECKED : MF_UNCHECKED);
-	SetTimer(hwnd, CRON_TIMER0100MS, 100, NULL);
-	SetTimer(hwnd, CRON_TIMER1000MS, 1000, NULL);
+	SetTimer(100);
 }
 
 
@@ -661,9 +654,9 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 
 INT_PTR CronDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 {
-	switch (wParam)
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+	if (wParam == TIMERID(Id, 100))
 	{
-	case CRON_TIMER0100MS:
 		if (m_bParse)
 		{
 			if (m_LastModified.IsUpdateRequired)
@@ -684,8 +677,9 @@ INT_PTR CronDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 				m_LastModified.By = 0;
 			}
 		}
-		break;
-	case CRON_TIMER1000MS:
+	}
+	else if (wParam == TIMERID(Id, 1000))
+	{
 		if (m_bParseSuccessful)
 		{
 			int offset = ComboBoxGetSelection(IDC_CRON_EXPR_COMBO);
@@ -705,9 +699,6 @@ INT_PTR CronDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 				DBGPUT(L"Cron: %s", buf);
 			}
 		}
-		break;
-	default:
-		break;
 	}
 	return 0;
 }

@@ -36,7 +36,9 @@ MyDialogBox::MyDialogBox(UINT idTemplate, PCWSTR pszName)
 	, m_bOutputBOM(false)
 	, m_CurrentEdit(0)
 	, m_LastModified()
+	, m_timers()
 {
+	memset(m_timers, 0, sizeof(m_timers));
 }
 
 
@@ -61,6 +63,7 @@ void MyDialogBox::OnDestroy()
 void MyDialogBox::OnTabSelectionChanging()
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+	KillTimers();
 	m_bActive = false;
 	m_LastModified.Forget();
 	m_menuFile
@@ -78,6 +81,7 @@ void MyDialogBox::OnTabSelectionChanged()
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_bActive = true;
 	m_LastModified.Recall();
+	SetTimer(1000);
 }
 
 
@@ -98,6 +102,16 @@ INT_PTR MyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	{
 		return FALSE;
 	}
+}
+
+
+INT_PTR MyDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
+{
+	if (wParam == TIMERID(m_id, 1000))
+	{
+		UpdateEditControlMenus(m_CurrentEdit);
+	}
+	return 0;
 }
 
 
@@ -122,7 +136,7 @@ INT_PTR MyDialogBox::OnEditCommand(int idChild, int idNotif)
 
 void MyDialogBox::OnEditSetFocus(int id)
 {
-	DBGPUT(L"MyDialogBox::OnEditSetFocus(%d)", id);
+	DBGFNC(L"MyDialogBox::OnEditSetFocus(%d)", id);
 	if (m_CurrentEdit != id)
 	{
 		m_CurrentEdit = id;
@@ -133,7 +147,7 @@ void MyDialogBox::OnEditSetFocus(int id)
 
 void MyDialogBox::OnEditKillFocus(int id)
 {
-	DBGPUT(L"MyDialogBox::OnEditKillFocus(%d)", id);
+	DBGFNC(L"MyDialogBox::OnEditKillFocus(%d)", id);
 	if (m_CurrentEdit == id)
 	{
 		m_CurrentEdit = 0;
@@ -144,7 +158,7 @@ void MyDialogBox::OnEditKillFocus(int id)
 
 void MyDialogBox::OnEditChanged(int id)
 {
-	DBGPUT(L"MyDialogBox::OnEditChanged(%d)", id);
+	DBGFNC(L"MyDialogBox::OnEditChanged(%d)", id);
 	if (m_CurrentEdit == id)
 	{
 		UpdateEditControlMenus(m_CurrentEdit);
@@ -160,6 +174,50 @@ void MyDialogBox::UpdateControlsState(int id)
 }
 
 
+void MyDialogBox::SetTimer(UINT uElapse)
+{
+	if (!uElapse)
+	{
+		throw Exception(L"MyDialogBox::SetTimer: Zero elapse.");
+	}
+	size_t indexUnused = _countof(m_timers);
+	for (size_t index = 0; index < _countof(m_timers); index++)
+	{
+		if (m_timers[index] == uElapse)
+		{
+			// Already registered
+			return;
+		}
+		else if (!m_timers[index] && indexUnused > index)
+		{
+			indexUnused = index;
+		}
+	}
+	if (indexUnused < _countof(m_timers))
+	{
+		::SetTimer(hwnd, TIMERID(Id, uElapse), uElapse, NULL);
+		m_timers[indexUnused] = uElapse;
+	}
+	else
+	{
+		throw Exception(L"MyDialogBox::SetTimer: Too many timers.");
+	}
+}
+
+
+void MyDialogBox::KillTimers()
+{
+	for (size_t index = 0; index < _countof(m_timers); index++)
+	{
+		UINT uElapse = _InterlockedExchange(&m_timers[index], 0);
+		if (uElapse)
+		{
+			::KillTimer(hwnd, TIMERID(Id, uElapse));
+		}
+	}
+}
+
+
 void MyDialogBox::AddEditControlMenus(int id)
 {
 	m_menuEdit
@@ -168,14 +226,16 @@ void MyDialogBox::AddEditControlMenus(int id)
 		.Add(ResourceString(IDS_MENU_PASTE), IDM_EDIT_PASTE)
 		.Add(ResourceString(IDS_MENU_DELETE), IDM_EDIT_DELETE)
 		.AddSeparator()
-		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL);
+		.Add(ResourceString(IDS_MENU_SELECTALL), IDM_EDIT_SELECTALL)
+		.AddSeparator()
+		.Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
 	UpdateEditControlMenus(id);
 }
 
 
 void MyDialogBox::UpdateEditControlMenus(int id)
 {
-	UINT fCut, fCopy, fPaste, fDelete, fSelectAll;
+	UINT fCut, fCopy, fPaste, fDelete, fSelectAll, fClear;
 	if (id)
 	{
 		BOOL bEditable = !EditGetReadOnly(id);
@@ -186,6 +246,7 @@ void MyDialogBox::UpdateEditControlMenus(int id)
 		fPaste = bEditable ? MF_ENABLED : MF_DISABLED;
 		fDelete = bEditable && nSelection ? MF_ENABLED : MF_DISABLED;
 		fSelectAll = nContent > 0 ? MF_ENABLED : MF_DISABLED;
+		fClear = bEditable && nContent > 0 ? MF_ENABLED : MF_DISABLED;
 	}
 	else
 	{
@@ -194,30 +255,31 @@ void MyDialogBox::UpdateEditControlMenus(int id)
 		fPaste = MF_DISABLED;
 		fDelete = MF_DISABLED;
 		fSelectAll = MF_DISABLED;
+		fClear = MF_DISABLED;
 	}
 	m_menuEdit
 		.Enable(IDM_EDIT_CUT, fCut)
 		.Enable(IDM_EDIT_COPY, fCopy)
 		.Enable(IDM_EDIT_PASTE, fPaste)
 		.Enable(IDM_EDIT_DELETE, fDelete)
-		.Enable(IDM_EDIT_SELECTALL, fSelectAll);
+		.Enable(IDM_EDIT_SELECTALL, fSelectAll)
+		.Enable(IDM_EDIT_CLEAR, fClear);
 }
 
 
 void MyDialogBox::OnCut()
 {
-	DBGPUT(L"MyDialogBox::OnCut: m_CurrentEdit=%d", m_CurrentEdit);
+	DBGFNC(L"MyDialogBox::OnCut: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditCut(m_CurrentEdit);
-		OnEditChanged(m_CurrentEdit);
 	}
 }
 
 
 void MyDialogBox::OnCopy()
 {
-	DBGPUT(L"MyDialogBox::OnCopy: m_CurrentEdit=%d", m_CurrentEdit);
+	DBGFNC(L"MyDialogBox::OnCopy: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditCopy(m_CurrentEdit);
@@ -227,29 +289,27 @@ void MyDialogBox::OnCopy()
 
 void MyDialogBox::OnPaste()
 {
-	DBGPUT(L"MyDialogBox::OnPaste: m_CurrentEdit=%d", m_CurrentEdit);
+	DBGFNC(L"MyDialogBox::OnPaste: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditPaste(m_CurrentEdit);
-		OnEditChanged(m_CurrentEdit);
 	}
 }
 
 
 void MyDialogBox::OnDelete()
 {
-	DBGPUT(L"MyDialogBox::OnDelete: m_CurrentEdit=%d", m_CurrentEdit);
+	DBGFNC(L"MyDialogBox::OnDelete: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditDelete(m_CurrentEdit);
-		OnEditChanged(m_CurrentEdit);
 	}
 }
 
 
 void MyDialogBox::OnSelectAll()
 {
-	DBGPUT(L"MyDialogBox::OnSelectAll: m_CurrentEdit=%d", m_CurrentEdit);
+	DBGFNC(L"MyDialogBox::OnSelectAll: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditSelectAll(m_CurrentEdit);
@@ -259,7 +319,7 @@ void MyDialogBox::OnSelectAll()
 
 void MyDialogBox::OnCopyAll()
 {
-	DBGPUT(L"MyDialogBox::OnCopyAll: m_CurrentEdit=%d", m_CurrentEdit);
+	DBGFNC(L"MyDialogBox::OnCopyAll: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditSelectAll(m_CurrentEdit);
@@ -270,7 +330,7 @@ void MyDialogBox::OnCopyAll()
 
 void MyDialogBox::OnClear()
 {
-	DBGPUT(L"MyDialogBox::OnClear: m_CurrentEdit=%d", m_CurrentEdit);
+	DBGFNC(L"MyDialogBox::OnClear: m_CurrentEdit=%d", m_CurrentEdit);
 	if (m_CurrentEdit)
 	{
 		EditClear(m_CurrentEdit);

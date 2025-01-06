@@ -19,10 +19,6 @@
 #define REGVAL_GTIN13_GS1CPLEN L"GS1CompanyPrefixLength"
 
 
-#define GTIN_TIMER100MS 9001
-#define GTIN_TIMER1000MS 9002
-
-
 #define STATE_SUCCESSFUL 1
 #define STATE_ERROR 2
 #define STATE_CHANGING 3
@@ -108,8 +104,6 @@ void GtinDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void GtinDialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
-    KillTimer(hwnd, GTIN_TIMER100MS);
-    KillTimer(hwnd, GTIN_TIMER1000MS);
     if (m_LastModified)
     {
         ApplyModification(m_LastModified.By);
@@ -128,14 +122,11 @@ void GtinDialogBox::OnTabSelectionChanged()
     AddEditControlMenus(m_CurrentEdit);
     m_menuEdit
         .AddSeparator()
-        .Add(ResourceString(IDS_MENU_RENEW), IDM_EDIT_EXECUTE)
-        .AddSeparator()
-        .Add(ResourceString(IDS_MENU_CLEAR), IDM_EDIT_CLEAR);
+        .Add(ResourceString(IDS_MENU_RENEW), IDM_EDIT_EXECUTE);
     m_menuView
         .Enable(IDM_VIEW_GTIN, MF_DISABLED);
     UpdateControlsState();
-    SetTimer(hwnd, GTIN_TIMER100MS, 100, NULL);
-    SetTimer(hwnd, GTIN_TIMER1000MS, 1000, NULL);
+    SetTimer(100);
     srand(static_cast<unsigned int>(FileTime().Intervals));
 }
 
@@ -195,19 +186,16 @@ INT_PTR GtinDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 
 INT_PTR GtinDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 {
-    switch (wParam)
+    if (wParam == TIMERID(Id, 100))
     {
-    case GTIN_TIMER100MS:
         if (m_LastModified.IsUpdateRequired)
         {
             ApplyModification(m_LastModified.By);
         }
-        break;
-    case GTIN_TIMER1000MS:
-        UpdateEditControlMenus(m_CurrentEdit);
-        break;
-    default:
-        break;
+    }
+    else
+    {
+        MyDialogBox::OnTimer(wParam, lParam);
     }
     return 0;
 }
