@@ -274,6 +274,7 @@
 #define IDC_CRPT_STATUS_STATIC          10680
 #define IDC_CRPT_ENCRYPT_BUTTON         10690
 #define IDC_CRPT_DECRYPT_BUTTON         10691
+#define IDC_CRPT_UPPERCASE_CHECK        10692
 #define IDC_DTTM_EDIT                   10700
 #define IDC_DTTM_COPY_BUTTON            10701
 #define IDC_DTTM_NEW_BUTTON             10702
@@ -455,7 +456,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        272
 #define _APS_NEXT_COMMAND_VALUE         32789
-#define _APS_NEXT_CONTROL_VALUE         11025
+#define _APS_NEXT_CONTROL_VALUE         11026
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

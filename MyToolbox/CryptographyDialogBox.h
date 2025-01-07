@@ -46,6 +46,7 @@ namespace hnrt
 		void OnEncryptedDataChange();
 		void OnEncryptedDataDisplayModeChange(int);
 		String EncryptedDataToString();
+		void OnLettercaseChange();
 		void SetMode(int);
 		void ClearStatusText();
 		void SetStatusText(PCWSTR, ...) const;

@@ -36,6 +36,7 @@
 #define REG_NAME_TAGLENGTH L"TagLength"
 #define REG_NAME_ORGDISPMODE L"OriginalDataDisplayMode"
 #define REG_NAME_ENCDISPMODE L"EncryptedDataDisplayMode"
+#define REG_NAME_UPPERCASE L"Uppercase"
 
 
 #define IS_AES_CBC(x) (!wcscmp(x,BCRYPT_CHAIN_MODE_CBC))
@@ -118,6 +119,7 @@ void CryptographyDialogBox::OnCreate()
 		m_TagLength = RegistryValue::GetDWORD(hKey, REG_NAME_TAGLENGTH, m_TagLength);
 		od = OriginalDataDisplayModeToControlId(RegistryValue::GetDWORD(hKey, REG_NAME_ORGDISPMODE));
 		ed = EncryptedDataDisplayModeToControlId(RegistryValue::GetDWORD(hKey, REG_NAME_ENCDISPMODE));
+		ButtonCheck(IDC_CRPT_UPPERCASE_CHECK, RegistryValue::GetDWORD(hKey, REG_NAME_UPPERCASE) ? TRUE : FALSE);
 	}
 	SetText(IDC_CRPT_KEY_EDIT, String::ToHex(m_Key.Ptr, m_Key.Len));
 	ButtonCheck(cm);
@@ -155,6 +157,7 @@ void CryptographyDialogBox::OnDestroy()
 		RegistryValue::SetDWORD(hKey, REG_NAME_TAGLENGTH, m_TagLength);
 		RegistryValue::SetDWORD(hKey, REG_NAME_ORGDISPMODE, m_OriginalDataDisplayMode);
 		RegistryValue::SetDWORD(hKey, REG_NAME_ENCDISPMODE, m_EncryptedDataDisplayMode);
+		RegistryValue::SetDWORD(hKey, REG_NAME_UPPERCASE, ButtonIsChecked(IDC_CRPT_UPPERCASE_CHECK) ? 1 : 0);
 	}
 	SetFont(IDC_CRPT_KEY_EDIT, NULL);
 	SetFont(IDC_CRPT_IV_EDIT, NULL);
@@ -201,6 +204,7 @@ void CryptographyDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	after[IDC_CRPT_ENC_EDIT].right += cxDelta;
 	MoveHorizontally(after[IDC_CRPT_ENCRYPT_BUTTON], cxDelta);
 	MoveHorizontally(after[IDC_CRPT_DECRYPT_BUTTON], cxDelta);
+	MoveHorizontally(after[IDC_CRPT_UPPERCASE_CHECK], cxDelta);
 	MoveHorizontally(after[IDC_CRPT_ORG_HEX_RADIO], cxDelta);
 	MoveHorizontally(after[IDC_CRPT_ORG_BASE64_RADIO], cxDelta);
 	MoveHorizontally(after[IDC_CRPT_ORG_RAW_RADIO], cxDelta);
@@ -339,6 +343,16 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		if (idNotif == BN_CLICKED)
 		{
 			OnDecrypt();
+		}
+		else
+		{
+			return FALSE;
+		}
+		break;
+	case IDC_CRPT_UPPERCASE_CHECK:
+		if (idNotif == BN_CLICKED)
+		{
+			OnLettercaseChange();
 		}
 		else
 		{
@@ -1043,11 +1057,11 @@ String CryptographyDialogBox::OriginalDataToString()
 	case 0:
 		if (m_bWrapData)
 		{
-			return String::ToHex(m_OriginalData.Ptr, m_OriginalData.Len).Wrap(N * 2);
+			return String::ToHex(m_OriginalData.Ptr, m_OriginalData.Len, ButtonIsChecked(IDC_CRPT_UPPERCASE_CHECK) ? StringOptions::UPPERCASE : StringOptions::LOWERCASE).Wrap(N * 2);
 		}
 		else
 		{
-			return String::ToHex(m_OriginalData.Ptr, m_OriginalData.Len);
+			return String::ToHex(m_OriginalData.Ptr, m_OriginalData.Len, ButtonIsChecked(IDC_CRPT_UPPERCASE_CHECK) ? StringOptions::UPPERCASE : StringOptions::LOWERCASE);
 		}
 	case 1:
 		if (m_bWrapData)
@@ -1141,11 +1155,11 @@ String CryptographyDialogBox::EncryptedDataToString()
 	case 0:
 		if (m_bWrapData)
 		{
-			return String::ToHex(m_EncryptedData.Ptr, m_EncryptedData.Len).Wrap(N * 2);
+			return String::ToHex(m_EncryptedData.Ptr, m_EncryptedData.Len, ButtonIsChecked(IDC_CRPT_UPPERCASE_CHECK) ? StringOptions::UPPERCASE : StringOptions::LOWERCASE).Wrap(N * 2);
 		}
 		else
 		{
-			return String::ToHex(m_EncryptedData.Ptr, m_EncryptedData.Len);
+			return String::ToHex(m_EncryptedData.Ptr, m_EncryptedData.Len, ButtonIsChecked(IDC_CRPT_UPPERCASE_CHECK) ? StringOptions::UPPERCASE : StringOptions::LOWERCASE);
 		}
 	case 1:
 		if (m_bWrapData)
@@ -1158,6 +1172,29 @@ String CryptographyDialogBox::EncryptedDataToString()
 		}
 	default: // SHOULD NEVER REACH HERE
 		return String(L"BAD DISPLAY MODE");
+	}
+}
+
+
+void CryptographyDialogBox::OnLettercaseChange()
+{
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+	switch (m_Mode)
+	{
+	case MODE_ENCRYPTION:
+		if (m_EncryptedDataDisplayMode == 0 && m_EncryptedData.Len > 0)
+		{
+			SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
+		}
+		break;
+	case MODE_DECRYPTION:
+		if (m_OriginalDataDisplayMode == 0 && m_OriginalData.Len > 0)
+		{
+			SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
+		}
+		break;
+	default:
+		break;
 	}
 }
 
