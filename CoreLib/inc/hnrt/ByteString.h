@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hnrt/String.h"
+#include "hnrt/LineBreak.h"
 
 namespace hnrt
 {
@@ -50,7 +51,7 @@ namespace hnrt
         static int Compare(const ByteString&, const ByteString&);
         static ByteString FromHex(PCWSTR);
         static ByteString FromHex(PCSTR);
-        static ByteString ToText(UINT, PCWSTR, SSIZE_T = -1);
+        static ByteString FromString(const String&, UINT, LineBreak = LineBreak::DONOTCARE);
     };
 
     inline bool ByteString::operator ==(const ByteString& other) const

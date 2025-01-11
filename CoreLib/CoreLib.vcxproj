@@ -199,6 +199,8 @@
     <ClInclude Include="inc\hnrt\Buffer.h" />
     <ClInclude Include="inc\hnrt\ByteDataFeeder.h" />
     <ClInclude Include="inc\hnrt\ByteString.h" />
+    <ClInclude Include="inc\hnrt\CharacterMappingException.h" />
+    <ClInclude Include="inc\hnrt\CodePage.h" />
     <ClInclude Include="inc\hnrt\ComException.h" />
     <ClInclude Include="inc\hnrt\ComLibrary.h" />
     <ClInclude Include="inc\hnrt\CommandLine.h" />
@@ -217,11 +219,13 @@
     <ClInclude Include="inc\hnrt\Guid.h" />
     <ClInclude Include="inc\hnrt\Hash.h" />
     <ClInclude Include="inc\hnrt\Heap.h" />
+    <ClInclude Include="inc\hnrt\HexFormatException.h" />
     <ClInclude Include="inc\hnrt\Impersonator.h" />
     <ClInclude Include="inc\hnrt\Interlocked.h" />
     <ClInclude Include="inc\hnrt\KeyboardBitMap.h" />
     <ClInclude Include="inc\hnrt\KeystrokeMessageFlags.h" />
     <ClInclude Include="inc\hnrt\KeyValueMap.h" />
+    <ClInclude Include="inc\hnrt\LineBreak.h" />
     <ClInclude Include="inc\hnrt\NoDataFeeder.h" />
     <ClInclude Include="inc\hnrt\NumberText.h" />
     <ClInclude Include="inc\hnrt\PasswordHolder.h" />
@@ -290,6 +294,7 @@
     <ClCompile Include="src\BCryptHashHandle.cpp" />
     <ClCompile Include="src\BCryptKeyHandle.cpp" />
     <ClCompile Include="src\ByteString.cpp" />
+    <ClCompile Include="src\CharacterMappingException.cpp" />
     <ClCompile Include="src\ComException.cpp" />
     <ClCompile Include="src\ComLibrary.cpp" />
     <ClCompile Include="src\CommandLine.cpp" />
@@ -304,6 +309,7 @@
     <ClCompile Include="src\FileWriter.cpp" />
     <ClCompile Include="src\Guid.cpp" />
     <ClCompile Include="src\Heap.cpp" />
+    <ClCompile Include="src\HexFormatException.cpp" />
     <ClCompile Include="src\Impersonator.cpp" />
     <ClCompile Include="src\KeyboardBitMap.cpp" />
     <ClCompile Include="src\KeyValueMap.cpp" />

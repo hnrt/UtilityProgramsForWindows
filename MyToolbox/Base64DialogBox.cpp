@@ -531,7 +531,7 @@ BOOL Base64DialogBox::ParseOriginal(ByteString& bs)
                 {
                     sz = sz.Replace(L"\r\n", L"\n");
                 }
-                bs = ByteString::ToText(ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO), sz.Ptr, sz.Len);
+                bs = ByteString::FromString(sz, ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO));
             }
         }
         catch (Exception e)

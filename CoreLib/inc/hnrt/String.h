@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 #include "hnrt/StringOptions.h"
+#include "hnrt/LineBreak.h"
 
 namespace hnrt
 {
@@ -40,6 +41,7 @@ namespace hnrt
         bool EndsWith(PCWSTR, SSIZE_T = -1) const;
         String Replace(PCWSTR, PCWSTR, int = INT_MAX) const;
         String Wrap(UINT, PCWSTR = L"\r\n") const;
+        String ChangeLineBreak(LineBreak) const;
         long ToLong(long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
         unsigned long ToUnsignedLong(unsigned long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
         long long ToLongLong(long long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);

@@ -2,7 +2,8 @@
 #include "hnrt/ByteString.h"
 #include "hnrt/RefBin.h"
 #include "hnrt/StringCommons.h"
-#include "hnrt/Win32Exception.h"
+#include "hnrt/HexFormatException.h"
+#include "hnrt/CharacterMappingException.h"
 
 
 using namespace hnrt;
@@ -287,7 +288,7 @@ ByteString ByteString::FromHex(PCWSTR psz)
         }
         else
         {
-            throw Exception(L"ByteString::FromHex(\"%s\"): Illegal character at %zu.", psz, (pCur - 1) - psz);
+            throw HexFormatException((pCur - 1) - psz, L"Illegal character at %zu.", (pCur - 1) - psz);
         }
         if (iswxdigit(c))
         {
@@ -296,11 +297,11 @@ ByteString ByteString::FromHex(PCWSTR psz)
         }
         else if (c)
         {
-            throw Exception(L"ByteString::FromHex(\"%s\"): Illegal character at %zu.", psz, (pCur - 1) - psz);
+            throw HexFormatException((pCur - 1) - psz, L"Illegal character at %zu.", (pCur - 1) - psz);
         }
         else
         {
-            throw Exception(L"ByteString::FromHex(\"%s\"): Unexpected end of string.", psz);
+            throw HexFormatException((pCur - 1) - psz, L"Unexpected end of string.");
         }
     }
     ByteString bs(len);
@@ -366,7 +367,7 @@ ByteString ByteString::FromHex(PCSTR psz)
         }
         else
         {
-            throw Exception(L"ByteString::FromHex(\"%S\"): Illegal character at %zu.", psz, (pCur - 1) - psz);
+            throw HexFormatException((pCur - 1) - psz, L"Illegal character at %zu.", (pCur - 1) - psz);
         }
         if (isxdigit(c))
         {
@@ -374,11 +375,11 @@ ByteString ByteString::FromHex(PCSTR psz)
         }
         else if (c)
         {
-            throw Exception(L"ByteString::FromHex(\"%S\"): Illegal character at %zu.", psz, (pCur - 1) - psz);
+            throw HexFormatException((pCur - 1) - psz, L"Illegal character at %zu.", (pCur - 1) - psz);
         }
         else
         {
-            throw Exception(L"ByteString::FromHex(\"%S\"): Unexpected end of string.", psz);
+            throw HexFormatException((pCur - 1) - psz, L"Unexpected end of string.");
         }
     }
     ByteString bs(len);
@@ -426,40 +427,42 @@ ByteString ByteString::FromHex(PCSTR psz)
 }
 
 
-ByteString ByteString::ToText(UINT uCodePage, PCWSTR psz, SSIZE_T len)
+ByteString ByteString::FromString(const String& strSource, UINT uCodePage, LineBreak lbSpec)
 {
-    if (len < 0)
+    if (strSource.Len > 0)
     {
-        len = StrLen(psz);
-    }
-    if (len > 0)
-    {
+        String str = strSource.ChangeLineBreak(lbSpec);
         if (uCodePage == CP_UTF16)
         {
-            return ByteString(psz, len * sizeof(WCHAR));
+            return ByteString(str.Ptr, str.Len * sizeof(WCHAR));
         }
         else
         {
             DWORD dwFlags = uCodePage == CP_EUCJP ? 0 : WC_ERR_INVALID_CHARS;
             BOOL bConvError = FALSE;
-            int len2 = WideCharToMultiByte(uCodePage, dwFlags, psz, static_cast<int>(len), NULL, 0, NULL, &bConvError);
-            if (len2 == 0)
+            PBOOL pbConvError = uCodePage == CP_UTF8 ? NULL : &bConvError;
+            int cb = WideCharToMultiByte(uCodePage, dwFlags, str.Ptr, static_cast<int>(str.Len), NULL, 0, NULL, pbConvError);
+            if (cb == 0)
             {
-                throw Win32Exception(GetLastError(), L"ByteString: Conversion error.");
+                throw CharacterMappingException(GetLastError());
             }
             else if (bConvError)
             {
-                throw Win32Exception(ERROR_INVALID_DATA, L"ByteString: Conversion error.");
+                throw CharacterMappingException(L"One or more unmappable characters.");
             }
-            ByteString bs(len2);
-            len2 = WideCharToMultiByte(uCodePage, dwFlags, psz, static_cast<int>(len), reinterpret_cast<LPSTR>(bs.Ptr), static_cast<int>(bs.Len), NULL, &bConvError);
-            if (len2 == 0)
+            ByteString bs(cb);
+            cb = WideCharToMultiByte(uCodePage, dwFlags, str.Ptr, static_cast<int>(str.Len), reinterpret_cast<LPSTR>(bs.Ptr), static_cast<int>(bs.Len), NULL, pbConvError);
+            if (cb == 0)
             {
-                throw Win32Exception(GetLastError(), L"ByteString: Conversion error.");
+                throw CharacterMappingException(GetLastError());
             }
             else if (bConvError)
             {
-                throw Win32Exception(ERROR_INVALID_DATA, L"ByteString: Conversion error.");
+                throw CharacterMappingException(L"One or more unmappable characters.");
+            }
+            else if (cb != bs.Len)
+            {
+                throw CharacterMappingException(L"Inconsistent number of characters.");
             }
             return bs;
         }

@@ -3,6 +3,8 @@
 #include <Windows.h>
 #include <stdarg.h>
 #include "hnrt/StringOptions.h"
+#include "hnrt/Unicode.h"
+#include "hnrt/CodePage.h"
 
 namespace hnrt
 {
@@ -598,13 +600,3 @@ namespace hnrt
 	/// Zero if no conversion can be performed or an underflow occurs.</returns>
 	double StrToDouble(PCSTR str, PSTR* endptr);
 }
-
-#define IS_BASIC_MULTILINGUAL_PLANE(c) (static_cast<unsigned int>(c)<0x10000)
-#define IS_BMP(c) IS_BASIC_MULTILINGUAL_PLANE(c)
-#define HIGH_SURROGATE(c) (HIGH_SURROGATE_START+((static_cast<unsigned int>(c)-0x10000)/0x400))
-#define  LOW_SURROGATE(c)  (LOW_SURROGATE_START+((static_cast<unsigned int>(c)-0x10000)%0x400))
-
-#define CP_AUTODETECT 0
-#define CP_UTF16 1200
-#define CP_EUCJP 20932
-#define CP_GB18030 54936 // Simplified Chinese

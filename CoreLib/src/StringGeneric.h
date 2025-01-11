@@ -469,6 +469,104 @@ XSTRING XSTRING::Wrap(UINT width, PCXSTR pszNewLine) const
 }
 
 
+XSTRING XSTRING::ChangeLineBreak(LineBreak lbSpec) const
+{
+    SIZE_T len = Len;
+    if (len > 0 && (lbSpec == LineBreak::CRLF || lbSpec == LineBreak::LF))
+    {
+        SIZE_T cLF = 0;
+        SIZE_T cCRLF = 0;
+        PXCHAR pCur = &m_psz[0];
+        PXCHAR pStop = &m_psz[len - 1];
+        PXCHAR pEnd = &m_psz[len - 1];
+        while (pCur < pStop)
+        {
+            XCHAR c = *pCur++;
+            if (c == static_cast<XCHAR>(10))
+            {
+                cLF++;
+            }
+            else if (c == static_cast<XCHAR>(13) && *pCur == static_cast<XCHAR>(10))
+            {
+                cCRLF++;
+                pCur++;
+            }
+        }
+        if (pCur < pEnd && *pCur == static_cast<XCHAR>(10))
+        {
+            cLF++;
+        }
+        if (lbSpec == LineBreak::CRLF)
+        {
+            if (cLF > 0)
+            {
+                XSTRING sz(len + cLF);
+                PXCHAR pDst = sz.m_psz;
+                pCur = &m_psz[0];
+                while (pCur < pStop)
+                {
+                    XCHAR c = *pCur++;
+                    if (c == static_cast<XCHAR>(10))
+                    {
+                        *pDst++ = static_cast<XCHAR>(13);
+                        *pDst++ = static_cast<XCHAR>(10);
+                    }
+                    else if (c == static_cast<XCHAR>(13) && *pCur == static_cast<XCHAR>(10))
+                    {
+                        *pDst++ = static_cast<XCHAR>(13);
+                        *pDst++ = static_cast<XCHAR>(10);
+                        pCur++;
+                    }
+                    else
+                    {
+                        *pDst++ = c;
+                    }
+                }
+                if (pCur < pEnd)
+                {
+                    XCHAR c = *pCur++;
+                    if (c == static_cast<XCHAR>(10))
+                    {
+                        *pDst++ = static_cast<XCHAR>(13);
+                        *pDst++ = static_cast<XCHAR>(10);
+                    }
+                    else
+                    {
+                        *pDst++ = c;
+                    }
+                }
+                return sz;
+            }
+        }
+        else if (cCRLF > 0)
+        {
+            XSTRING sz(len - cCRLF);
+            PXCHAR pDst = sz.m_psz;
+            pCur = &m_psz[0];
+            while (pCur < pStop)
+            {
+                XCHAR c = *pCur++;
+                if (c == static_cast<XCHAR>(13) && *pCur == static_cast<XCHAR>(10))
+                {
+                    *pDst++ = static_cast<XCHAR>(10);
+                    pCur++;
+                }
+                else
+                {
+                    *pDst++ = c;
+                }
+            }
+            if (pCur < pEnd)
+            {
+                *pDst++ = *pCur++;
+            }
+            return sz;
+        }
+    }
+    return XSTRING(*this);
+}
+
+
 long XSTRING::ToLong(long defaultValue, BOOL* pbSuccessful, int nRadix)
 {
     if (Len)
