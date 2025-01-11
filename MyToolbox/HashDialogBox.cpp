@@ -433,7 +433,7 @@ void HashDialogBox::OnCopyResult()
 {
     if (m_hash.ValueLength)
     {
-        String sz = String::ToHex(m_hash.Value, m_hash.ValueLength, m_uLettercase == UPPERCASE_LETTER ? UPPERCASE : LOWERCASE);
+        String sz = ByteString(m_hash.Value, m_hash.ValueLength).ToHex(m_uLettercase == UPPERCASE_LETTER ? UPPERCASE : LOWERCASE);
         if (!Clipboard::Write(hwnd, sz))
         {
             MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
@@ -720,7 +720,7 @@ void HashDialogBox::SetValue(PCWSTR psz)
 void HashDialogBox::SetValue(Hash& rHash)
 {
     m_hash = rHash;
-    SetValue(String::ToHex(m_hash.Value, m_hash.ValueLength, m_uLettercase == UPPERCASE_LETTER ? UPPERCASE : LOWERCASE));
+    SetValue(ByteString(m_hash.Value, m_hash.ValueLength).ToHex(m_uLettercase == UPPERCASE_LETTER ? UPPERCASE : LOWERCASE));
     if (GetTextLength(IDC_HASH_VERIFY_EDIT) > 0)
     {
         VerifyValue();

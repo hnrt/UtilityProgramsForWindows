@@ -478,7 +478,7 @@ XSTRING XSTRING::ChangeLineBreak(LineBreak lbSpec) const
         SIZE_T cCRLF = 0;
         PXCHAR pCur = &m_psz[0];
         PXCHAR pStop = &m_psz[len - 1];
-        PXCHAR pEnd = &m_psz[len - 1];
+        PXCHAR pEnd = &m_psz[len];
         while (pCur < pStop)
         {
             XCHAR c = *pCur++;
@@ -535,6 +535,7 @@ XSTRING XSTRING::ChangeLineBreak(LineBreak lbSpec) const
                         *pDst++ = c;
                     }
                 }
+                *pDst = static_cast<XCHAR>(0);
                 return sz;
             }
         }
@@ -560,6 +561,7 @@ XSTRING XSTRING::ChangeLineBreak(LineBreak lbSpec) const
             {
                 *pDst++ = *pCur++;
             }
+            *pDst = static_cast<XCHAR>(0);
             return sz;
         }
     }
@@ -742,32 +744,4 @@ void XSTRING::set_len(SIZE_T len)
 int XSTRING::Compare(PCXSTR psz1, SSIZE_T cch1, PCXSTR psz2, SSIZE_T cch2)
 {
     return StrCmp(psz1, cch1, psz2, cch2);
-}
-
-
-XSTRING XSTRING::ToHex(const void* ptr, SIZE_T len, StringOptions option)
-{
-    static const XCHAR HexLU[2][16] = {
-        { XLITERAL('0'), XLITERAL('1'), XLITERAL('2'), XLITERAL('3'),
-          XLITERAL('4'), XLITERAL('5'), XLITERAL('6'), XLITERAL('7'),
-          XLITERAL('8'), XLITERAL('9'), XLITERAL('a'), XLITERAL('b'),
-          XLITERAL('c'), XLITERAL('d'), XLITERAL('e'), XLITERAL('f') },
-        { XLITERAL('0'), XLITERAL('1'), XLITERAL('2'), XLITERAL('3'),
-          XLITERAL('4'), XLITERAL('5'), XLITERAL('6'), XLITERAL('7'),
-          XLITERAL('8'), XLITERAL('9'), XLITERAL('A'), XLITERAL('B'),
-          XLITERAL('C'), XLITERAL('D'), XLITERAL('E'), XLITERAL('F') }
-    };
-    const XCHAR* hex = HexLU[option == UPPERCASE ? 1 : 0];
-    XSTRING sz(len * 2, XLITERAL('*'));
-    PXCHAR pW = sz.m_psz;
-    const unsigned char* pCur = reinterpret_cast<const unsigned char*>(ptr);
-    const unsigned char* pEnd = pCur + len;
-    while (pCur < pEnd)
-    {
-        unsigned char c = *pCur++;
-        pW[0] = hex[(c >> 4) & 0xF];
-        pW[1] = hex[(c >> 0) & 0xF];
-        pW += 2;
-    }
-    return sz;
 }

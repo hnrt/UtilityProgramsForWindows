@@ -247,7 +247,7 @@ void ClipDialogBox::ClipboardCopy(HWND hwnd, PCWSTR psz)
 	try
 	{
 		bool bSelect = false;
-		String szHash = String::ToHex(hash.Value, hash.ValueLength);
+		String szHash = ByteString(hash.Value, hash.ValueLength).ToHex();
 		ClipMap::const_iterator iter = m_mapHash.find(szHash);
 		if (iter == m_mapHash.cend())
 		{

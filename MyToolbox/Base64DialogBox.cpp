@@ -555,7 +555,7 @@ void Base64DialogBox::ApplyOriginal()
     {
         if (ButtonIsChecked(IDC_BS64_ORG_HEX_RADIO))
         {
-            SetOriginal(String::ToHex(m_Original.Ptr, m_Original.Len, UPPERCASE));
+            SetOriginal(m_Original.ToHex(UPPERCASE));
         }
         else
         {

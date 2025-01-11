@@ -71,7 +71,7 @@ void GuidDialogBox::OnDestroy()
     if (rc == ERROR_SUCCESS)
     {
         RegistryValue::SetDWORD(hKey, REGVAL_FORMAT, m_uCurrentlySelected - IDC_GUID_UPPERCASE_RADIO + 1);
-        RegistryValue::SetSZ(hKey, REGVAL_LAST, String::ToHex(&m_guid, sizeof(m_guid), UPPERCASE));
+        RegistryValue::SetSZ(hKey, REGVAL_LAST, ByteString(&m_guid, sizeof(m_guid)).ToHex(UPPERCASE));
     }
     SetFont(IDC_GUID_EDIT, NULL);
     MyDialogBox::OnDestroy();
@@ -292,7 +292,7 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
         m_szFormatted.Format(L"<Guid(\"%.36s\")>", &buf[1]);
         break;
     case IDC_GUID_HEX_RADIO:
-        m_szFormatted = String::ToHex(&m_guid, sizeof(m_guid), UPPERCASE);
+        m_szFormatted = ByteString(&m_guid, sizeof(m_guid)).ToHex(UPPERCASE);
         break;
     case IDC_GUID_UPPERCASE_RADIO:
     default:
