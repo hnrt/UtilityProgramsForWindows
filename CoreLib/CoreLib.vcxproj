@@ -191,6 +191,7 @@
     <ClInclude Include="inc\hnrt\Args.h" />
     <ClInclude Include="inc\hnrt\Array.h" />
     <ClInclude Include="inc\hnrt\Base64.h" />
+    <ClInclude Include="inc\hnrt\Base64FormatException.h" />
     <ClInclude Include="inc\hnrt\BCryptAlgHandle.h" />
     <ClInclude Include="inc\hnrt\BCryptAuthenticatedCipherModeInfo.h" />
     <ClInclude Include="inc\hnrt\BCryptHandle.h" />
@@ -216,6 +217,7 @@
     <ClInclude Include="inc\hnrt\FileDataFeeder.h" />
     <ClInclude Include="inc\hnrt\FileMapper.h" />
     <ClInclude Include="inc\hnrt\FileWriter.h" />
+    <ClInclude Include="inc\hnrt\FormatException.h" />
     <ClInclude Include="inc\hnrt\Guid.h" />
     <ClInclude Include="inc\hnrt\Hash.h" />
     <ClInclude Include="inc\hnrt\Heap.h" />
@@ -288,6 +290,7 @@
     <ClCompile Include="src\AdapterAddressCollection.cpp" />
     <ClCompile Include="src\Args.cpp" />
     <ClCompile Include="src\Base64.cpp" />
+    <ClCompile Include="src\Base64FormatException.cpp" />
     <ClCompile Include="src\BCryptAlgHandle.cpp" />
     <ClCompile Include="src\BCryptAuthenticatedCipherModeInfo.cpp" />
     <ClCompile Include="src\BCryptHandle.cpp" />
@@ -307,6 +310,7 @@
     <ClCompile Include="src\Exception.cpp" />
     <ClCompile Include="src\FileMapper.cpp" />
     <ClCompile Include="src\FileWriter.cpp" />
+    <ClCompile Include="src\FormatException.cpp" />
     <ClCompile Include="src\Guid.cpp" />
     <ClCompile Include="src\Heap.cpp" />
     <ClCompile Include="src\HexFormatException.cpp" />

@@ -5,16 +5,8 @@
 using namespace hnrt;
 
 
-HexFormatException::HexFormatException()
-	: Exception()
-	, m_Offset(0)
-{
-}
-
-
 HexFormatException::HexFormatException(SIZE_T uOffset, PCWSTR pszFormat, ...)
-	: Exception()
-	, m_Offset(uOffset)
+	: FormatException(uOffset)
 {
 	va_list argList;
 	va_start(argList, pszFormat);
@@ -24,15 +16,13 @@ HexFormatException::HexFormatException(SIZE_T uOffset, PCWSTR pszFormat, ...)
 
 
 HexFormatException::HexFormatException(const HexFormatException& src)
-	: Exception(src)
-	, m_Offset(src.m_Offset)
+	: FormatException(src)
 {
 }
 
 
 HexFormatException& HexFormatException::operator =(const HexFormatException& src)
 {
-	Exception::operator =(src);
-	m_Offset = src.m_Offset;
+	FormatException::operator =(src);
 	return *this;
 }

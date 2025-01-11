@@ -35,6 +35,8 @@ namespace hnrt
         ByteString Clone() const;
         ByteString Pkcs5Padding(DWORD dwBlockLength) const;
         ByteString& RemovePkcs5Padding(DWORD dwBlockLength);
+        String ToHex(StringOptions = StringOptions::UPPERCASE) const;
+        String ToBase64() const;
         String ToString(UINT = CP_UTF8) const;
         void* get_Ptr() const;
         size_t get_Len() const;
@@ -51,6 +53,8 @@ namespace hnrt
         static int Compare(const ByteString&, const ByteString&);
         static ByteString FromHex(PCWSTR);
         static ByteString FromHex(PCSTR);
+        static ByteString FromBase64(PCWSTR);
+        static ByteString FromBase64(PCSTR);
         static ByteString FromString(const String&, UINT, LineBreak = LineBreak::DONOTCARE);
     };
 
