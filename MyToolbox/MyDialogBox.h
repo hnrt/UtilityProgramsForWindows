@@ -22,6 +22,7 @@ namespace hnrt
 		bool IsActive() const;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
+		virtual void OnNew();
 		virtual void OnLoadFrom();
 		virtual void OnSaveAs();
 		virtual void OnLoad1From();
@@ -72,6 +73,7 @@ namespace hnrt
 		void SaveTextAsFile(int id, String& szPath) const;
 		void InitializeCodePageComboBox(int id, int initialSelection = CP_UTF8) const;
 		void InitializeLineBreakComboBox(int id, int initialSelection = 0x0d0a) const;
+		void InitializeLetterCaseComboBox(int id, int initialSelection = StringOptions::UPPERCASE) const;
 		void InitializeOffsetComboBox(int id, int initialSelection = 0) const;
 		void SetLengthText(int id, int expected, int actual) const;
 		void FilterText(int id, BOOL (*pfnIsValid)(WCHAR));
@@ -120,6 +122,10 @@ namespace hnrt
 		UNREFERENCED_PARAMETER(lParam);
 		UNREFERENCED_PARAMETER(wParam);
 		return FALSE;
+	}
+
+	inline void MyDialogBox::OnNew()
+	{
 	}
 
 	inline void MyDialogBox::OnLoadFrom()

@@ -84,6 +84,9 @@
     <ClInclude Include="ControlIdCollection.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="DataDisplayMode.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MyToolbox.cpp">

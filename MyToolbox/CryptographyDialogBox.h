@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MyDialogBox.h"
+#include "DataDisplayMode.h"
 #include "hnrt/ByteString.h"
 #include "hnrt/BCryptAlgHandle.h"
 
@@ -17,6 +18,7 @@ namespace hnrt
 		void operator =(const CryptographyDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
+		virtual void OnNew();
 		virtual void OnLoad1From();
 		virtual void OnSave1As();
 		virtual void OnLoad2From();
@@ -34,19 +36,25 @@ namespace hnrt
 		virtual void OnEditChanged(int id);
 		void OnEncrypt();
 		void OnDecrypt();
+		void OnCopyOriginalData();
+		void OnCopyEncryptedData();
+		void OnAdjustKey();
+		void OnAdjustIV();
 		void OnChainingModeChange(int);
 		void OnKeyLengthChange(int);
 		void OnTagLengthChange(int);
 		void OnKeyChange();
 		void OnIVChange();
+		void OnAaDataDisplayModeChange(int);
 		void OnOriginalDataChange();
 		void OnOriginalDataDisplayModeChange(int);
-		void OnOriginalDataDisplayCodePageChange();
 		String OriginalDataToString();
 		void OnEncryptedDataChange();
 		void OnEncryptedDataDisplayModeChange(int);
 		String EncryptedDataToString();
-		void OnLettercaseChange();
+		void OnHexFormatChange();
+		void OnCodePageChange();
+		void OnLineBreakChange();
 		void SetMode(int);
 		void ClearStatusText();
 		void SetStatusText(PCWSTR, ...) const;
@@ -61,8 +69,10 @@ namespace hnrt
 		static int KeyLengthToControlId(int);
 		static int ControlIdToTagLength(int);
 		static int TagLengthToControlId(int);
-		static int OriginalDataDisplayModeToControlId(int);
-		static int EncryptedDataDisplayModeToControlId(int);
+		static DataDisplayMode ControlIdToDataDisplayMode(int);
+		static int OriginalDataDisplayModeToControlId(DataDisplayMode);
+		static int EncryptedDataDisplayModeToControlId(DataDisplayMode);
+		static int AaDataDisplayModeToControlId(DataDisplayMode);
 
 		BCryptAlgHandle m_hAlg;
 		int m_KeyLength;
@@ -70,11 +80,14 @@ namespace hnrt
 		ByteString m_IV;
 		ByteString m_Nonce;
 		int m_TagLength;
+		DataDisplayMode m_AaDataDisplayMode;
 		ByteString m_OriginalData;
-		int m_OriginalDataDisplayMode; // 0=HEX 1=BASE64 2=TEXT
-		UINT m_OriginalDataCodePage;
+		DataDisplayMode m_OriginalDataDisplayMode;
 		ByteString m_EncryptedData;
-		int m_EncryptedDataDisplayMode; // 0=HEX 1=BASE64
+		DataDisplayMode m_EncryptedDataDisplayMode;
+		StringOptions m_HexLetterCase;
+		UINT m_CodePage;
+		LineBreak m_LineBreak;
 		int m_Mode;
 		BOOL m_bStatusSuccessful;
 		String m_szOriginalDataPath;

@@ -1057,6 +1057,14 @@ void MyDialogBox::InitializeLineBreakComboBox(int id, int initialSelection) cons
 }
 
 
+void MyDialogBox::InitializeLetterCaseComboBox(int id, int initialSelection) const
+{
+	ComboBoxAdd(id, L"Uppercase", StringOptions::UPPERCASE);
+	ComboBoxAdd(id, L"Lowercase", StringOptions::LOWERCASE);
+	ComboBoxSetSelection(id, initialSelection);
+}
+
+
 // from UTC-12:00 (Baker Island/Howland Island) through UTC+14:00 (Kiribati)
 void MyDialogBox::InitializeOffsetComboBox(int id, int initialSelection) const
 {

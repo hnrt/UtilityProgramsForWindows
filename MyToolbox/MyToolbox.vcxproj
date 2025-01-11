@@ -168,6 +168,7 @@
     <ClInclude Include="ClipDialogBox.h" />
     <ClInclude Include="ClipFile.h" />
     <ClInclude Include="ControlIdCollection.h" />
+    <ClInclude Include="DataDisplayMode.h" />
     <ClInclude Include="GtinDialogBox.h" />
     <ClInclude Include="CronDialogBox.h" />
     <ClInclude Include="CryptographyDialogBox.h" />

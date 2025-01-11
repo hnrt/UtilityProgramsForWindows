@@ -231,6 +231,9 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_FILE_EXIT:
         OnClose();
         break;
+    case IDM_FILE_NEW:
+        m_tabs[m_tabs.CurrentItem].OnNew();
+        break;
     case IDM_FILE_LOADFROM:
         m_tabs[m_tabs.CurrentItem].OnLoadFrom();
         break;
