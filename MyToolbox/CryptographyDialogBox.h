@@ -62,6 +62,8 @@ namespace hnrt
 		void SetStatusText(const SYSTEMTIME&, PCWSTR, va_list) const;
 		void UpdateMenus();
 		void UpdateButtons();
+		void UpdateTagSizeRadioBoxes();
+		ByteString GetAaData() const;
 
 		static PCWSTR ControlIdToChainingMode(int);
 		static int ChainingModeToControlId(PCWSTR);
@@ -79,7 +81,8 @@ namespace hnrt
 		ByteString m_Key;
 		ByteString m_IV;
 		ByteString m_Nonce;
-		int m_TagLength;
+		int m_CcmTagLength;
+		int m_GcmTagLength;
 		DataDisplayMode m_AaDataDisplayMode;
 		ByteString m_OriginalData;
 		DataDisplayMode m_OriginalDataDisplayMode;
@@ -99,3 +102,13 @@ namespace hnrt
 #define MODE_IDLE 0
 #define MODE_ENCRYPTION 1
 #define MODE_DECRYPTION 2
+
+#define FLAG_TAG32  (1UL<<4)
+#define FLAG_TAG48  (1UL<<6)
+#define FLAG_TAG64  (1UL<<8)
+#define FLAG_TAG80  (1UL<<10)
+#define FLAG_TAG96  (1UL<<12)
+#define FLAG_TAG104 (1UL<<13)
+#define FLAG_TAG112 (1UL<<14)
+#define FLAG_TAG120 (1UL<<15)
+#define FLAG_TAG128 (1UL<<16)
