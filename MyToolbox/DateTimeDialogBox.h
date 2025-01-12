@@ -15,8 +15,8 @@ namespace hnrt
 		void operator =(const DateTimeDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
+		virtual void OnNew();
 		virtual void OnCopyResult();
-		virtual void OnExecute();
 
 	private:
 

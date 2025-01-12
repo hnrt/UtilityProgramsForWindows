@@ -98,11 +98,12 @@ void DateTimeDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
     SetTimer(100);
+    m_menuFile
+        .Insert(0, ResourceString(IDS_MENU_NEW), IDM_FILE_NEW)
+        .InsertSeparator(1);
     m_menuEdit
         .Insert(0, ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT)
-        .InsertSeparator(1)
-        .AddSeparator()
-        .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE);
+        .InsertSeparator(1);
     m_menuView
         .Enable(IDM_VIEW_DTTM, MF_DISABLED);
 }
@@ -208,7 +209,10 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_DTTM_FILETIME_RADIO:
         if (idNotif == BN_CLICKED)
         {
-            FormatString(idChild);
+            if (ButtonIsChecked(idChild))
+            {
+                FormatString(idChild);
+            }
         }
         else
         {
@@ -239,6 +243,13 @@ INT_PTR DateTimeDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 }
 
 
+void DateTimeDialogBox::OnNew()
+{
+    UpdateDateTime();
+    FormatString();
+}
+
+
 void DateTimeDialogBox::OnCopyResult()
 {
     if (m_LastModified)
@@ -249,13 +260,6 @@ void DateTimeDialogBox::OnCopyResult()
     {
         MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
     }
-}
-
-
-void DateTimeDialogBox::OnExecute()
-{
-    UpdateDateTime();
-    FormatString();
 }
 
 
