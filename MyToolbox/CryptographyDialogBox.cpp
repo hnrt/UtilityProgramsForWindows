@@ -760,6 +760,10 @@ void CryptographyDialogBox::OnEncrypt()
 				info.SetAuthData(aad.Ptr, aad.Len);
 			}
 			encrypted = hKey.Encrypt(m_OriginalData.Ptr, m_OriginalData.Len, info, NULL, 0);
+			ByteString tagFollows(encrypted.Len + info.cbTag);
+			memcpy_s(reinterpret_cast<PBYTE>(tagFollows.Ptr), tagFollows.Len, encrypted.Ptr, encrypted.Len);
+			memcpy_s(reinterpret_cast<PBYTE>(tagFollows.Ptr) + encrypted.Len, tagFollows.Len - encrypted.Len, info.pbTag, info.cbTag);
+			encrypted = tagFollows;
 		}
 		else if (IS_AES_GCM(m_hAlg.ChainingMode))
 		{
@@ -775,6 +779,10 @@ void CryptographyDialogBox::OnEncrypt()
 				info.SetAuthData(aad.Ptr, aad.Len);
 			}
 			encrypted = hKey.Encrypt(m_OriginalData.Ptr, m_OriginalData.Len, info, NULL, 0);
+			ByteString tagFollows(encrypted.Len + info.cbTag);
+			memcpy_s(reinterpret_cast<PBYTE>(tagFollows.Ptr), tagFollows.Len, encrypted.Ptr, encrypted.Len);
+			memcpy_s(reinterpret_cast<PBYTE>(tagFollows.Ptr) + encrypted.Len, tagFollows.Len - encrypted.Len, info.pbTag, info.cbTag);
+			encrypted = tagFollows;
 		}
 		else
 		{

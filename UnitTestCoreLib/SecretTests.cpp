@@ -34,9 +34,9 @@ namespace UnitTestCoreLib
 			Buffer<char> output2(secret->Len);
 			memcpy_s(output2.Ptr, output2.Len, secret->Ptr, secret->Len);
 
-			Debug::Put(L"ORG[%zu]: %s", input.Len + 1, String::ToHex(input.Ptr, input.Len + 1));
-			Debug::Put(L"ENC[%zu]: %s", output.Len, String::ToHex(output.Ptr, output.Len));
-			Debug::Put(L"DEC[%zu]: %s", output2.Len, String::ToHex(output2.Ptr, output2.Len));
+			Debug::Put(L"ORG[%zu]: %s", input.Len + 1, ByteString(input.Ptr, input.Len + 1).ToHex());
+			Debug::Put(L"ENC[%zu]: %s", output.Len, ByteString(output.Ptr, output.Len).ToHex());
+			Debug::Put(L"DEC[%zu]: %s", output2.Len, ByteString(output2.Ptr, output2.Len).ToHex());
 
 			Assert::AreEqual(input.Len + 1, output2.Len);
 			Assert::IsTrue(!memcmp(output2.Ptr, input.Ptr, input.Len + 1));
@@ -45,7 +45,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(Test2)
 		{
 			String szInput(L"Abracadabra2020$");
-			Debug::Put(L"Input=%s (%s)", szInput, String::ToHex(szInput.Ptr, (szInput.Len + 1) * sizeof(WCHAR)));
+			Debug::Put(L"Input=%s (%s)", szInput, ByteString(szInput.Ptr, (szInput.Len + 1) * sizeof(WCHAR)).ToHex());
 			static const unsigned char key[SECRET_KEY_LENGTH] =
 			{
 				0x6f, 0x09, 0xc5, 0x65, 0x8c, 0x57, 0x42, 0x2b, 0xac, 0x84, 0x2d, 0x51, 0xa3, 0xa0, 0xc5, 0x40,
@@ -60,8 +60,8 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(szInput.Ptr, ph.PlainText.Ptr);
 			Base64Decoder dec;
 			Assert::IsTrue(dec.Parse(ph.Encrypted));
-			Debug::Put(L"Encrypted=%s (%s)", ph.Encrypted, String::ToHex(ph.Encrypted, ph.Encrypted.Len));
-			Debug::Put(L"Output=%s (%s)", ph.PlainText, String::ToHex(ph.PlainText.Ptr, (ph.PlainText.Len + 1) * sizeof(WCHAR)));
+			Debug::Put(L"Encrypted=%s (%s)", ph.Encrypted, ByteString(ph.Encrypted, ph.Encrypted.Len).ToHex());
+			Debug::Put(L"Output=%s (%s)", ph.PlainText, ByteString(ph.PlainText.Ptr, (ph.PlainText.Len + 1) * sizeof(WCHAR)).ToHex());
 			ph.ClearPlainText();
 		}
 
@@ -86,9 +86,9 @@ namespace UnitTestCoreLib
 			secret->Decrypt(encrypted.Ptr, encrypted.Len);
 			Buffer<unsigned char> decrypted(secret->Len);
 			memcpy_s(decrypted.Ptr, decrypted.Len, secret->Ptr, secret->Len);
-			Debug::Put(L" Original={%s}", String::ToHex(tmp.Ptr, tmp.Len));
-			Debug::Put(L"Encrypted={%s}", String::ToHex(encrypted.Ptr, encrypted.Len));
-			Debug::Put(L"Decrypted={%s}", String::ToHex(decrypted.Ptr, decrypted.Len));
+			Debug::Put(L" Original={%s}", ByteString(tmp.Ptr, tmp.Len).ToHex());
+			Debug::Put(L"Encrypted={%s}", ByteString(encrypted.Ptr, encrypted.Len).ToHex());
+			Debug::Put(L"Decrypted={%s}", ByteString(decrypted.Ptr, decrypted.Len).ToHex());
 			Assert::AreEqual(tmp.Len + 1, decrypted.Len);
 			Assert::IsTrue(!memcmp(tmp.Ptr, decrypted.Ptr, decrypted.Len));
 			Base64Encoder enc;
@@ -97,8 +97,8 @@ namespace UnitTestCoreLib
 			Base64Decoder dec;
 			dec.Parse(enc.Ptr);
 			Debug::Put(L"base64 encoded=%s", enc.Ptr);
-			Debug::Put(L"base64  in={%s}", String::ToHex(encrypted.Ptr, encrypted.Len));
-			Debug::Put(L"base64 out={%s}", String::ToHex(dec.Ptr, dec.Len));
+			Debug::Put(L"base64  in={%s}", ByteString(encrypted.Ptr, encrypted.Len).ToHex());
+			Debug::Put(L"base64 out={%s}", ByteString(dec.Ptr, dec.Len).ToHex());
 			Assert::AreEqual(encrypted.Len, dec.Len);
 			Assert::IsTrue(!memcmp(encrypted.Ptr, dec.Ptr, dec.Len));
 			PasswordHolder ph(key, iv);

@@ -2,6 +2,7 @@
 #include "CppUnitTest.h"
 #include "hnrt/Hash.h"
 #include "hnrt/StringUTF8.h"
+#include "hnrt/ByteString.h"
 #include "hnrt/ByteDataFeeder.h"
 #include "hnrt/Debug.h"
 
@@ -118,7 +119,7 @@ namespace UnitTestCoreLib
 
 		String ToHex(Hash& hash)
 		{
-			return String::ToHex(hash.Value, hash.ValueLength);
+			return ByteString(hash.Value, hash.ValueLength).ToHex(LOWERCASE);
 		}
 	};
 }
