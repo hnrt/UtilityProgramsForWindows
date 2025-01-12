@@ -97,11 +97,12 @@ void GuidDialogBox::OnTabSelectionChanging()
 void GuidDialogBox::OnTabSelectionChanged()
 {
     MyDialogBox::OnTabSelectionChanged();
+    m_menuFile
+        .Insert(0, ResourceString(IDS_MENU_NEW), IDM_FILE_NEW)
+        .InsertSeparator(1);
     m_menuEdit
         .Insert(0, ResourceString(IDS_MENU_COPYRESULT), IDM_EDIT_COPYRESULT)
-        .InsertSeparator(1)
-        .AddSeparator()
-        .Add(ResourceString(IDS_MENU_NEW), IDM_EDIT_EXECUTE);
+        .InsertSeparator(1);
     m_menuView
         .Enable(IDM_VIEW_GUID, MF_DISABLED);
 }
@@ -117,20 +118,20 @@ INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     UINT idNotif = HIWORD(wParam);
     switch (idChild)
     {
-    case IDC_GUID_COPY_BUTTON:
+    case IDC_GUID_NEW_BUTTON:
         if (idNotif == BN_CLICKED)
         {
-            OnCopyResult();
+            ChangeGuid();
         }
         else
         {
             return FALSE;
         }
         break;
-    case IDC_GUID_NEW_BUTTON:
+    case IDC_GUID_COPY_BUTTON:
         if (idNotif == BN_CLICKED)
         {
-            ChangeGuid();
+            OnCopyResult();
         }
         else
         {
@@ -184,18 +185,18 @@ INT_PTR GuidDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 }
 
 
+void GuidDialogBox::OnNew()
+{
+    ChangeGuid();
+}
+
+
 void GuidDialogBox::OnCopyResult()
 {
     if (!Clipboard::Write(hwnd, m_szFormatted))
     {
         MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
     }
-}
-
-
-void GuidDialogBox::OnExecute()
-{
-    ChangeGuid();
 }
 
 

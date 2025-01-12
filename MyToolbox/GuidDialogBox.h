@@ -19,7 +19,7 @@ namespace hnrt
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
 		virtual void OnCopyResult();
-		virtual void OnExecute();
+		virtual void OnNew();
 
 	private:
 
