@@ -41,6 +41,7 @@ namespace hnrt
 		BOOL InvalidateRect(int id, const RECT* pRect, BOOL bErase) const;
 		String GetText(int id) const;
 		void SetText(int id, PCWSTR psz = L"") const;
+		void SetTextAndNotify(int id, PCWSTR psz = L"");
 		void CopyAllText(int id) const;
 		void EditGetSelection(int id, int& start, int& end) const;
 		int EditGetSelectionLength(int id) const;

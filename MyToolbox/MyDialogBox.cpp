@@ -727,13 +727,15 @@ void MyDialogBox::AddLettercaseSettingMenus(UINT uId)
 }
 
 
-bool MyDialogBox::ApplyToLettercase(UINT uId, UINT& uValue, UINT uBase)
+bool MyDialogBox::ApplyToLettercase(UINT uId, StringOptions& uValue)
 {
 	switch (uId)
 	{
 	case IDM_SETTINGS_UPPERCASE:
+		uValue = StringOptions::UPPERCASE;
+		break;
 	case IDM_SETTINGS_LOWERCASE:
-		uValue = uBase + uId - IDM_SETTINGS_UPPERCASE;
+		uValue = StringOptions::LOWERCASE;
 		break;
 	default:
 		return false;
@@ -983,32 +985,8 @@ void MyDialogBox::SaveTextAsFile(int id, String& szPath) const
 	}
 	try
 	{
-		if (!wcs.Len)
-		{
-			FileWriter(ofn.lpstrFile).Write("", 0);
-		}
-		else if (m_uOutputCodePage == CP_UTF16)
-		{
-			FileWriter(ofn.lpstrFile).Write(wcs, wcs.Len * sizeof(WCHAR));
-		}
-		else
-		{
-			int cb = WideCharToMultiByte(m_uOutputCodePage, 0, wcs, static_cast<int>(wcs.Len), NULL, 0, NULL, NULL);
-			if (cb)
-			{
-				Buffer<CHAR> mbs(cb);
-				WideCharToMultiByte(m_uOutputCodePage, 0, wcs, static_cast<int>(wcs.Len), mbs, cb, NULL, NULL);
-				FileWriter(ofn.lpstrFile).Write(mbs, cb);
-			}
-			else
-			{
-				DWORD dwError = GetLastError();
-				String szMessage(PRINTF, L"%s\n%s",
-					ResourceString(IDS_MSG_TEXT_ENCODING_CONVERSION_ERROR).Ptr,
-					ErrorMessage::Get(dwError));
-				MessageBoxW(hwnd, szMessage, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-			}
-		}
+		ByteString serialized = ByteString::FromString(wcs, m_uOutputCodePage);
+		FileWriter(ofn.lpstrFile).Write(serialized.Ptr, serialized.Len);
 		szPath = szPath2;
 	}
 	catch (Win32Exception e)
@@ -1049,19 +1027,19 @@ void MyDialogBox::InitializeCodePageComboBox(int id, int initialSelection) const
 }
 
 
-void MyDialogBox::InitializeLineBreakComboBox(int id, int initialSelection) const
+void MyDialogBox::InitializeLineBreakComboBox(int id, LineBreak initialSelection) const
 {
-	ComboBoxAdd(id, L"CRLF", 0x0d0a);
-	ComboBoxAdd(id, L"LF", 0x0a);
-	ComboBoxSetSelection(id, initialSelection);
+	ComboBoxAdd(id, L"CRLF", static_cast<int>(LineBreak::CRLF));
+	ComboBoxAdd(id, L"LF", static_cast<int>(LineBreak::LF));
+	ComboBoxSetSelection(id, static_cast<int>(initialSelection));
 }
 
 
-void MyDialogBox::InitializeLetterCaseComboBox(int id, int initialSelection) const
+void MyDialogBox::InitializeLetterCaseComboBox(int id, StringOptions initialSelection) const
 {
-	ComboBoxAdd(id, L"Uppercase", StringOptions::UPPERCASE);
-	ComboBoxAdd(id, L"Lowercase", StringOptions::LOWERCASE);
-	ComboBoxSetSelection(id, initialSelection);
+	ComboBoxAdd(id, L"Uppercase", static_cast<int>(StringOptions::UPPERCASE));
+	ComboBoxAdd(id, L"Lowercase", static_cast<int>(StringOptions::LOWERCASE));
+	ComboBoxSetSelection(id, static_cast<int>(initialSelection));
 }
 
 

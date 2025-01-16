@@ -66,14 +66,14 @@ namespace hnrt
 		void AddHashAlgorithmSettingMenus(UINT);
 		bool ApplyToHashAlgorithm(UINT, UINT&, UINT);
 		void AddLettercaseSettingMenus(UINT);
-		bool ApplyToLettercase(UINT, UINT&, UINT);
+		bool ApplyToLettercase(UINT, StringOptions&);
 		void LoadTextFromFile(int id) const;
 		void LoadTextFromFile(int id, String& szPath) const;
 		void SaveTextAsFile(int id) const;
 		void SaveTextAsFile(int id, String& szPath) const;
 		void InitializeCodePageComboBox(int id, int initialSelection = CP_UTF8) const;
-		void InitializeLineBreakComboBox(int id, int initialSelection = 0x0d0a) const;
-		void InitializeLetterCaseComboBox(int id, int initialSelection = StringOptions::UPPERCASE) const;
+		void InitializeLineBreakComboBox(int id, LineBreak initialSelection = LineBreak::CRLF) const;
+		void InitializeLetterCaseComboBox(int id, StringOptions initialSelection = StringOptions::UPPERCASE) const;
 		void InitializeOffsetComboBox(int id, int initialSelection = 0) const;
 		void SetLengthText(int id, int expected, int actual) const;
 		void FilterText(int id, BOOL (*pfnIsValid)(WCHAR));

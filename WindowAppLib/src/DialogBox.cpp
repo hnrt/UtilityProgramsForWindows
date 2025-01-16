@@ -156,6 +156,15 @@ void DialogBox::SetText(int id, PCWSTR psz) const
 }
 
 
+// The window system doesn't notify MULTILINE Edit Control of EN_CHANGE.
+// Use this function to do so intentionally.
+void DialogBox::SetTextAndNotify(int id, PCWSTR psz)
+{
+    SendMessage(id, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(psz ? psz : L""));
+    OnCommand(MAKELONG(id, EN_CHANGE), reinterpret_cast<LPARAM>(GetChild(id)));
+}
+
+
 void DialogBox::CopyAllText(int id) const
 {
     if (!Clipboard::Write(hwnd, hwnd, id))

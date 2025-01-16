@@ -22,6 +22,7 @@ namespace hnrt
 		virtual void OnLoadFrom();
 		virtual void OnSaveAs();
 		virtual void OnClear();
+		virtual void OnNew();
 		virtual void OnExecute();
 		virtual void OnCopyResult();
 		virtual void OnSettingChanged(UINT);
@@ -53,15 +54,13 @@ namespace hnrt
 		void ResetValueLetterCase();
 		void VerifyValue();
 		void SetVerificationResult(PCWSTR psz = L"");
-		void SetPath(PCWSTR psz = L"");
 		UINT GetCodePage() const;
-		UINT GetLineBreak() const;
-		UINT ConvertToLF(PWCHAR pStart, UINT uLength);
+		LineBreak GetLineBreak() const;
 
 		Hash m_hash;
 		UINT m_uSource;
 		UINT m_uMethod;
-		UINT m_uLettercase;
+		StringOptions m_uLettercase;
 		String m_szTextPath;
 	};
 }
