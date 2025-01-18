@@ -20,6 +20,7 @@ namespace hnrt
 		void operator =(const MyDialogBox&) = delete;
 		void SetId(UINT id);
 		bool IsActive() const;
+		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
 		virtual void OnNew();
@@ -49,7 +50,6 @@ namespace hnrt
 
 		virtual void OnCreate();
 		virtual void OnDestroy();
-		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnEditCommand(WPARAM wParam, LPARAM lParam);
 		virtual void OnEditSetFocus(int id);
@@ -67,8 +67,8 @@ namespace hnrt
 		bool ApplyToHashAlgorithm(UINT, UINT&, UINT);
 		void AddLettercaseSettingMenus(UINT);
 		bool ApplyToLettercase(UINT, StringOptions&);
-		void LoadTextFromFile(int id) const;
-		void LoadTextFromFile(int id, String& szPath) const;
+		void LoadTextFromFile(int id);
+		void LoadTextFromFile(int id, String& szPath);
 		void SaveTextAsFile(int id) const;
 		void SaveTextAsFile(int id, String& szPath) const;
 		void InitializeCodePageComboBox(int id, int initialSelection = CP_UTF8) const;

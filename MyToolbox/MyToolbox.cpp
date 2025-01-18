@@ -360,7 +360,7 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
         m_about.Show();
         break;
     default:
-        return FALSE;
+        return m_tabs[m_tabs.CurrentItem].OnCommand(wParam, lParam);
     }
     return TRUE;
 }

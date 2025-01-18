@@ -17,11 +17,11 @@ namespace hnrt
 		void operator =(const PercentCodecDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
+		virtual void OnNew();
 		virtual void OnLoad1From();
 		virtual void OnSave1As();
 		virtual void OnLoad2From();
 		virtual void OnSave2As();
-		virtual void OnClear();
 		virtual void OnSettingChanged(UINT);
 
 	private:

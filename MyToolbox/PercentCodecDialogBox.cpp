@@ -127,16 +127,27 @@ void PercentCodecDialogBox::OnTabSelectionChanged()
 {
 	MyDialogBox::OnTabSelectionChanged();
 	m_menuFile
-		.Insert(0, ResourceString(IDS_MENU_ORG_LOADFROM), IDM_FILE_LOAD1FROM)
-		.Insert(1, ResourceString(IDS_MENU_ORG_SAVEAS), IDM_FILE_SAVE1AS)
+		.Insert(0, ResourceString(IDS_MENU_NEW), IDM_FILE_NEW)
+		.InsertSeparator(1)
+		.Insert(2, ResourceString(IDS_MENU_ORG_LOADFROM), IDM_FILE_LOAD1FROM)
+		.Insert(3, ResourceString(IDS_MENU_ORG_SAVEAS), IDM_FILE_SAVE1AS)
+		.InsertSeparator(4)
+		.Insert(5, ResourceString(IDS_MENU_ENC_LOADFROM), IDM_FILE_LOAD2FROM)
+		.Insert(6, ResourceString(IDS_MENU_ENC_SAVEAS), IDM_FILE_SAVE2AS)
+		.InsertSeparator(7);
+	m_menuEdit
+		.Insert(0, ResourceString(IDS_MENU_ENCODE), IDM_EDIT_EXECUTE1)
+		.Insert(1, ResourceString(IDS_MENU_COPYORIGINAL), IDM_EDIT_COPYRESULT1)
 		.InsertSeparator(2)
-		.Insert(3, ResourceString(IDS_MENU_ENC_LOADFROM), IDM_FILE_LOAD2FROM)
-		.Insert(4, ResourceString(IDS_MENU_ENC_SAVEAS), IDM_FILE_SAVE2AS)
+		.Insert(3, ResourceString(IDS_MENU_DECODE), IDM_EDIT_EXECUTE2)
+		.Insert(4, ResourceString(IDS_MENU_COPYENCODED), IDM_EDIT_COPYRESULT2)
 		.InsertSeparator(5);
 	m_menuView
 		.Enable(IDM_VIEW_PCTC, MF_DISABLED);
 	AddInputCodePageSettingMenus();
 	AddOutputCodePageSettingMenus();
+	UpdateControlsState(IDC_PCTC_ORG_EDIT);
+	UpdateControlsState(IDC_PCTC_ENC_EDIT);
 }
 
 
@@ -150,6 +161,24 @@ INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	UINT idNotif = HIWORD(wParam);
 	switch (idChild)
 	{
+	case IDM_EDIT_EXECUTE1:
+		if (OnEncode())
+		{
+			SetFocus(IDC_PCTC_ENC_COPY_BUTTON);
+		}
+		break;
+	case IDM_EDIT_COPYRESULT1:
+		CopyAllText(IDC_PCTC_ORG_EDIT);
+		break;
+	case IDM_EDIT_EXECUTE2:
+		if (OnDecode())
+		{
+			SetFocus(IDC_PCTC_ORG_COPY_BUTTON);
+		}
+		break;
+	case IDM_EDIT_COPYRESULT2:
+		CopyAllText(IDC_PCTC_ENC_EDIT);
+		break;
 	case IDC_PCTC_ORG_COPY_BUTTON:
 		if (idNotif == BN_CLICKED)
 		{
@@ -227,48 +256,39 @@ INT_PTR PercentCodecDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam
 }
 
 
+void PercentCodecDialogBox::OnNew()
+{
+	SetTextAndNotify(IDC_PCTC_ORG_EDIT);
+	SetTextAndNotify(IDC_PCTC_ENC_EDIT);
+}
+
+
 void PercentCodecDialogBox::OnLoad1From()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	LoadTextFromFile(IDC_PCTC_ORG_EDIT, m_szOriginalPath);
 }
 
 
 void PercentCodecDialogBox::OnSave1As()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SaveTextAsFile(IDC_PCTC_ORG_EDIT, m_szOriginalPath);
 }
 
 
 void PercentCodecDialogBox::OnLoad2From()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	LoadTextFromFile(IDC_PCTC_ENC_EDIT, m_szEncodedPath);
 }
 
 
 void PercentCodecDialogBox::OnSave2As()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SaveTextAsFile(IDC_PCTC_ENC_EDIT, m_szEncodedPath);
-}
-
-
-void PercentCodecDialogBox::OnClear()
-{
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	SetText(IDC_PCTC_ORG_EDIT);
-	SetText(IDC_PCTC_ENC_EDIT);
-	OnEditChanged(IDC_PCTC_ORG_EDIT);
-	OnEditChanged(IDC_PCTC_ENC_EDIT);
-	m_LastModified.By = 0;
 }
 
 
 void PercentCodecDialogBox::OnSettingChanged(UINT uId)
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	if (ApplyToInputCodePage(uId))
 	{
 		return;
@@ -282,16 +302,13 @@ void PercentCodecDialogBox::OnSettingChanged(UINT uId)
 
 bool PercentCodecDialogBox::OnEncode()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	try
 	{
 		String szText = GetText(IDC_PCTC_ORG_EDIT);
 		UINT uCodePage = GetCodePage();
 		Buffer<WCHAR> buf((szText.Len + 1ULL) * 4ULL * 3ULL);
 		Encode(szText, static_cast<UINT>(szText.Len + 1ULL), uCodePage, buf, static_cast<UINT>(buf.Len), ButtonIsChecked(IDC_PCTC_USEPLUS_CHECK));
-		SetText(IDC_PCTC_ENC_EDIT, buf);
-		OnEditChanged(IDC_PCTC_ENC_EDIT);
-		ClearStatus(IDC_PCTC_ORG_EDIT);
+		SetTextAndNotify(IDC_PCTC_ENC_EDIT, buf);
 		return true;
 	}
 	catch (Exception e)
@@ -305,17 +322,13 @@ bool PercentCodecDialogBox::OnEncode()
 
 bool PercentCodecDialogBox::OnDecode()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	try
 	{
-		ClearStatus();
 		String szText = GetText(IDC_PCTC_ENC_EDIT);
 		UINT uCodePage = GetCodePage();
 		Buffer<WCHAR> buf(szText.Len + 1ULL);
 		Decode(szText, static_cast<UINT>(szText.Len + 1ULL), uCodePage, buf, static_cast<UINT>(buf.Len));
-		SetText(IDC_PCTC_ORG_EDIT, buf);
-		OnEditChanged(IDC_PCTC_ORG_EDIT);
-		ClearStatus(IDC_PCTC_ENC_EDIT);
+		SetTextAndNotify(IDC_PCTC_ORG_EDIT, buf);
 		return true;
 	}
 	catch (Exception e)
@@ -664,32 +677,44 @@ void PercentCodecDialogBox::ClearStatus(int id)
 
 void PercentCodecDialogBox::UpdateControlsState(int id)
 {
+	BOOL bEnabled;
+	UINT uEnabled;
 	switch (id)
 	{
 	case IDC_PCTC_ORG_EDIT:
 		if (GetTextLength(IDC_PCTC_ORG_EDIT) > 0)
 		{
-			EnableWindow(IDC_PCTC_ORG_COPY_BUTTON);
-			EnableWindow(IDC_PCTC_ENCODE_BUTTON);
+			bEnabled = TRUE;
+			uEnabled = MF_ENABLED;
 		}
 		else
 		{
-			DisableWindow(IDC_PCTC_ORG_COPY_BUTTON);
-			DisableWindow(IDC_PCTC_ENCODE_BUTTON);
+			bEnabled = FALSE;
+			uEnabled = MF_DISABLED;
 		}
+		EnableWindow(IDC_PCTC_ORG_COPY_BUTTON, bEnabled);
+		EnableWindow(IDC_PCTC_ENCODE_BUTTON, bEnabled);
+		m_menuEdit
+			.Enable(IDM_EDIT_EXECUTE1, uEnabled)
+			.Enable(IDM_EDIT_COPYRESULT1, uEnabled);
 		ClearStatus(id);
 		break;
 	case IDC_PCTC_ENC_EDIT:
 		if (GetTextLength(IDC_PCTC_ENC_EDIT) > 0)
 		{
-			EnableWindow(IDC_PCTC_ENC_COPY_BUTTON);
-			EnableWindow(IDC_PCTC_DECODE_BUTTON);
+			bEnabled = TRUE;
+			uEnabled = MF_ENABLED;
 		}
 		else
 		{
-			DisableWindow(IDC_PCTC_ENC_COPY_BUTTON);
-			DisableWindow(IDC_PCTC_DECODE_BUTTON);
+			bEnabled = FALSE;
+			uEnabled = MF_DISABLED;
 		}
+		EnableWindow(IDC_PCTC_ENC_COPY_BUTTON, bEnabled);
+		EnableWindow(IDC_PCTC_DECODE_BUTTON, bEnabled);
+		m_menuEdit
+			.Enable(IDM_EDIT_EXECUTE2, uEnabled)
+			.Enable(IDM_EDIT_COPYRESULT2, uEnabled);
 		ClearStatus(id);
 		break;
 	default:

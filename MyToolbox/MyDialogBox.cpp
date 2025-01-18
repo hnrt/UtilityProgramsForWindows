@@ -754,14 +754,14 @@ bool MyDialogBox::ApplyToLettercase(UINT uId, StringOptions& uValue)
 }
 
 
-void MyDialogBox::LoadTextFromFile(int id) const
+void MyDialogBox::LoadTextFromFile(int id)
 {
 	String szPath;
 	LoadTextFromFile(id, szPath);
 }
 
 
-void MyDialogBox::LoadTextFromFile(int id, String& szPath) const
+void MyDialogBox::LoadTextFromFile(int id, String& szPath)
 {
 	String szTitle(ResourceString(IDS_LOADTEXTFROMFILE));
 	StringBuffer szPath2(MAX_PATH, szPath);
@@ -779,14 +779,14 @@ void MyDialogBox::LoadTextFromFile(int id, String& szPath) const
 	FileMapper fm(ofn.lpstrFile);
 	if (fm.Len > INT_MAX - 1)
 	{
-		SetText(id);
+		SetTextAndNotify(id);
 		MessageBoxW(hwnd, ResourceString(IDS_MSG_TOO_LARGE_FILE), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 	}
 	else
 	{
 		if (!fm.Len)
 		{
-			SetText(id);
+			SetTextAndNotify(id);
 			szPath = szPath2;
 		}
 		else
@@ -796,17 +796,17 @@ void MyDialogBox::LoadTextFromFile(int id, String& szPath) const
 				String sz = ByteString(fm.Ptr, fm.Len).ToString(m_uInputCodePage);
 				if (sz[0] == BYTE_ORDER_MARK)
 				{
-					SetText(id, &sz[1]);
+					SetTextAndNotify(id, &sz[1]);
 				}
 				else
 				{
-					SetText(id, sz);
+					SetTextAndNotify(id, sz);
 				}
 				szPath = szPath2;
 			}
 			catch (Exception e)
 			{
-				SetText(id);
+				SetTextAndNotify(id);
 				MessageBoxW(hwnd, e.Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 			}
 		}
