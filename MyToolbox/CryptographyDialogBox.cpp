@@ -23,10 +23,6 @@
 #include <map>
 
 
-#define AES_GCM_NONCE_LENGTH 12
-#define AES_CCM_NONCE_LENGTH 12
-
-
 #define REG_NAME_CHAININGMODE L"ChainingMode"
 #define REG_NAME_KEYLENGTH L"KeyLength"
 #define REG_NAME_KEY L"Key"

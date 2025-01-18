@@ -27,3 +27,6 @@ namespace hnrt
 		BCryptAuthenticatedCipherModeInfo& ResetFlags(ULONG);
 	};
 }
+
+#define AES_GCM_NONCE_LENGTH 12
+#define AES_CCM_NONCE_LENGTH 12
