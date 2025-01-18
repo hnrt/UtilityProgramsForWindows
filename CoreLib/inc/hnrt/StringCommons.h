@@ -599,4 +599,23 @@ namespace hnrt
 	/// The sign of HUGE_VAL matches the sign of the value that can't be represented.
 	/// Zero if no conversion can be performed or an underflow occurs.</returns>
 	double StrToDouble(PCSTR str, PSTR* endptr);
+
+	/// <summary>
+	/// This function returns the number of the specified code point in the string.
+	/// </summary>
+	/// <param name="str">String to check</param>
+	/// <param name="count">Number of characters to check</param>
+	/// <param name="c">Code point to count</param>
+	/// <returns></returns>
+	SIZE_T CountCharacter(PCWCH str, SSIZE_T count, int codepoint);
+
+	/// <summary>
+	/// This function returns the number of the specified code point in the string.
+	/// </summary>
+	/// <param name="str">String to check</param>
+	/// <param name="count">Number of characters to check</param>
+	/// <param name="c">Code point to count</param>
+	/// <returns></returns>
+	SIZE_T CountCharacter(PCCH str, SSIZE_T count, int codepoint);
+
 }

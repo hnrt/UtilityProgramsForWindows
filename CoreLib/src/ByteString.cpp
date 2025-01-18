@@ -20,6 +20,7 @@ using namespace hnrt;
 static const WCHAR EXTRA_BYTE_FOLLOWS[] = L"An extra byte follows.";
 static const WCHAR ILLEGAL_CHARACTER_AT[] = L"Illegal character at %zu.";
 static const WCHAR PREMATURE_END_OF_STRING[] = L"Premature end of string.";
+static const WCHAR MALFORMED_STRING[] = L"Malformed string.";
 static const WCHAR UNMAPPABLE_CHARACTERS[] = L"One or more unmappable characters.";
 static const WCHAR INCONSISTENT_NUMBER_OF_CHARACTERS[] = L"Inconsistent number of characters.";
 
@@ -294,41 +295,123 @@ String ByteString::ToBase64() const
 }
 
 
-String ByteString::ToString(UINT uCodePage) const
+String ByteString::ToString(UINT uCodePage, bool bStrict) const
 {
     if (Len > 0)
     {
         if (uCodePage == CP_UTF16)
         {
-            if ((Len % sizeof(WCHAR)) != 0)
+            if (bStrict && (Len % sizeof(WCHAR)) != 0)
             {
                 throw CharacterMappingException(EXTRA_BYTE_FOLLOWS);
             }
-            int cb = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, reinterpret_cast<LPCWCH>(Ptr), static_cast<int>(Len / sizeof(WCHAR)), NULL, 0, NULL, NULL);
+            LPCWCH pch = reinterpret_cast<LPCWCH>(Ptr);
+            int cch = static_cast<int>(Len / sizeof(WCHAR));
+            if (bStrict && CountCharacter(pch, cch, 0) > 0)
+            {
+                throw CharacterMappingException(MALFORMED_STRING);
+            }
+            int cb = WideCharToMultiByte(CP_UTF8, bStrict ? WC_ERR_INVALID_CHARS : 0, pch, cch, NULL, 0, NULL, NULL);
             if (cb == 0)
             {
                 throw CharacterMappingException(GetLastError());
             }
-            return String(reinterpret_cast<LPCWCH>(Ptr), static_cast<int>(Len / sizeof(WCHAR)));
+            return String(pch, cch);
         }
-        else
+        else if (uCodePage)
         {
-            int cb = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, reinterpret_cast<LPCCH>(Ptr), static_cast<int>(Len), NULL, 0);
-            if (cb == 0)
+            LPCCH pb = reinterpret_cast<LPCCH>(Ptr);
+            int cb = static_cast<int>(Len);
+            int cch = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, pb, cb, NULL, 0);
+            if (cch == 0)
             {
                 throw CharacterMappingException(GetLastError());
             }
-            String sz(cb, L'\0');
-            cb = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, reinterpret_cast<LPCCH>(Ptr), static_cast<int>(Len), const_cast<LPWCH>(sz.Ptr), static_cast<int>(sz.Len));
-            if (cb == 0)
+            String sz(cch, L'\0');
+            LPWCH pch = const_cast<LPWCH>(sz.Ptr);
+            cch = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, pb, cb, pch, cch);
+            if (cch == 0)
             {
                 throw CharacterMappingException(GetLastError());
             }
-            else if (cb != sz.Len)
+            else if (cch != sz.Len)
             {
                 throw CharacterMappingException(INCONSISTENT_NUMBER_OF_CHARACTERS);
             }
+            else if (bStrict && (CountCharacter(pch, cch, REPLACEMENT_CHARACTER) > 0 || CountCharacter(pch, cch, 0) > 0))
+            {
+                throw CharacterMappingException(UNMAPPABLE_CHARACTERS);
+            }
             return sz;
+        }
+        else
+        {
+            static const BYTE bomUTF8[] = { 0xEF, 0xBB, 0xBF };
+            static const BYTE bomUTF16[] = { 0xFF, 0xFE };
+            if (Len >= 3 && !memcmp(Ptr, bomUTF8, 3))
+            {
+                try
+                {
+                    return ToString(CP_UTF8, true);
+                }
+                catch (...)
+                {
+                }
+            }
+            else if (Len >= 2 && !memcmp(Ptr, bomUTF16, 2))
+            {
+                try
+                {
+                    return ToString(CP_UTF16, true);
+                }
+                catch (...)
+                {
+                }
+            }
+            else
+            {
+                try
+                {
+                    return ToString(CP_UTF8, true);
+                }
+                catch (...)
+                {
+                }
+                try
+                {
+                    return ToString(CP_UTF16, true);
+                }
+                catch (...)
+                {
+                }
+            }
+            UINT acp = GetACP();
+            if (acp)
+            {
+                try
+                {
+                    return ToString(acp, true);
+                }
+                catch (...)
+                {
+                }
+            }
+            UINT cps[] = { 932, 936, 949, 950, 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258 };
+            for (UINT index = 0; index < _countof(cps); index++)
+            {
+                if (cps[index] == acp)
+                {
+                    continue;
+                }
+                try
+                {
+                    return ToString(cps[index], true);
+                }
+                catch (...)
+                {
+                }
+            }
+            throw CharacterMappingException(UNMAPPABLE_CHARACTERS);
         }
     }
     else

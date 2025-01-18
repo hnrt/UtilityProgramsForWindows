@@ -754,82 +754,6 @@ bool MyDialogBox::ApplyToLettercase(UINT uId, StringOptions& uValue)
 }
 
 
-static int CountCharacter(const WCHAR* ptr, size_t len, WCHAR c)
-{
-	int count = 0;
-	const WCHAR* pCur = ptr;
-	const WCHAR* pEnd = ptr + len;
-	while (pCur < pEnd)
-	{
-		pCur = wmemchr(pCur, c, pEnd - pCur);
-		if (pCur)
-		{
-			count++;
-			pCur++;
-		}
-		else
-		{
-			break;
-		}
-	}
-	return count;
-}
-
-
-static int TranslateAs(LPCVOID ptr, size_t len, UINT uCodePage)
-{
-	if (uCodePage == 1200)
-	{
-		int cb = WideCharToMultiByte(CP_UTF8, 0, reinterpret_cast<const WCHAR*>(ptr), static_cast<int>(len / sizeof(WCHAR)), NULL, 0, NULL, NULL);
-		if (!cb)
-		{
-			return static_cast<int>(len);
-		}
-		Buffer<CHAR> mbs(cb);
-		WideCharToMultiByte(CP_UTF8, 0, reinterpret_cast<const WCHAR*>(ptr), static_cast<int>(len / sizeof(WCHAR)), mbs, cb, NULL, NULL);
-		int cch = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, mbs, cb, NULL, 0);
-		if (!cch)
-		{
-			return static_cast<int>(len);
-		}
-		Buffer<WCHAR> wcs(cch);
-		MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, mbs, cb, wcs, cch);
-		return CountCharacter(wcs, cch, REPLACEMENT_CHARACTER) + CountCharacter(wcs, cch, 0x0000);
-	}
-	else
-	{
-		int cch = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, reinterpret_cast<const CHAR*>(ptr), static_cast<int>(len), NULL, 0);
-		if (!cch)
-		{
-			return static_cast<int>(len);
-		}
-		Buffer<WCHAR> wcs(cch);
-		MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, reinterpret_cast<const CHAR*>(ptr), static_cast<int>(len), wcs, cch);
-		return CountCharacter(wcs, cch, REPLACEMENT_CHARACTER) + CountCharacter(wcs, cch, 0x0000);
-	}
-}
-
-
-static void TerminateNull(WCHAR* ptr, size_t len)
-{
-	WCHAR* pCur = ptr;
-	WCHAR* pEnd = ptr + len;
-	while (pCur < pEnd)
-	{
-		pCur = wmemchr(pCur, L'\0', pEnd - pCur);
-		if (pCur)
-		{
-			*pCur++ = REPLACEMENT_CHARACTER;
-		}
-		else
-		{
-			break;
-		}
-	}
-	ptr[len] = L'\0';
-}
-
-
 void MyDialogBox::LoadTextFromFile(int id) const
 {
 	String szPath;
@@ -855,101 +779,36 @@ void MyDialogBox::LoadTextFromFile(int id, String& szPath) const
 	FileMapper fm(ofn.lpstrFile);
 	if (fm.Len > INT_MAX - 1)
 	{
-		MessageBoxW(hwnd, ResourceString(IDS_MSG_TOO_LARGE_FILE), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-		return;
-	}
-	szPath = szPath2;
-	if (!fm.Len)
-	{
 		SetText(id);
-		return;
-	}
-	UINT uCodePage = m_uInputCodePage;
-	if (uCodePage == 0)
-	{
-		static const BYTE bomUTF8[] = { 0xEF, 0xBB, 0xBF };
-		static const BYTE bomUTF16[] = { 0xFF, 0xFE };
-		if (fm.Len >= 3 && !memcmp(fm.Ptr, bomUTF8, 3))
-		{
-			uCodePage = CP_UTF8;
-		}
-		else if (fm.Len >= 2 && !memcmp(fm.Ptr, bomUTF16, 2))
-		{
-			uCodePage = CP_UTF16;
-		}
-		else
-		{
-			UINT cps[] = { CP_UTF8, 1200, GetACP() };
-			std::map<UINT, int> errors;
-			for (int i = 0; i < _countof(cps); i++)
-			{
-				errors.insert(std::pair<UINT, int>(cps[i], TranslateAs(fm.Ptr, fm.Len, cps[i])));
-			}
-			int least = 10;
-			for (std::map<UINT, int>::const_iterator iter = errors.cbegin(); iter != errors.cend(); iter++)
-			{
-				if (least > iter->second)
-				{
-					uCodePage = iter->first;
-					least = iter->second;
-				}
-			}
-			if (uCodePage == 0)
-			{
-				UINT acps[] = { 932, 936, 949, 950, 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258 };
-				for (int i = 0; i < _countof(acps); i++)
-				{
-					errors.insert(std::pair<UINT, int>(acps[i], TranslateAs(fm.Ptr, fm.Len, acps[i])));
-				}
-				uCodePage = CP_UTF8;
-				least = INT_MAX;
-				for (std::map<UINT, int>::const_iterator iter = errors.cbegin(); iter != errors.cend(); iter++)
-				{
-					if (least > iter->second)
-					{
-						uCodePage = iter->first;
-						least = iter->second;
-					}
-				}
-			}
-		}
-	}
-	if (uCodePage == 1200)
-	{
-		size_t cch = fm.Len / sizeof(WCHAR);
-		Buffer<WCHAR> buf(cch + 1);
-		wmemcpy_s(buf, buf.Len, reinterpret_cast<const WCHAR*>(fm.Ptr), cch);
-		TerminateNull(buf, cch);
-		if (buf[0] == BYTE_ORDER_MARK)
-		{
-			SetText(id, &buf[1]);
-		}
-		else
-		{
-			SetText(id, buf);
-		}
+		MessageBoxW(hwnd, ResourceString(IDS_MSG_TOO_LARGE_FILE), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
 	}
 	else
 	{
-		int cch = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, reinterpret_cast<const CHAR*>(fm.Ptr), static_cast<int>(fm.Len), NULL, 0);
-		if (cch)
+		if (!fm.Len)
 		{
-			int cchSize = cch + 1;
-			Buffer<WCHAR> buf(cchSize);
-			MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, reinterpret_cast<const CHAR*>(fm.Ptr), static_cast<int>(fm.Len), buf, cch);
-			TerminateNull(buf, cch);
-			if (buf[0] == BYTE_ORDER_MARK)
-			{
-				SetText(id, &buf[1]);
-			}
-			else
-			{
-				SetText(id, buf);
-			}
+			SetText(id);
+			szPath = szPath2;
 		}
 		else
 		{
-			MessageBoxW(hwnd, ErrorMessage::Get(GetLastError()), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+			try
+			{
+				String sz = ByteString(fm.Ptr, fm.Len).ToString(m_uInputCodePage);
+				if (sz[0] == BYTE_ORDER_MARK)
+				{
+					SetText(id, &sz[1]);
+				}
+				else
+				{
+					SetText(id, sz);
+				}
+				szPath = szPath2;
+			}
+			catch (Exception e)
+			{
+				SetText(id);
+				MessageBoxW(hwnd, e.Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+			}
 		}
 	}
 	fm.Close();

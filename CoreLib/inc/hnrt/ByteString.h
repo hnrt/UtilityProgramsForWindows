@@ -2,6 +2,7 @@
 
 #include "hnrt/String.h"
 #include "hnrt/LineBreak.h"
+#include "hnrt/Array.h"
 
 namespace hnrt
 {
@@ -37,7 +38,7 @@ namespace hnrt
         ByteString& RemovePkcs5Padding(DWORD dwBlockLength);
         String ToHex(StringOptions = StringOptions::UPPERCASE) const;
         String ToBase64() const;
-        String ToString(UINT = CP_UTF8) const;
+        String ToString(UINT = 0, bool bStrict = true) const;
         void* get_Ptr() const;
         size_t get_Len() const;
 
