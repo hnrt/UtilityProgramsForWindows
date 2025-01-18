@@ -357,6 +357,7 @@ void HashDialogBox::OnNew()
     SetText(IDC_HASH_PATH_EDIT);
     SetTextAndNotify(IDC_HASH_CONTENT_EDIT);
     SetText(IDC_HASH_VERIFY_EDIT);
+    m_szTextPath = String::Empty;
 }
 
 
