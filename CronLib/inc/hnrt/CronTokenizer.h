@@ -6,6 +6,7 @@
 
 
 #define CRON_TOKEN_EOF           0x000000
+#define CRON_TOKEN_EOE           0x000020
 #define CRON_TOKEN_INTEGER       0x110001
 #define CRON_TOKEN_INTEGER_W     0x110002
 #define CRON_TOKEN_INTEGER_L     0x110003
@@ -48,7 +49,7 @@ namespace hnrt
 		~CronTokenizer() = default;
 		void operator =(const CronTokenizer&) = delete;
 		void SetElement(CronElement);
-		int GetNext();
+		int GetNext(bool bSkipWS = false);
 		int GetValue() const;
 		int GetOffset() const;
 

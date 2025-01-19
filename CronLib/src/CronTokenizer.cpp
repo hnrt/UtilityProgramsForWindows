@@ -46,7 +46,7 @@ CronTokenizer::CronTokenizer(PCWSTR psz, CronElement element)
 }
 
 
-int CronTokenizer::GetNext()
+int CronTokenizer::GetNext(bool bSkipWS)
 {
 	int sym;
 	switch (m_c)
@@ -62,15 +62,22 @@ int CronTokenizer::GetNext()
 	default:
 		break;
 	}
-	while (iswspace(m_c))
+	if (bSkipWS)
 	{
-		m_c = *m_q++;
+		while (m_c == L' ')
+		{
+			m_c = *m_q++;
+		}
 	}
 	m_p = m_q - 1;
 	switch (m_c)
 	{
 	case L'\0':
 		return CRON_TOKEN_EOF;
+	case L' ':
+		sym = m_c;
+		m_c = *m_q++;
+		return sym;
 	case L'*':
 	case L'?':
 		sym = m_c;

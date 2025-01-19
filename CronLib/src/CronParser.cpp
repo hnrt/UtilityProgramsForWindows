@@ -19,7 +19,7 @@ using namespace hnrt;
 
 CronParser::CronParser(PCWSTR psz)
 	: m_tokenizer(psz)
-	, m_next(m_tokenizer.GetNext())
+	, m_next(m_tokenizer.GetNext(true))
 {
 }
 
@@ -29,18 +29,71 @@ void CronParser::Run(Cron& cron)
 	if (cron.m_bSecond)
 	{
 		cron.m_pSecond = Run(CRON_SECOND);
+		if (isEndOfElement())
+		{
+			m_next = m_tokenizer.GetNext(true);
+		}
+		else
+		{
+			throw CronError(CRON_ERROR_EXTRACHARACTER, CRON_SECOND, m_tokenizer.GetOffset());
+		}
 	}
 	else if (!cron.m_pSecond)
 	{
 		cron.m_pSecond = CronValue::CreateAll(CRON_SECOND);
 	}
-	cron.m_pMinute = Run(CRON_MINUTE);
-	cron.m_pHour = Run(CRON_HOUR);
-	cron.m_pDayOfMonth = Run(CRON_DAYOFMONTH);
-	cron.m_pMonth = Run(CRON_MONTH);
-	cron.m_pDayOfWeek = Run(CRON_DAYOFWEEK);
-	cron.m_pYear = Run(CRON_YEAR);
 
+	cron.m_pMinute = Run(CRON_MINUTE);
+	if (isEndOfElement())
+	{
+		m_next = m_tokenizer.GetNext(true);
+	}
+	else
+	{
+		throw CronError(CRON_ERROR_EXTRACHARACTER, CRON_MINUTE, m_tokenizer.GetOffset());
+	}
+
+	cron.m_pHour = Run(CRON_HOUR);
+	if (isEndOfElement())
+	{
+		m_next = m_tokenizer.GetNext(true);
+	}
+	else
+	{
+		throw CronError(CRON_ERROR_EXTRACHARACTER, CRON_HOUR, m_tokenizer.GetOffset());
+	}
+
+	cron.m_pDayOfMonth = Run(CRON_DAYOFMONTH);
+	if (isEndOfElement())
+	{
+		m_next = m_tokenizer.GetNext(true);
+	}
+	else
+	{
+		throw CronError(CRON_ERROR_EXTRACHARACTER, CRON_DAYOFMONTH, m_tokenizer.GetOffset());
+	}
+
+	cron.m_pMonth = Run(CRON_MONTH);
+	if (isEndOfElement())
+	{
+		m_next = m_tokenizer.GetNext(true);
+	}
+	else
+	{
+		throw CronError(CRON_ERROR_EXTRACHARACTER, CRON_MONTH, m_tokenizer.GetOffset());
+	}
+
+	cron.m_pDayOfWeek = Run(CRON_DAYOFWEEK);
+	if (isEndOfElement())
+	{
+		m_next = m_tokenizer.GetNext(true);
+	}
+	else
+	{
+		throw CronError(CRON_ERROR_EXTRACHARACTER, CRON_DAYOFWEEK, m_tokenizer.GetOffset());
+	}
+
+	cron.m_pYear = Run(CRON_YEAR);
 	if (!isEnd())
 	{
 		throw CronError(CRON_ERROR_EXTRACHARACTER, CRON_ELEMENT_UNSPECIFIED, m_tokenizer.GetOffset());

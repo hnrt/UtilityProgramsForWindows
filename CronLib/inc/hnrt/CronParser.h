@@ -18,6 +18,7 @@ namespace hnrt
 		void Run(class Cron& cron);
 		RefPtr<CronValue> RunOnlyFor(CronElement element);
 		bool isEnd() const;
+		bool isEndOfElement() const;
 
 	private:
 
@@ -38,5 +39,10 @@ namespace hnrt
 	inline bool CronParser::isEnd() const
 	{
 		return m_next == CRON_TOKEN_EOF;
+	}
+
+	inline bool CronParser::isEndOfElement() const
+	{
+		return m_next == CRON_TOKEN_EOE;
 	}
 }
