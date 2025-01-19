@@ -181,7 +181,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(StrCpy_05)
 		{
 			const WCHAR s[16] = { L'A', L'B', L'C', L'‚ ', L'‚¢', L'‚¤', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0', L'\0' };
-			WCHAR t[16] = { L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@' };
+			WCHAR t[20] = { L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@', L'@' };
 			SIZE_T n = StrCpy(t, s, _countof(s));
 			Assert::AreEqual((SIZE_T)6, n);
 			Assert::AreEqual(L'A', t[0]);
@@ -200,6 +200,10 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(L'@', t[13]);
 			Assert::AreEqual(L'@', t[14]);
 			Assert::AreEqual(L'@', t[15]);
+			Assert::AreEqual(L'@', t[16]);
+			Assert::AreEqual(L'@', t[17]);
+			Assert::AreEqual(L'@', t[18]);
+			Assert::AreEqual(L'@', t[19]);
 		}
 
 		TEST_METHOD(StrCpy_01A)
@@ -301,8 +305,8 @@ namespace UnitTestCoreLib
 		TEST_METHOD(StrCpy_05A)
 		{
 			const CHAR s[16] = { 'A', 'B', 'C', '\x82', '\xa0', '\x82', '\xa2', '\x82', '\xa4', '\0', '\0', '\0', '\0', '\0', '\0', '\0' };
-			CHAR t[16] = { '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@' };
-			SIZE_T n = StrCpy(t, s, _countof(t));
+			CHAR t[20] = { '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@', '@' };
+			SIZE_T n = StrCpy(t, s, _countof(s) - 1);
 			Assert::AreEqual((SIZE_T)9, n);
 			Assert::AreEqual('A', t[0]);
 			Assert::AreEqual('B', t[1]);
@@ -320,6 +324,10 @@ namespace UnitTestCoreLib
 			Assert::AreEqual('@', t[13]);
 			Assert::AreEqual('@', t[14]);
 			Assert::AreEqual('@', t[15]);
+			Assert::AreEqual('@', t[16]);
+			Assert::AreEqual('@', t[17]);
+			Assert::AreEqual('@', t[18]);
+			Assert::AreEqual('@', t[19]);
 		}
 
 		TEST_METHOD(MemSet_01)
@@ -606,7 +614,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(StrUpr_05)
 		{
 			WCHAR s[10] = { L'A', L'B', L'C', L'x', L'y', L'z', L'\0', L'd', L'e', L'f' };
-			SIZE_T n = StrUpr(s, _countof(s));
+			SIZE_T n = StrUpr(s, _countof(s) - 1);
 			Assert::AreEqual((SIZE_T)6, n);
 			Assert::AreEqual(L'A', s[0]);
 			Assert::AreEqual(L'B', s[1]);
@@ -615,15 +623,12 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(L'Y', s[4]);
 			Assert::AreEqual(L'Z', s[5]);
 			Assert::AreEqual(L'\0', s[6]);
-			Assert::AreEqual(L'd', s[7]);
-			Assert::AreEqual(L'e', s[8]);
-			Assert::AreEqual(L'f', s[9]);
 		}
 
 		TEST_METHOD(StrUpr_06)
 		{
 			WCHAR s[10] = { L'A', L'B', L'C', L'x', L'y', L'z', L'\0', L'd', L'e', L'f' };
-			SIZE_T n = StrCase(UPPERCASE, s, _countof(s));
+			SIZE_T n = StrCase(UPPERCASE, s, _countof(s) - 1);
 			Assert::AreEqual((SIZE_T)6, n);
 			Assert::AreEqual(L'A', s[0]);
 			Assert::AreEqual(L'B', s[1]);
@@ -632,9 +637,6 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(L'Y', s[4]);
 			Assert::AreEqual(L'Z', s[5]);
 			Assert::AreEqual(L'\0', s[6]);
-			Assert::AreEqual(L'd', s[7]);
-			Assert::AreEqual(L'e', s[8]);
-			Assert::AreEqual(L'f', s[9]);
 		}
 
 		TEST_METHOD(StrUpr_01A)
@@ -708,7 +710,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(StrUpr_05A)
 		{
 			CHAR s[10] = { 'A', 'B', 'C', 'x', 'y', 'z', '\0', 'd', 'e', 'f' };
-			SIZE_T n = StrUpr(s, _countof(s));
+			SIZE_T n = StrUpr(s, _countof(s) - 1);
 			Assert::AreEqual((SIZE_T)6, n);
 			Assert::AreEqual('A', s[0]);
 			Assert::AreEqual('B', s[1]);
@@ -717,15 +719,12 @@ namespace UnitTestCoreLib
 			Assert::AreEqual('Y', s[4]);
 			Assert::AreEqual('Z', s[5]);
 			Assert::AreEqual('\0', s[6]);
-			Assert::AreEqual('d', s[7]);
-			Assert::AreEqual('e', s[8]);
-			Assert::AreEqual('f', s[9]);
 		}
 
 		TEST_METHOD(StrUpr_06A)
 		{
 			CHAR s[10] = { 'A', 'B', 'C', 'x', 'y', 'z', '\0', 'd', 'e', 'f' };
-			SIZE_T n = StrCase(UPPERCASE, s, _countof(s));
+			SIZE_T n = StrCase(UPPERCASE, s, _countof(s) - 1);
 			Assert::AreEqual((SIZE_T)6, n);
 			Assert::AreEqual('A', s[0]);
 			Assert::AreEqual('B', s[1]);
@@ -734,9 +733,6 @@ namespace UnitTestCoreLib
 			Assert::AreEqual('Y', s[4]);
 			Assert::AreEqual('Z', s[5]);
 			Assert::AreEqual('\0', s[6]);
-			Assert::AreEqual('d', s[7]);
-			Assert::AreEqual('e', s[8]);
-			Assert::AreEqual('f', s[9]);
 		}
 
 		TEST_METHOD(StrLwr_01)
@@ -810,7 +806,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(StrLwr_05)
 		{
 			WCHAR s[10] = { L'A', L'B', L'C', L'x', L'y', L'z', L'\0', L'D', L'E', L'F' };
-			SIZE_T n = StrLwr(s, _countof(s));
+			SIZE_T n = StrLwr(s, _countof(s) - 1);
 			Assert::AreEqual((SIZE_T)6, n);
 			Assert::AreEqual(L'a', s[0]);
 			Assert::AreEqual(L'b', s[1]);
@@ -819,15 +815,12 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(L'y', s[4]);
 			Assert::AreEqual(L'z', s[5]);
 			Assert::AreEqual(L'\0', s[6]);
-			Assert::AreEqual(L'D', s[7]);
-			Assert::AreEqual(L'E', s[8]);
-			Assert::AreEqual(L'F', s[9]);
 		}
 
 		TEST_METHOD(StrLwr_06)
 		{
 			WCHAR s[10] = { L'A', L'B', L'C', L'x', L'y', L'z', L'\0', L'D', L'E', L'F' };
-			SIZE_T n = StrCase(LOWERCASE, s, _countof(s));
+			SIZE_T n = StrCase(LOWERCASE, s, _countof(s) - 1);
 			Assert::AreEqual((SIZE_T)6, n);
 			Assert::AreEqual(L'a', s[0]);
 			Assert::AreEqual(L'b', s[1]);
@@ -836,9 +829,6 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(L'y', s[4]);
 			Assert::AreEqual(L'z', s[5]);
 			Assert::AreEqual(L'\0', s[6]);
-			Assert::AreEqual(L'D', s[7]);
-			Assert::AreEqual(L'E', s[8]);
-			Assert::AreEqual(L'F', s[9]);
 		}
 
 		TEST_METHOD(StrLwr_01A)
@@ -912,7 +902,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(StrLwr_05A)
 		{
 			CHAR s[10] = { 'A', 'B', 'C', 'x', 'y', 'z', '\0', 'D', 'E', 'F' };
-			SIZE_T n = StrLwr(s, _countof(s));
+			SIZE_T n = StrLwr(s, _countof(s) - 1);
 			Assert::AreEqual((SIZE_T)6, n);
 			Assert::AreEqual('a', s[0]);
 			Assert::AreEqual('b', s[1]);
@@ -921,15 +911,12 @@ namespace UnitTestCoreLib
 			Assert::AreEqual('y', s[4]);
 			Assert::AreEqual('z', s[5]);
 			Assert::AreEqual('\0', s[6]);
-			Assert::AreEqual('D', s[7]);
-			Assert::AreEqual('E', s[8]);
-			Assert::AreEqual('F', s[9]);
 		}
 
 		TEST_METHOD(StrLwr_06A)
 		{
 			CHAR s[10] = { 'A', 'B', 'C', 'x', 'y', 'z', '\0', 'D', 'E', 'F' };
-			SIZE_T n = StrCase(LOWERCASE, s, _countof(s));
+			SIZE_T n = StrCase(LOWERCASE, s, _countof(s) - 1);
 			Assert::AreEqual((SIZE_T)6, n);
 			Assert::AreEqual('a', s[0]);
 			Assert::AreEqual('b', s[1]);
@@ -938,9 +925,6 @@ namespace UnitTestCoreLib
 			Assert::AreEqual('y', s[4]);
 			Assert::AreEqual('z', s[5]);
 			Assert::AreEqual('\0', s[6]);
-			Assert::AreEqual('D', s[7]);
-			Assert::AreEqual('E', s[8]);
-			Assert::AreEqual('F', s[9]);
 		}
 
 		TEST_METHOD(StrTrimScan_01)
@@ -2230,7 +2214,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(IndexOf_145)
 		{
 			int i = IndexOf(L"ABCABD\0EE", L'E', 10);
-			Assert::AreEqual(-1, i);
+			Assert::AreEqual(7, i);
 		}
 
 		TEST_METHOD(IndexOf_201)
@@ -2638,7 +2622,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(IndexOf_145A)
 		{
 			int i = IndexOf("ABCABD\0EE", 'E', 10);
-			Assert::AreEqual(-1, i);
+			Assert::AreEqual(7, i);
 		}
 
 		TEST_METHOD(IndexOf_201A)
@@ -2932,7 +2916,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(LastIndexOf_026)
 		{
 			int i = LastIndexOf(L"DCBACBA\0A", L'A', 10);
-			Assert::AreEqual(6, i);
+			Assert::AreEqual(8, i);
 		}
 
 		TEST_METHOD(LastIndexOf_031)
@@ -2962,7 +2946,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(LastIndexOf_035)
 		{
 			int i = LastIndexOf(L"DCBACBA\0B", L'B', 10);
-			Assert::AreEqual(5, i);
+			Assert::AreEqual(8, i);
 		}
 
 		TEST_METHOD(LastIndexOf_041)
@@ -2992,7 +2976,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(LastIndexOf_045)
 		{
 			int i = LastIndexOf(L"DCBACBA\0D", L'D', 10);
-			Assert::AreEqual(0, i);
+			Assert::AreEqual(8, i);
 		}
 
 		TEST_METHOD(LastIndexOf_051)
@@ -3021,8 +3005,8 @@ namespace UnitTestCoreLib
 
 		TEST_METHOD(LastIndexOf_055)
 		{
-			int i = LastIndexOf(L"DCBACBA\0E", L'E', 10);
-			Assert::AreEqual(-1, i);
+			int i = LastIndexOf(L"DCBACBA\0E\0\0\0", L'E', 10);
+			Assert::AreEqual(8, i);
 		}
 
 		TEST_METHOD(LastIndexOf_101)
@@ -3105,8 +3089,8 @@ namespace UnitTestCoreLib
 
 		TEST_METHOD(LastIndexOf_126)
 		{
-			int i = LastIndexOf(L"DCBACBA\0AA", L"A", 10);
-			Assert::AreEqual(6, i);
+			int i = LastIndexOf(L"DCBACBA\0AA\0", L"A", 10);
+			Assert::AreEqual(9, i);
 		}
 
 		TEST_METHOD(LastIndexOf_131)
@@ -3135,8 +3119,8 @@ namespace UnitTestCoreLib
 
 		TEST_METHOD(LastIndexOf_135)
 		{
-			int i = LastIndexOf(L"DCBACBA\0BB", L"B", 10);
-			Assert::AreEqual(5, i);
+			int i = LastIndexOf(L"DCBACBA\0BB\0", L"B", 10);
+			Assert::AreEqual(9, i);
 		}
 
 		TEST_METHOD(LastIndexOf_141)
@@ -3165,8 +3149,8 @@ namespace UnitTestCoreLib
 
 		TEST_METHOD(LastIndexOf_145)
 		{
-			int i = LastIndexOf(L"DCBACBA\0DD", L"D", 10);
-			Assert::AreEqual(0, i);
+			int i = LastIndexOf(L"DCBACBA\0DD\0", L"D", 10);
+			Assert::AreEqual(9, i);
 		}
 
 		TEST_METHOD(LastIndexOf_151)
@@ -3195,8 +3179,8 @@ namespace UnitTestCoreLib
 
 		TEST_METHOD(LastIndexOf_155)
 		{
-			int i = LastIndexOf(L"DCBACBA\0EE", L"E", 10);
-			Assert::AreEqual(-1, i);
+			int i = LastIndexOf(L"DCBACBA\0EE\0", L"E", 10);
+			Assert::AreEqual(9, i);
 		}
 
 		TEST_METHOD(LastIndexOf_201)

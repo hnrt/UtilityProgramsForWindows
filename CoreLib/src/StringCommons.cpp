@@ -6,6 +6,18 @@
 using namespace hnrt;
 
 
+SIZE_T hnrt::StrLen(const WCHAR* str)
+{
+	return wcslen(str);
+}
+
+
+SIZE_T hnrt::StrLen(const CHAR* str)
+{
+	return strlen(str);
+}
+
+
 SIZE_T hnrt::StrLen(const WCHAR* str, SSIZE_T numberOfElements)
 {
 	return numberOfElements < 0 ? wcslen(str) : wcsnlen(str, numberOfElements);
@@ -108,37 +120,57 @@ SIZE_T hnrt::StrCase(StringOptions option, CHAR* str, SSIZE_T count)
 
 SIZE_T hnrt::StrUpr(WCHAR* str, SSIZE_T count)
 {
-	SIZE_T cch = StrLen(str, count);
+	SIZE_T cch = count < 0 ? StrLen(str) : count;
 	str[cch] = L'\0';
-	_wcsupr_s(str, cch + 1);
-	return cch;
+	errno_t ret = _wcsupr_s(str, cch + 1);
+	if (ret)
+	{
+		WCHAR sz[256] = { 0 };
+		throw Exception(L"%s", !_wcserror_s(sz, ret) ? sz : String(PRINTF, L"_wcsupr_s failed with errno of %d", ret));
+	}
+	return count < 0 ? cch : StrLen(str, count);
 }
 
 
 SIZE_T hnrt::StrUpr(CHAR* str, SSIZE_T count)
 {
-	SIZE_T cch = StrLen(str, count);
+	SIZE_T cch = count < 0 ? StrLen(str) : count;
 	str[cch] = '\0';
-	_strupr_s(str, cch + 1);
-	return cch;
+	errno_t ret = _strupr_s(str, cch + 1);
+	if (ret)
+	{
+		WCHAR sz[256] = { 0 };
+		throw Exception(L"%s", !_wcserror_s(sz, ret) ? sz : String(PRINTF, L"_strupr_s failed with errno of %d", ret));
+	}
+	return count < 0 ? cch : StrLen(str, count);
 }
 
 
 SIZE_T hnrt::StrLwr(WCHAR* str, SSIZE_T count)
 {
-	SIZE_T cch = StrLen(str, count);
+	SIZE_T cch = count < 0 ? StrLen(str) : count;
 	str[cch] = L'\0';
-	_wcslwr_s(str, cch + 1);
-	return cch;
+	errno_t ret = _wcslwr_s(str, cch + 1);
+	if (ret)
+	{
+		WCHAR sz[256] = { 0 };
+		throw Exception(L"%s", !_wcserror_s(sz, ret) ? sz : String(PRINTF, L"_wcslwr_s failed with errno of %d", ret));
+	}
+	return count < 0 ? cch : StrLen(str, count);
 }
 
 
 SIZE_T hnrt::StrLwr(CHAR* str, SSIZE_T count)
 {
-	SIZE_T cch = StrLen(str, count);
+	SIZE_T cch = count < 0 ? StrLen(str) : count;
 	str[cch] = '\0';
-	_strlwr_s(str, cch + 1);
-	return cch;
+	errno_t ret = _strlwr_s(str, cch + 1);
+	if (ret)
+	{
+		WCHAR sz[256] = { 0 };
+		throw Exception(L"%s", !_wcserror_s(sz, ret) ? sz : String(PRINTF, L"_strlwr_s failed with errno of %d", ret));
+	}
+	return count < 0 ? cch : StrLen(str, count);
 }
 
 
@@ -475,7 +507,7 @@ int hnrt::IndexOf(const WCHAR* str, int c, SSIZE_T size)
 {
 	if (IS_BMP(c))
 	{
-		const WCHAR* p = wmemchr(str, static_cast<wchar_t>(c), c ? StrLen(str, size) : (size >= 0 ? size : INT_MAX));
+		const WCHAR* p = wmemchr(str, static_cast<wchar_t>(c), size >= 0 ? size : c ? StrLen(str) : INT_MAX);
 		return p ? static_cast<int>(p - str) : -1;
 	}
 	else
@@ -490,7 +522,7 @@ int hnrt::IndexOf(const WCHAR* str, int c, SSIZE_T size)
 
 int hnrt::IndexOf(const CHAR* str, int c, SSIZE_T size)
 {
-	const CHAR* p = reinterpret_cast<const CHAR*>(memchr(str, c & 0xFF, c ? StrLen(str, size) : (size >= 0 ? size : INT_MAX)));
+	const CHAR* p = reinterpret_cast<const CHAR*>(memchr(str, c & 0xFF, size >= 0 ? size : c ? StrLen(str) : INT_MAX));
 	return p ? static_cast<int>(p - str) : -1;
 }
 
@@ -500,11 +532,11 @@ int hnrt::IndexOf(const WCHAR* str, const WCHAR* seq, SSIZE_T size)
 	WCHAR c = *seq++;
 	if (c)
 	{
-		size_t cch = wcslen(seq);
+		size_t cch = StrLen(seq);
 		if (cch)
 		{
 			const WCHAR* pCur = str;
-			const WCHAR* pEnd = str + StrLen(str, size) - cch;
+			const WCHAR* pEnd = str + (size < 0 ? StrLen(str) : size) - cch;
 			if (pCur < pEnd)
 			{
 				const WCHAR* pStop;
@@ -536,11 +568,11 @@ int hnrt::IndexOf(const CHAR* str, const CHAR* seq, SSIZE_T size)
 	int c = *seq++ & 0xFF;
 	if (c)
 	{
-		size_t cch = strlen(seq);
+		size_t cch = StrLen(seq);
 		if (cch)
 		{
 			const CHAR* pCur = str;
-			const CHAR* pEnd = str + StrLen(str, size) - cch;
+			const CHAR* pEnd = str + (size < 0 ? StrLen(str) : size) - cch;
 			if (pCur < pEnd)
 			{
 				const CHAR* pStop;
@@ -573,7 +605,7 @@ int hnrt::LastIndexOf(const WCHAR* str, int c, SSIZE_T size)
 	{
 		if (IS_BMP(c))
 		{
-			const WCHAR* pCur = str + StrLen(str, size);
+			const WCHAR* pCur = str + (size < 0 ? StrLen(str) : size);
 			while (str <= --pCur)
 			{
 				if (pCur[0] == c)
@@ -586,7 +618,7 @@ int hnrt::LastIndexOf(const WCHAR* str, int c, SSIZE_T size)
 		{
 			int c1 = HIGH_SURROGATE(c);
 			int c2 = LOW_SURROGATE(c);
-			const WCHAR* pCur = str + StrLen(str, size);
+			const WCHAR* pCur = str + (size < 0 ? StrLen(str) : size);
 			while (str < --pCur)
 			{
 				if (pCur[0] == c2 && pCur[-1] == c1)
@@ -604,7 +636,7 @@ int hnrt::LastIndexOf(const WCHAR* str, int c, SSIZE_T size)
 	}
 	else if (size < 0)
 	{
-		return static_cast<int>(wcslen(str));
+		return static_cast<int>(StrLen(str));
 	}
 	else
 	{
@@ -634,7 +666,7 @@ int hnrt::LastIndexOf(const CHAR* str, int c, SSIZE_T size)
 	}
 	else if (size < 0)
 	{
-		return static_cast<int>(strlen(str));
+		return static_cast<int>(StrLen(str));
 	}
 	else
 	{
@@ -645,7 +677,7 @@ int hnrt::LastIndexOf(const CHAR* str, int c, SSIZE_T size)
 
 int hnrt::LastIndexOf(const WCHAR* str, const WCHAR* seq, SSIZE_T size)
 {
-	size_t cch = wcslen(seq);
+	size_t cch = StrLen(seq);
 	if (cch)
 	{
 		WCHAR c = seq[--cch];
@@ -680,7 +712,7 @@ int hnrt::LastIndexOf(const WCHAR* str, const WCHAR* seq, SSIZE_T size)
 
 int hnrt::LastIndexOf(const CHAR* str, const CHAR* seq, SSIZE_T size)
 {
-	size_t cch = strlen(seq);
+	size_t cch = StrLen(seq);
 	if (cch)
 	{
 		int c = seq[--cch] & 0xFF;
@@ -863,13 +895,9 @@ double hnrt::StrToDouble(PCSTR str, PSTR* stop)
 
 SIZE_T hnrt::CountCharacter(PCWCH str, SSIZE_T count, int codepoint)
 {
-	if (count < 0)
-	{
-		count = StrLen(str);
-	}
 	SIZE_T retval = 0;
 	PCWCH pCur = str;
-	PCWCH pEnd = str + count;
+	PCWCH pEnd = str + (count < 0 ? StrLen(str) : count);
 	while (pCur < pEnd)
 	{
 		int c = *pCur++;
@@ -895,15 +923,11 @@ SIZE_T hnrt::CountCharacter(PCWCH str, SSIZE_T count, int codepoint)
 }
 
 
-SIZE_T CountCharacter(PCCH str, SSIZE_T count, int codepoint)
+SIZE_T hnrt::CountCharacter(PCCH str, SSIZE_T count, int codepoint)
 {
-	if (count < 0)
-	{
-		count = StrLen(str);
-	}
 	SIZE_T retval = 0;
 	PCCH pCur = str;
-	PCCH pEnd = str + count;
+	PCCH pEnd = str + (count < 0 ? StrLen(str) : count);
 	while (pCur < pEnd)
 	{
 		int c = *pCur++;

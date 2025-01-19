@@ -10,13 +10,29 @@ namespace hnrt
 {
 	/// <summary>
 	/// The function returns the length of string, not including the terminating null character, in WCHARs.
+	/// If a null pointer is specified, then the function returns zero.
+	/// </summary>
+	/// <param name="str">Null-terminated string or null.</param>
+	/// <returns>Length of the string, not including the terminating null character, in WCHARs.</returns>
+	SIZE_T StrLen(const WCHAR* str);
+
+	/// <summary>
+	/// The function returns the length of string, not including the terminating null character, in CHARs.
+	/// If a null pointer is specified, then the function returns zero.
+	/// </summary>
+	/// <param name="str">Null-terminated string or null.</param>
+	/// <returns>Length of the string, not including the terminating null character, in CHARs.</returns>
+	SIZE_T StrLen(const CHAR* str);
+
+	/// <summary>
+	/// The function returns the length of string, not including the terminating null character, in WCHARs.
 	/// If a null pointer is specified or the buffer size of zero is specified, the function returns zero.
 	/// </summary>
 	/// <param name="str">Null-terminated string.</param>
 	/// <param name="numberOfElements">Size of the string buffer. A negative value indicates that the size is unspecified.</param>
 	/// <returns>Length of the string, not including the terminating null character, in WCHARs.
 	/// The return value cannot be greater than the size of the string buffer.</returns>
-	SIZE_T StrLen(const WCHAR* str, SSIZE_T numberOfElements = -1);
+	SIZE_T StrLen(const WCHAR* str, SSIZE_T numberOfElements);
 
 	/// <summary>
 	/// The function returns the length of string, not including the terminating null character, in CHARs.
@@ -26,7 +42,7 @@ namespace hnrt
 	/// <param name="numberOfElements">Size of the string buffer. A negative value indicates that the size is unspecified.</param>
 	/// <returns>Length of the string, not including the terminating null character, in CHARs.
 	/// The return value cannot be greater than the size of the string buffer.</returns>
-	SIZE_T StrLen(const CHAR* str, SSIZE_T numberOfElements = -1);
+	SIZE_T StrLen(const CHAR* str, SSIZE_T numberOfElements);
 
 	/// <summary>
 	/// The function copies characters between string buffers.

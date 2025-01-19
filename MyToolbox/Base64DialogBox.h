@@ -11,15 +11,15 @@ namespace hnrt
 	public:
 		Base64DialogBox();
 		Base64DialogBox(const Base64DialogBox&) = delete;
-		virtual ~Base64DialogBox();
+		virtual ~Base64DialogBox() = default;
 		void operator =(const Base64DialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
+		virtual void OnNew();
 		virtual void OnLoad1From();
 		virtual void OnSave1As();
 		virtual void OnLoad2From();
 		virtual void OnSave2As();
-		virtual void OnClear();
 
 	private:
 
@@ -33,21 +33,20 @@ namespace hnrt
 
 		void Encode();
 		void Decode();
-		BOOL ParseOriginal(ByteString& bs);
+		void ChangeOriginalFormat();
+		void ChangeLinesPerLine();
 		void ApplyOriginal();
 		void SetOriginal(PCWSTR pszContent = L"");
 		void SetOriginalError(PCWSTR pszReason);
 		void SetEncoded(PCWSTR pszContent = L"", BOOL bEncoded = FALSE);
 		void SetEncodedError(PCWSTR pszReason);
-		void UpdateControlsState();
+		void UpdateControlsState(int id = 0);
 		void InitializeLineLengthComboBox() const;
 		BOOL GetLoadFromFileName(PWSTR psz, PCWSTR pszTitle) const;
 		BOOL GetSaveAsFileName(PWSTR psz, PCWSTR pszTitle) const;
 
-		BOOL m_bEncodingError;
-		BOOL m_bDecodingError;
+		DWORD m_dwFlags;
 		ByteString m_Original;
-		BOOL m_bEncoded;
 		WCHAR m_szOriginalPath[MAX_PATH];
 		WCHAR m_szEncodedPath[MAX_PATH];
 	};

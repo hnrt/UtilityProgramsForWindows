@@ -88,7 +88,7 @@ void CronParser::Run(Cron& cron)
 	{
 		m_next = m_tokenizer.GetNext(true);
 	}
-	else
+	else if (!isEnd())
 	{
 		throw CronError(CRON_ERROR_EXTRACHARACTER, CRON_DAYOFWEEK, m_tokenizer.GetOffset());
 	}
