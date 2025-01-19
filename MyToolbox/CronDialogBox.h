@@ -19,6 +19,7 @@ namespace hnrt
 		void operator =(const CronDialogBox&) = delete;
 		virtual void OnTabSelectionChanging();
 		virtual void OnTabSelectionChanged();
+		virtual void OnNew();
 		virtual void OnCopyResult();
 		virtual void OnSettingChanged(UINT);
 
@@ -37,19 +38,19 @@ namespace hnrt
 		void Format();
 		void ClearExpression() const;
 		void AppendToExpression(const String&) const;
-		void UpdateIndividualControls();
-		void UpdateValueControls(const CronValue& value, int idAll, int idAny, int idLast, int idWeek, int idExpr, int idEdit, int idStatic);
+		void UpdateAllElements();
+		void UpdateElement(const CronValue& value, int idAll, int idAny, int idLast, int idWeek, int idExpr, int idEdit, int idStatic);
 		void SetEvalText(int, const CronValue&);
 		void ClearEvalStatics(int = 0) const;
-		int GetEvalStatic(int);
-		void ShowSecondControls();
+		void EnableControls(DWORD dwFlags) const;
+		void ShowSecondControls() const;
 		void InitializeDescriptionStatic() const;
+		static DWORD ControlIdToFlag(int id);
+		static int GetEvalStatic(int);
 
 		Cron m_cron;
 		int m_offset;
-		bool m_bParse;
-		bool m_bParseSuccessful;
-		UINT m_bFormat;
-		UINT m_bFormatSuccessful;
+		DWORD m_dwChanged;
+		DWORD m_dwSuccessful;
 	};
 }
