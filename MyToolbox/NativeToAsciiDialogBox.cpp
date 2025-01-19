@@ -115,16 +115,26 @@ void NativeToAsciiDialogBox::OnTabSelectionChanged()
 {
 	MyDialogBox::OnTabSelectionChanged();
 	m_menuFile
-		.Insert(0, ResourceString(IDS_MENU_ORG_LOADFROM), IDM_FILE_LOAD1FROM)
-		.Insert(1, ResourceString(IDS_MENU_ORG_SAVEAS), IDM_FILE_SAVE1AS)
+		.Insert(0, ResourceString(IDS_MENU_NEW), IDM_FILE_NEW)
+		.InsertSeparator(1)
+		.Insert(2, ResourceString(IDS_MENU_ORG_LOADFROM), IDM_FILE_LOAD1FROM)
+		.Insert(3, ResourceString(IDS_MENU_ORG_SAVEAS), IDM_FILE_SAVE1AS)
+		.InsertSeparator(4)
+		.Insert(5, ResourceString(IDS_MENU_ENC_LOADFROM), IDM_FILE_LOAD2FROM)
+		.Insert(6, ResourceString(IDS_MENU_ENC_SAVEAS), IDM_FILE_SAVE2AS)
+		.InsertSeparator(7);
+	m_menuEdit
+		.Insert(0, ResourceString(IDS_MENU_ENCODE), IDM_EDIT_EXECUTE1)
+		.Insert(1, ResourceString(IDS_MENU_COPYNATIVE), IDM_EDIT_COPYRESULT1)
 		.InsertSeparator(2)
-		.Insert(3, ResourceString(IDS_MENU_ENC_LOADFROM), IDM_FILE_LOAD2FROM)
-		.Insert(4, ResourceString(IDS_MENU_ENC_SAVEAS), IDM_FILE_SAVE2AS)
+		.Insert(3, ResourceString(IDS_MENU_DECODE), IDM_EDIT_EXECUTE2)
+		.Insert(4, ResourceString(IDS_MENU_COPYASCII), IDM_EDIT_COPYRESULT2)
 		.InsertSeparator(5);
 	m_menuView
 		.Enable(IDM_VIEW_NTOA, MF_DISABLED);
 	AddInputCodePageSettingMenus();
 	AddOutputCodePageSettingMenus();
+	UpdateControlsState();
 }
 
 
@@ -138,15 +148,19 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	UINT idNotif = HIWORD(wParam);
 	switch (idChild)
 	{
-	case IDC_NTOA_COPY1_BUTTON:
-		if (idNotif == BN_CLICKED)
-		{
-			CopyAllText(IDC_NTOA_NATIVE_EDIT);
-		}
-		else
-		{
-			return FALSE;
-		}
+	case IDM_EDIT_EXECUTE1:
+		OnEncode();
+		SetFocus(IDC_NTOA_COPY2_BUTTON);
+		break;
+	case IDM_EDIT_COPYRESULT1:
+		CopyAllText(IDC_NTOA_NATIVE_EDIT);
+		break;
+	case IDM_EDIT_EXECUTE2:
+		OnDecode();
+		SetFocus(IDC_NTOA_COPY1_BUTTON);
+		break;
+	case IDM_EDIT_COPYRESULT2:
+		CopyAllText(IDC_NTOA_ASCII_EDIT);
 		break;
 	case IDC_NTOA_ENCODE_BUTTON:
 		if (idNotif == BN_CLICKED)
@@ -159,10 +173,10 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			return FALSE;
 		}
 		break;
-	case IDC_NTOA_COPY2_BUTTON:
+	case IDC_NTOA_COPY1_BUTTON:
 		if (idNotif == BN_CLICKED)
 		{
-			CopyAllText(IDC_NTOA_ASCII_EDIT);
+			CopyAllText(IDC_NTOA_NATIVE_EDIT);
 		}
 		else
 		{
@@ -180,6 +194,16 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			return FALSE;
 		}
 		break;
+	case IDC_NTOA_COPY2_BUTTON:
+		if (idNotif == BN_CLICKED)
+		{
+			CopyAllText(IDC_NTOA_ASCII_EDIT);
+		}
+		else
+		{
+			return FALSE;
+		}
+		break;
 	case IDC_NTOA_NATIVE_EDIT:
 	case IDC_NTOA_ASCII_EDIT:
 		return OnEditCommand(wParam, lParam);
@@ -190,54 +214,34 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
-INT_PTR NativeToAsciiDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
+void NativeToAsciiDialogBox::OnNew()
 {
-	MyDialogBox::OnTimer(wParam, lParam);
-	if (wParam == TIMERID(Id, 1000))
-	{
-		UpdateControlsState();
-	}
-	return 0;
+	SetTextAndNotify(IDC_NTOA_NATIVE_EDIT);
+	SetTextAndNotify(IDC_NTOA_ASCII_EDIT);
 }
 
 
 void NativeToAsciiDialogBox::OnLoad1From()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	LoadTextFromFile(IDC_NTOA_NATIVE_EDIT, m_szNativePath);
-	UpdateControlsState();
 }
 
 
 void NativeToAsciiDialogBox::OnSave1As()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SaveTextAsFile(IDC_NTOA_NATIVE_EDIT, m_szNativePath);
 }
 
 
 void NativeToAsciiDialogBox::OnLoad2From()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	LoadTextFromFile(IDC_NTOA_ASCII_EDIT, m_szAsciiPath);
-	UpdateControlsState();
 }
 
 
 void NativeToAsciiDialogBox::OnSave2As()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SaveTextAsFile(IDC_NTOA_ASCII_EDIT, m_szAsciiPath);
-}
-
-
-void NativeToAsciiDialogBox::OnClear()
-{
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	SetText(IDC_NTOA_NATIVE_EDIT);
-	SetText(IDC_NTOA_ASCII_EDIT);
-	UpdateControlsState();
-	m_LastModified.By = 0;
 }
 
 
@@ -257,32 +261,45 @@ void NativeToAsciiDialogBox::OnSettingChanged(UINT uId)
 
 void NativeToAsciiDialogBox::OnEncode()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	SetText(IDC_NTOA_ASCII_EDIT, FromNativeToAscii(GetText(IDC_NTOA_NATIVE_EDIT)));
-	UpdateControlsState();
+	SetTextAndNotify(IDC_NTOA_ASCII_EDIT, FromNativeToAscii(GetText(IDC_NTOA_NATIVE_EDIT)));
 }
 
 
 void NativeToAsciiDialogBox::OnDecode()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	SetText(IDC_NTOA_NATIVE_EDIT, FromAsciiToNative(GetText(IDC_NTOA_ASCII_EDIT)));
-	UpdateControlsState();
+	SetTextAndNotify(IDC_NTOA_NATIVE_EDIT, FromAsciiToNative(GetText(IDC_NTOA_ASCII_EDIT)));
 }
 
 
 void NativeToAsciiDialogBox::UpdateControlsState(int id)
 {
-	if (id == 0 || id == IDC_NTOA_NATIVE_EDIT)
+	switch (id)
+	{
+	case IDC_NTOA_NATIVE_EDIT:
 	{
 		BOOL bNative = GetTextLength(IDC_NTOA_NATIVE_EDIT) > 0 ? TRUE : FALSE;
 		EnableWindow(IDC_NTOA_COPY1_BUTTON, bNative);
 		EnableWindow(IDC_NTOA_ENCODE_BUTTON, bNative);
+		m_menuEdit
+			.Enable(IDM_EDIT_EXECUTE1, bNative ? MF_ENABLED : MF_DISABLED)
+			.Enable(IDM_EDIT_COPYRESULT1, bNative ? MF_ENABLED : MF_DISABLED);
+		break;
 	}
-	if (id == 0 || id == IDC_NTOA_ASCII_EDIT)
+	case IDC_NTOA_ASCII_EDIT:
 	{
 		BOOL bAscii = GetTextLength(IDC_NTOA_ASCII_EDIT) > 0 ? TRUE : FALSE;
 		EnableWindow(IDC_NTOA_COPY2_BUTTON, bAscii);
 		EnableWindow(IDC_NTOA_DECODE_BUTTON, bAscii);
+		m_menuEdit
+			.Enable(IDM_EDIT_EXECUTE2, bAscii ? MF_ENABLED : MF_DISABLED)
+			.Enable(IDM_EDIT_COPYRESULT2, bAscii ? MF_ENABLED : MF_DISABLED);
+		break;
+	}
+	case 0:
+		UpdateControlsState(IDC_NTOA_NATIVE_EDIT);
+		UpdateControlsState(IDC_NTOA_ASCII_EDIT);
+		break;
+	default:
+		break;
 	}
 }
