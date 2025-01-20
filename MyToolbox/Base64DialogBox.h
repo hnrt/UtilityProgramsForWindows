@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MyDialogBox.h"
+#include "DataDisplayMode.h"
 #include "hnrt/ByteString.h"
 
 namespace hnrt
@@ -33,20 +34,24 @@ namespace hnrt
 
 		void Encode();
 		void Decode();
-		void ChangeOriginalFormat();
-		void ChangeLinesPerLine();
-		void ApplyOriginal();
-		void SetOriginal(PCWSTR pszContent = L"");
-		void SetOriginalError(PCWSTR pszReason);
-		void SetEncoded(PCWSTR pszContent = L"", BOOL bEncoded = FALSE);
-		void SetEncodedError(PCWSTR pszReason);
+		void ChangeOriginalDataDisplayMode(DataDisplayMode mode);
+		void ChangeLinesPerLine(UINT cch);
+		ByteString GetOriginalData() const;
+		void SetOriginalError(PCWSTR pszReason = nullptr);
+		void SetEncodedError(PCWSTR pszReason = nullptr);
 		void UpdateControlsState(int id = 0);
-		void InitializeLineLengthComboBox() const;
+		void InitializeLineLengthComboBox(UINT cch) const;
 		BOOL GetLoadFromFileName(PWSTR psz, PCWSTR pszTitle) const;
 		BOOL GetSaveAsFileName(PWSTR psz, PCWSTR pszTitle) const;
 
+		static int DataDisplayModeToControlId(DataDisplayMode);
+		static DataDisplayMode ControlIdToDataDisplayMode(int);
+
 		DWORD m_dwFlags;
-		ByteString m_Original;
+		DataDisplayMode m_OriginalDataDisplayMode;
+		UINT m_CodePage;
+		LineBreak m_LineBreak;
+		UINT m_CharsPerLine;
 		WCHAR m_szOriginalPath[MAX_PATH];
 		WCHAR m_szEncodedPath[MAX_PATH];
 	};

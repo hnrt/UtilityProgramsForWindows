@@ -44,7 +44,10 @@ static String BreakLines(String sz, int charsPerLine)
 Base64DialogBox::Base64DialogBox()
     : MyDialogBox(IDD_BS64, L"BASE64")
     , m_dwFlags(0)
-    , m_Original()
+    , m_OriginalDataDisplayMode(DataDisplayMode::HEX)
+    , m_CodePage(CP_UTF8)
+    , m_LineBreak(LineBreak::CRLF)
+    , m_CharsPerLine(0)
     , m_szOriginalPath()
     , m_szEncodedPath()
 {
@@ -57,31 +60,34 @@ void Base64DialogBox::OnCreate()
     HFONT hFont = GetApp<MyToolbox>().GetFontForData();
     SetFont(IDC_BS64_ORG_EDIT, hFont);
     SetFont(IDC_BS64_ENC_EDIT, hFont);
-    InitializeCodePageComboBox(IDC_BS64_ORG_CODEPAGE_COMBO);
-    InitializeLineBreakComboBox(IDC_BS64_ORG_LINEBREAK_COMBO);
-    InitializeLineLengthComboBox();
-    ButtonCheck(IDC_BS64_ORG_HEX_RADIO);
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_READ);
     if (rc == ERROR_SUCCESS)
     {
-        String szFormat = RegistryValue::GetSZ(hKey, REGVAL_FORMAT, String(L"Hex"));
-        if (!StrCmp(szFormat, -1, L"Text", -1))
-        {
-            ButtonCheck(IDC_BS64_ORG_HEX_RADIO, FALSE);
-            ButtonCheck(IDC_BS64_ORG_TEXT_RADIO, TRUE);
-        }
-        else
-        {
-            ButtonCheck(IDC_BS64_ORG_HEX_RADIO, TRUE);
-            ButtonCheck(IDC_BS64_ORG_TEXT_RADIO, FALSE);
-        }
-        ComboBoxSetSelection(IDC_BS64_ORG_CODEPAGE_COMBO, RegistryValue::GetDWORD(hKey, REGVAL_CODEPAGE, CP_UTF8));
-        ComboBoxSetSelection(IDC_BS64_ORG_LINEBREAK_COMBO, RegistryValue::GetDWORD(hKey, REGVAL_LINEBREAK, 0x0d0a));
+        m_OriginalDataDisplayMode = static_cast<DataDisplayMode>(RegistryValue::GetDWORD(hKey, REGVAL_FORMAT, DataDisplayMode::HEX));
+        m_CodePage = RegistryValue::GetDWORD(hKey, REGVAL_CODEPAGE, m_CodePage);
+        m_LineBreak = static_cast<LineBreak>(RegistryValue::GetDWORD(hKey, REGVAL_LINEBREAK, m_LineBreak));
+        m_CharsPerLine = RegistryValue::GetDWORD(hKey, REGVAL_CHARSPERLINE);
         StrCpy(m_szOriginalPath, RegistryValue::GetSZ(hKey, REGVAL_ORGPATH));
         StrCpy(m_szEncodedPath, RegistryValue::GetSZ(hKey, REGVAL_ENCPATH));
-        ComboBoxSetSelection(IDC_BS64_ENC_LINELENGTH_COMBO, RegistryValue::GetDWORD(hKey, REGVAL_CHARSPERLINE));
     }
+    switch (m_OriginalDataDisplayMode)
+    {
+    case DataDisplayMode::HEX:
+        ButtonCheck(IDC_BS64_ORG_HEX_RADIO);
+        break;
+    case DataDisplayMode::TEXT:
+        ButtonCheck(IDC_BS64_ORG_TEXT_RADIO);
+        break;
+    default:
+        m_OriginalDataDisplayMode = DataDisplayMode::HEX;
+        ButtonCheck(IDC_BS64_ORG_HEX_RADIO);
+        break;
+    }
+    ButtonCheck(DataDisplayModeToControlId(m_OriginalDataDisplayMode));
+    InitializeCodePageComboBox(IDC_BS64_ORG_CODEPAGE_COMBO, m_CodePage);
+    InitializeLineBreakComboBox(IDC_BS64_ORG_LINEBREAK_COMBO, m_LineBreak);
+    InitializeLineLengthComboBox(m_CharsPerLine);
     m_menuView
         .Add(ResourceString(IDS_MENU_BS64), IDM_VIEW_BS64);
 }
@@ -93,19 +99,12 @@ void Base64DialogBox::OnDestroy()
     LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_WRITE);
     if (rc == ERROR_SUCCESS)
     {
-        if (ButtonIsChecked(IDC_BS64_ORG_HEX_RADIO))
-        {
-            RegistryValue::SetSZ(hKey, REGVAL_FORMAT, L"Hex");
-        }
-        else
-        {
-            RegistryValue::SetSZ(hKey, REGVAL_FORMAT, L"Text");
-        }
-        RegistryValue::SetDWORD(hKey, REGVAL_CODEPAGE, ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO));
-        RegistryValue::SetDWORD(hKey, REGVAL_LINEBREAK, ComboBoxGetSelection(IDC_BS64_ORG_LINEBREAK_COMBO));
+        RegistryValue::SetDWORD(hKey, REGVAL_FORMAT, m_OriginalDataDisplayMode);
+        RegistryValue::SetDWORD(hKey, REGVAL_CODEPAGE, m_CodePage);
+        RegistryValue::SetDWORD(hKey, REGVAL_LINEBREAK, m_LineBreak);
+        RegistryValue::SetDWORD(hKey, REGVAL_CHARSPERLINE, m_CharsPerLine);
         RegistryValue::SetSZ(hKey, REGVAL_ORGPATH, m_szOriginalPath);
         RegistryValue::SetSZ(hKey, REGVAL_ENCPATH, m_szEncodedPath);
-        RegistryValue::SetDWORD(hKey, REGVAL_CHARSPERLINE, ComboBoxGetSelection(IDC_BS64_ENC_LINELENGTH_COMBO));
     }
     SetFont(IDC_BS64_ORG_EDIT, NULL);
     SetFont(IDC_BS64_ENC_EDIT, NULL);
@@ -152,9 +151,6 @@ void Base64DialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 void Base64DialogBox::OnTabSelectionChanging()
 {
     MyDialogBox::OnTabSelectionChanging();
-    if (m_LastModified)
-    {
-    }
     m_menuView
         .Enable(IDM_VIEW_BS64, MF_ENABLED);
 }
@@ -255,10 +251,19 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_BS64_ENC_EDIT:
         return OnEditCommand(wParam, lParam);
     case IDC_BS64_ORG_HEX_RADIO:
+        if (idNotif == BN_CLICKED)
+        {
+            ChangeOriginalDataDisplayMode(DataDisplayMode::HEX);
+        }
+        else
+        {
+            return FALSE;
+        }
+        break;
     case IDC_BS64_ORG_TEXT_RADIO:
         if (idNotif == BN_CLICKED)
         {
-            ChangeOriginalFormat();
+            ChangeOriginalDataDisplayMode(DataDisplayMode::TEXT);
         }
         else
         {
@@ -268,10 +273,17 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_BS64_ORG_CODEPAGE_COMBO:
         if (idNotif == CBN_SELCHANGE)
         {
-            if (m_Original.Len && ButtonIsChecked(IDC_BS64_ORG_TEXT_RADIO))
-            {
-                ApplyOriginal();
-            }
+            m_CodePage = ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO, CP_UTF8);
+        }
+        else
+        {
+            return FALSE;
+        }
+        break;
+    case IDC_BS64_ORG_LINEBREAK_COMBO:
+        if (idNotif == CBN_SELCHANGE)
+        {
+            m_LineBreak = static_cast<LineBreak>(ComboBoxGetSelection(IDC_BS64_ORG_LINEBREAK_COMBO, LineBreak::CRLF));
         }
         else
         {
@@ -281,7 +293,7 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_BS64_ENC_LINELENGTH_COMBO:
         if (idNotif == CBN_SELCHANGE)
         {
-            ChangeLinesPerLine();
+            ChangeLinesPerLine(ComboBoxGetSelection(IDC_BS64_ENC_LINELENGTH_COMBO, 0));
         }
         else
         {
@@ -330,7 +342,7 @@ INT_PTR Base64DialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
     case IDC_BS64_ORG_EDIT:
         SetTextColor(hdc,
             (m_dwFlags & FLAG_ENCODING_ERROR) ? RGB_ERROR :
-            m_Original.Len ? RGB_SUCCESSFUL :
+            (m_dwFlags & FLAG_DECODING_SUCCESSFUL) ? RGB_SUCCESSFUL :
             GetSysColor(COLOR_WINDOWTEXT));
         SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
         return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
@@ -361,51 +373,35 @@ void Base64DialogBox::OnEditChanged(int id)
     switch (id)
     {
     case IDC_BS64_ORG_EDIT:
-        try
+        if ((m_dwFlags & FLAG_ENCODING_ERROR))
         {
-            if (ButtonIsChecked(IDC_BS64_ORG_HEX_RADIO))
-            {
-                m_Original = ByteString::FromHex(GetText(IDC_BS64_ORG_EDIT));
-            }
-            else
-            {
-                UINT cp = static_cast<UINT>(ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO));
-                LineBreak lb = static_cast<LineBreak>(ComboBoxGetSelection(IDC_BS64_ORG_LINEBREAK_COMBO));
-                m_Original = ByteString::FromString(GetText(IDC_BS64_ORG_EDIT), cp, lb);
-            }
-            if ((m_dwFlags & FLAG_ENCODING_ERROR))
-            {
-                m_dwFlags &= ~MASK_ENCODING;
-                SetText(IDC_BS64_ORG_STATIC, ResourceString(IDS_ORIGINAL));
-                InvalidateRect(IDC_BS64_ORG_STATIC, NULL, TRUE);
-            }
-            InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
+            m_dwFlags &= ~(FLAG_ENCODING_ERROR | FLAG_DECODING_SUCCESSFUL);
+            SetText(IDC_BS64_ORG_STATIC, ResourceString(IDS_ORIGINAL));
+            InvalidateRect(IDC_BS64_ORG_STATIC, NULL, TRUE);
         }
-        catch (Exception e)
+        else if ((m_dwFlags & FLAG_DECODING_SUCCESSFUL))
         {
-            m_Original.Resize(0);
-            SetOriginalError(e.Message);
+            m_dwFlags &= ~FLAG_DECODING_SUCCESSFUL;
+            InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
         }
         UpdateControlsState(IDC_BS64_ORG_EDIT);
         break;
     case IDC_BS64_ENC_EDIT:
-        DBGPUT(L"Base64DialogBox::OnEditChanged(IDC_BS64_ENC_EDIT): Len=%u", GetTextLength(IDC_BS64_ENC_EDIT));
-        if ((m_dwFlags & FLAG_ENCODING_SUCCESSFUL))
-        {
-            m_dwFlags &= ~MASK_ENCODING;
-            InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
-        }
         if ((m_dwFlags & FLAG_DECODING_ERROR))
         {
-            m_dwFlags &= ~MASK_DECODING;
+            m_dwFlags &= ~(FLAG_DECODING_ERROR | FLAG_ENCODING_SUCCESSFUL);
             SetText(IDC_BS64_ENC_STATIC, ResourceString(IDS_ENCODED));
-            InvalidateRect(IDC_BS64_ENC_STATIC, NULL, TRUE);
+            InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
+        }
+        else if ((m_dwFlags & FLAG_ENCODING_SUCCESSFUL))
+        {
+            m_dwFlags &= ~FLAG_ENCODING_SUCCESSFUL;
             InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
         }
         UpdateControlsState(IDC_BS64_ENC_EDIT);
         break;
     default:
-        return;
+        break;
     }
 }
 
@@ -418,12 +414,15 @@ void Base64DialogBox::OnLoad1From()
         try
         {
             FileMapper fm(m_szOriginalPath);
-            m_Original = ByteString(fm.Ptr, fm.Len);
-            ApplyOriginal();
+            SetTextAndNotify(IDC_BS64_ORG_EDIT,
+                m_OriginalDataDisplayMode == DataDisplayMode::HEX
+                ? ByteString(fm.Ptr, fm.Len).ToHex(StringOptions::UPPERCASE)
+                : ByteString(fm.Ptr, fm.Len).ToString(m_CodePage).ChangeLineBreak(LineBreak::CRLF));
         }
         catch (Exception e)
         {
             MessageBoxW(hwnd, e.Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+            UpdateControlsState(0);
         }
     }
 }
@@ -436,30 +435,11 @@ void Base64DialogBox::OnSave1As()
         UpdateControlsState(-1);
         try
         {
-            String sz = GetText(IDC_BS64_ORG_EDIT);
-            ByteString bs;
-            if (sz.Len)
-            {
-                if (ButtonIsChecked(IDC_BS64_ORG_HEX_RADIO))
-                {
-                    bs = ByteString::FromHex(sz);
-                }
-                else
-                {
-                    UINT cp = static_cast<UINT>(ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO));
-                    LineBreak lb = static_cast<LineBreak>(ComboBoxGetSelection(IDC_BS64_ORG_LINEBREAK_COMBO));
-                    bs = ByteString::FromString(sz, cp, lb);
-                }
-            }
-            else
-            {
-                bs.Resize(0);
-            }
+            ByteString bs = GetOriginalData();
             FileWriter(m_szOriginalPath).Write(bs.Ptr, bs.Len);
         }
         catch (Exception e)
         {
-            SetOriginal();
             MessageBoxW(hwnd, e.Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
         }
         UpdateControlsState(0);
@@ -475,12 +455,12 @@ void Base64DialogBox::OnLoad2From()
         try
         {
             FileMapper fm(m_szEncodedPath);
-            SetEncoded(String(CP_UTF8, reinterpret_cast<PCSTR>(fm.Ptr), fm.Len), FALSE);
+            SetTextAndNotify(IDC_BS64_ENC_EDIT, ByteString(fm.Ptr, fm.Len).ToString(CP_UTF8));
         }
         catch (Exception e)
         {
-            SetEncoded();
             MessageBoxW(hwnd, e.Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+            UpdateControlsState(0);
         }
     }
 }
@@ -510,12 +490,16 @@ void Base64DialogBox::Encode()
     UpdateControlsState(-1);
     try
     {
-        SetEncoded(BreakLines(m_Original.ToBase64(), ComboBoxGetSelection(IDC_BS64_ENC_LINELENGTH_COMBO)), TRUE);
+        m_dwFlags |= FLAG_ENCODING_SUCCESSFUL;
+        SetText(IDC_BS64_ENC_EDIT, GetOriginalData().ToBase64().Wrap(ComboBoxGetSelection(IDC_BS64_ENC_LINELENGTH_COMBO)));
+        SetOriginalError();
     }
     catch (Exception e)
     {
+        m_dwFlags &= ~FLAG_ENCODING_SUCCESSFUL;
         SetOriginalError(e.Message);
     }
+    UpdateControlsState(0);
 }
 
 
@@ -524,100 +508,105 @@ void Base64DialogBox::Decode()
     UpdateControlsState(-1);
     try
     {
-        m_Original = ByteString::FromBase64(GetText(IDC_BS64_ENC_EDIT));
-        SetEncoded(NULL);
-        ApplyOriginal();
+        m_dwFlags |= FLAG_DECODING_SUCCESSFUL;
+        SetText(IDC_BS64_ORG_EDIT,
+            m_OriginalDataDisplayMode == DataDisplayMode::HEX
+            ? ByteString::FromBase64(GetText(IDC_BS64_ENC_EDIT)).ToHex(StringOptions::UPPERCASE)
+            : ByteString::FromBase64(GetText(IDC_BS64_ENC_EDIT)).ToString(m_CodePage).ChangeLineBreak(LineBreak::CRLF));
+        SetEncodedError();
     }
     catch (Exception e)
     {
+        m_dwFlags &= ~FLAG_DECODING_SUCCESSFUL;
         SetEncodedError(e.Message);
     }
+    UpdateControlsState(0);
 }
 
 
-void Base64DialogBox::ChangeOriginalFormat()
+void Base64DialogBox::ChangeOriginalDataDisplayMode(DataDisplayMode mode)
 {
-    UpdateControlsState(-1);
-    ApplyOriginal();
-}
-
-
-void Base64DialogBox::ChangeLinesPerLine()
-{
-    UpdateControlsState(-1);
-    SetTextAndNotify(IDC_BS64_ENC_EDIT, BreakLines(GetText(IDC_BS64_ENC_EDIT), ComboBoxGetSelection(IDC_BS64_ENC_LINELENGTH_COMBO)));
-}
-
-
-void Base64DialogBox::ApplyOriginal()
-{
-    if (ButtonIsChecked(IDC_BS64_ORG_HEX_RADIO))
-    {
-        SetOriginal(m_Original.ToHex(StringOptions::UPPERCASE));
-    }
-    else
+    DBGFNC(L"Base64DialogBox::ChangeOriginalDataDisplayMode(%d)", mode);
+    if (mode != m_OriginalDataDisplayMode)
     {
         try
         {
-            UINT cp = static_cast<UINT>(ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO));
-            SetOriginal(m_Original.ToString(cp));
+            UpdateControlsState(-1);
+            ByteString original = GetOriginalData();
+            SetTextAndNotify(IDC_BS64_ORG_EDIT,
+                mode == DataDisplayMode::HEX
+                ? original.ToHex(StringOptions::UPPERCASE)
+                : original.ToString(m_CodePage).ChangeLineBreak(LineBreak::CRLF));
+            m_OriginalDataDisplayMode = mode;
         }
         catch (Exception e)
         {
+            ButtonCheck(IDC_BS64_ORG_HEX_RADIO, m_OriginalDataDisplayMode == DataDisplayMode::HEX ? TRUE : FALSE);
+            ButtonCheck(IDC_BS64_ORG_TEXT_RADIO, m_OriginalDataDisplayMode == DataDisplayMode::TEXT ? TRUE : FALSE);
             SetOriginalError(e.Message);
+            UpdateControlsState(0);
         }
     }
 }
 
 
-void Base64DialogBox::SetOriginal(PCWSTR pszContent)
+void Base64DialogBox::ChangeLinesPerLine(UINT cch)
 {
-    m_dwFlags &= ~FLAG_ENCODING_ERROR;
-    SetText(IDC_BS64_ORG_STATIC, ResourceString(IDS_ORIGINAL));
-    if (pszContent)
+    DBGFNC(L"Base64DialogBox::ChangeLinesPerLine(%u)", cch);
+    if (cch != m_CharsPerLine)
     {
-        SetText(IDC_BS64_ORG_EDIT, pszContent);
-        UpdateControlsState(IDC_BS64_ORG_EDIT);
+        UpdateControlsState(-1);
+        SetTextAndNotify(IDC_BS64_ENC_EDIT, GetText(IDC_BS64_ENC_EDIT).Replace(L"\r\n", L"").Wrap(cch));
+        m_CharsPerLine = cch;
+    }
+}
+
+
+ByteString Base64DialogBox::GetOriginalData() const
+{
+    return m_OriginalDataDisplayMode == DataDisplayMode::HEX
+        ? ByteString::FromHex(GetText(IDC_BS64_ORG_EDIT))
+        : ByteString::FromString(GetText(IDC_BS64_ORG_EDIT), m_CodePage, m_LineBreak);
+}
+
+
+void Base64DialogBox::SetOriginalError(PCWSTR pszReason)
+{
+    DWORD dwPrev = m_dwFlags;
+    if (pszReason)
+    {
+        m_dwFlags |= FLAG_ENCODING_ERROR;
+        SetText(IDC_BS64_ORG_STATIC, String(PRINTF, L"%s [%s]", ResourceString(IDS_ORIGINAL), pszReason));
     }
     else
+    {
+        m_dwFlags &= ~FLAG_ENCODING_ERROR;
+        SetText(IDC_BS64_ORG_STATIC, ResourceString(IDS_ORIGINAL));
+    }
+    if (m_dwFlags != dwPrev)
     {
         InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
     }
 }
 
 
-void Base64DialogBox::SetOriginalError(PCWSTR pszReason)
+void Base64DialogBox::SetEncodedError(PCWSTR pszReason)
 {
-    m_dwFlags |= FLAG_ENCODING_ERROR;
-    SetText(IDC_BS64_ORG_STATIC, String(PRINTF, L"%s [%s]", ResourceString(IDS_ORIGINAL), pszReason));
-    InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
-    UpdateControlsState(IDC_BS64_ORG_EDIT);
-}
-
-
-void Base64DialogBox::SetEncoded(PCWSTR pszContent, BOOL bEncoded)
-{
-    m_dwFlags &= ~FLAG_DECODING_ERROR;
-    m_dwFlags = bEncoded ? (m_dwFlags | FLAG_ENCODING_SUCCESSFUL) : (m_dwFlags & ~FLAG_ENCODING_SUCCESSFUL);
-    SetText(IDC_BS64_ENC_STATIC, ResourceString(IDS_ENCODED));
-    if (pszContent)
+    DWORD dwPrev = m_dwFlags;
+    if (pszReason)
     {
-        SetTextAndNotify(IDC_BS64_ENC_EDIT, pszContent);
+        m_dwFlags |= FLAG_DECODING_ERROR;
+        SetText(IDC_BS64_ENC_STATIC, String(PRINTF, L"%s [%s]", ResourceString(IDS_ENCODED), pszReason));
     }
     else
     {
+        m_dwFlags &= ~FLAG_DECODING_ERROR;
+        SetText(IDC_BS64_ENC_STATIC, ResourceString(IDS_ENCODED));
+    }
+    if (m_dwFlags != dwPrev)
+    {
         InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
     }
-}
-
-
-void Base64DialogBox::SetEncodedError(PCWSTR pszReason)
-{
-    m_dwFlags |= FLAG_DECODING_ERROR;
-    m_dwFlags &= ~FLAG_ENCODING_SUCCESSFUL;
-    SetText(IDC_BS64_ENC_STATIC, String(PRINTF, L"%s [%s]", ResourceString(IDS_ENCODED), pszReason));
-    InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
-    UpdateControlsState(IDC_BS64_ENC_EDIT);
 }
 
 
@@ -630,8 +619,8 @@ void Base64DialogBox::UpdateControlsState(int id)
         BOOL bEnabled = GetTextLength(IDC_BS64_ORG_EDIT) > 0;
         EnableWindow(IDC_BS64_ORG_COPY_BUTTON, bEnabled);
         EnableWindow(IDC_BS64_ORG_ENCODE_BUTTON, bEnabled);
-        EnableWindow(IDC_BS64_ORG_CODEPAGE_COMBO, bEnabled || ButtonIsChecked(IDC_BS64_ORG_TEXT_RADIO));
-        EnableWindow(IDC_BS64_ORG_LINEBREAK_COMBO, bEnabled || ButtonIsChecked(IDC_BS64_ORG_TEXT_RADIO));
+        EnableWindow(IDC_BS64_ORG_CODEPAGE_COMBO);
+        EnableWindow(IDC_BS64_ORG_LINEBREAK_COMBO);
         m_menuEdit
             .Enable(IDM_EDIT_EXECUTE1, bEnabled ? MF_ENABLED : MF_DISABLED)
             .Enable(IDM_EDIT_COPYRESULT1, bEnabled ? MF_ENABLED : MF_DISABLED);
@@ -640,6 +629,8 @@ void Base64DialogBox::UpdateControlsState(int id)
             m_dwFlags &= ~FLAG_BUSY;
             EditSetReadOnly(IDC_BS64_ORG_EDIT, FALSE);
             EditSetReadOnly(IDC_BS64_ENC_EDIT, FALSE);
+            InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
+            InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
             UpdateControlsState(IDC_BS64_ENC_EDIT);
         }
         break;
@@ -657,6 +648,8 @@ void Base64DialogBox::UpdateControlsState(int id)
             m_dwFlags &= ~FLAG_BUSY;
             EditSetReadOnly(IDC_BS64_ORG_EDIT, FALSE);
             EditSetReadOnly(IDC_BS64_ENC_EDIT, FALSE);
+            InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
+            InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
             UpdateControlsState(IDC_BS64_ORG_EDIT);
         }
         break;
@@ -669,6 +662,8 @@ void Base64DialogBox::UpdateControlsState(int id)
         m_dwFlags |= FLAG_BUSY;
         EditSetReadOnly(IDC_BS64_ORG_EDIT, TRUE);
         EditSetReadOnly(IDC_BS64_ENC_EDIT, TRUE);
+        InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
+        InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
         DisableWindow(IDC_BS64_ORG_COPY_BUTTON);
         DisableWindow(IDC_BS64_ORG_ENCODE_BUTTON);
         DisableWindow(IDC_BS64_ORG_CODEPAGE_COMBO);
@@ -680,6 +675,7 @@ void Base64DialogBox::UpdateControlsState(int id)
             .Enable(IDM_EDIT_COPYRESULT1, MF_DISABLED)
             .Enable(IDM_EDIT_EXECUTE2, MF_DISABLED)
             .Enable(IDM_EDIT_COPYRESULT2, MF_DISABLED);
+        while (GetApp<MyToolbox>().TryProcessMessage() > 0) continue;
         break;
     default:
         break;
@@ -687,12 +683,13 @@ void Base64DialogBox::UpdateControlsState(int id)
 }
 
 
-void Base64DialogBox::InitializeLineLengthComboBox() const
+void Base64DialogBox::InitializeLineLengthComboBox(UINT cch) const
 {
     ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, ResourceString(IDS_NO_LINE_BREAK), 0);
     ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"72", 72);
     ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"144", 144);
     ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"216", 216);
+    ComboBoxSetSelection(IDC_BS64_ENC_LINELENGTH_COMBO, cch);
 }
 
 
@@ -719,4 +716,30 @@ BOOL Base64DialogBox::GetSaveAsFileName(PWSTR psz, PCWSTR pszTitle) const
     ofn.nMaxFile = MAX_PATH;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
     return GetSaveFileNameW(&ofn);
+}
+
+
+int Base64DialogBox::DataDisplayModeToControlId(DataDisplayMode mode)
+{
+    switch (mode)
+    {
+    case DataDisplayMode::HEX:
+    default:
+        return IDC_BS64_ORG_HEX_RADIO;
+    case DataDisplayMode::TEXT:
+        return IDC_BS64_ORG_TEXT_RADIO;
+    }
+}
+
+
+DataDisplayMode Base64DialogBox::ControlIdToDataDisplayMode(int id)
+{
+    switch (id)
+    {
+    case IDC_BS64_ORG_HEX_RADIO:
+    default:
+        return DataDisplayMode::HEX;
+    case IDC_BS64_ORG_TEXT_RADIO:
+        return DataDisplayMode::TEXT;
+    }
 }
