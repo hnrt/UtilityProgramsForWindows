@@ -322,14 +322,15 @@ String ByteString::ToString(UINT uCodePage, bool bStrict) const
         {
             LPCCH pb = reinterpret_cast<LPCCH>(Ptr);
             int cb = static_cast<int>(Len);
-            int cch = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, pb, cb, NULL, 0);
+            DWORD dwFlags = MB_PRECOMPOSED | (bStrict ? MB_ERR_INVALID_CHARS : 0);
+            int cch = MultiByteToWideChar(uCodePage, dwFlags, pb, cb, NULL, 0);
             if (cch == 0)
             {
                 throw CharacterMappingException(GetLastError());
             }
             String sz(cch, L'\0');
             LPWCH pch = const_cast<LPWCH>(sz.Ptr);
-            cch = MultiByteToWideChar(uCodePage, MB_PRECOMPOSED, pb, cb, pch, cch);
+            cch = MultiByteToWideChar(uCodePage, dwFlags, pb, cb, pch, cch);
             if (cch == 0)
             {
                 throw CharacterMappingException(GetLastError());

@@ -48,6 +48,7 @@ namespace hnrt
 
 	protected:
 
+		static void ProcessMessages();
 		virtual void OnCreate();
 		virtual void OnDestroy();
 		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);

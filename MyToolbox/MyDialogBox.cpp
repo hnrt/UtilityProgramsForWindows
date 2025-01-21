@@ -42,6 +42,16 @@ MyDialogBox::MyDialogBox(UINT idTemplate, PCWSTR pszName)
 }
 
 
+void MyDialogBox::ProcessMessages()
+{
+	MyToolbox& app = GetApp<MyToolbox>();
+	while (app.TryProcessMessage() > 0)
+	{
+		continue;
+	}
+}
+
+
 void MyDialogBox::OnCreate()
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);

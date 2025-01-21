@@ -400,6 +400,7 @@
 #define IDC_BS64_ENC_DECODE_BUTTON      11011
 #define IDC_BS64_ENC_LINELENGTH_STATIC  11012
 #define IDC_BS64_ENC_LINELENGTH_COMBO   11013
+#define IDC_BS64_STATUS_STATIC          11014
 #define IDM_FILE_EXIT                   21001
 #define IDM_FILE_LOADFROM               21002
 #define IDM_FILE_SAVEAS                 21003
@@ -484,7 +485,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        281
 #define _APS_NEXT_COMMAND_VALUE         32791
-#define _APS_NEXT_CONTROL_VALUE         11041
+#define _APS_NEXT_CONTROL_VALUE         11043
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

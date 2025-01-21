@@ -37,10 +37,14 @@ namespace hnrt
 		void ChangeOriginalDataDisplayMode(DataDisplayMode mode);
 		void ChangeLinesPerLine(UINT cch);
 		ByteString GetOriginalData() const;
-		void SetOriginalError(PCWSTR pszReason = nullptr);
-		void SetEncodedError(PCWSTR pszReason = nullptr);
+		void SetOriginalData(const void* ptr, size_t len);
+		void SetOriginalData(const ByteString& bs);
+		void SetOriginalData(const ByteString& bs, DataDisplayMode mode);
+		ByteString GetEncodedData() const;
+		ByteString GetDecodedData() const;
 		void UpdateControlsState(int id = 0);
 		void InitializeLineLengthComboBox(UINT cch) const;
+		void SetStatus(PCWSTR psz = L"", DWORD dwSet = 0UL, DWORD dwReset = 0UL);
 		BOOL GetLoadFromFileName(PWSTR psz, PCWSTR pszTitle) const;
 		BOOL GetSaveAsFileName(PWSTR psz, PCWSTR pszTitle) const;
 
