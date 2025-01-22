@@ -246,6 +246,7 @@
 #define IDC_NTOA_ASCII_EDIT             10505
 #define IDC_NTOA_COPY2_BUTTON           10506
 #define IDC_NTOA_DECODE_BUTTON          10507
+#define IDC_NTOA_STATUS_STATIC          10508
 #define IDC_CRPT_ALGORITHM_GROUP        10600
 #define IDC_CRPT_AESCBC_RADIO           10601
 #define IDC_CRPT_AESECB_RADIO           10602
@@ -485,7 +486,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        281
 #define _APS_NEXT_COMMAND_VALUE         32791
-#define _APS_NEXT_CONTROL_VALUE         11043
+#define _APS_NEXT_CONTROL_VALUE         11044
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

@@ -14,14 +14,15 @@
 #include "hnrt/String.h"
 #include "hnrt/StringCommons.h"
 #include "hnrt/UnicodeEscape.h"
+#include "hnrt/NumberText.h"
 #include "hnrt/Exception.h"
 
 
-#define REGVAL_INPUT_CODEPAGE L"InputCodePage"
-#define REGVAL_OUTPUT_CODEPAGE L"OutputCodePage"
-#define REGVAL_OUTPUT_BOM L"OutputBOM"
-#define REGVAL_NATIVE_PATH L"NativePath"
-#define REGVAL_ASCII_PATH L"AsciiPath"
+constexpr auto REGVAL_INPUT_CODEPAGE = L"InputCodePage";
+constexpr auto REGVAL_OUTPUT_CODEPAGE = L"OutputCodePage";
+constexpr auto REGVAL_OUTPUT_BOM = L"OutputBOM";
+constexpr auto REGVAL_NATIVE_PATH = L"NativePath";
+constexpr auto REGVAL_ASCII_PATH = L"AsciiPath";
 
 
 using namespace hnrt;
@@ -29,6 +30,7 @@ using namespace hnrt;
 
 NativeToAsciiDialogBox::NativeToAsciiDialogBox()
 	: MyDialogBox(IDD_NTOA, L"NativeToAscii")
+	, m_dwFlags(0)
 	, m_szNativePath()
 	, m_szAsciiPath()
 {
@@ -51,9 +53,9 @@ void NativeToAsciiDialogBox::OnCreate()
 		m_szNativePath = RegistryValue::GetSZ(hKey, REGVAL_NATIVE_PATH);
 		m_szAsciiPath = RegistryValue::GetSZ(hKey, REGVAL_ASCII_PATH);
 	}
+	SetStatus();
 	m_menuView
 		.Add(ResourceString(IDS_MENU_NTOA), IDM_VIEW_NTOA);
-	UpdateControlsState();
 }
 
 
@@ -93,11 +95,15 @@ void NativeToAsciiDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 	MoveHorizontally(after[IDC_NTOA_COPY2_BUTTON], cxDelta);
 	MoveHorizontally(after[IDC_NTOA_DECODE_BUTTON], cxDelta);
 
+	after[IDC_NTOA_STATUS_STATIC].right += cxDelta;
+
 	ExtendVertically(after[IDC_NTOA_NATIVE_EDIT], after[IDC_NTOA_ASCII_EDIT], cyDelta);
 	LONG dy = after[IDC_NTOA_NATIVE_EDIT].bottom - before[IDC_NTOA_NATIVE_EDIT].bottom;
 	MoveVertically(after[IDC_NTOA_ASCII_STATIC], dy);
 	MoveVertically(after[IDC_NTOA_COPY2_BUTTON], dy);
 	MoveVertically(after[IDC_NTOA_DECODE_BUTTON], dy);
+
+	MoveVertically(after[IDC_NTOA_STATUS_STATIC], cyDelta);
 
 	after.Apply();
 }
@@ -134,7 +140,7 @@ void NativeToAsciiDialogBox::OnTabSelectionChanged()
 		.Enable(IDM_VIEW_NTOA, MF_DISABLED);
 	AddInputCodePageSettingMenus();
 	AddOutputCodePageSettingMenus();
-	UpdateControlsState();
+	UpdateControlsState(1);
 }
 
 
@@ -149,14 +155,14 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	switch (idChild)
 	{
 	case IDM_EDIT_EXECUTE1:
-		OnEncode();
+		Encode();
 		SetFocus(IDC_NTOA_COPY2_BUTTON);
 		break;
 	case IDM_EDIT_COPYRESULT1:
 		CopyAllText(IDC_NTOA_NATIVE_EDIT);
 		break;
 	case IDM_EDIT_EXECUTE2:
-		OnDecode();
+		Decode();
 		SetFocus(IDC_NTOA_COPY1_BUTTON);
 		break;
 	case IDM_EDIT_COPYRESULT2:
@@ -165,7 +171,7 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_NTOA_ENCODE_BUTTON:
 		if (idNotif == BN_CLICKED)
 		{
-			OnEncode();
+			Encode();
 			SetFocus(IDC_NTOA_COPY2_BUTTON);
 		}
 		else
@@ -186,7 +192,7 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_NTOA_DECODE_BUTTON:
 		if (idNotif == BN_CLICKED)
 		{
-			OnDecode();
+			Decode();
 			SetFocus(IDC_NTOA_COPY1_BUTTON);
 		}
 		else
@@ -214,8 +220,74 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
+INT_PTR NativeToAsciiDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc = reinterpret_cast<HDC>(wParam);
+	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
+	switch (id)
+	{
+	case IDC_NTOA_STATUS_STATIC:
+		SetTextColor(hdc,
+			(m_dwFlags & FLAG_STATUS_ERROR) ? RGB_ERROR :
+			(m_dwFlags & FLAG_STATUS_SUCCESSFUL) ? RGB_SUCCESSFUL :
+			GetSysColor(COLOR_WINDOWTEXT));
+		SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
+		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
+	default:
+		break;
+	}
+	return 0;
+}
+
+
+INT_PTR NativeToAsciiDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc = reinterpret_cast<HDC>(wParam);
+	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
+	switch (id)
+	{
+	case IDC_NTOA_NATIVE_EDIT:
+		SetTextColor(hdc,
+			(m_dwFlags & FLAG_PANE1_ERROR) ? RGB_ERROR :
+			(m_dwFlags & FLAG_PANE1_SUCCESSFUL) ? RGB_SUCCESSFUL :
+			GetSysColor(COLOR_WINDOWTEXT));
+		SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
+	case IDC_NTOA_ASCII_EDIT:
+		SetTextColor(hdc,
+			(m_dwFlags & FLAG_PANE2_ERROR) ? RGB_ERROR :
+			(m_dwFlags & FLAG_PANE2_SUCCESSFUL) ? RGB_SUCCESSFUL :
+			GetSysColor(COLOR_WINDOWTEXT));
+		SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
+	default:
+		break;
+	}
+	return 0;
+}
+
+
+void NativeToAsciiDialogBox::OnEditChanged(int id)
+{
+	MyDialogBox::OnEditChanged(id);
+	switch (id)
+	{
+	case IDC_NTOA_NATIVE_EDIT:
+		SetStatus(L"", 0, MASK_PANE1 | MASK_STATUS);
+		break;
+	case IDC_NTOA_ASCII_EDIT:
+		SetStatus(L"", 0, MASK_PANE2 | MASK_STATUS);
+		break;
+	default:
+		break;
+	}
+	UpdateControlsState(id);
+}
+
+
 void NativeToAsciiDialogBox::OnNew()
 {
+	SetStatus(L"", 0, MASK_PANE1 | MASK_PANE2 | MASK_STATUS);
 	SetTextAndNotify(IDC_NTOA_NATIVE_EDIT);
 	SetTextAndNotify(IDC_NTOA_ASCII_EDIT);
 }
@@ -259,15 +331,53 @@ void NativeToAsciiDialogBox::OnSettingChanged(UINT uId)
 }
 
 
-void NativeToAsciiDialogBox::OnEncode()
+void NativeToAsciiDialogBox::Encode()
 {
-	SetTextAndNotify(IDC_NTOA_ASCII_EDIT, FromNativeToAscii(GetText(IDC_NTOA_NATIVE_EDIT)));
+	SetStatus(L"Encoding...", FLAG_BUSY, MASK_STATUS);
+	SetText(IDC_NTOA_ASCII_EDIT, FromNativeToAscii(GetText(IDC_NTOA_NATIVE_EDIT)));
+	SetStatus(String(PRINTF, L"Encoding...Done: %s chars in  >>>  %s chars out",
+		NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr, NumberText(GetTextLength(IDC_NTOA_ASCII_EDIT)).Ptr),
+		FLAG_PANE2_SUCCESSFUL);
 }
 
 
-void NativeToAsciiDialogBox::OnDecode()
+void NativeToAsciiDialogBox::Decode()
 {
-	SetTextAndNotify(IDC_NTOA_NATIVE_EDIT, FromAsciiToNative(GetText(IDC_NTOA_ASCII_EDIT)));
+	SetStatus(L"Decoding...", FLAG_BUSY, MASK_STATUS);
+	SetText(IDC_NTOA_NATIVE_EDIT, FromAsciiToNative(GetText(IDC_NTOA_ASCII_EDIT)));
+	SetStatus(String(PRINTF, L"Decoding...Done: %s chars in  >>>  %s chars out",
+		NumberText(GetTextLength(IDC_NTOA_ASCII_EDIT)).Ptr, NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr),
+		FLAG_PANE1_SUCCESSFUL);
+}
+
+
+void NativeToAsciiDialogBox::SetStatus(PCWSTR psz, DWORD dwSet, DWORD dwReset)
+{
+	DWORD dwPrev = m_dwFlags;
+	if (dwSet)
+	{
+		m_dwFlags |= dwSet;
+	}
+	if (dwReset)
+	{
+		m_dwFlags &= ~dwReset;
+	}
+	if (m_dwFlags != dwPrev)
+	{
+		InvalidateRect(IDC_NTOA_NATIVE_EDIT, NULL, TRUE);
+		InvalidateRect(IDC_NTOA_ASCII_EDIT, NULL, TRUE);
+	}
+	SetText(IDC_NTOA_STATUS_STATIC, psz ? psz : L"");
+	if ((dwSet & FLAG_BUSY))
+	{
+		UpdateControlsState(0);
+	}
+	else if ((dwPrev & FLAG_BUSY))
+	{
+		m_dwFlags &= ~FLAG_BUSY;
+		UpdateControlsState(1);
+	}
+	ProcessMessages();
 }
 
 
@@ -275,30 +385,45 @@ void NativeToAsciiDialogBox::UpdateControlsState(int id)
 {
 	switch (id)
 	{
+	case 0:
+		EditSetReadOnly(IDC_NTOA_NATIVE_EDIT, TRUE);
+		EditSetReadOnly(IDC_NTOA_ASCII_EDIT, TRUE);
+		DisableWindow(IDC_NTOA_ENCODE_BUTTON);
+		DisableWindow(IDC_NTOA_COPY1_BUTTON);
+		DisableWindow(IDC_NTOA_DECODE_BUTTON);
+		DisableWindow(IDC_NTOA_COPY2_BUTTON);
+		m_menuEdit
+			.Enable(IDM_EDIT_EXECUTE1, MF_DISABLED)
+			.Enable(IDM_EDIT_COPYRESULT1, MF_DISABLED)
+			.Enable(IDM_EDIT_EXECUTE2, MF_DISABLED)
+			.Enable(IDM_EDIT_COPYRESULT2, MF_DISABLED);
+		break;
+	case 1:
+		EditSetReadOnly(IDC_NTOA_NATIVE_EDIT, FALSE);
+		EditSetReadOnly(IDC_NTOA_ASCII_EDIT, FALSE);
+		UpdateControlsState(IDC_NTOA_NATIVE_EDIT);
+		UpdateControlsState(IDC_NTOA_ASCII_EDIT);
+		break;
 	case IDC_NTOA_NATIVE_EDIT:
 	{
-		BOOL bNative = GetTextLength(IDC_NTOA_NATIVE_EDIT) > 0 ? TRUE : FALSE;
-		EnableWindow(IDC_NTOA_COPY1_BUTTON, bNative);
-		EnableWindow(IDC_NTOA_ENCODE_BUTTON, bNative);
+		BOOL bEnabled = GetTextLength(IDC_NTOA_NATIVE_EDIT) > 0 ? TRUE : FALSE;
+		EnableWindow(IDC_NTOA_ENCODE_BUTTON, bEnabled);
+		EnableWindow(IDC_NTOA_COPY1_BUTTON, bEnabled);
 		m_menuEdit
-			.Enable(IDM_EDIT_EXECUTE1, bNative ? MF_ENABLED : MF_DISABLED)
-			.Enable(IDM_EDIT_COPYRESULT1, bNative ? MF_ENABLED : MF_DISABLED);
+			.Enable(IDM_EDIT_EXECUTE1, bEnabled ? MF_ENABLED : MF_DISABLED)
+			.Enable(IDM_EDIT_COPYRESULT1, bEnabled ? MF_ENABLED : MF_DISABLED);
 		break;
 	}
 	case IDC_NTOA_ASCII_EDIT:
 	{
-		BOOL bAscii = GetTextLength(IDC_NTOA_ASCII_EDIT) > 0 ? TRUE : FALSE;
-		EnableWindow(IDC_NTOA_COPY2_BUTTON, bAscii);
-		EnableWindow(IDC_NTOA_DECODE_BUTTON, bAscii);
+		BOOL bEnabled = GetTextLength(IDC_NTOA_ASCII_EDIT) > 0 ? TRUE : FALSE;
+		EnableWindow(IDC_NTOA_DECODE_BUTTON, bEnabled);
+		EnableWindow(IDC_NTOA_COPY2_BUTTON, bEnabled);
 		m_menuEdit
-			.Enable(IDM_EDIT_EXECUTE2, bAscii ? MF_ENABLED : MF_DISABLED)
-			.Enable(IDM_EDIT_COPYRESULT2, bAscii ? MF_ENABLED : MF_DISABLED);
+			.Enable(IDM_EDIT_EXECUTE2, bEnabled ? MF_ENABLED : MF_DISABLED)
+			.Enable(IDM_EDIT_COPYRESULT2, bEnabled ? MF_ENABLED : MF_DISABLED);
 		break;
 	}
-	case 0:
-		UpdateControlsState(IDC_NTOA_NATIVE_EDIT);
-		UpdateControlsState(IDC_NTOA_ASCII_EDIT);
-		break;
 	default:
 		break;
 	}

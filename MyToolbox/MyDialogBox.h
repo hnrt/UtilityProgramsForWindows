@@ -172,11 +172,23 @@ namespace hnrt
 	}
 }
 
-#define RGB_SUCCESSFUL RGB(51, 102, 0)
-#define RGB_ERROR RGB(153, 0, 0)
-#define RGB_CHANGING RGB(130, 130, 0)
-#define RGB_GOOD RGB_SUCCESSFUL
-#define RGB_TOO_MANY RGB(0, 0, 204) // BLUE
-#define RGB_TOO_FEW RGB_ERROR
+constexpr auto RGB_SUCCESSFUL = RGB(51, 102, 0);
+constexpr auto RGB_ERROR = RGB(153, 0, 0);
+constexpr auto RGB_CHANGING = RGB(130, 130, 0);
+constexpr auto RGB_GOOD = RGB_SUCCESSFUL;
+constexpr auto RGB_TOO_MANY = RGB(0, 0, 204); // BLUE
+constexpr auto RGB_TOO_FEW = RGB_ERROR;
 
 #define TIMERID(id,uElapse) ((id)*10000+(uElapse))
+
+constexpr auto FLAG_BUSY = 1 << 0;
+constexpr auto FLAG_PANE1_SUCCESSFUL = 1 << 1;
+constexpr auto FLAG_PANE1_ERROR = 1 << 2;
+constexpr auto FLAG_PANE2_SUCCESSFUL = 1 << 3;
+constexpr auto FLAG_PANE2_ERROR = 1 << 4;
+constexpr auto FLAG_STATUS_SUCCESSFUL = 1 << 5;
+constexpr auto FLAG_STATUS_ERROR = 1 << 6;
+constexpr auto MASK_ERROR = FLAG_PANE1_ERROR | FLAG_PANE2_ERROR | FLAG_STATUS_ERROR;
+constexpr auto MASK_PANE1 = FLAG_PANE1_SUCCESSFUL | FLAG_PANE1_ERROR;
+constexpr auto MASK_PANE2 = FLAG_PANE2_SUCCESSFUL | FLAG_PANE2_ERROR;
+constexpr auto MASK_STATUS = FLAG_STATUS_SUCCESSFUL | FLAG_STATUS_ERROR;
