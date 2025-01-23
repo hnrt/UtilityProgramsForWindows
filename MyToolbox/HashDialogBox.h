@@ -52,6 +52,7 @@ namespace hnrt
 		void SetValue(PCWSTR psz = L"");
 		void SetValue(Hash& rHash);
 		void ResetValueLetterCase();
+		void SetError(PCWSTR psz);
 		void VerifyValue();
 		void SetVerificationResult(PCWSTR psz = L"");
 		UINT GetCodePage() const;
@@ -62,5 +63,6 @@ namespace hnrt
 		UINT m_uMethod;
 		StringOptions m_uLettercase;
 		String m_szTextPath;
+		DWORD m_dwFlags;
 	};
 }

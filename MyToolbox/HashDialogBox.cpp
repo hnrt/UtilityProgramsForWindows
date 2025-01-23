@@ -37,6 +37,7 @@ HashDialogBox::HashDialogBox()
     , m_uMethod(0)
     , m_uLettercase(StringOptions::UPPERCASE)
     , m_szTextPath()
+    , m_dwFlags(0)
 {
 }
 
@@ -233,6 +234,12 @@ INT_PTR HashDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
     int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
     switch (id)
     {
+    case IDC_HASH_VALUE_STATIC:
+        SetTextColor(hdc, (m_dwFlags & FLAG_STATUS_ERROR) ? RGB_ERROR
+            : (m_dwFlags & FLAG_STATUS_SUCCESSFUL) ? RGB_SUCCESSFUL
+            : GetSysColor(COLOR_WINDOWTEXT));
+        SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
+        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
     case IDC_HASH_RESULT_STATIC:
     {
         COLORREF colorText, colorBack;
@@ -313,7 +320,18 @@ void HashDialogBox::OnLoadFrom()
     }
     else if (ButtonIsChecked(IDC_HASH_TEXT_RADIO))
     {
-        LoadTextFromFile(IDC_HASH_CONTENT_EDIT, m_szTextPath);
+        try
+        {
+            LoadTextFromFile(IDC_HASH_CONTENT_EDIT, m_szTextPath);
+        }
+        catch (Win32Exception e)
+        {
+            SetError(String(PRINTF, L"%s: %s", e.Message, ErrorMessage::Get(e.Error)));
+        }
+        catch (Exception e)
+        {
+            SetError(e.Message);
+        }
     }
 }
 
@@ -322,7 +340,18 @@ void HashDialogBox::OnSaveAs()
 {
     if (ButtonIsChecked(IDC_HASH_TEXT_RADIO))
     {
-        SaveTextAsFile(IDC_HASH_CONTENT_EDIT, m_szTextPath);
+        try
+        {
+            SaveTextAsFile(IDC_HASH_CONTENT_EDIT, m_szTextPath);
+        }
+        catch (Win32Exception e)
+        {
+            SetError(String(PRINTF, L"%s: %s", e.Message, ErrorMessage::Get(e.Error)));
+        }
+        catch (Exception e)
+        {
+            SetError(e.Message);
+        }
     }
 }
 
@@ -686,6 +715,7 @@ void HashDialogBox::SetValueHeader(ULONGLONG nBytesIn, ULONG nBytesOut) const
 
 void HashDialogBox::SetValue(PCWSTR psz)
 {
+    m_dwFlags = (m_dwFlags & ~MASK_STATUS) | FLAG_STATUS_SUCCESSFUL;
     SetText(IDC_HASH_VALUE_STATIC, psz);
     EnableWindow(IDC_HASH_COPY_BUTTON, *psz ? TRUE : FALSE);
     m_menuEdit.Enable(IDM_EDIT_COPYRESULT, *psz ? MF_ENABLED : MF_DISABLED);
@@ -710,6 +740,15 @@ void HashDialogBox::SetValue(Hash& rHash)
 void HashDialogBox::ResetValueLetterCase()
 {
     SetValue(GetText(IDC_HASH_VALUE_STATIC).Lettercase(m_uLettercase));
+}
+
+
+void HashDialogBox::SetError(PCWSTR psz)
+{
+    m_dwFlags = (m_dwFlags & ~MASK_STATUS) | FLAG_STATUS_ERROR;
+    SetText(IDC_HASH_VALUE_STATIC, String(PRINTF, L"ERROR: %s", psz));
+    DisableWindow(IDC_HASH_COPY_BUTTON);
+    m_menuEdit.Enable(IDM_EDIT_COPYRESULT, MF_DISABLED);
 }
 
 

@@ -68,10 +68,10 @@ namespace hnrt
 		bool ApplyToHashAlgorithm(UINT, UINT&, UINT);
 		void AddLettercaseSettingMenus(UINT);
 		bool ApplyToLettercase(UINT, StringOptions&);
-		void LoadTextFromFile(int id);
-		void LoadTextFromFile(int id, String& szPath);
-		void SaveTextAsFile(int id) const;
-		void SaveTextAsFile(int id, String& szPath) const;
+		bool LoadTextFromFile(int id);
+		bool LoadTextFromFile(int id, String& szPath);
+		bool SaveTextAsFile(int id) const;
+		bool SaveTextAsFile(int id, String& szPath) const;
 		void InitializeCodePageComboBox(int id, int initialSelection = CP_UTF8) const;
 		void InitializeLineBreakComboBox(int id, LineBreak initialSelection = LineBreak::CRLF) const;
 		void InitializeLetterCaseComboBox(int id, StringOptions initialSelection = StringOptions::UPPERCASE) const;

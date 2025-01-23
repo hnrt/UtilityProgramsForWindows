@@ -764,14 +764,14 @@ bool MyDialogBox::ApplyToLettercase(UINT uId, StringOptions& uValue)
 }
 
 
-void MyDialogBox::LoadTextFromFile(int id)
+bool MyDialogBox::LoadTextFromFile(int id)
 {
 	String szPath;
-	LoadTextFromFile(id, szPath);
+	return LoadTextFromFile(id, szPath);
 }
 
 
-void MyDialogBox::LoadTextFromFile(int id, String& szPath)
+bool MyDialogBox::LoadTextFromFile(int id, String& szPath)
 {
 	String szTitle(ResourceString(IDS_LOADTEXTFROMFILE));
 	StringBuffer szPath2(MAX_PATH, szPath);
@@ -784,55 +784,36 @@ void MyDialogBox::LoadTextFromFile(int id, String& szPath)
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 	if (!GetOpenFileNameW(&ofn))
 	{
-		return;
+		return false;
 	}
 	FileMapper fm(ofn.lpstrFile);
 	if (fm.Len > INT_MAX - 1)
 	{
 		SetTextAndNotify(id);
-		MessageBoxW(hwnd, ResourceString(IDS_MSG_TOO_LARGE_FILE), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+		throw Exception(ResourceString(IDS_MSG_TOO_LARGE_FILE));
+	}
+	String sz = ByteString(fm.Ptr, fm.Len).ToString(m_uInputCodePage);
+	if (sz.Len && sz[0] == BYTE_ORDER_MARK)
+	{
+		SetTextAndNotify(id, &sz[1]);
 	}
 	else
 	{
-		if (!fm.Len)
-		{
-			SetTextAndNotify(id);
-			szPath = szPath2;
-		}
-		else
-		{
-			try
-			{
-				String sz = ByteString(fm.Ptr, fm.Len).ToString(m_uInputCodePage);
-				if (sz[0] == BYTE_ORDER_MARK)
-				{
-					SetTextAndNotify(id, &sz[1]);
-				}
-				else
-				{
-					SetTextAndNotify(id, sz);
-				}
-				szPath = szPath2;
-			}
-			catch (Exception e)
-			{
-				SetTextAndNotify(id);
-				MessageBoxW(hwnd, e.Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-			}
-		}
+		SetTextAndNotify(id, sz);
 	}
-	fm.Close();
+	szPath = szPath2;
+	return true;
 }
 
 
-void MyDialogBox::SaveTextAsFile(int id) const
+bool MyDialogBox::SaveTextAsFile(int id) const
 {
 	String szPath;
-	SaveTextAsFile(id, szPath);
+	return SaveTextAsFile(id, szPath);
 }
 
 
-void MyDialogBox::SaveTextAsFile(int id, String& szPath) const
+bool MyDialogBox::SaveTextAsFile(int id, String& szPath) const
 {
 	String szTitle(ResourceString(IDS_SAVETEXTASFILE));
 	StringBuffer szPath2(MAX_PATH, szPath);
@@ -845,28 +826,17 @@ void MyDialogBox::SaveTextAsFile(int id, String& szPath) const
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
 	if (!GetSaveFileNameW(&ofn))
 	{
-		return;
+		return false;
 	}
 	String wcs = GetText(id);
 	if ((m_uOutputCodePage == CP_UTF8 || m_uOutputCodePage == CP_UTF16) && m_bOutputBOM)
 	{
 		wcs.Format(L"%c%s", BYTE_ORDER_MARK, wcs);
 	}
-	try
-	{
-		ByteString serialized = ByteString::FromString(wcs, m_uOutputCodePage);
-		FileWriter(ofn.lpstrFile).Write(serialized.Ptr, serialized.Len);
-		szPath = szPath2;
-	}
-	catch (Win32Exception e)
-	{
-		String szMessage(PRINTF, L"%s\n%s", e.Message, ErrorMessage::Get(e.Error));
-		MessageBoxW(hwnd, szMessage, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-	}
-	catch (Exception e)
-	{
-		MessageBoxW(hwnd, ResourceString(IDS_MSG_FILE_WRITE_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-	}
+	ByteString serialized = ByteString::FromString(wcs, m_uOutputCodePage);
+	FileWriter(ofn.lpstrFile).Write(serialized.Ptr, serialized.Len);
+	szPath = szPath2;
+	return true;
 }
 
 

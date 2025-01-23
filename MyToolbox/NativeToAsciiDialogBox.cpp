@@ -15,7 +15,8 @@
 #include "hnrt/StringCommons.h"
 #include "hnrt/UnicodeEscape.h"
 #include "hnrt/NumberText.h"
-#include "hnrt/Exception.h"
+#include "hnrt/ErrorMessage.h"
+#include "hnrt/Win32Exception.h"
 
 
 constexpr auto REGVAL_INPUT_CODEPAGE = L"InputCodePage";
@@ -295,25 +296,101 @@ void NativeToAsciiDialogBox::OnNew()
 
 void NativeToAsciiDialogBox::OnLoad1From()
 {
-	LoadTextFromFile(IDC_NTOA_NATIVE_EDIT, m_szNativePath);
+	try
+	{
+		SetStatus(L"Loading Native...", FLAG_BUSY, MASK_STATUS);
+		if (LoadTextFromFile(IDC_NTOA_NATIVE_EDIT, m_szNativePath))
+		{
+			SetStatus(String(PRINTF, L"Loading Native...Done:  %s chars in", NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr), FLAG_STATUS_SUCCESSFUL, MASK_PANE1);
+		}
+		else
+		{
+			SetStatus(L"");
+		}
+	}
+	catch (Win32Exception e)
+	{
+		SetStatus(String(PRINTF, L"Loading Native...Failed: %s: %s", e.Message, ErrorMessage::Get(e.Error)), FLAG_STATUS_ERROR);
+	}
+	catch (Exception e)
+	{
+		SetStatus(String(PRINTF, L"Loading Native...Failed: %s", e.Message), FLAG_STATUS_ERROR);
+	}
 }
 
 
 void NativeToAsciiDialogBox::OnSave1As()
 {
-	SaveTextAsFile(IDC_NTOA_NATIVE_EDIT, m_szNativePath);
+	try
+	{
+		SetStatus(L"Saving Native...", FLAG_BUSY, MASK_STATUS);
+		if (SaveTextAsFile(IDC_NTOA_NATIVE_EDIT, m_szNativePath))
+		{
+			SetStatus(String(PRINTF, L"Saving Native...Done:  %s chars out", NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr), FLAG_STATUS_SUCCESSFUL);
+		}
+		else
+		{
+			SetStatus(L"");
+		}
+	}
+	catch (Win32Exception e)
+	{
+		SetStatus(String(PRINTF, L"Saving Native...Failed: %s: %s", e.Message, ErrorMessage::Get(e.Error)), FLAG_STATUS_ERROR);
+	}
+	catch (Exception e)
+	{
+		SetStatus(String(PRINTF, L"Saving Native...Failed: %s", e.Message), FLAG_STATUS_ERROR);
+	}
 }
 
 
 void NativeToAsciiDialogBox::OnLoad2From()
 {
-	LoadTextFromFile(IDC_NTOA_ASCII_EDIT, m_szAsciiPath);
+	try
+	{
+		SetStatus(L"Loading ASCII...", FLAG_BUSY, MASK_STATUS);
+		if (LoadTextFromFile(IDC_NTOA_ASCII_EDIT, m_szAsciiPath))
+		{
+			SetStatus(String(PRINTF, L"Loading ASCII...Done:  %s chars in", NumberText(GetTextLength(IDC_NTOA_ASCII_EDIT)).Ptr), FLAG_STATUS_SUCCESSFUL, MASK_PANE2);
+		}
+		else
+		{
+			SetStatus(L"");
+		}
+	}
+	catch (Win32Exception e)
+	{
+		SetStatus(String(PRINTF, L"Loading ASCII...Failed: %s: %s", e.Message, ErrorMessage::Get(e.Error)), FLAG_STATUS_ERROR);
+	}
+	catch (Exception e)
+	{
+		SetStatus(String(PRINTF, L"Loading ASCII...Failed: %s", e.Message), FLAG_STATUS_ERROR);
+	}
 }
 
 
 void NativeToAsciiDialogBox::OnSave2As()
 {
-	SaveTextAsFile(IDC_NTOA_ASCII_EDIT, m_szAsciiPath);
+	try
+	{
+		SetStatus(L"Saving ASCII...", FLAG_BUSY, MASK_STATUS);
+		if (SaveTextAsFile(IDC_NTOA_ASCII_EDIT, m_szAsciiPath))
+		{
+			SetStatus(String(PRINTF, L"Saving ASCII...Done:  %s chars", NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr), FLAG_STATUS_SUCCESSFUL);
+		}
+		else
+		{
+			SetStatus(L"");
+		}
+	}
+	catch (Win32Exception e)
+	{
+		SetStatus(String(PRINTF, L"Saving ASCII...Failed: %s: %s", e.Message, ErrorMessage::Get(e.Error)), FLAG_STATUS_ERROR);
+	}
+	catch (Exception e)
+	{
+		SetStatus(String(PRINTF, L"Saving ASCII...Failed: %s", e.Message), FLAG_STATUS_ERROR);
+	}
 }
 
 
