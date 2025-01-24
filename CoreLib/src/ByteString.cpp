@@ -322,7 +322,7 @@ String ByteString::ToString(UINT uCodePage, bool bStrict) const
         {
             LPCCH pb = reinterpret_cast<LPCCH>(Ptr);
             int cb = static_cast<int>(Len);
-            DWORD dwFlags = MB_PRECOMPOSED | (bStrict ? MB_ERR_INVALID_CHARS : 0);
+            DWORD dwFlags = ((uCodePage == CP_UTF8 || uCodePage == CP_GB18030) ? 0 : MB_PRECOMPOSED) | (bStrict ? MB_ERR_INVALID_CHARS : 0);
             int cch = MultiByteToWideChar(uCodePage, dwFlags, pb, cb, NULL, 0);
             if (cch == 0)
             {

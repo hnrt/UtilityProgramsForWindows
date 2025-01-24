@@ -5,18 +5,15 @@
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
 #include "hnrt/ResourceString.h"
-#include "hnrt/WindowDesign.h"
 #include "hnrt/WindowLayoutSnapshot.h"
 #include "hnrt/WhileInScope.h"
-#include "hnrt/Menu.h"
-#include "hnrt/WindowHandle.h"
 #include "hnrt/Buffer.h"
-#include "hnrt/String.h"
 #include "hnrt/StringCommons.h"
 #include "hnrt/UnicodeEscape.h"
 #include "hnrt/NumberText.h"
-#include "hnrt/ErrorMessage.h"
 #include "hnrt/Win32Exception.h"
+#include "hnrt/ErrorMessage.h"
+#include "hnrt/Debug.h"
 
 
 constexpr auto REGVAL_INPUT_CODEPAGE = L"InputCodePage";
@@ -31,7 +28,6 @@ using namespace hnrt;
 
 NativeToAsciiDialogBox::NativeToAsciiDialogBox()
 	: MyDialogBox(IDD_NTOA, L"NativeToAscii")
-	, m_dwFlags(0)
 	, m_szNativePath()
 	, m_szAsciiPath()
 {
@@ -72,8 +68,6 @@ void NativeToAsciiDialogBox::OnDestroy()
 		RegistryValue::SetSZ(hKey, REGVAL_NATIVE_PATH, m_szNativePath);
 		RegistryValue::SetSZ(hKey, REGVAL_ASCII_PATH, m_szAsciiPath);
 	}
-	SetFont(IDC_NTOA_NATIVE_EDIT, NULL);
-	SetFont(IDC_NTOA_ASCII_EDIT, NULL);
 	MyDialogBox::OnDestroy();
 }
 
@@ -221,53 +215,6 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
-INT_PTR NativeToAsciiDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
-{
-	HDC hdc = reinterpret_cast<HDC>(wParam);
-	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
-	switch (id)
-	{
-	case IDC_NTOA_STATUS_STATIC:
-		SetTextColor(hdc,
-			(m_dwFlags & FLAG_STATUS_ERROR) ? RGB_ERROR :
-			(m_dwFlags & FLAG_STATUS_SUCCESSFUL) ? RGB_SUCCESSFUL :
-			GetSysColor(COLOR_WINDOWTEXT));
-		SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
-		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
-	default:
-		break;
-	}
-	return 0;
-}
-
-
-INT_PTR NativeToAsciiDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
-{
-	HDC hdc = reinterpret_cast<HDC>(wParam);
-	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
-	switch (id)
-	{
-	case IDC_NTOA_NATIVE_EDIT:
-		SetTextColor(hdc,
-			(m_dwFlags & FLAG_PANE1_ERROR) ? RGB_ERROR :
-			(m_dwFlags & FLAG_PANE1_SUCCESSFUL) ? RGB_SUCCESSFUL :
-			GetSysColor(COLOR_WINDOWTEXT));
-		SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
-		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
-	case IDC_NTOA_ASCII_EDIT:
-		SetTextColor(hdc,
-			(m_dwFlags & FLAG_PANE2_ERROR) ? RGB_ERROR :
-			(m_dwFlags & FLAG_PANE2_SUCCESSFUL) ? RGB_SUCCESSFUL :
-			GetSysColor(COLOR_WINDOWTEXT));
-		SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
-		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
-	default:
-		break;
-	}
-	return 0;
-}
-
-
 void NativeToAsciiDialogBox::OnEditChanged(int id)
 {
 	MyDialogBox::OnEditChanged(id);
@@ -280,7 +227,7 @@ void NativeToAsciiDialogBox::OnEditChanged(int id)
 		SetStatus(L"", 0, MASK_PANE2 | MASK_STATUS);
 		break;
 	default:
-		break;
+		return;
 	}
 	UpdateControlsState(id);
 }
@@ -396,7 +343,6 @@ void NativeToAsciiDialogBox::OnSave2As()
 
 void NativeToAsciiDialogBox::OnSettingChanged(UINT uId)
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	if (ApplyToInputCodePage(uId))
 	{
 		return;
@@ -410,21 +356,25 @@ void NativeToAsciiDialogBox::OnSettingChanged(UINT uId)
 
 void NativeToAsciiDialogBox::Encode()
 {
+	DBGFNC(L"NativeToAsciiDialogBox::Encode");
 	SetStatus(L"Encoding...", FLAG_BUSY, MASK_STATUS);
 	SetText(IDC_NTOA_ASCII_EDIT, FromNativeToAscii(GetText(IDC_NTOA_NATIVE_EDIT)));
 	SetStatus(String(PRINTF, L"Encoding...Done: %s chars in  >>>  %s chars out",
-		NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr, NumberText(GetTextLength(IDC_NTOA_ASCII_EDIT)).Ptr),
-		FLAG_PANE2_SUCCESSFUL);
+		NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr,
+		NumberText(GetTextLength(IDC_NTOA_ASCII_EDIT)).Ptr),
+		FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR);
 }
 
 
 void NativeToAsciiDialogBox::Decode()
 {
+	DBGFNC(L"NativeToAsciiDialogBox::Decode");
 	SetStatus(L"Decoding...", FLAG_BUSY, MASK_STATUS);
 	SetText(IDC_NTOA_NATIVE_EDIT, FromAsciiToNative(GetText(IDC_NTOA_ASCII_EDIT)));
 	SetStatus(String(PRINTF, L"Decoding...Done: %s chars in  >>>  %s chars out",
-		NumberText(GetTextLength(IDC_NTOA_ASCII_EDIT)).Ptr, NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr),
-		FLAG_PANE1_SUCCESSFUL);
+		NumberText(GetTextLength(IDC_NTOA_ASCII_EDIT)).Ptr,
+		NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr),
+		FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_PANE2_ERROR | FLAG_PANE2_ERROR);
 }
 
 

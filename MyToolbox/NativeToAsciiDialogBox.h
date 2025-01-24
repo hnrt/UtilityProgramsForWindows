@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include "MyDialogBox.h"
-
 
 namespace hnrt
 {
@@ -30,15 +28,12 @@ namespace hnrt
 		virtual void OnDestroy();
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
-		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
-		virtual INT_PTR OnControlColorEdit(WPARAM wParam, LPARAM lParam);
 		virtual void OnEditChanged(int id);
 		void Encode();
 		void Decode();
 		void SetStatus(PCWSTR psz = L"", DWORD dwSet = 0UL, DWORD dwReset = 0UL);
 		void UpdateControlsState(int id);
 
-		DWORD m_dwFlags;
 		mutable String m_szNativePath;
 		mutable String m_szAsciiPath;
 	};

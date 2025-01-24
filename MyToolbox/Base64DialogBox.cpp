@@ -1,19 +1,19 @@
 #include "pch.h"
 #include "Base64DialogBox.h"
 #include "MyToolbox.h"
+#include "resource.h"
 #include "hnrt/RegistryKey.h"
 #include "hnrt/RegistryValue.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/WindowLayoutSnapshot.h"
 #include "hnrt/WhileInScope.h"
-#include "hnrt/Win32Exception.h"
-#include "hnrt/ErrorMessage.h"
 #include "hnrt/FileMapper.h"
 #include "hnrt/FileWriter.h"
 #include "hnrt/StringCommons.h"
 #include "hnrt/NumberText.h"
+#include "hnrt/Win32Exception.h"
+#include "hnrt/ErrorMessage.h"
 #include "hnrt/Debug.h"
-#include "resource.h"
 
 
 constexpr auto REGVAL_FORMAT = L"Format";
@@ -29,7 +29,6 @@ using namespace hnrt;
 
 Base64DialogBox::Base64DialogBox()
     : MyDialogBox(IDD_BS64, L"BASE64")
-    , m_dwFlags(0)
     , m_OriginalDataDisplayMode(DataDisplayMode::HEX)
     , m_CodePage(CP_UTF8)
     , m_LineBreak(LineBreak::CRLF)
@@ -93,8 +92,6 @@ void Base64DialogBox::OnDestroy()
         RegistryValue::SetSZ(hKey, REGVAL_ORGPATH, m_szOriginalPath);
         RegistryValue::SetSZ(hKey, REGVAL_ENCPATH, m_szEncodedPath);
     }
-    SetFont(IDC_BS64_ORG_EDIT, NULL);
-    SetFont(IDC_BS64_ENC_EDIT, NULL);
     MyDialogBox::OnDestroy();
 }
 
@@ -183,15 +180,19 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     switch (idChild)
     {
     case IDM_EDIT_EXECUTE1:
-        Encode();
-        SetFocus(IDC_BS64_ENC_COPY_BUTTON);
+        if (Encode())
+        {
+            SetFocus(IDC_BS64_ENC_COPY_BUTTON);
+        }
         break;
     case IDM_EDIT_COPYRESULT1:
         CopyAllText(IDC_BS64_ORG_EDIT);
         break;
     case IDM_EDIT_EXECUTE2:
-        Decode();
-        SetFocus(IDC_BS64_ORG_COPY_BUTTON);
+        if (Decode())
+        {
+            SetFocus(IDC_BS64_ORG_COPY_BUTTON);
+        }
         break;
     case IDM_EDIT_COPYRESULT2:
         CopyAllText(IDC_BS64_ENC_EDIT);
@@ -199,8 +200,10 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_BS64_ORG_ENCODE_BUTTON:
         if (idNotif == BN_CLICKED)
         {
-            Encode();
-            SetFocus(IDC_BS64_ENC_COPY_BUTTON);
+            if (Encode())
+            {
+                SetFocus(IDC_BS64_ENC_COPY_BUTTON);
+            }
         }
         else
         {
@@ -220,8 +223,10 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_BS64_ENC_DECODE_BUTTON:
         if (idNotif == BN_CLICKED)
         {
-            Decode();
-            SetFocus(IDC_BS64_ORG_COPY_BUTTON);
+            if (Decode())
+            {
+                SetFocus(IDC_BS64_ORG_COPY_BUTTON);
+            }
         }
         else
         {
@@ -255,7 +260,7 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_BS64_ORG_CODEPAGE_COMBO:
         if (idNotif == CBN_SELCHANGE)
         {
-            m_CodePage = ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO, CP_UTF8);
+            m_CodePage = ComboBoxGetSelection(IDC_BS64_ORG_CODEPAGE_COMBO, m_CodePage);
         }
         else
         {
@@ -289,50 +294,21 @@ INT_PTR Base64DialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
-INT_PTR Base64DialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
+void Base64DialogBox::OnEditChanged(int id)
 {
-    HDC hdc = reinterpret_cast<HDC>(wParam);
-    int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
-    switch (id)
-    {
-    case IDC_BS64_STATUS_STATIC:
-        SetTextColor(hdc,
-            (m_dwFlags & FLAG_STATUS_ERROR) ? RGB_ERROR :
-            (m_dwFlags & FLAG_STATUS_SUCCESSFUL) ? RGB_SUCCESSFUL :
-            GetSysColor(COLOR_WINDOWTEXT));
-        SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
-        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
-    default:
-        break;
-    }
-    return 0;
-}
-
-
-INT_PTR Base64DialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
-{
-    HDC hdc = reinterpret_cast<HDC>(wParam);
-    int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
+    MyDialogBox::OnEditChanged(id);
     switch (id)
     {
     case IDC_BS64_ORG_EDIT:
-        SetTextColor(hdc,
-            (m_dwFlags & FLAG_PANE1_ERROR) ? RGB_ERROR :
-            (m_dwFlags & FLAG_PANE1_SUCCESSFUL) ? RGB_SUCCESSFUL :
-            GetSysColor(COLOR_WINDOWTEXT));
-        SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
-        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
-    case IDC_BS64_ENC_EDIT:
-        SetTextColor(hdc,
-            (m_dwFlags & FLAG_PANE2_ERROR) ? RGB_ERROR :
-            (m_dwFlags & FLAG_PANE2_SUCCESSFUL) ? RGB_SUCCESSFUL :
-            GetSysColor(COLOR_WINDOWTEXT));
-        SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
-        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
-    default:
+        SetStatus(L"", 0, MASK_PANE1 | MASK_STATUS);
         break;
+    case IDC_BS64_ENC_EDIT:
+        SetStatus(L"", 0, MASK_PANE2 | MASK_STATUS);
+        break;
+    default:
+        return;
     }
-    return 0;
+    UpdateControlsState(id);
 }
 
 
@@ -341,25 +317,6 @@ void Base64DialogBox::OnNew()
     SetStatus(L"", 0, MASK_PANE1 | MASK_PANE2 | MASK_STATUS);
     SetTextAndNotify(IDC_BS64_ORG_EDIT);
     SetTextAndNotify(IDC_BS64_ENC_EDIT);
-}
-
-
-void Base64DialogBox::OnEditChanged(int id)
-{
-    MyDialogBox::OnEditChanged(id);
-    switch (id)
-    {
-    case IDC_BS64_ORG_EDIT:
-        SetStatus(L"", 0, MASK_PANE1 | MASK_STATUS);
-        UpdateControlsState(IDC_BS64_ORG_EDIT);
-        break;
-    case IDC_BS64_ENC_EDIT:
-        SetStatus(L"", 0, MASK_PANE2 | MASK_STATUS);
-        UpdateControlsState(IDC_BS64_ENC_EDIT);
-        break;
-    default:
-        break;
-    }
 }
 
 
@@ -372,11 +329,13 @@ void Base64DialogBox::OnLoad1From()
             SetStatus(L"Loading to Original...", FLAG_BUSY, MASK_PANE1 | MASK_STATUS);
             FileMapper fm(m_szOriginalPath);
             SetOriginalData(fm.Ptr, fm.Len);
-            SetStatus(String(PRINTF, L"Loading to Original...Done:  %s bytes", NumberText(fm.Len).Ptr), FLAG_PANE1_SUCCESSFUL);
+            SetStatus(String(PRINTF, L"Loading to Original...Done:  %s bytes", NumberText(fm.Len).Ptr),
+                FLAG_STATUS_SUCCESSFUL);
         }
         catch (Exception e)
         {
-            SetStatus(String(PRINTF, L"Loading to Original...Failed:  %s", e.Message), FLAG_STATUS_ERROR);
+            SetStatus(String(PRINTF, L"Loading to Original...Failed:  %s", e.Message),
+                FLAG_STATUS_ERROR);
         }
     }
 }
@@ -391,11 +350,13 @@ void Base64DialogBox::OnSave1As()
             SetStatus(L"Saving from Original...", FLAG_BUSY, MASK_PANE1 | MASK_STATUS);
             ByteString original = GetOriginalData();
             FileWriter(m_szOriginalPath).Write(original.Ptr, original.Len);
-            SetStatus(String(PRINTF, L"Saving from Original...Done:  %s bytes", NumberText(original.Len).Ptr));
+            SetStatus(String(PRINTF, L"Saving from Original...Done:  %s bytes", NumberText(original.Len).Ptr),
+                FLAG_STATUS_SUCCESSFUL);
         }
         catch (Exception e)
         {
-            SetStatus(String(PRINTF, L"Saving from Original...Failed:  %s", e.Message), FLAG_STATUS_ERROR);
+            SetStatus(String(PRINTF, L"Saving from Original...Failed:  %s", e.Message),
+                FLAG_STATUS_ERROR);
         }
     }
 }
@@ -439,7 +400,7 @@ void Base64DialogBox::OnSave2As()
 }
 
 
-void Base64DialogBox::Encode()
+bool Base64DialogBox::Encode()
 {
     DBGFNC(L"Base64DialogBox::Encode");
     try
@@ -448,17 +409,21 @@ void Base64DialogBox::Encode()
         ByteString original = GetOriginalData();
         SetText(IDC_BS64_ENC_EDIT, original.ToBase64().Wrap(m_CharsPerLine));
         SetStatus(String(PRINTF, L"Encoding...Done: %s bytes in  >>>  %s chars out",
-            NumberText(original.Len).Ptr, NumberText(GetTextLength(IDC_BS64_ENC_EDIT)).Ptr),
-            FLAG_PANE2_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR);
+            NumberText(original.Len).Ptr,
+            NumberText(GetTextLength(IDC_BS64_ENC_EDIT)).Ptr),
+            FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR);
+        return true;
     }
     catch (Exception e)
     {
-        SetStatus(String(PRINTF, L"Encoding...Failed: %s", e.Message), FLAG_PANE1_ERROR | FLAG_STATUS_ERROR);
+        SetStatus(String(PRINTF, L"Encoding...Failed: %s", e.Message),
+            FLAG_STATUS_ERROR | FLAG_PANE1_ERROR, FLAG_PANE2_SUCCESSFUL);
+        return false;
     }
 }
 
 
-void Base64DialogBox::Decode()
+bool Base64DialogBox::Decode()
 {
     DBGFNC(L"Base64DialogBox::Decode");
     try
@@ -466,12 +431,16 @@ void Base64DialogBox::Decode()
         SetStatus(L"Decoding...", FLAG_BUSY, MASK_STATUS);
         SetOriginalData(GetDecodedData());
         SetStatus(String(PRINTF, L"Decoding...Done: %s chars in  >>>  %s bytes out",
-            NumberText(GetTextLength(IDC_BS64_ENC_EDIT)).Ptr, NumberText(GetOriginalData().Len).Ptr),
-            FLAG_PANE1_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR);
+            NumberText(GetTextLength(IDC_BS64_ENC_EDIT)).Ptr,
+            NumberText(GetOriginalData().Len).Ptr),
+            FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR);
+        return true;
     }
     catch (Exception e)
     {
-        SetStatus(String(PRINTF, L"Decoding...Failed: %s", e.Message), FLAG_PANE2_ERROR | FLAG_STATUS_ERROR);
+        SetStatus(String(PRINTF, L"Decoding...Failed: %s", e.Message),
+            FLAG_STATUS_ERROR | FLAG_PANE2_ERROR, FLAG_PANE1_SUCCESSFUL);
+        return false;
     }
 }
 
@@ -554,6 +523,46 @@ ByteString Base64DialogBox::GetDecodedData() const
 }
 
 
+void Base64DialogBox::InitializeLineLengthComboBox(UINT cch) const
+{
+    ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, ResourceString(IDS_NO_LINE_BREAK), 0);
+    ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"72", 72);
+    ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"144", 144);
+    ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"216", 216);
+    ComboBoxSetSelection(IDC_BS64_ENC_LINELENGTH_COMBO, cch);
+}
+
+
+void Base64DialogBox::SetStatus(PCWSTR psz, DWORD dwSet, DWORD dwReset)
+{
+    DWORD dwPrev = m_dwFlags;
+    if (dwSet)
+    {
+        m_dwFlags |= dwSet;
+    }
+    if (dwReset)
+    {
+        m_dwFlags &= ~dwReset;
+    }
+    if (m_dwFlags != dwPrev)
+    {
+        InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
+        InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
+    }
+    SetText(IDC_BS64_STATUS_STATIC, psz ? psz : L"");
+    if ((dwSet & FLAG_BUSY))
+    {
+        UpdateControlsState(0);
+    }
+    else if ((dwPrev & FLAG_BUSY))
+    {
+        m_dwFlags &= ~FLAG_BUSY;
+        UpdateControlsState(1);
+    }
+    ProcessMessages();
+}
+
+
 void Base64DialogBox::UpdateControlsState(int id)
 {
     switch (id)
@@ -604,46 +613,6 @@ void Base64DialogBox::UpdateControlsState(int id)
     default:
         break;
     }
-}
-
-
-void Base64DialogBox::InitializeLineLengthComboBox(UINT cch) const
-{
-    ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, ResourceString(IDS_NO_LINE_BREAK), 0);
-    ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"72", 72);
-    ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"144", 144);
-    ComboBoxAdd(IDC_BS64_ENC_LINELENGTH_COMBO, L"216", 216);
-    ComboBoxSetSelection(IDC_BS64_ENC_LINELENGTH_COMBO, cch);
-}
-
-
-void Base64DialogBox::SetStatus(PCWSTR psz, DWORD dwSet, DWORD dwReset)
-{
-    DWORD dwPrev = m_dwFlags;
-    if (dwSet)
-    {
-        m_dwFlags |= dwSet;
-    }
-    if (dwReset)
-    {
-        m_dwFlags &= ~dwReset;
-    }
-    if (m_dwFlags != dwPrev)
-    {
-        InvalidateRect(IDC_BS64_ORG_EDIT, NULL, TRUE);
-        InvalidateRect(IDC_BS64_ENC_EDIT, NULL, TRUE);
-    }
-    SetText(IDC_BS64_STATUS_STATIC, psz ? psz : L"");
-    if ((dwSet & FLAG_BUSY))
-    {
-        UpdateControlsState(0);
-    }
-    else if ((dwPrev & FLAG_BUSY))
-    {
-        m_dwFlags &= ~FLAG_BUSY;
-        UpdateControlsState(1);
-    }
-    ProcessMessages();
 }
 
 

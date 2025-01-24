@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include "MyDialogBox.h"
-
 
 namespace hnrt
 {
@@ -30,19 +28,18 @@ namespace hnrt
 		virtual void OnDestroy();
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
-		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
-		virtual void UpdateControlsState(int id);
-		bool OnEncode();
-		bool OnDecode();
-		UINT GetCodePage() const;
-		void Encode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut, bool bUsePlus);
-		void Encode(WCHAR c, UINT uCodePage, PWCHAR& pOut, PWCHAR pOutBound, UINT offset);
-		void Decode(PCWSTR pszIn, UINT cchIn, UINT uCodePage, PWCHAR pOut, UINT cchOut);
-		UINT GetDecodedOffset(PCWSTR pszIn, UINT cbOut);
-		void ClearStatus(int id = 0);
+		virtual void OnEditChanged(int id);
+		bool Encode();
+		bool Decode();
+		static void Encode(PCWCH pszIn, UINT cchIn, UINT uCodePage, PWCH pOut, UINT cchOut, BOOL bUsePlus);
+		static void Encode(WCHAR c, UINT uCodePage, PWCH& pOut, PWCH pOutBound, UINT offset);
+		static void Decode(PCWCH pszIn, UINT cchIn, UINT uCodePage, PWCH pOut, UINT cchOut);
+		static UINT GetDecodedOffset(PCWCH pszIn, UINT cbOut);
+		void SetStatus(PCWSTR psz = L"", DWORD dwSet = 0UL, DWORD dwReset = 0UL);
+		void UpdateControlsState(int id);
 
-		bool m_bEncodingError;
-		bool m_bDecodingError;
+		UINT m_CodePage;
+		BOOL m_bUsePlus;
 		mutable String m_szOriginalPath;
 		mutable String m_szEncodedPath;
 	};

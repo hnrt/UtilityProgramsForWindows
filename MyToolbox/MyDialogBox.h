@@ -52,6 +52,8 @@ namespace hnrt
 		virtual void OnCreate();
 		virtual void OnDestroy();
 		virtual INT_PTR OnTimer(WPARAM wParam, LPARAM lParam);
+		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
+		virtual INT_PTR OnControlColorEdit(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnEditCommand(WPARAM wParam, LPARAM lParam);
 		virtual void OnEditSetFocus(int id);
 		virtual void OnEditKillFocus(int id);
@@ -101,6 +103,7 @@ namespace hnrt
 		UINT m_CurrentEdit;
 		LastModified m_LastModified;
 		UINT m_timers[4];
+		DWORD m_dwFlags;
 	};
 
 	inline void MyDialogBox::SetId(UINT id)

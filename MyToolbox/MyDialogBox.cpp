@@ -37,6 +37,7 @@ MyDialogBox::MyDialogBox(UINT idTemplate, PCWSTR pszName)
 	, m_CurrentEdit(0)
 	, m_LastModified()
 	, m_timers()
+	, m_dwFlags(0)
 {
 	memset(m_timers, 0, sizeof(m_timers));
 }
@@ -102,6 +103,59 @@ INT_PTR MyDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 	if (wParam == TIMERID(Id, 1000))
 	{
 		UpdateEditControlMenus(m_CurrentEdit);
+	}
+	return 0;
+}
+
+
+INT_PTR MyDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc = reinterpret_cast<HDC>(wParam);
+	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
+	switch (id)
+	{
+	case IDC_BS64_STATUS_STATIC:
+	case IDC_NTOA_STATUS_STATIC:
+	case IDC_PCTC_STATUS_STATIC:
+		SetTextColor(hdc,
+			(m_dwFlags & FLAG_STATUS_ERROR) ? RGB_ERROR :
+			(m_dwFlags & FLAG_STATUS_SUCCESSFUL) ? RGB_SUCCESSFUL :
+			GetSysColor(COLOR_WINDOWTEXT));
+		SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
+		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
+	default:
+		break;
+	}
+	return 0;
+}
+
+
+INT_PTR MyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc = reinterpret_cast<HDC>(wParam);
+	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
+	switch (id)
+	{
+	case IDC_BS64_ORG_EDIT:
+	case IDC_NTOA_NATIVE_EDIT:
+	case IDC_PCTC_ORG_EDIT:
+		SetTextColor(hdc,
+			(m_dwFlags & FLAG_PANE1_ERROR) ? RGB_ERROR :
+			(m_dwFlags & FLAG_PANE1_SUCCESSFUL) ? RGB_SUCCESSFUL :
+			GetSysColor(COLOR_WINDOWTEXT));
+		SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
+	case IDC_BS64_ENC_EDIT:
+	case IDC_NTOA_ASCII_EDIT:
+	case IDC_PCTC_ENC_EDIT:
+		SetTextColor(hdc,
+			(m_dwFlags & FLAG_PANE2_ERROR) ? RGB_ERROR :
+			(m_dwFlags & FLAG_PANE2_SUCCESSFUL) ? RGB_SUCCESSFUL :
+			GetSysColor(COLOR_WINDOWTEXT));
+		SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
+	default:
+		break;
 	}
 	return 0;
 }
