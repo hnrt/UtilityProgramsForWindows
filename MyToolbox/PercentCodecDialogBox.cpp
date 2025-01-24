@@ -288,7 +288,9 @@ void PercentCodecDialogBox::OnLoad1From()
 		SetStatus(L"Loading Original...", FLAG_BUSY, MASK_STATUS);
 		if (LoadTextFromFile(IDC_PCTC_ORG_EDIT, m_szOriginalPath))
 		{
-			SetStatus(String(PRINTF, L"Loading Original...Done:  %s chars in", NumberText(GetTextLength(IDC_PCTC_ORG_EDIT)).Ptr), FLAG_STATUS_SUCCESSFUL, MASK_PANE1);
+			SetStatus(String(PRINTF, L"Loading Original...Done:  %s chars in",
+				NumberText(GetTextLength(IDC_PCTC_ORG_EDIT)).Ptr),
+				FLAG_STATUS_SUCCESSFUL, MASK_PANE1);
 		}
 		else
 		{
@@ -297,11 +299,13 @@ void PercentCodecDialogBox::OnLoad1From()
 	}
 	catch (Win32Exception e)
 	{
-		SetStatus(String(PRINTF, L"Loading Original...Failed: %s: %s", e.Message, ErrorMessage::Get(e.Error)), FLAG_STATUS_ERROR);
+		SetStatus(String(PRINTF, L"Loading Original...Failed: %s: %s", e.Message, ErrorMessage::Get(e.Error)),
+			FLAG_STATUS_ERROR);
 	}
 	catch (Exception e)
 	{
-		SetStatus(String(PRINTF, L"Loading Original...Failed: %s", e.Message), FLAG_STATUS_ERROR);
+		SetStatus(String(PRINTF, L"Loading Original...Failed: %s", e.Message),
+			FLAG_STATUS_ERROR);
 	}
 }
 
