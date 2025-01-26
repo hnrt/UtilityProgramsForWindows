@@ -20,25 +20,25 @@
 #include "hnrt/Debug.h"
 
 
-#define REGVAL_BASEOFFSET L"BaseOffset"
-#define REGVAL_DISPLAYOFFSET L"DisplayOffset"
-#define REGVAL_SECOND L"Second"
-#define REGVAL_EXPRESSION L"Expression"
-
-
-#define FLAG_EXPRESSION	(1UL<<0)
-#define FLAG_SECOND		(1UL<<1)
-#define FLAG_MINUTE		(1UL<<2)
-#define FLAG_HOUR		(1UL<<3)
-#define FLAG_DAYOFMONTH	(1UL<<4)
-#define FLAG_MONTH		(1UL<<5)
-#define FLAG_DAYOFWEEK	(1UL<<6)
-#define FLAG_YEAR		(1UL<<7)
-#define FLAG_ALL		((1UL<<8)-1UL)
-#define FLAG_ELEMENT	(FLAG_ALL&~FLAG_EXPRESSION)
-
-
 using namespace hnrt;
+
+
+constexpr auto REGVAL_BASEOFFSET = L"BaseOffset";
+constexpr auto REGVAL_DISPLAYOFFSET = L"DisplayOffset";
+constexpr auto REGVAL_SECOND = L"Second";
+constexpr auto REGVAL_EXPRESSION = L"Expression";
+
+
+constexpr auto FLAG_EXPRESSION = 1UL << 0;
+constexpr auto FLAG_SECOND = 1UL << 1;
+constexpr auto FLAG_MINUTE = 1UL << 2;
+constexpr auto FLAG_HOUR = 1UL << 3;
+constexpr auto FLAG_DAYOFMONTH = 1UL << 4;
+constexpr auto FLAG_MONTH = 1UL << 5;
+constexpr auto FLAG_DAYOFWEEK = 1UL << 6;
+constexpr auto FLAG_YEAR = 1UL << 7;
+constexpr auto FLAG_ALL = (1UL << 8) - 1;
+constexpr auto FLAG_ELEMENT = FLAG_ALL & ~FLAG_EXPRESSION;
 
 
 static PCWSTR GetCronErrorText(CronError e, bool bDetails = false)
@@ -204,19 +204,11 @@ void CronDialogBox::OnDestroy()
 	LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName);
 	if (rc == ERROR_SUCCESS)
 	{
-		RegistryValue::SetDWORD(hKey, REGVAL_SECOND, m_cron.SecondEnabled ? 1U : 0U);
+		RegistryValue::SetDWORD(hKey, REGVAL_SECOND, m_cron.SecondEnabled ? 1 : 0);
 		RegistryValue::SetDWORD(hKey, REGVAL_BASEOFFSET, ComboBoxGetSelection(IDC_CRON_EXPR_COMBO));
 		RegistryValue::SetDWORD(hKey, REGVAL_DISPLAYOFFSET, ComboBoxGetSelection(IDC_CRON_OFFSET_COMBO));
 		RegistryValue::SetSZ(hKey, REGVAL_EXPRESSION, GetText(IDC_CRON_EXPR_EDIT));
 	}
-	SetFont(IDC_CRON_EXPR_EDIT, NULL);
-	SetFont(IDC_CRON_YEAR_EDIT, NULL);
-	SetFont(IDC_CRON_MONTH_EDIT, NULL);
-	SetFont(IDC_CRON_DAY_EDIT, NULL);
-	SetFont(IDC_CRON_DOW_EDIT, NULL);
-	SetFont(IDC_CRON_HOUR_EDIT, NULL);
-	SetFont(IDC_CRON_MINUTE_EDIT, NULL);
-	SetFont(IDC_CRON_SECOND_EDIT, NULL);
 	MyDialogBox::OnDestroy();
 }
 

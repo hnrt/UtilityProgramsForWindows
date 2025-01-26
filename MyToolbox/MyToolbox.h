@@ -79,22 +79,22 @@ namespace hnrt
 	}
 }
 
-#define APP_GROUP L"hnrt"
-#define APP_NAME L"MyToolbox"
+constexpr auto APP_GROUP = L"hnrt";
+constexpr auto APP_NAME = L"MyToolbox";
 
-#define REGKEY_ROOT L"SOFTWARE\\" APP_GROUP L"\\" APP_NAME
+constexpr auto REGKEY_ROOT = L"SOFTWARE\\hnrt\\MyToolbox";
 
-#define FACENAME L"Segoe UI"
-#define POINTSIZE 8
+constexpr auto FACENAME = L"Segoe UI";
+constexpr auto POINTSIZE = 8;
 
-#define FACENAME_TAB L"Segoe UI"
-#define POINTSIZE_TAB 10
+constexpr auto FACENAME_TAB = L"Segoe UI";
+constexpr auto POINTSIZE_TAB = 10;
 
 #if 0
-#define FACENAME_DATA L"Campbell"
+constexpr auto FACENAME_DATA = L"Campbell";
 #elif 0
-#define FACENAME_DATA L"Courier New"
+constexpr auto FACENAME_DATA = L"Courier New";
 #else
-#define FACENAME_DATA L"Lucida Console"
+constexpr auto FACENAME_DATA = L"Lucida Console";
 #endif
-#define POINTSIZE_DATA 9
+constexpr auto POINTSIZE_DATA = 9;

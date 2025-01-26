@@ -23,16 +23,19 @@
 #include <map>
 
 
-#define REG_NAME_CHAININGMODE L"ChainingMode"
-#define REG_NAME_KEYLENGTH L"KeyLength"
-#define REG_NAME_KEY L"Key"
-#define REG_NAME_IV L"IV"
-#define REG_NAME_NONCE L"Nonce"
-#define REG_NAME_CCMTAGLENGTH L"CCM_TagLength"
-#define REG_NAME_GCMTAGLENGTH L"GCM_TagLength"
-#define REG_NAME_ORGDISPMODE L"OriginalDataDisplayMode"
-#define REG_NAME_ENCDISPMODE L"EncryptedDataDisplayMode"
-#define REG_NAME_HEXFORMAT L"HexFormat"
+using namespace hnrt;
+
+
+constexpr auto REG_NAME_CHAININGMODE = L"ChainingMode";
+constexpr auto REG_NAME_KEYLENGTH = L"KeyLength";
+constexpr auto REG_NAME_KEY = L"Key";
+constexpr auto REG_NAME_IV = L"IV";
+constexpr auto REG_NAME_NONCE = L"Nonce";
+constexpr auto REG_NAME_CCMTAGLENGTH = L"CCM_TagLength";
+constexpr auto REG_NAME_GCMTAGLENGTH = L"GCM_TagLength";
+constexpr auto REG_NAME_ORGDISPMODE = L"OriginalDataDisplayMode";
+constexpr auto REG_NAME_ENCDISPMODE = L"EncryptedDataDisplayMode";
+constexpr auto REG_NAME_HEXFORMAT = L"HexFormat";
 
 
 #define IS_AES_CBC(x) (!wcscmp(x,BCRYPT_CHAIN_MODE_CBC))
@@ -42,11 +45,8 @@
 #define IS_AES_GCM(x) (!wcscmp(x,BCRYPT_CHAIN_MODE_GCM))
 
 
-using namespace hnrt;
-
-
 CryptographyDialogBox::CryptographyDialogBox()
-	: MyDialogBox(IDD_CRPT, L"Cryptography")
+	: MyDialogBox(IDD_CRPT, L"Cryptography", IDC_CRPT_STATUS_STATIC, IDC_CRPT_ORG_EDIT, IDC_CRPT_ENC_EDIT)
 	, m_hAlg()
 	, m_KeyLength(256)
 	, m_Key()
@@ -63,7 +63,6 @@ CryptographyDialogBox::CryptographyDialogBox()
 	, m_CodePage(CP_UTF8)
 	, m_LineBreak(LineBreak::CRLF)
 	, m_Mode(MODE_IDLE)
-	, m_bStatusSuccessful(TRUE)
 	, m_szOriginalDataPath()
 	, m_szEncryptedDataPath()
 	, m_bWrapData(TRUE)
@@ -136,7 +135,7 @@ void CryptographyDialogBox::OnCreate()
 	OnEncryptedDataDisplayModeChange(ed);
 	DisableWindow(IDC_CRPT_ENCRYPT_BUTTON);
 	DisableWindow(IDC_CRPT_DECRYPT_BUTTON);
-	ClearStatusText();
+	SetStatus(0, MASK_STATUS, L"");
 	InvalidateRect(IDC_CRPT_KEY_EDIT, NULL, FALSE);
 	InvalidateRect(IDC_CRPT_IV_EDIT, NULL, FALSE);
 	m_menuView
@@ -472,6 +471,11 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 INT_PTR CryptographyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+	INT_PTR ret = MyDialogBox::OnControlColorEdit(wParam, lParam);
+	if (ret)
+	{
+		return ret;
+	}
 	HDC hdc = reinterpret_cast<HDC>(wParam);
 	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
 	switch (id)
@@ -505,28 +509,6 @@ INT_PTR CryptographyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 		return 0;
 	}
 	return reinterpret_cast<INT_PTR>(GetStockObject(WHITE_BRUSH));
-}
-
-
-INT_PTR CryptographyDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
-{
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	HDC hdc = reinterpret_cast<HDC>(wParam);
-	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
-	switch (id)
-	{
-	case IDC_CRPT_STATUS_STATIC:
-		if (m_bStatusSuccessful == FALSE)
-		{
-			SetTextColor(hdc, RGB_ERROR);
-			SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
-			break;
-		}
-		return 0;
-	default:
-		return 0;
-	}
-	return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
 }
 
 
@@ -806,13 +788,11 @@ void CryptographyDialogBox::OnEncrypt()
 		}
 		m_EncryptedData = encrypted;
 		SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
-		m_bStatusSuccessful = TRUE;
-		SetStatusText(st, L"Encrypted; %zu bytes in, %zu bytes out.", m_OriginalData.Len, m_EncryptedData.Len);
+		SetStatus(FLAG_STATUS_SUCCESSFUL, FLAG_STATUS_ERROR, st, L"ENCRYPTED:  %s in  >>>  %s out", NumberOfBytes(m_OriginalData.Len), NumberOfBytes(m_EncryptedData.Len));
 	}
 	catch (Exception e)
 	{
-		m_bStatusSuccessful = FALSE;
-		SetStatusText(st, L"%s", e.Message);
+		SetStatus(FLAG_STATUS_ERROR, FLAG_STATUS_SUCCESSFUL, st, L"%s", e.Message);
 	}
 	UpdateMenus();
 	UpdateButtons();
@@ -905,13 +885,11 @@ void CryptographyDialogBox::OnDecrypt()
 		}
 		m_OriginalData = decrypted;
 		SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
-		m_bStatusSuccessful = TRUE;
-		SetStatusText(st, L"Decrypted; %zu bytes in, %zu bytes out.", m_EncryptedData.Len, m_OriginalData.Len);
+		SetStatus(FLAG_STATUS_SUCCESSFUL, FLAG_STATUS_ERROR, st, L"DECRYPTED:  %s in  >>>  %s out", NumberOfBytes(m_EncryptedData.Len), NumberOfBytes(m_OriginalData.Len));
 	}
 	catch (Exception e)
 	{
-		m_bStatusSuccessful = FALSE;
-		SetStatusText(st, L"%s", e.Message);
+		SetStatus(FLAG_STATUS_ERROR, FLAG_STATUS_SUCCESSFUL, st, L"ERROR:  %s", e.Message);
 	}
 	UpdateMenus();
 	UpdateButtons();
@@ -1207,15 +1185,14 @@ void CryptographyDialogBox::OnAaDataDisplayModeChange(int id)
 			break;
 		}
 		SetText(IDC_CRPT_AAD_EDIT, text);
-		ClearStatusText();
+		SetStatus(0, MASK_STATUS, L"");
 	}
 	catch (Exception e)
 	{
 		ButtonUncheck(AaDataDisplayModeToControlId(m_AaDataDisplayMode));
 		m_AaDataDisplayMode = current;
 		ButtonCheck(AaDataDisplayModeToControlId(m_AaDataDisplayMode));
-		m_bStatusSuccessful = FALSE;
-		SetStatusText(L"%s", e.Message);
+		SetStatus(FLAG_STATUS_ERROR, FLAG_STATUS_SUCCESSFUL, L"ERROR:  %s", e.Message);
 	}
 }
 
@@ -1247,13 +1224,12 @@ void CryptographyDialogBox::OnOriginalDataChange()
 			default:
 				throw Exception(L"Bad Data Display Mode.");
 			}
-			ClearStatusText();
+			SetStatus(0, MASK_STATUS | MASK_PANE1, L"");
 		}
 		catch (Exception e)
 		{
 			m_OriginalData.Resize(0);
-			m_bStatusSuccessful = FALSE;
-			SetStatusText(L"%s", e.Message);
+			SetStatus(FLAG_STATUS_ERROR | FLAG_PANE1_ERROR, FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, L"ERROR:  %s", e.Message);
 		}
 	}
 	UpdateMenus();
@@ -1267,7 +1243,7 @@ void CryptographyDialogBox::OnOriginalDataDisplayModeChange(int id)
 	DataDisplayMode current = m_OriginalDataDisplayMode;
 	if (m_Mode == MODE_ENCRYPTION)
 	{
-		ClearStatusText();
+		SetStatus(0, MASK_STATUS, L"");
 	}
 	m_OriginalDataDisplayMode =
 		id == IDC_CRPT_ORG_HEX_RADIO ? DataDisplayMode::HEX :
@@ -1318,8 +1294,7 @@ String CryptographyDialogBox::OriginalDataToString()
 	}
 	catch (Exception e)
 	{
-		m_bStatusSuccessful = FALSE;
-		SetStatusText(L"%s", e.Message);
+		SetStatus(FLAG_STATUS_ERROR, FLAG_STATUS_SUCCESSFUL, L"ERROR:  %s", e.Message);
 		return String::Empty;
 	}
 }
@@ -1349,13 +1324,12 @@ void CryptographyDialogBox::OnEncryptedDataChange()
 			default:
 				throw Exception(L"Bad DataDisplayMode for Encrypted Data.");
 			}
-			ClearStatusText();
+			SetStatus(0, MASK_STATUS | MASK_PANE2, L"");
 		}
 		catch (Exception e)
 		{
 			m_EncryptedData.Resize(0);
-			m_bStatusSuccessful = FALSE;
-			SetStatusText(L"%s", e.Message);
+			SetStatus(FLAG_STATUS_ERROR | FLAG_PANE2_ERROR, FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, L"ERROR:  %s", e.Message);
 		}
 	}
 	UpdateMenus();
@@ -1369,7 +1343,7 @@ void CryptographyDialogBox::OnEncryptedDataDisplayModeChange(int id)
 	DataDisplayMode current = m_EncryptedDataDisplayMode;
 	if (m_Mode == MODE_DECRYPTION)
 	{
-		ClearStatusText();
+		SetStatus(0, MASK_STATUS, L"");
 	}
 	m_EncryptedDataDisplayMode =
 		id == IDC_CRPT_ENC_HEX_RADIO ? DataDisplayMode::HEX :
@@ -1487,12 +1461,11 @@ void CryptographyDialogBox::OnCodePageChange()
 				SetText(IDC_CRPT_ORG_EDIT, strOriginal);
 			}
 		}
-		ClearStatusText();
+		SetStatus(0, MASK_STATUS, L"");
 	}
 	catch (Exception e)
 	{
-		m_bStatusSuccessful = FALSE;
-		SetStatusText(L"%s: %s", checkPoint == 1 ? L"Original Data" : L"Additional Authenticated Data", e.Message);
+		SetStatus(FLAG_STATUS_ERROR, FLAG_STATUS_SUCCESSFUL, L"ERROR:  %s", e.Message);
 		m_CodePage = previous;
 		ComboBoxSetSelection(IDC_CRPT_CODEPAGE_COMBO, m_CodePage);
 	}
@@ -1509,7 +1482,7 @@ void CryptographyDialogBox::OnLineBreakChange()
 		if (m_OriginalDataDisplayMode == DataDisplayMode::TEXT)
 		{
 			m_OriginalData = ByteString::FromString(GetText(IDC_CRPT_ORG_EDIT), m_CodePage, m_LineBreak);
-			ClearStatusText();
+			SetStatus(0, MASK_STATUS, L"");
 		}
 	}
 }
@@ -1532,7 +1505,7 @@ void CryptographyDialogBox::SetMode(int value)
 		}
 		EditSetReadOnly(IDC_CRPT_ORG_EDIT, FALSE);
 		EditSetReadOnly(IDC_CRPT_ENC_EDIT, FALSE);
-		ClearStatusText();
+		SetStatus(0, MASK_STATUS, L"");
 		UpdateButtons();
 		break;
 	case MODE_ENCRYPTION:
@@ -1546,7 +1519,7 @@ void CryptographyDialogBox::SetMode(int value)
 			{
 				m_EncryptedData.Resize(0);
 				SetText(IDC_CRPT_ENC_EDIT);
-				ClearStatusText();
+				SetStatus(0, MASK_STATUS, L"");
 				UpdateButtons();
 			}
 			break;
@@ -1566,7 +1539,7 @@ void CryptographyDialogBox::SetMode(int value)
 			{
 				m_OriginalData.Resize(0);
 				SetText(IDC_CRPT_ORG_EDIT);
-				ClearStatusText();
+				SetStatus(0, MASK_STATUS, L"");
 				UpdateButtons();
 			}
 			break;
@@ -1579,44 +1552,6 @@ void CryptographyDialogBox::SetMode(int value)
 		break;
 	}
 	m_Mode = value;
-}
-
-
-void CryptographyDialogBox::ClearStatusText()
-{
-	if (m_bStatusSuccessful == TRUE || m_bStatusSuccessful == FALSE)
-	{
-		SetText(IDC_CRPT_STATUS_STATIC);
-		m_bStatusSuccessful = -1;
-	}
-}
-
-
-void CryptographyDialogBox::SetStatusText(PCWSTR pszFormat, ...) const
-{
-	SYSTEMTIME st = { 0 };
-	GetLocalTime(&st);
-	va_list argList;
-	va_start(argList, pszFormat);
-	SetStatusText(st, pszFormat, argList);
-	va_end(argList);
-}
-
-
-void CryptographyDialogBox::SetStatusText(const SYSTEMTIME& st, PCWSTR pszFormat, ...) const
-{
-	va_list argList;
-	va_start(argList, pszFormat);
-	SetStatusText(st, pszFormat, argList);
-	va_end(argList);
-}
-
-
-void CryptographyDialogBox::SetStatusText(const SYSTEMTIME& st, PCWSTR pszFormat, va_list argList) const
-{
-	SetText(IDC_CRPT_STATUS_STATIC,
-		String(PRINTF, L"%04d-%02d-%02d %02d:%02d:%02d  ", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond)
-		.VaAppendFormat(pszFormat, argList));
 }
 
 

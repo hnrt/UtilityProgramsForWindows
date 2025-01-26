@@ -15,12 +15,12 @@
 #include "hnrt/StringCommons.h"
 
 
-#define REGVAL_LAST L"Last"
+constexpr auto REGVAL_LAST = L"Last";
 
 
-#define STATE_SUCCESSFUL 1
-#define STATE_ERROR 2
-#define STATE_CHANGING 3
+constexpr auto STATE_SUCCESSFUL = 1;
+constexpr auto STATE_ERROR = 2;
+constexpr auto STATE_CHANGING = 3;
 
 
 using namespace hnrt;

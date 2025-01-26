@@ -35,7 +35,6 @@ namespace hnrt
 		static void Encode(WCHAR c, UINT uCodePage, PWCH& pOut, PWCH pOutBound, UINT offset);
 		static void Decode(PCWCH pszIn, UINT cchIn, UINT uCodePage, PWCH pOut, UINT cchOut);
 		static UINT GetDecodedOffset(PCWCH pszIn, UINT cbOut);
-		void SetStatus(PCWSTR psz = L"", DWORD dwSet = 0UL, DWORD dwReset = 0UL);
 		void UpdateControlsState(int id);
 
 		UINT m_CodePage;

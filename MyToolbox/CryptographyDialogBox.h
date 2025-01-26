@@ -32,7 +32,6 @@ namespace hnrt
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorEdit(WPARAM wParam, LPARAM lParam);
-		virtual INT_PTR OnControlColorStatic(WPARAM wParam, LPARAM lParam);
 		virtual void OnEditChanged(int id);
 		void OnEncrypt();
 		void OnDecrypt();
@@ -56,10 +55,6 @@ namespace hnrt
 		void OnCodePageChange();
 		void OnLineBreakChange();
 		void SetMode(int);
-		void ClearStatusText();
-		void SetStatusText(PCWSTR, ...) const;
-		void SetStatusText(const SYSTEMTIME&, PCWSTR, ...) const;
-		void SetStatusText(const SYSTEMTIME&, PCWSTR, va_list) const;
 		void UpdateMenus();
 		void UpdateButtons();
 		void UpdateTagSizeRadioBoxes();
@@ -92,7 +87,6 @@ namespace hnrt
 		UINT m_CodePage;
 		LineBreak m_LineBreak;
 		int m_Mode;
-		BOOL m_bStatusSuccessful;
 		String m_szOriginalDataPath;
 		String m_szEncryptedDataPath;
 		BOOL m_bWrapData;

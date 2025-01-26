@@ -44,7 +44,6 @@ namespace hnrt
 		void SwitchMenu();
 		void Calculate(RefPtr<DataFeeder> pDataFeeder);
 		bool CanCalculate() const;
-		bool HasValue() const;
 		void ClearValue();
 		void SetValueHeader() const;
 		void SetValueHeader(ULONGLONG nBytesIn) const;
@@ -63,6 +62,5 @@ namespace hnrt
 		UINT m_uMethod;
 		StringOptions m_uLettercase;
 		String m_szTextPath;
-		DWORD m_dwFlags;
 	};
 }

@@ -13,13 +13,13 @@
 #include "hnrt/Debug.h"
 
 
-#define REGVAL_FORMAT L"Format"
-#define REGVAL_OFFSET L"Offset"
-#define REGVAL_LAST L"Last"
-#define REGVAL_FIXED L"Fixed"
-
-
 using namespace hnrt;
+
+
+constexpr auto REGVAL_FORMAT = L"Format";
+constexpr auto REGVAL_OFFSET = L"Offset";
+constexpr auto REGVAL_LAST = L"Last";
+constexpr auto REGVAL_FIXED = L"Fixed";
 
 
 DateTimeDialogBox::DateTimeDialogBox()

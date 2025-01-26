@@ -13,6 +13,7 @@
 #include "hnrt/Unicode.h"
 #include "hnrt/WhileInScope.h"
 #include "hnrt/StringCommons.h"
+#include "hnrt/NumberText.h"
 #include "hnrt/Debug.h"
 #include <map>
 
@@ -20,12 +21,14 @@
 using namespace hnrt;
 
 
-MyDialogBox::MyDialogBox(UINT idTemplate, PCWSTR pszName)
+MyDialogBox::MyDialogBox(UINT idTemplate, PCWSTR pszName, int StatusId, int Pane1Id, int Pane2Id)
 	: DialogBox(idTemplate)
 	, m_id(-1)
 	, m_bActive(false)
 	, m_szRegistryKeyName(GetApp<MyToolbox>().GetRegistryKeyName(pszName))
-	, m_cProcessing(0)
+	, m_StatusId(StatusId)
+	, m_Pane1Id(Pane1Id)
+	, m_Pane2Id(Pane2Id)
 	, m_menuFile(HMENU_NULL)
 	, m_menuEdit(HMENU_NULL)
 	, m_menuView(HMENU_NULL)
@@ -34,10 +37,12 @@ MyDialogBox::MyDialogBox(UINT idTemplate, PCWSTR pszName)
 	, m_uInputCodePage(CP_AUTODETECT)
 	, m_uOutputCodePage(CP_UTF8)
 	, m_bOutputBOM(false)
-	, m_CurrentEdit(0)
-	, m_LastModified()
+	, m_OutputLineBreak(LineBreak::DONOTCARE)
 	, m_timers()
 	, m_dwFlags(0)
+	, m_CurrentEdit(0)
+	, m_LastModified()
+	, m_cProcessing(0)
 {
 	memset(m_timers, 0, sizeof(m_timers));
 }
@@ -112,19 +117,14 @@ INT_PTR MyDialogBox::OnControlColorStatic(WPARAM wParam, LPARAM lParam)
 {
 	HDC hdc = reinterpret_cast<HDC>(wParam);
 	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
-	switch (id)
+	if (id == m_StatusId)
 	{
-	case IDC_BS64_STATUS_STATIC:
-	case IDC_NTOA_STATUS_STATIC:
-	case IDC_PCTC_STATUS_STATIC:
 		SetTextColor(hdc,
 			(m_dwFlags & FLAG_STATUS_ERROR) ? RGB_ERROR :
 			(m_dwFlags & FLAG_STATUS_SUCCESSFUL) ? RGB_SUCCESSFUL :
 			GetSysColor(COLOR_WINDOWTEXT));
 		SetBkColor(hdc, GetSysColor(COLOR_3DFACE));
 		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_3DFACE));
-	default:
-		break;
 	}
 	return 0;
 }
@@ -134,28 +134,23 @@ INT_PTR MyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 {
 	HDC hdc = reinterpret_cast<HDC>(wParam);
 	int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
-	switch (id)
+	if (id == m_Pane1Id)
 	{
-	case IDC_BS64_ORG_EDIT:
-	case IDC_NTOA_NATIVE_EDIT:
-	case IDC_PCTC_ORG_EDIT:
 		SetTextColor(hdc,
 			(m_dwFlags & FLAG_PANE1_ERROR) ? RGB_ERROR :
 			(m_dwFlags & FLAG_PANE1_SUCCESSFUL) ? RGB_SUCCESSFUL :
 			GetSysColor(COLOR_WINDOWTEXT));
 		SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
 		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
-	case IDC_BS64_ENC_EDIT:
-	case IDC_NTOA_ASCII_EDIT:
-	case IDC_PCTC_ENC_EDIT:
+	}
+	else if (id == m_Pane2Id)
+	{
 		SetTextColor(hdc,
 			(m_dwFlags & FLAG_PANE2_ERROR) ? RGB_ERROR :
 			(m_dwFlags & FLAG_PANE2_SUCCESSFUL) ? RGB_SUCCESSFUL :
 			GetSysColor(COLOR_WINDOWTEXT));
 		SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
 		return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
-	default:
-		break;
 	}
 	return 0;
 }
@@ -214,6 +209,116 @@ void MyDialogBox::OnEditChanged(int id)
 	}
 	m_LastModified.By = id;
 	UpdateControlsState(id);
+}
+
+
+DWORD MyDialogBox::SetStatus(PCWSTR psz, DWORD dwSet, DWORD dwReset)
+{
+	if (m_StatusId)
+	{
+		SetText(m_StatusId, psz);
+	}
+	return SetFlags(dwSet, dwReset);
+}
+
+
+DWORD MyDialogBox::SetStatus(DWORD dwSet, DWORD dwReset, PCWSTR pszFormat, ...)
+{
+	va_list argList;
+	va_start(argList, pszFormat);
+	DWORD dwRet = VaSetStatus(dwSet, dwReset, pszFormat, argList);
+	va_end(argList);
+	return dwRet;
+}
+
+
+DWORD MyDialogBox::VaSetStatus(DWORD dwSet, DWORD dwReset, PCWSTR pszFormat, va_list argList)
+{
+	if (m_StatusId)
+	{
+		String sz;
+		sz.VaFormat(pszFormat, argList);
+		SetText(m_StatusId, sz);
+	}
+	return SetFlags(dwSet, dwReset);
+}
+
+
+DWORD MyDialogBox::SetStatus(DWORD dwSet, DWORD dwReset, const SYSTEMTIME& st, PCWSTR pszFormat, ...)
+{
+	va_list argList;
+	va_start(argList, pszFormat);
+	DWORD dwRet = VaSetStatus(dwSet, dwReset, st, pszFormat, argList);
+	va_end(argList);
+	return dwRet;
+}
+
+
+DWORD MyDialogBox::VaSetStatus(DWORD dwSet, DWORD dwReset, const SYSTEMTIME& st, PCWSTR pszFormat, va_list argList)
+{
+	if (m_StatusId)
+	{
+		String sz;
+		sz.Format(L"%04d-%02d-%02d %02d:%02d:%02d  ", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+		sz.VaAppendFormat(pszFormat, argList);
+		SetText(m_StatusId, sz);
+	}
+	return SetFlags(dwSet, dwReset);
+}
+
+
+DWORD MyDialogBox::SetFlags(DWORD dwSet, DWORD dwReset)
+{
+	DWORD dwPrev = m_dwFlags;
+	if (dwSet)
+	{
+		m_dwFlags |= dwSet;
+	}
+	if (dwReset)
+	{
+		m_dwFlags &= ~dwReset;
+	}
+	DWORD dwChanged = (dwPrev ^ m_dwFlags) & (MASK_STATUS | MASK_PANE1 | MASK_PANE2);
+	if (m_StatusId && (dwChanged & MASK_STATUS))
+	{
+		InvalidateRect(m_StatusId, NULL, TRUE);
+	}
+	else
+	{
+		dwChanged &= ~MASK_STATUS;
+	}
+	if (m_Pane1Id && (dwChanged & MASK_PANE1))
+	{
+		InvalidateRect(m_Pane1Id, NULL, TRUE);
+	}
+	else
+	{
+		dwChanged &= ~MASK_PANE1;
+	}
+	if (m_Pane2Id && (dwChanged & MASK_PANE2))
+	{
+		InvalidateRect(m_Pane2Id, NULL, TRUE);
+	}
+	else
+	{
+		dwChanged &= ~MASK_PANE2;
+	}
+	if ((dwSet & FLAG_BUSY))
+	{
+		UpdateControlsState(0);
+		dwChanged |= FLAG_BUSY;
+	}
+	else if ((dwPrev & FLAG_BUSY))
+	{
+		m_dwFlags &= ~FLAG_BUSY;
+		UpdateControlsState(1);
+		dwChanged |= FLAG_BUSY;
+	}
+	if (dwChanged)
+	{
+		ProcessMessages();
+	}
+	return dwPrev;
 }
 
 
@@ -818,14 +923,14 @@ bool MyDialogBox::ApplyToLettercase(UINT uId, StringOptions& uValue)
 }
 
 
-bool MyDialogBox::LoadTextFromFile(int id)
+bool MyDialogBox::LoadTextFromFile(int id, PCWSTR pszObject)
 {
 	String szPath;
-	return LoadTextFromFile(id, szPath);
+	return LoadTextFromFile(id, pszObject, szPath);
 }
 
 
-bool MyDialogBox::LoadTextFromFile(int id, String& szPath)
+bool MyDialogBox::LoadTextFromFile(int id, PCWSTR pszObject, String& szPath)
 {
 	String szTitle(ResourceString(IDS_LOADTEXTFROMFILE));
 	StringBuffer szPath2(MAX_PATH, szPath);
@@ -840,34 +945,54 @@ bool MyDialogBox::LoadTextFromFile(int id, String& szPath)
 	{
 		return false;
 	}
-	FileMapper fm(ofn.lpstrFile);
-	if (fm.Len > INT_MAX - 1)
+	String szLeader = String(PRINTF, pszObject ? L"Loading %s..." : L"Loading...", pszObject);
+	try
 	{
-		SetTextAndNotify(id);
-		throw Exception(ResourceString(IDS_MSG_TOO_LARGE_FILE));
+		SetStatus(szLeader, FLAG_BUSY, MASK_STATUS);
+		FileMapper fm(ofn.lpstrFile);
+		if (fm.Len > INT_MAX - 1)
+		{
+			throw Exception(ResourceString(IDS_MSG_TOO_LARGE_FILE));
+		}
+		String sz = ByteString(fm.Ptr, fm.Len).ToString(m_uInputCodePage);
+		bool bBOM = sz.Len && sz[0] == BYTE_ORDER_MARK;
+		if (bBOM)
+		{
+			SetText(id, &sz[1]);
+		}
+		else
+		{
+			SetText(id, sz);
+		}
+		SetStatus(String(PRINTF, L"%sDone:  %s (%s) in%s",
+			szLeader, NumberOfBytes(fm.Len), NumberOfChars(sz.Len), bBOM ? L"  [BOM removed]" : L""),
+			FLAG_STATUS_SUCCESSFUL,
+			id == m_Pane1Id ? MASK_PANE1 :
+			id == m_Pane2Id ? MASK_PANE2 : 0);
+		szPath = szPath2;
 	}
-	String sz = ByteString(fm.Ptr, fm.Len).ToString(m_uInputCodePage);
-	if (sz.Len && sz[0] == BYTE_ORDER_MARK)
+	catch (Win32Exception e)
 	{
-		SetTextAndNotify(id, &sz[1]);
+		SetStatus(String(PRINTF, L"%sFailed:  %s:  %s", szLeader, e.Message, ErrorMessage::Get(e.Error)),
+			FLAG_STATUS_ERROR);
 	}
-	else
+	catch (Exception e)
 	{
-		SetTextAndNotify(id, sz);
+		SetStatus(String(PRINTF, L"%sFailed:  %s", szLeader, e.Message),
+			FLAG_STATUS_ERROR);
 	}
-	szPath = szPath2;
 	return true;
 }
 
 
-bool MyDialogBox::SaveTextAsFile(int id) const
+bool MyDialogBox::SaveTextAsFile(int id, PCWSTR pszObject)
 {
 	String szPath;
-	return SaveTextAsFile(id, szPath);
+	return SaveTextAsFile(id, pszObject, szPath);
 }
 
 
-bool MyDialogBox::SaveTextAsFile(int id, String& szPath) const
+bool MyDialogBox::SaveTextAsFile(int id, PCWSTR pszObject, String& szPath)
 {
 	String szTitle(ResourceString(IDS_SAVETEXTASFILE));
 	StringBuffer szPath2(MAX_PATH, szPath);
@@ -882,14 +1007,35 @@ bool MyDialogBox::SaveTextAsFile(int id, String& szPath) const
 	{
 		return false;
 	}
-	String wcs = GetText(id);
-	if ((m_uOutputCodePage == CP_UTF8 || m_uOutputCodePage == CP_UTF16) && m_bOutputBOM)
+	String szLeader = String(PRINTF, pszObject ? L"Saving %s..." : L"Saving...", pszObject);
+	try
 	{
-		wcs.Format(L"%c%s", BYTE_ORDER_MARK, wcs);
+		SetStatus(szLeader, FLAG_BUSY, MASK_STATUS);
+		String wcs = GetText(id);
+		bool bBOM = (m_uOutputCodePage == CP_UTF8 || m_uOutputCodePage == CP_UTF16) && m_bOutputBOM;
+		if (bBOM)
+		{
+			wcs.Format(L"%c%s", BYTE_ORDER_MARK, wcs);
+		}
+		ByteString serialized = ByteString::FromString(wcs, m_uOutputCodePage, m_OutputLineBreak);
+		FileWriter(ofn.lpstrFile).Write(serialized.Ptr, serialized.Len);
+		SetStatus(String(PRINTF, L"%sDone:  %s (%s) out%s",
+			szLeader, NumberOfBytes(serialized.Len), NumberOfChars(wcs.Len), bBOM ? L"  [BOM prepended]" : L""),
+			FLAG_STATUS_SUCCESSFUL);
+		szPath = szPath2;
 	}
-	ByteString serialized = ByteString::FromString(wcs, m_uOutputCodePage);
-	FileWriter(ofn.lpstrFile).Write(serialized.Ptr, serialized.Len);
-	szPath = szPath2;
+	catch (Win32Exception e)
+	{
+		SetStatus(String(PRINTF, L"%sFailed:  %s:  %s",
+			szLeader, e.Message, ErrorMessage::Get(e.Error)),
+			FLAG_STATUS_ERROR);
+	}
+	catch (Exception e)
+	{
+		SetStatus(String(PRINTF, L"%sFailed:  %s",
+			szLeader, e.Message),
+			FLAG_STATUS_ERROR);
+	}
 	return true;
 }
 
@@ -1052,4 +1198,22 @@ void MyDialogBox::FilterText(int id, BOOL(*pfnIsValid)(WCHAR))
 		SetText(id, &buf[0]);
 		EditSetSelection(id, start, end);
 	}
+}
+
+
+String MyDialogBox::NumberOfBytes(SIZE_T n)
+{
+	return String(PRINTF, L"%s %s", NumberText(n).Ptr, n > 1ULL ? L"bytes" : L"byte");
+}
+
+
+String MyDialogBox::NumberOfBits(SIZE_T n)
+{
+	return String(PRINTF, L"%s %s", NumberText(n).Ptr, n > 1ULL ? L"bits" : L"bit");
+}
+
+
+String MyDialogBox::NumberOfChars(SIZE_T n)
+{
+	return String(PRINTF, L"%s %s", NumberText(n).Ptr, n > 1ULL ? L"chars" : L"char");
 }

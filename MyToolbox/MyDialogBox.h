@@ -14,7 +14,7 @@ namespace hnrt
 	{
 	public:
 
-		MyDialogBox(UINT, PCWSTR);
+		MyDialogBox(UINT, PCWSTR, int StatusId = 0, int Pane1Id = 0, int Pane2Id = 0);
 		MyDialogBox(const MyDialogBox&) = delete;
 		virtual ~MyDialogBox() = default;
 		void operator =(const MyDialogBox&) = delete;
@@ -58,6 +58,12 @@ namespace hnrt
 		virtual void OnEditSetFocus(int id);
 		virtual void OnEditKillFocus(int id);
 		virtual void OnEditChanged(int id);
+		virtual DWORD SetStatus(PCWSTR psz = L"", DWORD dwSet = 0UL, DWORD dwReset = 0UL);
+		virtual DWORD SetStatus(DWORD dwSet, DWORD dwReset, PCWSTR pszFormat, ...);
+		virtual DWORD VaSetStatus(DWORD dwSet, DWORD dwReset, PCWSTR pszFormat, va_list argList);
+		virtual DWORD SetStatus(DWORD dwSet, DWORD dwReset, const SYSTEMTIME& st, PCWSTR pszFormat, ...);
+		virtual DWORD VaSetStatus(DWORD dwSet, DWORD dwReset, const SYSTEMTIME& st, PCWSTR pszFormat, va_list argList);
+		virtual DWORD SetFlags(DWORD dwSet, DWORD dwReset = 0UL);
 		virtual void UpdateControlsState(int id);
 		void SetTimer(UINT uElapse);
 		void AddEditControlMenus(int id = 0);
@@ -70,16 +76,19 @@ namespace hnrt
 		bool ApplyToHashAlgorithm(UINT, UINT&, UINT);
 		void AddLettercaseSettingMenus(UINT);
 		bool ApplyToLettercase(UINT, StringOptions&);
-		bool LoadTextFromFile(int id);
-		bool LoadTextFromFile(int id, String& szPath);
-		bool SaveTextAsFile(int id) const;
-		bool SaveTextAsFile(int id, String& szPath) const;
+		bool LoadTextFromFile(int id, PCWSTR pszObject = nullptr);
+		bool LoadTextFromFile(int id, PCWSTR pszObject, String& szPath);
+		bool SaveTextAsFile(int id, PCWSTR pszObject = nullptr);
+		bool SaveTextAsFile(int id, PCWSTR pszObject, String& szPath);
 		void InitializeCodePageComboBox(int id, int initialSelection = CP_UTF8) const;
 		void InitializeLineBreakComboBox(int id, LineBreak initialSelection = LineBreak::CRLF) const;
 		void InitializeLetterCaseComboBox(int id, StringOptions initialSelection = StringOptions::UPPERCASE) const;
 		void InitializeOffsetComboBox(int id, int initialSelection = 0) const;
 		void SetLengthText(int id, int expected, int actual) const;
 		void FilterText(int id, BOOL (*pfnIsValid)(WCHAR));
+		static String NumberOfBytes(SIZE_T n);
+		static String NumberOfBits(SIZE_T n);
+		static String NumberOfChars(SIZE_T n);
 
 	private:
 
@@ -91,7 +100,9 @@ namespace hnrt
 	protected:
 
 		String m_szRegistryKeyName;
-		int m_cProcessing;
+		int m_StatusId;
+		int m_Pane1Id;
+		int m_Pane2Id;
 		Menu m_menuFile;
 		Menu m_menuEdit;
 		Menu m_menuView;
@@ -100,10 +111,12 @@ namespace hnrt
 		UINT m_uInputCodePage;
 		UINT m_uOutputCodePage;
 		bool m_bOutputBOM;
-		UINT m_CurrentEdit;
-		LastModified m_LastModified;
+		LineBreak m_OutputLineBreak;
 		UINT m_timers[4];
 		DWORD m_dwFlags;
+		UINT m_CurrentEdit;
+		LastModified m_LastModified;
+		int m_cProcessing;
 	};
 
 	inline void MyDialogBox::SetId(UINT id)
@@ -195,3 +208,4 @@ constexpr auto MASK_ERROR = FLAG_PANE1_ERROR | FLAG_PANE2_ERROR | FLAG_STATUS_ER
 constexpr auto MASK_PANE1 = FLAG_PANE1_SUCCESSFUL | FLAG_PANE1_ERROR;
 constexpr auto MASK_PANE2 = FLAG_PANE2_SUCCESSFUL | FLAG_PANE2_ERROR;
 constexpr auto MASK_STATUS = FLAG_STATUS_SUCCESSFUL | FLAG_STATUS_ERROR;
+constexpr auto NUMBER_OF_COMMON_FLAGS = 16;

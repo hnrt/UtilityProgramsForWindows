@@ -16,6 +16,9 @@
 #include "hnrt/Debug.h"
 
 
+using namespace hnrt;
+
+
 constexpr auto REGVAL_INPUT_CODEPAGE = L"InputCodePage";
 constexpr auto REGVAL_OUTPUT_CODEPAGE = L"OutputCodePage";
 constexpr auto REGVAL_OUTPUT_BOM = L"OutputBOM";
@@ -23,11 +26,8 @@ constexpr auto REGVAL_NATIVE_PATH = L"NativePath";
 constexpr auto REGVAL_ASCII_PATH = L"AsciiPath";
 
 
-using namespace hnrt;
-
-
 NativeToAsciiDialogBox::NativeToAsciiDialogBox()
-	: MyDialogBox(IDD_NTOA, L"NativeToAscii")
+	: MyDialogBox(IDD_NTOA, L"NativeToAscii", IDC_NTOA_STATUS_STATIC, IDC_NTOA_NATIVE_EDIT, IDC_NTOA_ASCII_EDIT)
 	, m_szNativePath()
 	, m_szAsciiPath()
 {
@@ -243,101 +243,25 @@ void NativeToAsciiDialogBox::OnNew()
 
 void NativeToAsciiDialogBox::OnLoad1From()
 {
-	try
-	{
-		SetStatus(L"Loading Native...", FLAG_BUSY, MASK_STATUS);
-		if (LoadTextFromFile(IDC_NTOA_NATIVE_EDIT, m_szNativePath))
-		{
-			SetStatus(String(PRINTF, L"Loading Native...Done:  %s chars in", NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr), FLAG_STATUS_SUCCESSFUL, MASK_PANE1);
-		}
-		else
-		{
-			SetStatus(L"");
-		}
-	}
-	catch (Win32Exception e)
-	{
-		SetStatus(String(PRINTF, L"Loading Native...Failed: %s: %s", e.Message, ErrorMessage::Get(e.Error)), FLAG_STATUS_ERROR);
-	}
-	catch (Exception e)
-	{
-		SetStatus(String(PRINTF, L"Loading Native...Failed: %s", e.Message), FLAG_STATUS_ERROR);
-	}
+	LoadTextFromFile(IDC_NTOA_NATIVE_EDIT, L"Native Text", m_szNativePath);
 }
 
 
 void NativeToAsciiDialogBox::OnSave1As()
 {
-	try
-	{
-		SetStatus(L"Saving Native...", FLAG_BUSY, MASK_STATUS);
-		if (SaveTextAsFile(IDC_NTOA_NATIVE_EDIT, m_szNativePath))
-		{
-			SetStatus(String(PRINTF, L"Saving Native...Done:  %s chars out", NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr), FLAG_STATUS_SUCCESSFUL);
-		}
-		else
-		{
-			SetStatus(L"");
-		}
-	}
-	catch (Win32Exception e)
-	{
-		SetStatus(String(PRINTF, L"Saving Native...Failed: %s: %s", e.Message, ErrorMessage::Get(e.Error)), FLAG_STATUS_ERROR);
-	}
-	catch (Exception e)
-	{
-		SetStatus(String(PRINTF, L"Saving Native...Failed: %s", e.Message), FLAG_STATUS_ERROR);
-	}
+	SaveTextAsFile(IDC_NTOA_NATIVE_EDIT, L"Native Text", m_szNativePath);
 }
 
 
 void NativeToAsciiDialogBox::OnLoad2From()
 {
-	try
-	{
-		SetStatus(L"Loading ASCII...", FLAG_BUSY, MASK_STATUS);
-		if (LoadTextFromFile(IDC_NTOA_ASCII_EDIT, m_szAsciiPath))
-		{
-			SetStatus(String(PRINTF, L"Loading ASCII...Done:  %s chars in", NumberText(GetTextLength(IDC_NTOA_ASCII_EDIT)).Ptr), FLAG_STATUS_SUCCESSFUL, MASK_PANE2);
-		}
-		else
-		{
-			SetStatus(L"");
-		}
-	}
-	catch (Win32Exception e)
-	{
-		SetStatus(String(PRINTF, L"Loading ASCII...Failed: %s: %s", e.Message, ErrorMessage::Get(e.Error)), FLAG_STATUS_ERROR);
-	}
-	catch (Exception e)
-	{
-		SetStatus(String(PRINTF, L"Loading ASCII...Failed: %s", e.Message), FLAG_STATUS_ERROR);
-	}
+	LoadTextFromFile(IDC_NTOA_ASCII_EDIT, L"US-ASCII Text", m_szAsciiPath);
 }
 
 
 void NativeToAsciiDialogBox::OnSave2As()
 {
-	try
-	{
-		SetStatus(L"Saving ASCII...", FLAG_BUSY, MASK_STATUS);
-		if (SaveTextAsFile(IDC_NTOA_ASCII_EDIT, m_szAsciiPath))
-		{
-			SetStatus(String(PRINTF, L"Saving ASCII...Done:  %s chars", NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr), FLAG_STATUS_SUCCESSFUL);
-		}
-		else
-		{
-			SetStatus(L"");
-		}
-	}
-	catch (Win32Exception e)
-	{
-		SetStatus(String(PRINTF, L"Saving ASCII...Failed: %s: %s", e.Message, ErrorMessage::Get(e.Error)), FLAG_STATUS_ERROR);
-	}
-	catch (Exception e)
-	{
-		SetStatus(String(PRINTF, L"Saving ASCII...Failed: %s", e.Message), FLAG_STATUS_ERROR);
-	}
+	SaveTextAsFile(IDC_NTOA_ASCII_EDIT, L"US-ASCII Text", m_szAsciiPath);
 }
 
 
@@ -375,36 +299,6 @@ void NativeToAsciiDialogBox::Decode()
 		NumberText(GetTextLength(IDC_NTOA_ASCII_EDIT)).Ptr,
 		NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr),
 		FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_PANE2_ERROR | FLAG_PANE2_ERROR);
-}
-
-
-void NativeToAsciiDialogBox::SetStatus(PCWSTR psz, DWORD dwSet, DWORD dwReset)
-{
-	DWORD dwPrev = m_dwFlags;
-	if (dwSet)
-	{
-		m_dwFlags |= dwSet;
-	}
-	if (dwReset)
-	{
-		m_dwFlags &= ~dwReset;
-	}
-	if (m_dwFlags != dwPrev)
-	{
-		InvalidateRect(IDC_NTOA_NATIVE_EDIT, NULL, TRUE);
-		InvalidateRect(IDC_NTOA_ASCII_EDIT, NULL, TRUE);
-	}
-	SetText(IDC_NTOA_STATUS_STATIC, psz ? psz : L"");
-	if ((dwSet & FLAG_BUSY))
-	{
-		UpdateControlsState(0);
-	}
-	else if ((dwPrev & FLAG_BUSY))
-	{
-		m_dwFlags &= ~FLAG_BUSY;
-		UpdateControlsState(1);
-	}
-	ProcessMessages();
 }
 
 

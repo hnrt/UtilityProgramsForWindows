@@ -14,19 +14,18 @@
 #include "hnrt/Debug.h"
 
 
-#define REGVAL_FORMAT L"Format"
-#define REGVAL_LAST L"Last"
-
-
 using namespace hnrt;
 
 
+constexpr auto REGVAL_FORMAT = L"Format";
+constexpr auto REGVAL_LAST = L"Last";
+
+
 GuidDialogBox::GuidDialogBox()
-    : MyDialogBox(IDD_GUID, L"Guid")
+    : MyDialogBox(IDD_GUID, L"Guid", 0, IDC_GUID_EDIT)
     , m_guid()
     , m_szFormatted()
     , m_uCurrentlySelected(IDC_GUID_UPPERCASE_RADIO)
-    , m_bError(FALSE)
 {
 }
 
@@ -165,26 +164,6 @@ INT_PTR GuidDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 }
 
 
-INT_PTR GuidDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
-{
-    HDC hdc = reinterpret_cast<HDC>(wParam);
-    int id = GetDlgCtrlID(reinterpret_cast<HWND>(lParam));
-    int len = GetTextLength(id);
-    switch (id)
-    {
-    case IDC_GUID_EDIT:
-        SetTextColor(hdc,
-            m_bError ? RGB_ERROR :
-            GetSysColor(COLOR_WINDOWTEXT));
-        SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
-        return reinterpret_cast<INT_PTR>(GetSysColorBrush(COLOR_WINDOW));
-    default:
-        break;
-    }
-    return 0;
-}
-
-
 void GuidDialogBox::OnNew()
 {
     ChangeGuid();
@@ -205,13 +184,13 @@ void GuidDialogBox::ChangeGuid()
     HRESULT hRes = CoCreateGuid(&m_guid);
     if (hRes == S_OK)
     {
-        m_bError = FALSE;
+        SetFlags(0, FLAG_PANE1_ERROR);
         ChangeFormat();
         EnableWindow(IDC_GUID_COPY_BUTTON);
     }
     else
     {
-        m_bError = TRUE;
+        SetFlags(FLAG_PANE1_ERROR);
         m_szFormatted.Format(L"CoCreateGuid failed. (%08X)", (int)hRes);
         SetText(IDC_GUID_EDIT, m_szFormatted);
         DisableWindow(IDC_GUID_COPY_BUTTON);
@@ -229,7 +208,7 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
     OLECHAR buf[64];
     if (!StringFromGUID2(m_guid, buf, _countof(buf)))
     {
-        m_bError = TRUE;
+        SetFlags(FLAG_PANE1_ERROR);
         m_szFormatted = L"StringFromGUID2 failed.";
         SetText(IDC_GUID_EDIT, m_szFormatted);
         DisableWindow(IDC_GUID_COPY_BUTTON);
@@ -300,7 +279,7 @@ void GuidDialogBox::ChangeFormat(UINT uSelected)
         m_szFormatted.Assign(&buf[1], 36);
         break;
     }
-    m_bError = FALSE;
+    SetFlags(0, FLAG_PANE1_ERROR);
     SetText(IDC_GUID_EDIT, m_szFormatted);
     EnableWindow(IDC_GUID_COPY_BUTTON);
 }
@@ -401,20 +380,12 @@ void GuidDialogBox::ParseContent()
         default:
             return;
         }
-        if (m_bError)
-        {
-            m_bError = FALSE;
-            InvalidateRect(IDC_GUID_EDIT, NULL, TRUE);
-        }
+        SetFlags(0, FLAG_PANE1_ERROR);
         m_guid = guid;
     }
     catch (Exception e)
     {
-        if (!m_bError)
-        {
-            m_bError = TRUE;
-            InvalidateRect(IDC_GUID_EDIT, NULL, TRUE);
-        }
+        SetFlags(FLAG_PANE1_ERROR, 0);
     }
 }
 

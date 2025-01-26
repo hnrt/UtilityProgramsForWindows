@@ -40,7 +40,6 @@ namespace hnrt
 		ByteString GetEncodedData() const;
 		ByteString GetDecodedData() const;
 		void InitializeLineLengthComboBox(UINT cch) const;
-		void SetStatus(PCWSTR psz = L"", DWORD dwSet = 0UL, DWORD dwReset = 0UL);
 		void UpdateControlsState(int id);
 		BOOL GetLoadFromFileName(PWSTR psz, PCWSTR pszTitle) const;
 		BOOL GetSaveAsFileName(PWSTR psz, PCWSTR pszTitle) const;

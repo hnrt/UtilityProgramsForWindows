@@ -31,7 +31,6 @@ namespace hnrt
 		virtual void OnEditChanged(int id);
 		void Encode();
 		void Decode();
-		void SetStatus(PCWSTR psz = L"", DWORD dwSet = 0UL, DWORD dwReset = 0UL);
 		void UpdateControlsState(int id);
 
 		mutable String m_szNativePath;

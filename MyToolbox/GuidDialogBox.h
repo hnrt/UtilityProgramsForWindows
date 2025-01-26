@@ -27,7 +27,6 @@ namespace hnrt
 		virtual void OnDestroy();
 		virtual void UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta);
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
-		virtual INT_PTR OnControlColorEdit(WPARAM wParam, LPARAM lParam);
 
 		void ChangeFormat(UINT uSelected = 0);
 		void ChangeGuid();
@@ -44,6 +43,5 @@ namespace hnrt
 		GUID m_guid;
 		String m_szFormatted;
 		UINT m_uCurrentlySelected;
-		BOOL m_bError;
 	};
 }

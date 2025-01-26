@@ -15,16 +15,16 @@
 #include "hnrt/Debug.h"
 
 
-#define REGVAL_GTIN13 L"GTIN13"
-#define REGVAL_GTIN13_GS1CPLEN L"GS1CompanyPrefixLength"
-
-
-#define STATE_SUCCESSFUL 1
-#define STATE_ERROR 2
-#define STATE_CHANGING 3
-
-
 using namespace hnrt;
+
+
+constexpr auto REGVAL_GTIN13 = L"GTIN13";
+constexpr auto REGVAL_GTIN13_GS1CPLEN = L"GS1CompanyPrefixLength";
+
+
+constexpr auto  STATE_SUCCESSFUL = 1;
+constexpr auto  STATE_ERROR = 2;
+constexpr auto  STATE_CHANGING = 3;
 
 
 GtinDialogBox::GtinDialogBox()

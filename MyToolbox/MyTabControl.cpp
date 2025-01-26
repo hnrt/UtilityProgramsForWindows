@@ -9,10 +9,10 @@
 #include "hnrt/Exception.h"
 
 
-#define REGVAL_CURRENTTAB L"CurrentTab"
-
-
 using namespace hnrt;
+
+
+constexpr auto REGVAL_CURRENTTAB = L"CurrentTab";
 
 
 MyTabControl::MyTabControl()
