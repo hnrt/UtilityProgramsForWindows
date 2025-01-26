@@ -23,7 +23,6 @@ namespace hnrt
 		virtual void OnSave1As();
 		virtual void OnLoad2From();
 		virtual void OnSave2As();
-		virtual void OnSettingChanged(UINT);
 
 	private:
 
@@ -33,6 +32,7 @@ namespace hnrt
 		virtual INT_PTR OnCommand(WPARAM wParam, LPARAM lParam);
 		virtual INT_PTR OnControlColorEdit(WPARAM wParam, LPARAM lParam);
 		virtual void OnEditChanged(int id);
+		virtual void UpdateControlsState(int id);
 		void OnEncrypt();
 		void OnDecrypt();
 		void OnCopyOriginalData();
@@ -55,8 +55,6 @@ namespace hnrt
 		void OnCodePageChange();
 		void OnLineBreakChange();
 		void SetMode(int);
-		void UpdateMenus();
-		void UpdateButtons();
 		void UpdateTagSizeRadioBoxes();
 		ByteString GetAaData() const;
 

@@ -139,6 +139,10 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     {
         return TRUE;
     }
+    if (MyDialogBox::OnCommand(wParam, lParam))
+    {
+        return TRUE;
+    }
     UINT idChild = LOWORD(wParam);
     UINT idNotif = HIWORD(wParam);
     switch (idChild)
@@ -209,6 +213,37 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         if (idNotif == BN_CLICKED)
         {
             OnUppercase();
+        }
+        else
+        {
+            return FALSE;
+        }
+        break;
+    case IDM_SETTINGS_MD5:
+    case IDM_SETTINGS_SHA1:
+    case IDM_SETTINGS_SHA256:
+    case IDM_SETTINGS_SHA384:
+    case IDM_SETTINGS_SHA512:
+    {
+        UINT uMethod = 0;
+        if (ApplyToHashAlgorithm(idChild, uMethod, IDC_HASH_MD5_RADIO))
+        {
+            ButtonUncheck(m_uMethod);
+            ButtonCheck(uMethod);
+            OnSelectMethod(uMethod);
+        }
+        else
+        {
+            return FALSE;
+        }
+        break;
+    }
+    case IDM_SETTINGS_UPPERCASE:
+    case IDM_SETTINGS_LOWERCASE:
+        if (ApplyToLettercase(idChild, m_uLettercase))
+        {
+            ButtonCheck(IDC_HASH_UPPERCASE_CHECK, m_uLettercase == StringOptions::UPPERCASE);
+            ResetValueLetterCase();
         }
         else
         {
@@ -315,7 +350,7 @@ void HashDialogBox::OnLoadFrom()
     {
         try
         {
-            LoadTextFromFile(IDC_HASH_CONTENT_EDIT, m_szTextPath);
+            LoadTextFromFile(IDC_HASH_CONTENT_EDIT, ResourceString(IDS_LOADING_TEXT), m_szTextPath);
         }
         catch (Win32Exception e)
         {
@@ -335,7 +370,7 @@ void HashDialogBox::OnSaveAs()
     {
         try
         {
-            SaveTextAsFile(IDC_HASH_CONTENT_EDIT, m_szTextPath);
+            SaveTextAsFile(IDC_HASH_CONTENT_EDIT, ResourceString(IDS_SAVING_TEXT), m_szTextPath);
         }
         catch (Win32Exception e)
         {
@@ -444,34 +479,6 @@ void HashDialogBox::OnCopyResult()
         {
             MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
         }
-    }
-}
-
-
-void HashDialogBox::OnSettingChanged(UINT uId)
-{
-    WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-    if (ApplyToInputCodePage(uId))
-    {
-        return;
-    }
-    if (ApplyToOutputCodePage(uId))
-    {
-        return;
-    }
-    UINT uMethod = 0;
-    if (ApplyToHashAlgorithm(uId, uMethod, IDC_HASH_MD5_RADIO))
-    {
-        ButtonUncheck(m_uMethod);
-        ButtonCheck(uMethod);
-        OnSelectMethod(uMethod);
-        return;
-    }
-    if (ApplyToLettercase(uId, m_uLettercase))
-    {
-        ButtonCheck(IDC_HASH_UPPERCASE_CHECK, m_uLettercase == StringOptions::UPPERCASE);
-        ResetValueLetterCase();
-        return;
     }
 }
 

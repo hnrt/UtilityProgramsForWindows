@@ -73,7 +73,7 @@ void Base64DialogBox::OnCreate()
     InitializeCodePageComboBox(IDC_BS64_ORG_CODEPAGE_COMBO, m_CodePage);
     InitializeLineBreakComboBox(IDC_BS64_ORG_LINEBREAK_COMBO, m_LineBreak);
     InitializeLineLengthComboBox(m_CharsPerLine);
-    SetStatus();
+    SetStatus(0, 0, L"");
     m_menuView
         .Add(ResourceString(IDS_MENU_BS64), IDM_VIEW_BS64);
 }
@@ -300,10 +300,10 @@ void Base64DialogBox::OnEditChanged(int id)
     switch (id)
     {
     case IDC_BS64_ORG_EDIT:
-        SetStatus(L"", 0, MASK_PANE1 | MASK_STATUS);
+        SetStatus(0, MASK_PANE1 | MASK_STATUS, L"");
         break;
     case IDC_BS64_ENC_EDIT:
-        SetStatus(L"", 0, MASK_PANE2 | MASK_STATUS);
+        SetStatus(0, MASK_PANE2 | MASK_STATUS, L"");
         break;
     default:
         return;
@@ -314,7 +314,7 @@ void Base64DialogBox::OnEditChanged(int id)
 
 void Base64DialogBox::OnNew()
 {
-    SetStatus(L"", 0, MASK_PANE1 | MASK_PANE2 | MASK_STATUS);
+    SetStatus(0, MASK_PANE1 | MASK_PANE2 | MASK_STATUS, L"");
     SetTextAndNotify(IDC_BS64_ORG_EDIT);
     SetTextAndNotify(IDC_BS64_ENC_EDIT);
 }
@@ -324,19 +324,17 @@ void Base64DialogBox::OnLoad1From()
 {
     if (GetLoadFromFileName(m_szOriginalPath, ResourceString(IDS_TITLE_LOAD_ORIGINAL)))
     {
+        ResourceString szLeader(IDS_LOADING_ORGDATA);
         try
         {
-            SetStatus(L"Loading Original...", FLAG_BUSY, MASK_PANE1 | MASK_STATUS);
+            SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
             FileMapper fm(m_szOriginalPath);
             SetOriginalData(fm.Ptr, fm.Len);
-            SetStatus(String(PRINTF, L"Loading Original...Done:  %s", NumberOfBytes(fm.Len)),
-                FLAG_STATUS_SUCCESSFUL,
-                MASK_PANE1);
+            SetStatus(FLAG_STATUS_SUCCESSFUL, MASK_PANE1, ResourceString(IDS_DONE_IN), szLeader, NumberOfBytes(fm.Len));
         }
         catch (Exception e)
         {
-            SetStatus(String(PRINTF, L"Loading Original...Failed:  %s", e.Message),
-                FLAG_STATUS_ERROR);
+            SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
         }
     }
 }
@@ -346,18 +344,17 @@ void Base64DialogBox::OnSave1As()
 {
     if (GetSaveAsFileName(m_szOriginalPath, ResourceString(IDS_TITLE_SAVE_ORIGINAL)))
     {
+        ResourceString szLeader(IDS_SAVING_ORGDATA);
         try
         {
-            SetStatus(L"Saving Original...", FLAG_BUSY, MASK_PANE1 | MASK_STATUS);
+            SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
             ByteString original = GetOriginalData();
             FileWriter(m_szOriginalPath).Write(original.Ptr, original.Len);
-            SetStatus(String(PRINTF, L"Saving Original...Done:  %s", NumberOfBytes(original.Len)),
-                FLAG_STATUS_SUCCESSFUL);
+            SetStatus(FLAG_STATUS_SUCCESSFUL, 0, ResourceString(IDS_DONE_OUT), szLeader, NumberOfBytes(original.Len));
         }
         catch (Exception e)
         {
-            SetStatus(String(PRINTF, L"Saving Original...Failed:  %s", e.Message),
-                FLAG_STATUS_ERROR);
+            SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
         }
     }
 }
@@ -367,19 +364,17 @@ void Base64DialogBox::OnLoad2From()
 {
     if (GetLoadFromFileName(m_szEncodedPath, ResourceString(IDS_TITLE_LOAD_ENCODED)))
     {
+        ResourceString szLeader(IDS_LOADING_BASE64);
         try
         {
-            SetStatus(L"Loading Encoded...", FLAG_BUSY, MASK_STATUS);
+            SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
             FileMapper fm(m_szEncodedPath);
             SetText(IDC_BS64_ENC_EDIT, ByteString(fm.Ptr, fm.Len).ToString(CP_UTF8));
-            SetStatus(String(PRINTF, L"Loading Encoded...Done:  %s", NumberOfBytes(fm.Len)),
-                FLAG_STATUS_SUCCESSFUL,
-                MASK_PANE2);
+            SetStatus(FLAG_STATUS_SUCCESSFUL, MASK_PANE2, ResourceString(IDS_DONE_IN), szLeader, NumberOfBytes(fm.Len));
         }
         catch (Exception e)
         {
-            SetStatus(String(PRINTF, L"Loading Encoded...Failed:  %s", e.Message),
-                FLAG_STATUS_ERROR);
+            SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
         }
     }
 }
@@ -389,16 +384,17 @@ void Base64DialogBox::OnSave2As()
 {
     if (GetSaveAsFileName(m_szEncodedPath, ResourceString(IDS_TITLE_SAVE_ENCODED)))
     {
+        ResourceString szLeader(IDS_SAVING_BASE64);
         try
         {
-            SetStatus(L"Saving Encoded...", FLAG_BUSY, MASK_STATUS);
+            SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
             ByteString encoded = GetEncodedData();
             FileWriter(m_szEncodedPath).Write(encoded.Ptr, encoded.Len);
-            SetStatus(String(PRINTF, L"Saving Encoded...Done:  %s", NumberOfBytes(encoded.Len)));
+            SetStatus(FLAG_STATUS_SUCCESSFUL, 0, ResourceString(IDS_DONE_OUT), szLeader, NumberOfBytes(encoded.Len));
         }
         catch (Exception e)
         {
-            SetStatus(String(PRINTF, L"Saving Encoded...Failed:  %s", e.Message), FLAG_STATUS_ERROR);
+            SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
         }
     }
 }
@@ -407,21 +403,20 @@ void Base64DialogBox::OnSave2As()
 bool Base64DialogBox::Encode()
 {
     DBGFNC(L"Base64DialogBox::Encode");
+    ResourceString szLeader(IDS_ENCODING_ORGDATA);
     try
     {
-        SetStatus(L"Encoding...", FLAG_BUSY, MASK_STATUS);
+        SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
         ByteString original = GetOriginalData();
         SetText(IDC_BS64_ENC_EDIT, original.ToBase64().Wrap(m_CharsPerLine));
-        SetStatus(String(PRINTF, L"Encoding...Done:  %s in  >>>  %s out",
-            NumberOfBytes(original.Len),
-            NumberOfChars(GetTextLength(IDC_BS64_ENC_EDIT))),
-            FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR);
+        SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR,
+            ResourceString(IDS_W_DONE_X_IN_Y_OUT), szLeader, NumberOfBytes(original.Len), NumberOfChars(GetTextLength(IDC_BS64_ENC_EDIT)));
         return true;
     }
     catch (Exception e)
     {
-        SetStatus(String(PRINTF, L"Encoding...Failed:  %s", e.Message),
-            FLAG_STATUS_ERROR | FLAG_PANE1_ERROR, FLAG_PANE2_SUCCESSFUL);
+        SetStatus(FLAG_STATUS_ERROR | FLAG_PANE1_ERROR, FLAG_PANE2_SUCCESSFUL,
+            ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
         return false;
     }
 }
@@ -430,20 +425,19 @@ bool Base64DialogBox::Encode()
 bool Base64DialogBox::Decode()
 {
     DBGFNC(L"Base64DialogBox::Decode");
+    ResourceString szLeader(IDS_DECODING_BASE64);
     try
     {
-        SetStatus(L"Decoding...", FLAG_BUSY, MASK_STATUS);
+        SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
         SetOriginalData(GetDecodedData());
-        SetStatus(String(PRINTF, L"Decoding...Done:  %s in  >>>  %s out",
-            NumberOfChars(GetTextLength(IDC_BS64_ENC_EDIT)),
-            NumberOfBytes(GetOriginalData().Len)),
-            FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR);
+        SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR,
+            ResourceString(IDS_W_DONE_X_IN_Y_OUT), szLeader, NumberOfChars(GetTextLength(IDC_BS64_ENC_EDIT)), NumberOfBytes(GetOriginalData().Len));
         return true;
     }
     catch (Exception e)
     {
-        SetStatus(String(PRINTF, L"Decoding...Failed:  %s", e.Message),
-            FLAG_STATUS_ERROR | FLAG_PANE2_ERROR, FLAG_PANE1_SUCCESSFUL);
+        SetStatus(FLAG_STATUS_ERROR | FLAG_PANE2_ERROR, FLAG_PANE1_SUCCESSFUL,
+            ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
         return false;
     }
 }
@@ -454,17 +448,18 @@ void Base64DialogBox::ChangeOriginalDataDisplayMode(DataDisplayMode mode)
     DBGFNC(L"Base64DialogBox::ChangeOriginalDataDisplayMode(%d)", mode);
     if (mode != m_OriginalDataDisplayMode)
     {
+        ResourceString szLeader(IDS_PROCESSING);
         try
         {
-            SetStatus(L"Formatting...", FLAG_BUSY, MASK_STATUS);
+            SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
             SetOriginalData(GetOriginalData(), mode);
-            SetStatus();
+            SetStatus(0, 0, L"");
         }
         catch (Exception e)
         {
             ButtonCheck(IDC_BS64_ORG_HEX_RADIO, m_OriginalDataDisplayMode == DataDisplayMode::HEX ? TRUE : FALSE);
             ButtonCheck(IDC_BS64_ORG_TEXT_RADIO, m_OriginalDataDisplayMode == DataDisplayMode::TEXT ? TRUE : FALSE);
-            SetStatus(String(PRINTF, L"Formatting failed: %s", e.Message), FLAG_PANE1_ERROR | FLAG_STATUS_ERROR);
+            SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
         }
     }
 }
@@ -475,10 +470,10 @@ void Base64DialogBox::ChangeLinesPerLine(UINT cch)
     DBGFNC(L"Base64DialogBox::ChangeLinesPerLine(%u)", cch);
     if (cch != m_CharsPerLine)
     {
-        SetStatus(L"", FLAG_BUSY, MASK_STATUS);
+        SetStatus(FLAG_BUSY, MASK_STATUS, ResourceString(IDS_PROCESSING));
         SetText(IDC_BS64_ENC_EDIT, GetText(IDC_BS64_ENC_EDIT).Replace(L"\r\n", L"").Wrap(cch));
         m_CharsPerLine = cch;
-        SetStatus();
+        SetStatus(0, 0, L"");
     }
 }
 

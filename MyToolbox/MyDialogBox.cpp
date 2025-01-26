@@ -102,6 +102,55 @@ void MyDialogBox::OnTabSelectionChanged()
 }
 
 
+INT_PTR MyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+	DWORD wControlId = LOWORD(wParam);
+	switch (wControlId)
+	{
+	case IDM_SETTINGS_IN_AUTO:
+	case IDM_SETTINGS_IN_UTF8:
+	case IDM_SETTINGS_IN_UTF16:
+	case IDM_SETTINGS_IN_CP932:
+	case IDM_SETTINGS_IN_CP936:
+	case IDM_SETTINGS_IN_CP949:
+	case IDM_SETTINGS_IN_CP950:
+	case IDM_SETTINGS_IN_CP1250:
+	case IDM_SETTINGS_IN_CP1251:
+	case IDM_SETTINGS_IN_CP1252:
+	case IDM_SETTINGS_IN_CP1253:
+	case IDM_SETTINGS_IN_CP1254:
+	case IDM_SETTINGS_IN_CP1255:
+	case IDM_SETTINGS_IN_CP1256:
+	case IDM_SETTINGS_IN_CP1257:
+	case IDM_SETTINGS_IN_CP1258:
+		ApplyToInputCodePage(wControlId);
+		return TRUE;
+	case IDM_SETTINGS_OUT_UTF8:
+	case IDM_SETTINGS_OUT_UTF8BOM:
+	case IDM_SETTINGS_OUT_UTF16:
+	case IDM_SETTINGS_OUT_UTF16BOM:
+	case IDM_SETTINGS_OUT_CP932:
+	case IDM_SETTINGS_OUT_CP936:
+	case IDM_SETTINGS_OUT_CP949:
+	case IDM_SETTINGS_OUT_CP950:
+	case IDM_SETTINGS_OUT_CP1250:
+	case IDM_SETTINGS_OUT_CP1251:
+	case IDM_SETTINGS_OUT_CP1252:
+	case IDM_SETTINGS_OUT_CP1253:
+	case IDM_SETTINGS_OUT_CP1254:
+	case IDM_SETTINGS_OUT_CP1255:
+	case IDM_SETTINGS_OUT_CP1256:
+	case IDM_SETTINGS_OUT_CP1257:
+	case IDM_SETTINGS_OUT_CP1258:
+		ApplyToOutputCodePage(wControlId);
+		return TRUE;
+	default:
+		return FALSE;
+	}
+}
+
+
 INT_PTR MyDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 {
 	//DBGFNC(L"MyDialogBox::OnTimer(%zu,%zu): Id=%u CurrentEdit=%u", wParam, lParam, Id, m_CurrentEdit);
@@ -209,16 +258,6 @@ void MyDialogBox::OnEditChanged(int id)
 	}
 	m_LastModified.By = id;
 	UpdateControlsState(id);
-}
-
-
-DWORD MyDialogBox::SetStatus(PCWSTR psz, DWORD dwSet, DWORD dwReset)
-{
-	if (m_StatusId)
-	{
-		SetText(m_StatusId, psz);
-	}
-	return SetFlags(dwSet, dwReset);
 }
 
 
@@ -923,14 +962,7 @@ bool MyDialogBox::ApplyToLettercase(UINT uId, StringOptions& uValue)
 }
 
 
-bool MyDialogBox::LoadTextFromFile(int id, PCWSTR pszObject)
-{
-	String szPath;
-	return LoadTextFromFile(id, pszObject, szPath);
-}
-
-
-bool MyDialogBox::LoadTextFromFile(int id, PCWSTR pszObject, String& szPath)
+bool MyDialogBox::LoadTextFromFile(int id, PCWSTR pszDoingWhat, String& szPath)
 {
 	String szTitle(ResourceString(IDS_LOADTEXTFROMFILE));
 	StringBuffer szPath2(MAX_PATH, szPath);
@@ -945,10 +977,9 @@ bool MyDialogBox::LoadTextFromFile(int id, PCWSTR pszObject, String& szPath)
 	{
 		return false;
 	}
-	String szLeader = String(PRINTF, pszObject ? L"Loading %s..." : L"Loading...", pszObject);
 	try
 	{
-		SetStatus(szLeader, FLAG_BUSY, MASK_STATUS);
+		SetStatus(FLAG_BUSY, MASK_STATUS, pszDoingWhat);
 		FileMapper fm(ofn.lpstrFile);
 		if (fm.Len > INT_MAX - 1)
 		{
@@ -964,35 +995,26 @@ bool MyDialogBox::LoadTextFromFile(int id, PCWSTR pszObject, String& szPath)
 		{
 			SetText(id, sz);
 		}
-		SetStatus(String(PRINTF, L"%sDone:  %s (%s) in%s",
-			szLeader, NumberOfBytes(fm.Len), NumberOfChars(sz.Len), bBOM ? L"  [BOM removed]" : L""),
-			FLAG_STATUS_SUCCESSFUL,
+		SetStatus(FLAG_STATUS_SUCCESSFUL,
 			id == m_Pane1Id ? MASK_PANE1 :
-			id == m_Pane2Id ? MASK_PANE2 : 0);
+			id == m_Pane2Id ? MASK_PANE2 : 0,
+			ResourceString(IDS_W_DONE_X_Y_IN_Z),
+			pszDoingWhat, NumberOfBytes(fm.Len), NumberOfChars(sz.Len), bBOM ? ResourceString(IDS_BOM_REMOVED) : L"");
 		szPath = szPath2;
 	}
 	catch (Win32Exception e)
 	{
-		SetStatus(String(PRINTF, L"%sFailed:  %s:  %s", szLeader, e.Message, ErrorMessage::Get(e.Error)),
-			FLAG_STATUS_ERROR);
+		SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X_Y), pszDoingWhat, e.Message, ErrorMessage::Get(e.Error));
 	}
 	catch (Exception e)
 	{
-		SetStatus(String(PRINTF, L"%sFailed:  %s", szLeader, e.Message),
-			FLAG_STATUS_ERROR);
+		SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X), pszDoingWhat, e.Message);
 	}
 	return true;
 }
 
 
-bool MyDialogBox::SaveTextAsFile(int id, PCWSTR pszObject)
-{
-	String szPath;
-	return SaveTextAsFile(id, pszObject, szPath);
-}
-
-
-bool MyDialogBox::SaveTextAsFile(int id, PCWSTR pszObject, String& szPath)
+bool MyDialogBox::SaveTextAsFile(int id, PCWSTR pszDoingWhat, String& szPath)
 {
 	String szTitle(ResourceString(IDS_SAVETEXTASFILE));
 	StringBuffer szPath2(MAX_PATH, szPath);
@@ -1007,10 +1029,9 @@ bool MyDialogBox::SaveTextAsFile(int id, PCWSTR pszObject, String& szPath)
 	{
 		return false;
 	}
-	String szLeader = String(PRINTF, pszObject ? L"Saving %s..." : L"Saving...", pszObject);
 	try
 	{
-		SetStatus(szLeader, FLAG_BUSY, MASK_STATUS);
+		SetStatus(FLAG_BUSY, MASK_STATUS, pszDoingWhat);
 		String wcs = GetText(id);
 		bool bBOM = (m_uOutputCodePage == CP_UTF8 || m_uOutputCodePage == CP_UTF16) && m_bOutputBOM;
 		if (bBOM)
@@ -1019,22 +1040,18 @@ bool MyDialogBox::SaveTextAsFile(int id, PCWSTR pszObject, String& szPath)
 		}
 		ByteString serialized = ByteString::FromString(wcs, m_uOutputCodePage, m_OutputLineBreak);
 		FileWriter(ofn.lpstrFile).Write(serialized.Ptr, serialized.Len);
-		SetStatus(String(PRINTF, L"%sDone:  %s (%s) out%s",
-			szLeader, NumberOfBytes(serialized.Len), NumberOfChars(wcs.Len), bBOM ? L"  [BOM prepended]" : L""),
-			FLAG_STATUS_SUCCESSFUL);
+		SetStatus(FLAG_STATUS_SUCCESSFUL, 0,
+			ResourceString(IDS_W_DONE_X_Y_OUT_Z),
+			pszDoingWhat, NumberOfBytes(serialized.Len), NumberOfChars(wcs.Len), bBOM ? ResourceString(IDS_BOM_PREPENDED) : L"");
 		szPath = szPath2;
 	}
 	catch (Win32Exception e)
 	{
-		SetStatus(String(PRINTF, L"%sFailed:  %s:  %s",
-			szLeader, e.Message, ErrorMessage::Get(e.Error)),
-			FLAG_STATUS_ERROR);
+		SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X_Y), pszDoingWhat, e.Message, ErrorMessage::Get(e.Error));
 	}
 	catch (Exception e)
 	{
-		SetStatus(String(PRINTF, L"%sFailed:  %s",
-			szLeader, e.Message),
-			FLAG_STATUS_ERROR);
+		SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X), pszDoingWhat, e.Message);
 	}
 	return true;
 }

@@ -365,6 +365,10 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	{
 		return TRUE;
 	}
+	if (MyDialogBox::OnCommand(wParam, lParam))
+	{
+		return TRUE;
+	}
 	UINT idChild = LOWORD(wParam);
 	UINT idNotif = HIWORD(wParam);
 	switch (idChild)
@@ -686,6 +690,13 @@ INT_PTR CronDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			return FALSE;
 		}
 		break;
+	case IDM_SETTINGS_USESECOND:
+	{
+		WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+		ButtonCheck(IDC_CRON_SECOND_CHECK, !ButtonIsChecked(IDC_CRON_SECOND_CHECK));
+		OnSecondChanged();
+		break;
+	}
 	default:
 		return FALSE;
 	}
@@ -847,21 +858,6 @@ void CronDialogBox::OnNew()
 void CronDialogBox::OnCopyResult()
 {
 	CopyAllText(IDC_CRON_EXPR_EDIT);
-}
-
-
-void CronDialogBox::OnSettingChanged(UINT uId)
-{
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-	switch (uId)
-	{
-	case IDM_SETTINGS_USESECOND:
-		ButtonCheck(IDC_CRON_SECOND_CHECK, !ButtonIsChecked(IDC_CRON_SECOND_CHECK));
-		OnSecondChanged();
-		break;
-	default:
-		break;
-	}
 }
 
 

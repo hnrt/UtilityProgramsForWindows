@@ -312,50 +312,6 @@ LRESULT MyToolbox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_VIEW_CLIP:
         m_tabs.CurrentItem = m_clipTab.Id;
         break;
-    case IDM_SETTINGS_IN_AUTO:
-    case IDM_SETTINGS_IN_UTF8:
-    case IDM_SETTINGS_IN_UTF16:
-    case IDM_SETTINGS_IN_CP932:
-    case IDM_SETTINGS_IN_CP936:
-    case IDM_SETTINGS_IN_CP949:
-    case IDM_SETTINGS_IN_CP950:
-    case IDM_SETTINGS_IN_CP1250:
-    case IDM_SETTINGS_IN_CP1251:
-    case IDM_SETTINGS_IN_CP1252:
-    case IDM_SETTINGS_IN_CP1253:
-    case IDM_SETTINGS_IN_CP1254:
-    case IDM_SETTINGS_IN_CP1255:
-    case IDM_SETTINGS_IN_CP1256:
-    case IDM_SETTINGS_IN_CP1257:
-    case IDM_SETTINGS_IN_CP1258:
-    case IDM_SETTINGS_OUT_UTF8:
-    case IDM_SETTINGS_OUT_UTF8BOM:
-    case IDM_SETTINGS_OUT_UTF16:
-    case IDM_SETTINGS_OUT_UTF16BOM:
-    case IDM_SETTINGS_OUT_CP932:
-    case IDM_SETTINGS_OUT_CP936:
-    case IDM_SETTINGS_OUT_CP949:
-    case IDM_SETTINGS_OUT_CP950:
-    case IDM_SETTINGS_OUT_CP1250:
-    case IDM_SETTINGS_OUT_CP1251:
-    case IDM_SETTINGS_OUT_CP1252:
-    case IDM_SETTINGS_OUT_CP1253:
-    case IDM_SETTINGS_OUT_CP1254:
-    case IDM_SETTINGS_OUT_CP1255:
-    case IDM_SETTINGS_OUT_CP1256:
-    case IDM_SETTINGS_OUT_CP1257:
-    case IDM_SETTINGS_OUT_CP1258:
-    case IDM_SETTINGS_MD5:
-    case IDM_SETTINGS_SHA1:
-    case IDM_SETTINGS_SHA256:
-    case IDM_SETTINGS_SHA384:
-    case IDM_SETTINGS_SHA512:
-    case IDM_SETTINGS_UPPERCASE:
-    case IDM_SETTINGS_LOWERCASE:
-    case IDM_SETTINGS_USESECOND:
-    case IDM_SETTINGS_WRAPDATA:
-        m_tabs[m_tabs.CurrentItem].OnSettingChanged(wControlId);
-        break;
     case IDM_HELP_ABOUT:
         m_about.Show();
         break;

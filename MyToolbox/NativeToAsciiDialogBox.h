@@ -20,7 +20,6 @@ namespace hnrt
 		virtual void OnSave1As();
 		virtual void OnLoad2From();
 		virtual void OnSave2As();
-		virtual void OnSettingChanged(UINT);
 
 	private:
 

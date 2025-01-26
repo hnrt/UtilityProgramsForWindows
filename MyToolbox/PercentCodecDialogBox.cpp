@@ -58,7 +58,7 @@ void PercentCodecDialogBox::OnCreate()
 	InitializeCodePageComboBox(IDC_PCTC_CODEPAGE_COMBO, m_CodePage);
 	ComboBoxRemove(IDC_PCTC_CODEPAGE_COMBO, CP_UTF16);
 	ButtonCheck(IDC_PCTC_USEPLUS_CHECK, m_bUsePlus);
-	SetStatus();
+	SetStatus(0, 0, L"");
 	m_menuView
 		.Add(ResourceString(IDS_MENU_PCTC), IDM_VIEW_PCTC);
 }
@@ -154,6 +154,10 @@ void PercentCodecDialogBox::OnTabSelectionChanged()
 INT_PTR PercentCodecDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
 	if (m_cProcessing)
+	{
+		return TRUE;
+	}
+	if (MyDialogBox::OnCommand(wParam, lParam))
 	{
 		return TRUE;
 	}
@@ -261,10 +265,10 @@ void PercentCodecDialogBox::OnEditChanged(int id)
 	switch (id)
 	{
 	case IDC_PCTC_ORG_EDIT:
-		SetStatus(L"", 0, MASK_PANE1 | MASK_STATUS);
+		SetStatus(0, MASK_PANE1 | MASK_STATUS, L"");
 		break;
 	case IDC_PCTC_ENC_EDIT:
-		SetStatus(L"", 0, MASK_PANE2 | MASK_STATUS);
+		SetStatus(0, MASK_PANE2 | MASK_STATUS, L"");
 		break;
 	default:
 		return;
@@ -275,7 +279,7 @@ void PercentCodecDialogBox::OnEditChanged(int id)
 
 void PercentCodecDialogBox::OnNew()
 {
-	SetStatus(L"", 0, MASK_PANE1 | MASK_PANE2 | MASK_STATUS);
+	SetStatus(0, MASK_PANE1 | MASK_PANE2 | MASK_STATUS, L"");
 	SetTextAndNotify(IDC_PCTC_ORG_EDIT);
 	SetTextAndNotify(IDC_PCTC_ENC_EDIT);
 }
@@ -283,61 +287,46 @@ void PercentCodecDialogBox::OnNew()
 
 void PercentCodecDialogBox::OnLoad1From()
 {
-	LoadTextFromFile(IDC_PCTC_ORG_EDIT, L"Original Text", m_szOriginalPath);
+	LoadTextFromFile(IDC_PCTC_ORG_EDIT, ResourceString(IDS_LOADING_ORGTEXT), m_szOriginalPath);
 }
 
 
 void PercentCodecDialogBox::OnSave1As()
 {
-	SaveTextAsFile(IDC_PCTC_ORG_EDIT, L"Original Text", m_szOriginalPath);
+	SaveTextAsFile(IDC_PCTC_ORG_EDIT, ResourceString(IDS_SAVING_ORGTEXT), m_szOriginalPath);
 }
 
 
 void PercentCodecDialogBox::OnLoad2From()
 {
-	LoadTextFromFile(IDC_PCTC_ENC_EDIT, L"Percent-Encoded Text", m_szEncodedPath);
+	LoadTextFromFile(IDC_PCTC_ENC_EDIT, ResourceString(IDS_LOADING_PERCENT), m_szEncodedPath);
 }
 
 
 void PercentCodecDialogBox::OnSave2As()
 {
-	SaveTextAsFile(IDC_PCTC_ENC_EDIT, L"Percent-Encoded Text", m_szEncodedPath);
-}
-
-
-void PercentCodecDialogBox::OnSettingChanged(UINT uId)
-{
-	if (ApplyToInputCodePage(uId))
-	{
-		return;
-	}
-	if (ApplyToOutputCodePage(uId))
-	{
-		return;
-	}
+	SaveTextAsFile(IDC_PCTC_ENC_EDIT, ResourceString(IDS_SAVING_PERCENT), m_szEncodedPath);
 }
 
 
 bool PercentCodecDialogBox::Encode()
 {
 	DBGFNC(L"PercentCodecDialogBox::Encode");
+	ResourceString szLeader(IDS_ENCODING_ORGTEXT);
 	try
 	{
-		SetStatus(L"Encoding...", FLAG_BUSY, MASK_STATUS);
+		SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
 		String szText = GetText(IDC_PCTC_ORG_EDIT);
 		Buffer<WCHAR> buf((szText.Len + 1ULL) * 4ULL * 3ULL);
 		Encode(szText, static_cast<UINT>(szText.Len + 1ULL), m_CodePage, buf, static_cast<UINT>(buf.Len), m_bUsePlus);
 		SetText(IDC_PCTC_ENC_EDIT, buf);
-		SetStatus(String(PRINTF, L"Encoding...Done:  %s in  >>>  %s out",
-			NumberOfChars(GetTextLength(IDC_PCTC_ORG_EDIT)),
-			NumberOfChars(GetTextLength(IDC_PCTC_ENC_EDIT))),
-			FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR);
+		SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR,
+			ResourceString(IDS_W_DONE_X_IN_Y_OUT), szLeader, NumberOfChars(GetTextLength(IDC_PCTC_ORG_EDIT)), NumberOfChars(GetTextLength(IDC_PCTC_ENC_EDIT)));
 		return true;
 	}
 	catch (Exception e)
 	{
-		SetStatus(String(PRINTF, L"Encoding...Failed:  %s", e.Message),
-			FLAG_STATUS_ERROR | FLAG_PANE1_ERROR, FLAG_PANE2_SUCCESSFUL);
+		SetStatus(FLAG_STATUS_ERROR | FLAG_PANE1_ERROR, FLAG_PANE2_SUCCESSFUL, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
 		return false;
 	}
 }
@@ -346,23 +335,21 @@ bool PercentCodecDialogBox::Encode()
 bool PercentCodecDialogBox::Decode()
 {
 	DBGFNC(L"PercentCodecDialogBox::Decode");
+	ResourceString szLeader(IDS_DECODING_PERCENT);
 	try
 	{
-		SetStatus(L"Decoding...", FLAG_BUSY, MASK_STATUS);
+		SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
 		String szText = GetText(IDC_PCTC_ENC_EDIT);
 		Buffer<WCHAR> buf(szText.Len + 1ULL);
 		Decode(szText, static_cast<UINT>(szText.Len + 1ULL), m_CodePage, buf, static_cast<UINT>(buf.Len));
 		SetText(IDC_PCTC_ORG_EDIT, buf);
-		SetStatus(String(PRINTF, L"Decoding...Done:  %s in  >>>  %s out",
-			NumberOfChars(GetTextLength(IDC_PCTC_ENC_EDIT)),
-			NumberOfChars(GetTextLength(IDC_PCTC_ORG_EDIT))),
-			FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR);
+		SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR,
+			ResourceString(IDS_W_DONE_X_IN_Y_OUT), szLeader, NumberOfChars(GetTextLength(IDC_PCTC_ENC_EDIT)), NumberOfChars(GetTextLength(IDC_PCTC_ORG_EDIT)));
 		return true;
 	}
 	catch (Exception e)
 	{
-		SetStatus(String(PRINTF, L"Decoding...Failed:  %s", e.Message),
-			FLAG_STATUS_ERROR | FLAG_PANE2_ERROR, FLAG_PANE1_SUCCESSFUL);
+		SetStatus(FLAG_STATUS_ERROR | FLAG_PANE2_ERROR, FLAG_PANE1_SUCCESSFUL, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
 		return false;
 	}
 }

@@ -39,7 +39,6 @@ namespace hnrt
 		virtual void OnClear();
 		virtual void OnExecute();
 		virtual void OnCopyResult();
-		virtual void OnSettingChanged(UINT id);
 		virtual void OnFeederNotify(ULONGLONG);
 
 		INT get_id() const;
@@ -58,7 +57,6 @@ namespace hnrt
 		virtual void OnEditSetFocus(int id);
 		virtual void OnEditKillFocus(int id);
 		virtual void OnEditChanged(int id);
-		virtual DWORD SetStatus(PCWSTR psz = L"", DWORD dwSet = 0UL, DWORD dwReset = 0UL);
 		virtual DWORD SetStatus(DWORD dwSet, DWORD dwReset, PCWSTR pszFormat, ...);
 		virtual DWORD VaSetStatus(DWORD dwSet, DWORD dwReset, PCWSTR pszFormat, va_list argList);
 		virtual DWORD SetStatus(DWORD dwSet, DWORD dwReset, const SYSTEMTIME& st, PCWSTR pszFormat, ...);
@@ -76,10 +74,8 @@ namespace hnrt
 		bool ApplyToHashAlgorithm(UINT, UINT&, UINT);
 		void AddLettercaseSettingMenus(UINT);
 		bool ApplyToLettercase(UINT, StringOptions&);
-		bool LoadTextFromFile(int id, PCWSTR pszObject = nullptr);
-		bool LoadTextFromFile(int id, PCWSTR pszObject, String& szPath);
-		bool SaveTextAsFile(int id, PCWSTR pszObject = nullptr);
-		bool SaveTextAsFile(int id, PCWSTR pszObject, String& szPath);
+		bool LoadTextFromFile(int id, PCWSTR pszDoingWhat, String& szPath);
+		bool SaveTextAsFile(int id, PCWSTR pszDoingWhat, String& szPath);
 		void InitializeCodePageComboBox(int id, int initialSelection = CP_UTF8) const;
 		void InitializeLineBreakComboBox(int id, LineBreak initialSelection = LineBreak::CRLF) const;
 		void InitializeLetterCaseComboBox(int id, StringOptions initialSelection = StringOptions::UPPERCASE) const;
@@ -134,13 +130,6 @@ namespace hnrt
 		return m_id;
 	}
 
-	inline INT_PTR MyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
-	{
-		UNREFERENCED_PARAMETER(lParam);
-		UNREFERENCED_PARAMETER(wParam);
-		return FALSE;
-	}
-
 	inline void MyDialogBox::OnNew()
 	{
 	}
@@ -175,11 +164,6 @@ namespace hnrt
 
 	inline void MyDialogBox::OnCopyResult()
 	{
-	}
-
-	inline void MyDialogBox::OnSettingChanged(UINT id)
-	{
-		UNREFERENCED_PARAMETER(id);
 	}
 
 	inline void MyDialogBox::OnFeederNotify(ULONGLONG nbytes)

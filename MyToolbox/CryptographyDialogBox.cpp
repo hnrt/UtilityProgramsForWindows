@@ -68,7 +68,7 @@ CryptographyDialogBox::CryptographyDialogBox()
 	, m_bWrapData(TRUE)
 {
 	m_hAlg.Open(BCRYPT_AES_ALGORITHM);
-	m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CBC;
+	//m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CBC;
 }
 
 
@@ -128,7 +128,7 @@ void CryptographyDialogBox::OnCreate()
 	InitializeCodePageComboBox(IDC_CRPT_CODEPAGE_COMBO, m_CodePage);
 	InitializeLineBreakComboBox(IDC_CRPT_LINEBREAK_COMBO, m_LineBreak);
 	InitializeLetterCaseComboBox(IDC_CRPT_HEXLETTER_COMBO, m_HexLetterCase);
-	OnChainingModeChange(cm);
+	OnChainingModeChange(-cm);
 	ButtonCheck(od);
 	OnOriginalDataDisplayModeChange(od);
 	ButtonCheck(ed);
@@ -167,34 +167,6 @@ void CryptographyDialogBox::OnDestroy()
 	SetFont(IDC_CRPT_ORG_EDIT, NULL);
 	SetFont(IDC_CRPT_ENC_EDIT, NULL);
 	MyDialogBox::OnDestroy();
-}
-
-
-void CryptographyDialogBox::OnTabSelectionChanging()
-{
-	MyDialogBox::OnTabSelectionChanging();
-	m_menuView
-		.Enable(IDM_VIEW_CRPT, MF_ENABLED);
-}
-
-
-void CryptographyDialogBox::OnTabSelectionChanged()
-{
-	MyDialogBox::OnTabSelectionChanged();
-	m_menuFile
-		.Insert(0, ResourceString(IDS_MENU_NEW), IDM_FILE_NEW)
-		.InsertSeparator(1)
-		.Insert(2, ResourceString(IDS_MENU_LOADORGFROM), IDM_FILE_LOAD1FROM)
-		.Insert(3, ResourceString(IDS_MENU_SAVEORGAS), IDM_FILE_SAVE1AS)
-		.InsertSeparator(4)
-		.Insert(5, ResourceString(IDS_MENU_LOADENCFROM), IDM_FILE_LOAD2FROM)
-		.Insert(6, ResourceString(IDS_MENU_SAVEENCAS), IDM_FILE_SAVE2AS)
-		.InsertSeparator(7);
-	m_menuSettings
-		.Add(ResourceString(IDS_MENU_WRAPDATA), IDM_SETTINGS_WRAPDATA);
-	m_menuView
-		.Enable(IDM_VIEW_CRPT, MF_DISABLED);
-	UpdateMenus();
 }
 
 
@@ -257,11 +229,42 @@ void CryptographyDialogBox::UpdateLayout(HWND hDlg, LONG cxDelta, LONG cyDelta)
 }
 
 
+void CryptographyDialogBox::OnTabSelectionChanging()
+{
+	MyDialogBox::OnTabSelectionChanging();
+	m_menuView
+		.Enable(IDM_VIEW_CRPT, MF_ENABLED);
+}
+
+
+void CryptographyDialogBox::OnTabSelectionChanged()
+{
+	MyDialogBox::OnTabSelectionChanged();
+	m_menuFile
+		.Insert(0, ResourceString(IDS_MENU_NEW), IDM_FILE_NEW)
+		.InsertSeparator(1)
+		.Insert(2, ResourceString(IDS_MENU_LOADORGFROM), IDM_FILE_LOAD1FROM)
+		.Insert(3, ResourceString(IDS_MENU_SAVEORGAS), IDM_FILE_SAVE1AS)
+		.InsertSeparator(4)
+		.Insert(5, ResourceString(IDS_MENU_LOADENCFROM), IDM_FILE_LOAD2FROM)
+		.Insert(6, ResourceString(IDS_MENU_SAVEENCAS), IDM_FILE_SAVE2AS)
+		.InsertSeparator(7);
+	m_menuView
+		.Enable(IDM_VIEW_CRPT, MF_DISABLED);
+	m_menuSettings
+		.Add(ResourceString(IDS_MENU_WRAPDATA), IDM_SETTINGS_WRAPDATA);
+	UpdateControlsState(1);
+}
+
+
 INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 {
 	if (m_cProcessing)
 	{
-		DBGPUT(L"CryptographyDialogBox::OnCommand(%zx,%zx): m_cProcessing=%d", wParam, lParam, m_cProcessing);
+		return TRUE;
+	}
+	if (MyDialogBox::OnCommand(wParam, lParam))
+	{
 		return TRUE;
 	}
 	UINT idChild = LOWORD(wParam);
@@ -461,6 +464,14 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 			return FALSE;
 		}
 		break;
+	case IDM_SETTINGS_WRAPDATA:
+		m_bWrapData ^= TRUE;
+		m_menuSettings
+			.Modify(IDM_SETTINGS_WRAPDATA, MF_BYCOMMAND | (m_bWrapData ? MF_CHECKED : MFS_UNCHECKED), IDM_SETTINGS_WRAPDATA, ResourceString(IDS_MENU_WRAPDATA));
+		SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
+		SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
+		UpdateControlsState(1);
+		break;
 	default:
 		return FALSE;
 	}
@@ -514,7 +525,11 @@ INT_PTR CryptographyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 
 void CryptographyDialogBox::OnEditChanged(int id)
 {
-	MyDialogBox::OnEditChanged(id);
+	if (m_CurrentEdit == id)
+	{
+		UpdateEditControlMenus(m_CurrentEdit);
+	}
+	m_LastModified.By = id;
 	switch (id)
 	{
 	case IDC_CRPT_KEY_EDIT:
@@ -535,17 +550,191 @@ void CryptographyDialogBox::OnEditChanged(int id)
 }
 
 
+void CryptographyDialogBox::UpdateControlsState(int id)
+{
+	BOOL bEnabled;
+	switch (id)
+	{
+	case 0:
+		EditSetReadOnly(IDC_CRPT_KEY_EDIT, TRUE);
+		EditSetReadOnly(IDC_CRPT_IV_EDIT, TRUE);
+		EditSetReadOnly(IDC_CRPT_AAD_EDIT, TRUE);
+		EditSetReadOnly(IDC_CRPT_ORG_EDIT, TRUE);
+		EditSetReadOnly(IDC_CRPT_ENC_EDIT, TRUE);
+		DisableWindow(IDC_CRPT_IV_GROUP);
+		DisableWindow(IDC_CRPT_IV_EDIT);
+		DisableWindow(IDC_CRPT_IVLEN_STATIC);
+		UpdateTagSizeRadioBoxes();
+		DisableWindow(IDC_CRPT_AAD_GROUP);
+		DisableWindow(IDC_CRPT_AAD_EDIT);
+		DisableWindow(IDC_CRPT_AAD_HEX_RADIO);
+		DisableWindow(IDC_CRPT_AAD_BASE64_RADIO);
+		DisableWindow(IDC_CRPT_AAD_TEXT_RADIO);
+		DisableWindow(IDC_CRPT_ENCRYPT_BUTTON);
+		DisableWindow(IDC_CRPT_DECRYPT_BUTTON);
+		DisableWindow(IDC_CRPT_COPYORG_BUTTON);
+		DisableWindow(IDC_CRPT_COPYENC_BUTTON);
+		m_menuFile
+			.Enable(IDM_FILE_LOAD1FROM, MF_DISABLED)
+			.Enable(IDM_FILE_SAVE1AS, MF_DISABLED)
+			.Enable(IDM_FILE_LOAD2FROM, MF_DISABLED)
+			.Enable(IDM_FILE_SAVE2AS, MF_DISABLED);
+		return;
+	case 1:
+		EditSetReadOnly(IDC_CRPT_KEY_EDIT, FALSE);
+		if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
+		{
+			EditSetReadOnly(IDC_CRPT_IV_EDIT, FALSE);
+			EditSetReadOnly(IDC_CRPT_AAD_EDIT, TRUE);
+			EnableWindow(IDC_CRPT_IV_GROUP);
+			EnableWindow(IDC_CRPT_IV_EDIT);
+			EnableWindow(IDC_CRPT_IVLEN_STATIC);
+			UpdateTagSizeRadioBoxes();
+			DisableWindow(IDC_CRPT_AAD_GROUP);
+			DisableWindow(IDC_CRPT_AAD_EDIT);
+			DisableWindow(IDC_CRPT_AAD_HEX_RADIO);
+			DisableWindow(IDC_CRPT_AAD_BASE64_RADIO);
+			DisableWindow(IDC_CRPT_AAD_TEXT_RADIO);
+		}
+		else if (IS_AES_ECB(m_hAlg.ChainingMode))
+		{
+			EditSetReadOnly(IDC_CRPT_IV_EDIT, TRUE);
+			EditSetReadOnly(IDC_CRPT_AAD_EDIT, TRUE);
+			DisableWindow(IDC_CRPT_IV_GROUP);
+			DisableWindow(IDC_CRPT_IV_EDIT);
+			DisableWindow(IDC_CRPT_IVLEN_STATIC);
+			UpdateTagSizeRadioBoxes();
+			DisableWindow(IDC_CRPT_AAD_GROUP);
+			DisableWindow(IDC_CRPT_AAD_EDIT);
+			DisableWindow(IDC_CRPT_AAD_HEX_RADIO);
+			DisableWindow(IDC_CRPT_AAD_BASE64_RADIO);
+			DisableWindow(IDC_CRPT_AAD_TEXT_RADIO);
+		}
+		else if (IS_AES_CCM(m_hAlg.ChainingMode) || IS_AES_GCM(m_hAlg.ChainingMode))
+		{
+			EditSetReadOnly(IDC_CRPT_IV_EDIT, FALSE);
+			EditSetReadOnly(IDC_CRPT_AAD_EDIT, FALSE);
+			EnableWindow(IDC_CRPT_IV_GROUP);
+			EnableWindow(IDC_CRPT_IV_EDIT);
+			EnableWindow(IDC_CRPT_IVLEN_STATIC);
+			UpdateTagSizeRadioBoxes();
+			EnableWindow(IDC_CRPT_AAD_GROUP);
+			EnableWindow(IDC_CRPT_AAD_EDIT);
+			EnableWindow(IDC_CRPT_AAD_HEX_RADIO);
+			EnableWindow(IDC_CRPT_AAD_BASE64_RADIO);
+			EnableWindow(IDC_CRPT_AAD_TEXT_RADIO);
+		}
+		switch (m_Mode)
+		{
+		case MODE_IDLE:
+			EditSetReadOnly(IDC_CRPT_ORG_EDIT, FALSE);
+			EditSetReadOnly(IDC_CRPT_ENC_EDIT, FALSE);
+			m_menuFile
+				.Enable(IDM_FILE_LOAD1FROM, MF_ENABLED)
+				.Enable(IDM_FILE_LOAD2FROM, MF_ENABLED);
+			break;
+		case MODE_ENCRYPTION:
+			EditSetReadOnly(IDC_CRPT_ORG_EDIT, FALSE);
+			EditSetReadOnly(IDC_CRPT_ENC_EDIT, TRUE);
+			m_menuFile
+				.Enable(IDM_FILE_LOAD1FROM, MF_ENABLED)
+				.Enable(IDM_FILE_LOAD2FROM, MF_DISABLED);
+			break;
+		case MODE_DECRYPTION:
+			EditSetReadOnly(IDC_CRPT_ORG_EDIT, TRUE);
+			EditSetReadOnly(IDC_CRPT_ENC_EDIT, FALSE);
+			m_menuFile
+				.Enable(IDM_FILE_LOAD1FROM, MF_DISABLED)
+				.Enable(IDM_FILE_LOAD2FROM, MF_ENABLED);
+			break;
+		default:
+			break;
+		}
+		EnableWindow(IDC_CRPT_COPYORG_BUTTON, GetTextLength(IDC_CRPT_ORG_EDIT) > 0 ? TRUE : FALSE);
+		EnableWindow(IDC_CRPT_COPYENC_BUTTON, GetTextLength(IDC_CRPT_ENC_EDIT) > 0 ? TRUE : FALSE);
+		m_menuFile
+			.Enable(IDM_FILE_SAVE1AS, (m_OriginalData.Len > 0) ? MF_ENABLED : MF_DISABLED)
+			.Enable(IDM_FILE_SAVE2AS, (m_EncryptedData.Len > 0) ? MF_ENABLED : MF_DISABLED);
+		//FALLTHROUGH
+	case IDC_CRPT_KEY_EDIT:
+	case IDC_CRPT_IV_EDIT:
+		if (m_Mode != MODE_ENCRYPTION)
+		{
+			bEnabled = FALSE;
+		}
+		else if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
+		{
+			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_IV.Len >= m_hAlg.BlockLength && m_OriginalData.Len > 0) ? TRUE : FALSE;
+		}
+		else if (IS_AES_ECB(m_hAlg.ChainingMode))
+		{
+			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_OriginalData.Len > 0) ? TRUE : FALSE;
+		}
+		else if (IS_AES_CCM(m_hAlg.ChainingMode))
+		{
+			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_Nonce.Len >= AES_CCM_NONCE_LENGTH && m_OriginalData.Len > 0) ? TRUE : FALSE;
+		}
+		else if (IS_AES_GCM(m_hAlg.ChainingMode))
+		{
+			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_Nonce.Len >= AES_GCM_NONCE_LENGTH && m_OriginalData.Len > 0) ? TRUE : FALSE;
+		}
+		else
+		{
+			bEnabled = FALSE;
+		}
+		EnableWindow(IDC_CRPT_ENCRYPT_BUTTON, bEnabled);
+		if (m_Mode != MODE_DECRYPTION)
+		{
+			bEnabled = FALSE;
+		}
+		else if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
+		{
+			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_IV.Len >= m_hAlg.BlockLength && m_EncryptedData.Len > 0) ? TRUE : FALSE;
+		}
+		else if (IS_AES_ECB(m_hAlg.ChainingMode))
+		{
+			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_EncryptedData.Len > 0) ? TRUE : FALSE;
+		}
+		else if (IS_AES_CCM(m_hAlg.ChainingMode))
+		{
+			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_Nonce.Len >= AES_CCM_NONCE_LENGTH && m_EncryptedData.Len > 0) ? TRUE : FALSE;
+		}
+		else if (IS_AES_GCM(m_hAlg.ChainingMode))
+		{
+			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_Nonce.Len >= AES_GCM_NONCE_LENGTH && m_EncryptedData.Len > 0) ? TRUE : FALSE;
+		}
+		else
+		{
+			bEnabled = FALSE;
+		}
+		EnableWindow(IDC_CRPT_DECRYPT_BUTTON, bEnabled);
+		break;
+	case IDC_CRPT_ORG_EDIT:
+		EnableWindow(IDC_CRPT_COPYORG_BUTTON, GetTextLength(IDC_CRPT_ORG_EDIT) > 0 ? TRUE : FALSE);
+		m_menuFile
+			.Enable(IDM_FILE_SAVE1AS, (m_OriginalData.Len > 0) ? MF_ENABLED : MF_DISABLED);
+		UpdateControlsState(IDC_CRPT_KEY_EDIT);
+		break;
+	case IDC_CRPT_ENC_EDIT:
+		EnableWindow(IDC_CRPT_COPYENC_BUTTON, GetTextLength(IDC_CRPT_ENC_EDIT) > 0 ? TRUE : FALSE);
+		m_menuFile
+			.Enable(IDM_FILE_SAVE2AS, (m_EncryptedData.Len > 0) ? MF_ENABLED : MF_DISABLED);
+		UpdateControlsState(IDC_CRPT_KEY_EDIT);
+		break;
+	default:
+		return;
+	}
+}
+
+
 void CryptographyDialogBox::OnNew()
 {
 	SetMode(MODE_IDLE);
-	UpdateMenus();
-	UpdateButtons();
 }
 
 
 void CryptographyDialogBox::OnLoad1From()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	String szTitle(ResourceString(IDS_LOADTEXTFROMFILE));
 	StringBuffer szPath2(MAX_PATH, m_szOriginalDataPath);
 	OPENFILENAMEW ofn = { 0 };
@@ -569,14 +758,12 @@ void CryptographyDialogBox::OnLoad1From()
 	SetMode(MODE_ENCRYPTION);
 	m_OriginalData = ByteString(fm.Ptr, fm.Len);
 	SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
-	UpdateMenus();
-	UpdateButtons();
+	UpdateControlsState(1);
 }
 
 
 void CryptographyDialogBox::OnSave1As()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	String szTitle(ResourceString(IDS_SAVETEXTASFILE));
 	StringBuffer szPath2(MAX_PATH, m_szOriginalDataPath);
 	OPENFILENAMEW ofn = { 0 };
@@ -616,7 +803,6 @@ void CryptographyDialogBox::OnSave1As()
 
 void CryptographyDialogBox::OnLoad2From()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	String szTitle(ResourceString(IDS_LOADTEXTFROMFILE));
 	StringBuffer szPath2(MAX_PATH, m_szEncryptedDataPath);
 	OPENFILENAMEW ofn = { 0 };
@@ -640,14 +826,12 @@ void CryptographyDialogBox::OnLoad2From()
 	SetMode(MODE_DECRYPTION);
 	m_EncryptedData = ByteString(fm.Ptr, fm.Len);
 	SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
-	UpdateMenus();
-	UpdateButtons();
+	UpdateControlsState(1);
 }
 
 
 void CryptographyDialogBox::OnSave2As()
 {
-	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	String szTitle(ResourceString(IDS_SAVETEXTASFILE));
 	StringBuffer szPath2(MAX_PATH, m_szEncryptedDataPath);
 	OPENFILENAMEW ofn = { 0 };
@@ -685,25 +869,6 @@ void CryptographyDialogBox::OnSave2As()
 }
 
 
-void CryptographyDialogBox::OnSettingChanged(UINT id)
-{
-	switch (id)
-	{
-	case IDM_SETTINGS_WRAPDATA:
-	{
-		WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-		m_bWrapData ^= TRUE;
-		SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
-		SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
-		UpdateMenus();
-		break;
-	}
-	default:
-		break;
-	}
-}
-
-
 void CryptographyDialogBox::OnEncrypt()
 {
 	DBGFNC(L"CryptographyDialogBox::OnEncrypt");
@@ -712,6 +877,7 @@ void CryptographyDialogBox::OnEncrypt()
 	GetLocalTime(&st);
 	try
 	{
+		SetStatus(FLAG_BUSY, MASK_STATUS, L"");
 		if (m_Key.Len * 8 < m_KeyLength)
 		{
 			throw Exception(L"Private key is shorter than %d bytes long.", m_KeyLength / 8);
@@ -794,8 +960,6 @@ void CryptographyDialogBox::OnEncrypt()
 	{
 		SetStatus(FLAG_STATUS_ERROR, FLAG_STATUS_SUCCESSFUL, st, L"%s", e.Message);
 	}
-	UpdateMenus();
-	UpdateButtons();
 }
 
 
@@ -807,6 +971,7 @@ void CryptographyDialogBox::OnDecrypt()
 	GetLocalTime(&st);
 	try
 	{
+		SetStatus(FLAG_BUSY, MASK_STATUS, L"");
 		if (m_Key.Len * 8 < m_KeyLength)
 		{
 			throw Exception(L"Private key is shorter than %d bytes long.", m_KeyLength / 8);
@@ -891,8 +1056,6 @@ void CryptographyDialogBox::OnDecrypt()
 	{
 		SetStatus(FLAG_STATUS_ERROR, FLAG_STATUS_SUCCESSFUL, st, L"ERROR:  %s", e.Message);
 	}
-	UpdateMenus();
-	UpdateButtons();
 }
 
 
@@ -988,88 +1151,51 @@ void CryptographyDialogBox::OnAdjustIV()
 
 void CryptographyDialogBox::OnChainingModeChange(int id)
 {
+	if (id < 0)
+	{
+		id *= -1;
+	}
+	else if (ChainingModeToControlId(m_hAlg.ChainingMode) == id)
+	{
+		return;
+	}
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	switch (id)
 	{
 	case IDC_CRPT_AESCBC_RADIO:
 	default:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CBC;
-		EnableWindow(IDC_CRPT_IV_GROUP);
-		EnableWindow(IDC_CRPT_IV_EDIT);
-		EnableWindow(IDC_CRPT_IVLEN_STATIC);
 		SetText(IDC_CRPT_IV_GROUP, L"Initial Vector");
 		SetText(IDC_CRPT_IV_EDIT, m_IV.ToHex(m_HexLetterCase));
 		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes (Block Size)", m_hAlg.BlockLength));
-		UpdateTagSizeRadioBoxes();
-		DisableWindow(IDC_CRPT_AAD_GROUP);
-		DisableWindow(IDC_CRPT_AAD_EDIT);
-		DisableWindow(IDC_CRPT_AAD_HEX_RADIO);
-		DisableWindow(IDC_CRPT_AAD_BASE64_RADIO);
-		DisableWindow(IDC_CRPT_AAD_TEXT_RADIO);
 		break;
 	case IDC_CRPT_AESECB_RADIO:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_ECB;
-		DisableWindow(IDC_CRPT_IV_GROUP);
-		DisableWindow(IDC_CRPT_IV_EDIT);
-		DisableWindow(IDC_CRPT_IVLEN_STATIC);
 		SetText(IDC_CRPT_IV_GROUP, L"Initial Vector");
 		SetText(IDC_CRPT_IV_EDIT);
 		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes (Block Size)", m_hAlg.BlockLength));
-		UpdateTagSizeRadioBoxes();
-		DisableWindow(IDC_CRPT_AAD_GROUP);
-		DisableWindow(IDC_CRPT_AAD_EDIT);
-		DisableWindow(IDC_CRPT_AAD_HEX_RADIO);
-		DisableWindow(IDC_CRPT_AAD_BASE64_RADIO);
-		DisableWindow(IDC_CRPT_AAD_TEXT_RADIO);
 		break;
 	case IDC_CRPT_AESCFB_RADIO:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CFB;
-		EnableWindow(IDC_CRPT_IV_GROUP);
-		EnableWindow(IDC_CRPT_IV_EDIT);
-		EnableWindow(IDC_CRPT_IVLEN_STATIC);
 		SetText(IDC_CRPT_IV_GROUP, L"Initial Vector");
 		SetText(IDC_CRPT_IV_EDIT, m_IV.ToHex(m_HexLetterCase));
 		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes (Block Size)", m_hAlg.BlockLength));
-		UpdateTagSizeRadioBoxes();
-		DisableWindow(IDC_CRPT_AAD_GROUP);
-		DisableWindow(IDC_CRPT_AAD_EDIT);
-		DisableWindow(IDC_CRPT_AAD_HEX_RADIO);
-		DisableWindow(IDC_CRPT_AAD_BASE64_RADIO);
-		DisableWindow(IDC_CRPT_AAD_TEXT_RADIO);
 		break;
 	case IDC_CRPT_AESCCM_RADIO:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CCM;
-		EnableWindow(IDC_CRPT_IV_GROUP);
-		EnableWindow(IDC_CRPT_IV_EDIT);
-		EnableWindow(IDC_CRPT_IVLEN_STATIC);
 		SetText(IDC_CRPT_IV_GROUP, L"Nonce");
 		SetText(IDC_CRPT_IV_EDIT, m_Nonce.ToHex(m_HexLetterCase));
 		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes", AES_CCM_NONCE_LENGTH));
-		UpdateTagSizeRadioBoxes();
-		EnableWindow(IDC_CRPT_AAD_GROUP);
-		EnableWindow(IDC_CRPT_AAD_EDIT);
-		EnableWindow(IDC_CRPT_AAD_HEX_RADIO);
-		EnableWindow(IDC_CRPT_AAD_BASE64_RADIO);
-		EnableWindow(IDC_CRPT_AAD_TEXT_RADIO);
 		break;
 	case IDC_CRPT_AESGCM_RADIO:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_GCM;
-		EnableWindow(IDC_CRPT_IV_GROUP);
-		EnableWindow(IDC_CRPT_IV_EDIT);
-		EnableWindow(IDC_CRPT_IVLEN_STATIC);
 		SetText(IDC_CRPT_IV_GROUP, L"Nonce");
 		SetText(IDC_CRPT_IV_EDIT, m_Nonce.ToHex(m_HexLetterCase));
 		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes", AES_GCM_NONCE_LENGTH));
 		UpdateTagSizeRadioBoxes();
-		EnableWindow(IDC_CRPT_AAD_GROUP);
-		EnableWindow(IDC_CRPT_AAD_EDIT);
-		EnableWindow(IDC_CRPT_AAD_HEX_RADIO);
-		EnableWindow(IDC_CRPT_AAD_BASE64_RADIO);
-		EnableWindow(IDC_CRPT_AAD_TEXT_RADIO);
 		break;
 	}
 	SetMode(m_Mode);
-	UpdateButtons();
 }
 
 
@@ -1078,7 +1204,6 @@ void CryptographyDialogBox::OnKeyLengthChange(int id)
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	m_KeyLength = ControlIdToKeyLength(id);
 	InvalidateRect(IDC_CRPT_KEY_EDIT, NULL, FALSE);
-	SetMode(m_Mode);
 }
 
 
@@ -1093,7 +1218,6 @@ void CryptographyDialogBox::OnTagLengthChange(int id)
 	{
 		m_GcmTagLength = ControlIdToTagLength(id);
 	}
-	SetMode(m_Mode);
 }
 
 
@@ -1109,9 +1233,7 @@ void CryptographyDialogBox::OnKeyChange()
 		m_Key.Resize(0);
 	}
 	InvalidateRect(IDC_CRPT_KEY_EDIT, NULL, FALSE);
-	SetMode(m_Mode);
-	UpdateMenus();
-	UpdateButtons();
+	UpdateControlsState(IDC_CRPT_KEY_EDIT);
 }
 
 
@@ -1141,9 +1263,7 @@ void CryptographyDialogBox::OnIVChange()
 		}
 	}
 	InvalidateRect(IDC_CRPT_IV_EDIT, NULL, FALSE);
-	SetMode(m_Mode);
-	UpdateMenus();
-	UpdateButtons();
+	UpdateControlsState(IDC_CRPT_IV_EDIT);
 }
 
 
@@ -1225,6 +1345,7 @@ void CryptographyDialogBox::OnOriginalDataChange()
 				throw Exception(L"Bad Data Display Mode.");
 			}
 			SetStatus(0, MASK_STATUS | MASK_PANE1, L"");
+			UpdateControlsState(IDC_CRPT_ORG_EDIT);
 		}
 		catch (Exception e)
 		{
@@ -1232,8 +1353,6 @@ void CryptographyDialogBox::OnOriginalDataChange()
 			SetStatus(FLAG_STATUS_ERROR | FLAG_PANE1_ERROR, FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, L"ERROR:  %s", e.Message);
 		}
 	}
-	UpdateMenus();
-	UpdateButtons();
 }
 
 
@@ -1331,9 +1450,8 @@ void CryptographyDialogBox::OnEncryptedDataChange()
 			m_EncryptedData.Resize(0);
 			SetStatus(FLAG_STATUS_ERROR | FLAG_PANE2_ERROR, FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, L"ERROR:  %s", e.Message);
 		}
+		UpdateControlsState(IDC_CRPT_ENC_EDIT);
 	}
-	UpdateMenus();
-	UpdateButtons();
 }
 
 
@@ -1490,7 +1608,9 @@ void CryptographyDialogBox::OnLineBreakChange()
 
 void CryptographyDialogBox::SetMode(int value)
 {
-	switch (value)
+	int prev = m_Mode;
+	m_Mode = value;
+	switch (m_Mode)
 	{
 	case MODE_IDLE:
 		if (m_OriginalData.Len)
@@ -1503,25 +1623,23 @@ void CryptographyDialogBox::SetMode(int value)
 			m_EncryptedData.Resize(0);
 			SetText(IDC_CRPT_ENC_EDIT);
 		}
-		EditSetReadOnly(IDC_CRPT_ORG_EDIT, FALSE);
-		EditSetReadOnly(IDC_CRPT_ENC_EDIT, FALSE);
-		SetStatus(0, MASK_STATUS, L"");
-		UpdateButtons();
+		SetStatus(0, MASK_STATUS | MASK_PANE1 | MASK_PANE2, L"");
+		UpdateControlsState(1);
 		break;
 	case MODE_ENCRYPTION:
-		switch (m_Mode)
+		switch (prev)
 		{
 		case MODE_IDLE:
-			EditSetReadOnly(IDC_CRPT_ENC_EDIT);
+			UpdateControlsState(1);
 			break;
 		case MODE_ENCRYPTION:
 			if (m_EncryptedData.Len)
 			{
 				m_EncryptedData.Resize(0);
 				SetText(IDC_CRPT_ENC_EDIT);
-				SetStatus(0, MASK_STATUS, L"");
-				UpdateButtons();
 			}
+			SetStatus(0, MASK_STATUS | MASK_PANE1 | MASK_PANE2, L"");
+			UpdateControlsState(1);
 			break;
 		case MODE_DECRYPTION:
 		default:
@@ -1529,10 +1647,10 @@ void CryptographyDialogBox::SetMode(int value)
 		}
 		break;
 	case MODE_DECRYPTION:
-		switch (m_Mode)
+		switch (prev)
 		{
 		case MODE_IDLE:
-			EditSetReadOnly(IDC_CRPT_ORG_EDIT);
+			UpdateControlsState(1);
 			break;
 		case MODE_DECRYPTION:
 			if (m_OriginalData.Len)
@@ -1540,8 +1658,9 @@ void CryptographyDialogBox::SetMode(int value)
 				m_OriginalData.Resize(0);
 				SetText(IDC_CRPT_ORG_EDIT);
 				SetStatus(0, MASK_STATUS, L"");
-				UpdateButtons();
 			}
+			SetStatus(0, MASK_STATUS | MASK_PANE1 | MASK_PANE2, L"");
+			UpdateControlsState(1);
 			break;
 		case MODE_ENCRYPTION:
 		default:
@@ -1551,64 +1670,6 @@ void CryptographyDialogBox::SetMode(int value)
 	default:
 		break;
 	}
-	m_Mode = value;
-}
-
-
-void CryptographyDialogBox::UpdateMenus()
-{
-	UINT uFlagsR = 0U;
-	UINT uFlagsW = 0U;
-	m_menuFile
-		.Enable(IDM_FILE_LOAD1FROM, (m_Mode == MODE_IDLE || m_Mode == MODE_ENCRYPTION) ? MF_ENABLED : MF_DISABLED)
-		.Enable(IDM_FILE_SAVE1AS, (m_OriginalData.Len > 0) ? MF_ENABLED : MF_DISABLED)
-		.Enable(IDM_FILE_LOAD2FROM, (m_Mode == MODE_IDLE || m_Mode == MODE_DECRYPTION) ? MF_ENABLED : MF_DISABLED)
-		.Enable(IDM_FILE_SAVE2AS, (m_EncryptedData.Len > 0) ? MF_ENABLED : MF_DISABLED);
-	m_menuSettings
-		.Modify(IDM_SETTINGS_WRAPDATA, MF_BYCOMMAND | (m_bWrapData ? MF_CHECKED : MFS_UNCHECKED), IDM_SETTINGS_WRAPDATA, ResourceString(IDS_MENU_WRAPDATA));
-}
-
-
-void CryptographyDialogBox::UpdateButtons()
-{
-	BOOL bEncrypt = FALSE;
-	BOOL bDecrypt = FALSE;
-	if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
-	{
-		if (m_Key.Len * 8 >= m_KeyLength && m_IV.Len >= m_hAlg.BlockLength)
-		{
-			bEncrypt = m_OriginalData.Len > 0 ? TRUE : FALSE;
-			bDecrypt = m_EncryptedData.Len > 0 ? TRUE : FALSE;
-		}
-	}
-	else if (IS_AES_ECB(m_hAlg.ChainingMode))
-	{
-		if (m_Key.Len * 8 >= m_KeyLength)
-		{
-			bEncrypt = m_OriginalData.Len > 0 ? TRUE : FALSE;
-			bDecrypt = m_EncryptedData.Len > 0 ? TRUE : FALSE;
-		}
-	}
-	else if (IS_AES_CCM(m_hAlg.ChainingMode))
-	{
-		if (m_Key.Len * 8 >= m_KeyLength)
-		{
-			bEncrypt = m_Nonce.Len >= AES_CCM_NONCE_LENGTH && m_OriginalData.Len > 0 ? TRUE : FALSE;
-			bDecrypt = m_Nonce.Len >= AES_CCM_NONCE_LENGTH && m_EncryptedData.Len > m_CcmTagLength ? TRUE : FALSE;
-		}
-	}
-	else if (IS_AES_GCM(m_hAlg.ChainingMode))
-	{
-		if (m_Key.Len * 8 >= m_KeyLength)
-		{
-			bEncrypt = m_Nonce.Len >= AES_GCM_NONCE_LENGTH && m_OriginalData.Len > 0 ? TRUE : FALSE;
-			bDecrypt = m_Nonce.Len >= AES_GCM_NONCE_LENGTH && m_EncryptedData.Len > m_GcmTagLength ? TRUE : FALSE;
-		}
-	}
-	EnableWindow(IDC_CRPT_ENCRYPT_BUTTON, bEncrypt);
-	EnableWindow(IDC_CRPT_DECRYPT_BUTTON, bDecrypt);
-	EnableWindow(IDC_CRPT_COPYORG_BUTTON, GetTextLength(IDC_CRPT_ORG_EDIT) > 0 ? TRUE : FALSE);
-	EnableWindow(IDC_CRPT_COPYENC_BUTTON, GetTextLength(IDC_CRPT_ENC_EDIT) > 0 ? TRUE : FALSE);
 }
 
 

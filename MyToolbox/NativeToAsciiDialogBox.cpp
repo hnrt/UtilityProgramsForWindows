@@ -50,7 +50,7 @@ void NativeToAsciiDialogBox::OnCreate()
 		m_szNativePath = RegistryValue::GetSZ(hKey, REGVAL_NATIVE_PATH);
 		m_szAsciiPath = RegistryValue::GetSZ(hKey, REGVAL_ASCII_PATH);
 	}
-	SetStatus();
+	SetStatus(0, 0, L"");
 	m_menuView
 		.Add(ResourceString(IDS_MENU_NTOA), IDM_VIEW_NTOA);
 }
@@ -145,6 +145,10 @@ INT_PTR NativeToAsciiDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	{
 		return TRUE;
 	}
+	if (MyDialogBox::OnCommand(wParam, lParam))
+	{
+		return TRUE;
+	}
 	UINT idChild = LOWORD(wParam);
 	UINT idNotif = HIWORD(wParam);
 	switch (idChild)
@@ -221,10 +225,10 @@ void NativeToAsciiDialogBox::OnEditChanged(int id)
 	switch (id)
 	{
 	case IDC_NTOA_NATIVE_EDIT:
-		SetStatus(L"", 0, MASK_PANE1 | MASK_STATUS);
+		SetStatus(0, MASK_PANE1 | MASK_STATUS, L"");
 		break;
 	case IDC_NTOA_ASCII_EDIT:
-		SetStatus(L"", 0, MASK_PANE2 | MASK_STATUS);
+		SetStatus(0, MASK_PANE2 | MASK_STATUS, L"");
 		break;
 	default:
 		return;
@@ -235,7 +239,7 @@ void NativeToAsciiDialogBox::OnEditChanged(int id)
 
 void NativeToAsciiDialogBox::OnNew()
 {
-	SetStatus(L"", 0, MASK_PANE1 | MASK_PANE2 | MASK_STATUS);
+	SetStatus(0, MASK_PANE1 | MASK_PANE2 | MASK_STATUS, L"");
 	SetTextAndNotify(IDC_NTOA_NATIVE_EDIT);
 	SetTextAndNotify(IDC_NTOA_ASCII_EDIT);
 }
@@ -243,62 +247,47 @@ void NativeToAsciiDialogBox::OnNew()
 
 void NativeToAsciiDialogBox::OnLoad1From()
 {
-	LoadTextFromFile(IDC_NTOA_NATIVE_EDIT, L"Native Text", m_szNativePath);
+	LoadTextFromFile(IDC_NTOA_NATIVE_EDIT, ResourceString(IDS_LOADING_NATIVE), m_szNativePath);
 }
 
 
 void NativeToAsciiDialogBox::OnSave1As()
 {
-	SaveTextAsFile(IDC_NTOA_NATIVE_EDIT, L"Native Text", m_szNativePath);
+	SaveTextAsFile(IDC_NTOA_NATIVE_EDIT, ResourceString(IDS_SAVING_NATIVE), m_szNativePath);
 }
 
 
 void NativeToAsciiDialogBox::OnLoad2From()
 {
-	LoadTextFromFile(IDC_NTOA_ASCII_EDIT, L"US-ASCII Text", m_szAsciiPath);
+	LoadTextFromFile(IDC_NTOA_ASCII_EDIT, ResourceString(IDS_LOADING_ASCII), m_szAsciiPath);
 }
 
 
 void NativeToAsciiDialogBox::OnSave2As()
 {
-	SaveTextAsFile(IDC_NTOA_ASCII_EDIT, L"US-ASCII Text", m_szAsciiPath);
-}
-
-
-void NativeToAsciiDialogBox::OnSettingChanged(UINT uId)
-{
-	if (ApplyToInputCodePage(uId))
-	{
-		return;
-	}
-	if (ApplyToOutputCodePage(uId))
-	{
-		return;
-	}
+	SaveTextAsFile(IDC_NTOA_ASCII_EDIT, ResourceString(IDS_SAVING_ASCII), m_szAsciiPath);
 }
 
 
 void NativeToAsciiDialogBox::Encode()
 {
 	DBGFNC(L"NativeToAsciiDialogBox::Encode");
-	SetStatus(L"Encoding...", FLAG_BUSY, MASK_STATUS);
+	ResourceString szLeader(IDS_ENCODING_NATIVE);
+	SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
 	SetText(IDC_NTOA_ASCII_EDIT, FromNativeToAscii(GetText(IDC_NTOA_NATIVE_EDIT)));
-	SetStatus(String(PRINTF, L"Encoding...Done: %s chars in  >>>  %s chars out",
-		NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr,
-		NumberText(GetTextLength(IDC_NTOA_ASCII_EDIT)).Ptr),
-		FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR);
+	SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR,
+		ResourceString(IDS_W_DONE_X_IN_Y_OUT), szLeader, NumberOfChars(GetTextLength(IDC_NTOA_NATIVE_EDIT)), NumberOfChars(GetTextLength(IDC_NTOA_ASCII_EDIT)));
 }
 
 
 void NativeToAsciiDialogBox::Decode()
 {
 	DBGFNC(L"NativeToAsciiDialogBox::Decode");
-	SetStatus(L"Decoding...", FLAG_BUSY, MASK_STATUS);
+	ResourceString szLeader(IDS_DECODING_ASCII);
+	SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
 	SetText(IDC_NTOA_NATIVE_EDIT, FromAsciiToNative(GetText(IDC_NTOA_ASCII_EDIT)));
-	SetStatus(String(PRINTF, L"Decoding...Done: %s chars in  >>>  %s chars out",
-		NumberText(GetTextLength(IDC_NTOA_ASCII_EDIT)).Ptr,
-		NumberText(GetTextLength(IDC_NTOA_NATIVE_EDIT)).Ptr),
-		FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_PANE2_ERROR | FLAG_PANE2_ERROR);
+	SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_PANE2_ERROR | FLAG_PANE2_ERROR,
+		ResourceString(IDS_W_DONE_X_IN_Y_OUT), szLeader, NumberOfChars(GetTextLength(IDC_NTOA_ASCII_EDIT)), NumberOfChars(GetTextLength(IDC_NTOA_NATIVE_EDIT)));
 }
 
 

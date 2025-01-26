@@ -25,7 +25,6 @@ namespace hnrt
 		virtual void OnNew();
 		virtual void OnExecute();
 		virtual void OnCopyResult();
-		virtual void OnSettingChanged(UINT);
 		virtual void OnFeederNotify(ULONGLONG);
 
 	private:
