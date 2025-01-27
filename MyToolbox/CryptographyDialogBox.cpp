@@ -128,7 +128,7 @@ void CryptographyDialogBox::OnCreate()
 	InitializeCodePageComboBox(IDC_CRPT_CODEPAGE_COMBO, m_CodePage);
 	InitializeLineBreakComboBox(IDC_CRPT_LINEBREAK_COMBO, m_LineBreak);
 	InitializeLetterCaseComboBox(IDC_CRPT_HEXLETTER_COMBO, m_HexLetterCase);
-	OnChainingModeChange(-cm);
+	ChangeChainingMode(-cm);
 	ButtonCheck(od);
 	OnOriginalDataDisplayModeChange(od);
 	ButtonCheck(ed);
@@ -280,7 +280,7 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			if (ButtonIsChecked(idChild))
 			{
-				OnChainingModeChange(idChild);
+				ChangeChainingMode(idChild);
 			}
 		}
 		else
@@ -331,7 +331,7 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			if (ButtonIsChecked(idChild))
 			{
-				OnAaDataDisplayModeChange(idChild);
+				ChangeAaDataDisplayMode(idChild);
 			}
 		}
 		else
@@ -407,7 +407,7 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_CRPT_ENCRYPT_BUTTON:
 		if (idNotif == BN_CLICKED)
 		{
-			OnEncrypt();
+			Encrypt();
 		}
 		else
 		{
@@ -417,7 +417,7 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_CRPT_DECRYPT_BUTTON:
 		if (idNotif == BN_CLICKED)
 		{
-			OnDecrypt();
+			Decrypt();
 		}
 		else
 		{
@@ -758,7 +758,7 @@ void CryptographyDialogBox::OnLoad1From()
 	SetMode(MODE_ENCRYPTION);
 	m_OriginalData = ByteString(fm.Ptr, fm.Len);
 	SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
-	UpdateControlsState(1);
+	UpdateControlsState(IDC_CRPT_ORG_EDIT);
 }
 
 
@@ -826,7 +826,7 @@ void CryptographyDialogBox::OnLoad2From()
 	SetMode(MODE_DECRYPTION);
 	m_EncryptedData = ByteString(fm.Ptr, fm.Len);
 	SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
-	UpdateControlsState(1);
+	UpdateControlsState(IDC_CRPT_ENC_EDIT);
 }
 
 
@@ -869,9 +869,9 @@ void CryptographyDialogBox::OnSave2As()
 }
 
 
-void CryptographyDialogBox::OnEncrypt()
+void CryptographyDialogBox::Encrypt()
 {
-	DBGFNC(L"CryptographyDialogBox::OnEncrypt");
+	DBGFNC(L"CryptographyDialogBox::Encrypt");
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SYSTEMTIME st = { 0 };
 	GetLocalTime(&st);
@@ -954,18 +954,20 @@ void CryptographyDialogBox::OnEncrypt()
 		}
 		m_EncryptedData = encrypted;
 		SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
-		SetStatus(FLAG_STATUS_SUCCESSFUL, FLAG_STATUS_ERROR, st, L"ENCRYPTED:  %s in  >>>  %s out", NumberOfBytes(m_OriginalData.Len), NumberOfBytes(m_EncryptedData.Len));
+		SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, FLAG_STATUS_ERROR, st, L"ENCRYPTED:  %s in  >>>  %s out", NumberOfBytes(m_OriginalData.Len), NumberOfBytes(m_EncryptedData.Len));
 	}
 	catch (Exception e)
 	{
+		m_EncryptedData.Resize(0);
+		SetText(IDC_CRPT_ENC_EDIT);
 		SetStatus(FLAG_STATUS_ERROR, FLAG_STATUS_SUCCESSFUL, st, L"%s", e.Message);
 	}
 }
 
 
-void CryptographyDialogBox::OnDecrypt()
+void CryptographyDialogBox::Decrypt()
 {
-	DBGFNC(L"CryptographyDialogBox::OnDecrypt");
+	DBGFNC(L"CryptographyDialogBox::Decrypt");
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SYSTEMTIME st = { 0 };
 	GetLocalTime(&st);
@@ -1050,10 +1052,12 @@ void CryptographyDialogBox::OnDecrypt()
 		}
 		m_OriginalData = decrypted;
 		SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
-		SetStatus(FLAG_STATUS_SUCCESSFUL, FLAG_STATUS_ERROR, st, L"DECRYPTED:  %s in  >>>  %s out", NumberOfBytes(m_EncryptedData.Len), NumberOfBytes(m_OriginalData.Len));
+		SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_STATUS_ERROR, st, L"DECRYPTED:  %s in  >>>  %s out", NumberOfBytes(m_EncryptedData.Len), NumberOfBytes(m_OriginalData.Len));
 	}
 	catch (Exception e)
 	{
+		m_OriginalData.Resize(0);
+		SetText(IDC_CRPT_ORG_EDIT);
 		SetStatus(FLAG_STATUS_ERROR, FLAG_STATUS_SUCCESSFUL, st, L"ERROR:  %s", e.Message);
 	}
 }
@@ -1061,25 +1065,13 @@ void CryptographyDialogBox::OnDecrypt()
 
 void CryptographyDialogBox::OnCopyOriginalData()
 {
-	if (GetTextLength(IDC_CRPT_ORG_EDIT) > 0)
-	{
-		if (!Clipboard::Write(hwnd, GetText(IDC_CRPT_ORG_EDIT)))
-		{
-			MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-		}
-	}
+	CopyAllText(IDC_CRPT_ORG_EDIT);
 }
 
 
 void CryptographyDialogBox::OnCopyEncryptedData()
 {
-	if (GetTextLength(IDC_CRPT_ENC_EDIT) > 0)
-	{
-		if (!Clipboard::Write(hwnd, GetText(IDC_CRPT_ENC_EDIT)))
-		{
-			MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-		}
-	}
+	CopyAllText(IDC_CRPT_ENC_EDIT);
 }
 
 
@@ -1102,6 +1094,7 @@ void CryptographyDialogBox::OnAdjustKey()
 		m_Key = key;
 		SetText(IDC_CRPT_KEY_EDIT, m_Key.ToHex(m_HexLetterCase));
 	}
+	UpdateControlsState(IDC_CRPT_KEY_EDIT);
 }
 
 
@@ -1146,10 +1139,11 @@ void CryptographyDialogBox::OnAdjustIV()
 			SetText(IDC_CRPT_IV_EDIT, m_Nonce.ToHex(m_HexLetterCase));
 		}
 	}
+	UpdateControlsState(IDC_CRPT_IV_EDIT);
 }
 
 
-void CryptographyDialogBox::OnChainingModeChange(int id)
+void CryptographyDialogBox::ChangeChainingMode(int id)
 {
 	if (id < 0)
 	{
@@ -1192,10 +1186,9 @@ void CryptographyDialogBox::OnChainingModeChange(int id)
 		SetText(IDC_CRPT_IV_GROUP, L"Nonce");
 		SetText(IDC_CRPT_IV_EDIT, m_Nonce.ToHex(m_HexLetterCase));
 		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes", AES_GCM_NONCE_LENGTH));
-		UpdateTagSizeRadioBoxes();
 		break;
 	}
-	SetMode(m_Mode);
+	UpdateControlsState(1);
 }
 
 
@@ -1267,7 +1260,7 @@ void CryptographyDialogBox::OnIVChange()
 }
 
 
-void CryptographyDialogBox::OnAaDataDisplayModeChange(int id)
+void CryptographyDialogBox::ChangeAaDataDisplayMode(int id)
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	DataDisplayMode current = m_AaDataDisplayMode;
@@ -1345,13 +1338,13 @@ void CryptographyDialogBox::OnOriginalDataChange()
 				throw Exception(L"Bad Data Display Mode.");
 			}
 			SetStatus(0, MASK_STATUS | MASK_PANE1, L"");
-			UpdateControlsState(IDC_CRPT_ORG_EDIT);
 		}
 		catch (Exception e)
 		{
 			m_OriginalData.Resize(0);
 			SetStatus(FLAG_STATUS_ERROR | FLAG_PANE1_ERROR, FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, L"ERROR:  %s", e.Message);
 		}
+		UpdateControlsState(IDC_CRPT_ORG_EDIT);
 	}
 }
 
