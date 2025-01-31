@@ -744,21 +744,32 @@ void CryptographyDialogBox::OnLoad1From()
 	ofn.nMaxFile = static_cast<DWORD>(szPath2.Cap);
 	ofn.lpstrTitle = szTitle;
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-	if (!GetOpenFileNameW(&ofn))
+	if (GetOpenFileNameW(&ofn))
 	{
-		return;
+		ResourceString szLeader(IDS_LOADING_ORGDATA);
+		try
+		{
+			m_szOriginalDataPath = szPath2;
+			SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
+			FileMapper fm(m_szOriginalDataPath);
+			if (fm.Len > INT_MAX - 1)
+			{
+				throw Exception(ResourceString(IDS_MSG_TOO_LARGE_FILE));
+			}
+			SetMode(MODE_ENCRYPTION);
+			m_OriginalData = ByteString(fm.Ptr, fm.Len);
+			SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
+			SetStatus(FLAG_STATUS_SUCCESSFUL, MASK_PANE1, ResourceString(IDS_DONE_IN), szLeader, NumberOfBytes(fm.Len));
+		}
+		catch (Win32Exception e)
+		{
+			SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X_Y), szLeader, e.Message, ErrorMessage::Get(e.Error));
+		}
+		catch (Exception e)
+		{
+			SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
+		}
 	}
-	m_szOriginalDataPath = szPath2;
-	FileMapper fm(m_szOriginalDataPath);
-	if (fm.Len > INT_MAX - 1)
-	{
-		MessageBoxW(hwnd, ResourceString(IDS_MSG_TOO_LARGE_FILE), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-		return;
-	}
-	SetMode(MODE_ENCRYPTION);
-	m_OriginalData = ByteString(fm.Ptr, fm.Len);
-	SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
-	UpdateControlsState(IDC_CRPT_ORG_EDIT);
 }
 
 
@@ -773,30 +784,31 @@ void CryptographyDialogBox::OnSave1As()
 	ofn.nMaxFile = static_cast<DWORD>(szPath2.Cap);
 	ofn.lpstrTitle = szTitle;
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
-	if (!GetSaveFileNameW(&ofn))
+	if (GetSaveFileNameW(&ofn))
 	{
-		return;
-	}
-	m_szOriginalDataPath = szPath2;
-	try
-	{
-		if (!m_OriginalData.Len)
+		ResourceString szLeader(IDS_SAVING_ORGDATA);
+		try
 		{
-			FileWriter(m_szOriginalDataPath).Write("", 0);
+			m_szOriginalDataPath = szPath2;
+			SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
+			if (!m_OriginalData.Len)
+			{
+				FileWriter(m_szOriginalDataPath).Write("", 0);
+			}
+			else
+			{
+				FileWriter(m_szOriginalDataPath).Write(m_OriginalData.Ptr, m_OriginalData.Len);
+			}
+			SetStatus(FLAG_STATUS_SUCCESSFUL, 0, ResourceString(IDS_DONE_OUT), szLeader, NumberOfBytes(m_OriginalData.Len));
 		}
-		else
+		catch (Win32Exception e)
 		{
-			FileWriter(m_szOriginalDataPath).Write(m_OriginalData.Ptr, m_OriginalData.Len);
+			SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X_Y), szLeader, e.Message, ErrorMessage::Get(e.Error));
 		}
-	}
-	catch (Win32Exception e)
-	{
-		String szMessage(PRINTF, L"%s\n%s", e.Message, ErrorMessage::Get(e.Error));
-		MessageBoxW(hwnd, szMessage, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-	}
-	catch (Exception e)
-	{
-		MessageBoxW(hwnd, ResourceString(IDS_MSG_FILE_WRITE_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+		catch (Exception e)
+		{
+			SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
+		}
 	}
 }
 
@@ -812,21 +824,32 @@ void CryptographyDialogBox::OnLoad2From()
 	ofn.nMaxFile = static_cast<DWORD>(szPath2.Cap);
 	ofn.lpstrTitle = szTitle;
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-	if (!GetOpenFileNameW(&ofn))
+	if (GetOpenFileNameW(&ofn))
 	{
-		return;
+		ResourceString szLeader(IDS_LOADING_ENCRYPTED);
+		try
+		{
+			m_szEncryptedDataPath = szPath2;
+			SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
+			FileMapper fm(m_szEncryptedDataPath);
+			if (fm.Len > INT_MAX - 1)
+			{
+				throw Exception(ResourceString(IDS_MSG_TOO_LARGE_FILE));
+			}
+			SetMode(MODE_DECRYPTION);
+			m_EncryptedData = ByteString(fm.Ptr, fm.Len);
+			SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
+			SetStatus(FLAG_STATUS_SUCCESSFUL, MASK_PANE2, ResourceString(IDS_DONE_IN), szLeader, NumberOfBytes(fm.Len));
+		}
+		catch (Win32Exception e)
+		{
+			SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X_Y), szLeader, e.Message, ErrorMessage::Get(e.Error));
+		}
+		catch (Exception e)
+		{
+			SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
+		}
 	}
-	m_szEncryptedDataPath = szPath2;
-	FileMapper fm(m_szEncryptedDataPath);
-	if (fm.Len > INT_MAX - 1)
-	{
-		MessageBoxW(hwnd, ResourceString(IDS_MSG_TOO_LARGE_FILE), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-		return;
-	}
-	SetMode(MODE_DECRYPTION);
-	m_EncryptedData = ByteString(fm.Ptr, fm.Len);
-	SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
-	UpdateControlsState(IDC_CRPT_ENC_EDIT);
 }
 
 
@@ -841,30 +864,31 @@ void CryptographyDialogBox::OnSave2As()
 	ofn.nMaxFile = static_cast<DWORD>(szPath2.Cap);
 	ofn.lpstrTitle = szTitle;
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
-	if (!GetSaveFileNameW(&ofn))
+	if (GetSaveFileNameW(&ofn))
 	{
-		return;
-	}
-	m_szEncryptedDataPath = szPath2;
-	try
-	{
-		if (!m_EncryptedData.Len)
+		ResourceString szLeader(IDS_SAVING_ENCRYPTED);
+		try
 		{
-			FileWriter(m_szEncryptedDataPath).Write("", 0);
+			m_szEncryptedDataPath = szPath2;
+			SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
+			if (!m_EncryptedData.Len)
+			{
+				FileWriter(m_szEncryptedDataPath).Write("", 0);
+			}
+			else
+			{
+				FileWriter(m_szEncryptedDataPath).Write(m_EncryptedData.Ptr, m_EncryptedData.Len);
+			}
+			SetStatus(FLAG_STATUS_SUCCESSFUL, 0, ResourceString(IDS_DONE_OUT), szLeader, NumberOfBytes(m_EncryptedData.Len));
 		}
-		else
+		catch (Win32Exception e)
 		{
-			FileWriter(m_szEncryptedDataPath).Write(m_EncryptedData.Ptr, m_EncryptedData.Len);
+			SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X_Y), szLeader, e.Message, ErrorMessage::Get(e.Error));
 		}
-	}
-	catch (Win32Exception e)
-	{
-		String szMessage(PRINTF, L"%s\n%s", e.Message, ErrorMessage::Get(e.Error));
-		MessageBoxW(hwnd, szMessage, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
-	}
-	catch (Exception e)
-	{
-		MessageBoxW(hwnd, ResourceString(IDS_MSG_FILE_WRITE_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+		catch (Exception e)
+		{
+			SetStatus(FLAG_STATUS_ERROR, 0, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
+		}
 	}
 }
 
@@ -875,9 +899,10 @@ void CryptographyDialogBox::Encrypt()
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SYSTEMTIME st = { 0 };
 	GetLocalTime(&st);
+	ResourceString szLeader(IDS_ENCRYPTING);
 	try
 	{
-		SetStatus(FLAG_BUSY, MASK_STATUS, L"");
+		SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
 		if (m_Key.Len * 8 < m_KeyLength)
 		{
 			throw Exception(L"Private key is shorter than %d bytes long.", m_KeyLength / 8);
@@ -954,13 +979,14 @@ void CryptographyDialogBox::Encrypt()
 		}
 		m_EncryptedData = encrypted;
 		SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
-		SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, FLAG_STATUS_ERROR, st, L"ENCRYPTED:  %s in  >>>  %s out", NumberOfBytes(m_OriginalData.Len), NumberOfBytes(m_EncryptedData.Len));
+		SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, 0, st, ResourceString(IDS_W_DONE_X_IN_Y_OUT),
+			szLeader, NumberOfBytes(m_OriginalData.Len), NumberOfBytes(m_EncryptedData.Len));
 	}
 	catch (Exception e)
 	{
 		m_EncryptedData.Resize(0);
 		SetText(IDC_CRPT_ENC_EDIT);
-		SetStatus(FLAG_STATUS_ERROR, FLAG_STATUS_SUCCESSFUL, st, L"%s", e.Message);
+		SetStatus(FLAG_STATUS_ERROR, 0, st, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
 	}
 }
 
@@ -971,9 +997,10 @@ void CryptographyDialogBox::Decrypt()
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SYSTEMTIME st = { 0 };
 	GetLocalTime(&st);
+	ResourceString szLeader(IDS_DECRYPTING);
 	try
 	{
-		SetStatus(FLAG_BUSY, MASK_STATUS, L"");
+		SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
 		if (m_Key.Len * 8 < m_KeyLength)
 		{
 			throw Exception(L"Private key is shorter than %d bytes long.", m_KeyLength / 8);
@@ -1052,13 +1079,14 @@ void CryptographyDialogBox::Decrypt()
 		}
 		m_OriginalData = decrypted;
 		SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
-		SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_STATUS_ERROR, st, L"DECRYPTED:  %s in  >>>  %s out", NumberOfBytes(m_EncryptedData.Len), NumberOfBytes(m_OriginalData.Len));
+		SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, 0, st, ResourceString(IDS_W_DONE_X_IN_Y_OUT),
+			szLeader, NumberOfBytes(m_EncryptedData.Len), NumberOfBytes(m_OriginalData.Len));
 	}
 	catch (Exception e)
 	{
 		m_OriginalData.Resize(0);
 		SetText(IDC_CRPT_ORG_EDIT);
-		SetStatus(FLAG_STATUS_ERROR, FLAG_STATUS_SUCCESSFUL, st, L"ERROR:  %s", e.Message);
+		SetStatus(FLAG_STATUS_ERROR, 0, st, ResourceString(IDS_W_FAILED_X), szLeader, e.Message);
 	}
 }
 
