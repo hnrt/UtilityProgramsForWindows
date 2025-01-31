@@ -74,20 +74,29 @@ void ClipDialogBox::OnCreate()
 		.Add(ResourceString(IDS_MENU_CLIP), IDM_VIEW_CLIP);
 	std::vector<DirectoryEntry> entries;
 	Path::ListFiles(entries, m_szDirectoryPath);
-	qsort(&entries[0], entries.size(), sizeof(DirectoryEntry), DirectoryEntryCompare);
-	for (std::vector<DirectoryEntry>::const_iterator iter = entries.cbegin(); iter != entries.cend(); iter++)
+	if (entries.size() > 0)
 	{
-		try
+		qsort(&entries[0], entries.size(), sizeof(DirectoryEntry), DirectoryEntryCompare);
+		for (std::vector<DirectoryEntry>::const_iterator iter = entries.cbegin(); iter != entries.cend(); iter++)
 		{
-			String szFileName(iter->szFileName);
-			String szFilePath(Path::Combine(m_szDirectoryPath, szFileName));
-			ClipFile file(szFilePath);
-			m_mapHash.insert(ClipEntry(file.Hash, szFileName));
-			String item(PRINTF, L"%s %s", szFileName, file.Header);
-			SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(item.Ptr));
+			try
+			{
+				String szFileName(iter->szFileName);
+				String szFilePath(Path::Combine(m_szDirectoryPath, szFileName));
+				ClipFile file(szFilePath);
+				m_mapHash.insert(ClipEntry(file.Hash, szFileName));
+				String item(PRINTF, L"%s %s", szFileName, file.Header);
+				SendMessage(IDC_CLIP_FILENAME_LIST, LB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(item.Ptr));
+			}
+			catch (Exception e)
+			{
+			}
 		}
-		catch (Exception e)
+		int count = ListBoxGetCount(IDC_CLIP_FILENAME_LIST);
+		if (count > 0)
 		{
+			ListBoxSetSelection(IDC_CLIP_FILENAME_LIST, 0);
+			OnSelectionChange();
 		}
 	}
 }
@@ -223,6 +232,16 @@ void ClipDialogBox::OnDelete()
 	{
 		DWORD dwError = GetLastError();
 		Debug::Put(L"DeleteFile(%s) failed: %s", szFilePath, ErrorMessage::Get(dwError));
+	}
+	int count = ListBoxGetCount(IDC_CLIP_FILENAME_LIST);
+	if (count > 0)
+	{
+		if (index >= count)
+		{
+			index = count - 1;
+		}
+		ListBoxSetSelection(IDC_CLIP_FILENAME_LIST, index);
+		OnSelectionChange();
 	}
 }
 
