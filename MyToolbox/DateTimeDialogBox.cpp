@@ -119,20 +119,20 @@ INT_PTR DateTimeDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     UINT idNotif = HIWORD(wParam);
     switch (idChild)
     {
-    case IDC_DTTM_COPY_BUTTON:
+    case IDC_DTTM_NEW_BUTTON:
         if (idNotif == BN_CLICKED)
         {
-            OnCopyResult();
+            OnNew();
         }
         else
         {
             return FALSE;
         }
         break;
-    case IDC_DTTM_NEW_BUTTON:
+    case IDC_DTTM_COPY_BUTTON:
         if (idNotif == BN_CLICKED)
         {
-            OnExecute();
+            OnCopyResult();
         }
         else
         {
