@@ -2,12 +2,15 @@
 
 
 #include "MyDialogBox.h"
+#include "HashAlgorithm.h"
 #include "hnrt/Hash.h"
 #include "hnrt/String.h"
 
 
 namespace hnrt
 {
+	enum HashSource;
+
 	class HashDialogBox
 		: public MyDialogBox
 	{
@@ -37,8 +40,8 @@ namespace hnrt
 		virtual void UpdateControlsState(int id);
 
 		void OnBrowse();
-		void OnSelectSource(UINT uSource);
-		void OnSelectMethod(UINT uMethod);
+		void ChangeSource(int id);
+		void ChangeHashAlgorithm(int id);
 		void OnUppercase();
 		void SwitchMenu();
 		void Calculate(RefPtr<DataFeeder> pDataFeeder);
@@ -55,11 +58,15 @@ namespace hnrt
 		void SetVerificationResult(PCWSTR psz = L"");
 		UINT GetCodePage() const;
 		LineBreak GetLineBreak() const;
+		void AddHashAlgorithmSettingMenus(int idMenuItem);
+		bool ApplyToHashAlgorithmSettingMenu(int idMenuItem, int& idRadio);
+		static int HashAlgorithmToControlId(HashAlgorithm);
+		static int HashSourceToControlId(HashSource);
 
+		HashAlgorithm m_algorithm;
 		Hash m_hash;
-		UINT m_uSource;
-		UINT m_uMethod;
-		StringOptions m_uLettercase;
+		HashSource m_source;
+		StringOptions m_lettercase;
 		String m_szTextPath;
 	};
 }

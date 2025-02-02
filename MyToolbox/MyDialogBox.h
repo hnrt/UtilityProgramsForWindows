@@ -70,8 +70,6 @@ namespace hnrt
 		void AddOutputCodePageSettingMenus();
 		bool ApplyToInputCodePage(UINT);
 		bool ApplyToOutputCodePage(UINT);
-		void AddHashAlgorithmSettingMenus(UINT);
-		bool ApplyToHashAlgorithm(UINT, UINT&, UINT);
 		void AddLettercaseSettingMenus(UINT);
 		bool ApplyToLettercase(UINT, StringOptions&);
 		bool LoadTextFromFile(int id, PCWSTR pszDoingWhat, String& szPath);

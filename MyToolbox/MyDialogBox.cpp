@@ -865,64 +865,6 @@ bool MyDialogBox::ApplyToOutputCodePage(UINT uId)
 }
 
 
-void MyDialogBox::AddHashAlgorithmSettingMenus(UINT uId)
-{
-	String szAlgorithm(ResourceString(IDS_MENU_ALGORITHM));
-	String szMD5(ResourceString(IDS_MENU_MD5));
-	String szSHA1(ResourceString(IDS_MENU_SHA1));
-	String szSHA256(ResourceString(IDS_MENU_SHA256));
-	String szSHA384(ResourceString(IDS_MENU_SHA384));
-	String szSHA512(ResourceString(IDS_MENU_SHA512));
-	m_menuSettings
-		.Add(szAlgorithm, Menu()
-			.Add(szMD5, IDM_SETTINGS_MD5, uId == IDM_SETTINGS_MD5 ? MF_CHECKED : MF_UNCHECKED)
-			.Add(szSHA1, IDM_SETTINGS_SHA1, uId == IDM_SETTINGS_SHA1 ? MF_CHECKED : MF_UNCHECKED)
-			.Add(szSHA256, IDM_SETTINGS_SHA256, uId == IDM_SETTINGS_SHA256 ? MF_CHECKED : MF_UNCHECKED)
-			.Add(szSHA384, IDM_SETTINGS_SHA384, uId == IDM_SETTINGS_SHA384 ? MF_CHECKED : MF_UNCHECKED)
-			.Add(szSHA512, IDM_SETTINGS_SHA512, uId == IDM_SETTINGS_SHA512 ? MF_CHECKED : MF_UNCHECKED));
-}
-
-
-bool MyDialogBox::ApplyToHashAlgorithm(UINT uId, UINT& uValue, UINT uBase)
-{
-	switch (uId)
-	{
-	case IDM_SETTINGS_MD5:
-	case IDM_SETTINGS_SHA1:
-	case IDM_SETTINGS_SHA256:
-	case IDM_SETTINGS_SHA384:
-	case IDM_SETTINGS_SHA512:
-		uValue = uBase + uId - IDM_SETTINGS_MD5;
-		break;
-	default:
-		return false;
-	}
-	String szAlgorithm(ResourceString(IDS_MENU_ALGORITHM));
-	String szMD5(ResourceString(IDS_MENU_MD5));
-	String szSHA1(ResourceString(IDS_MENU_SHA1));
-	String szSHA256(ResourceString(IDS_MENU_SHA256));
-	String szSHA384(ResourceString(IDS_MENU_SHA384));
-	String szSHA512(ResourceString(IDS_MENU_SHA512));
-	m_menuSettings[szAlgorithm.Ptr]
-		.Modify(
-			IDM_SETTINGS_MD5, uId == IDM_SETTINGS_MD5 ? MF_CHECKED : MF_UNCHECKED,
-			IDM_SETTINGS_MD5, szMD5)
-		.Modify(
-			IDM_SETTINGS_SHA1, uId == IDM_SETTINGS_SHA1 ? MF_CHECKED : MF_UNCHECKED,
-			IDM_SETTINGS_SHA1, szSHA1)
-		.Modify(
-			IDM_SETTINGS_SHA256, uId == IDM_SETTINGS_SHA256 ? MF_CHECKED : MF_UNCHECKED,
-			IDM_SETTINGS_SHA256, szSHA256)
-		.Modify(
-			IDM_SETTINGS_SHA384, uId == IDM_SETTINGS_SHA384 ? MF_CHECKED : MF_UNCHECKED,
-			IDM_SETTINGS_SHA384, szSHA384)
-		.Modify(
-			IDM_SETTINGS_SHA512, uId == IDM_SETTINGS_SHA512 ? MF_CHECKED : MF_UNCHECKED,
-			IDM_SETTINGS_SHA512, szSHA512);
-	return true;
-}
-
-
 void MyDialogBox::AddLettercaseSettingMenus(UINT uId)
 {
 	String szFormat(ResourceString(IDS_MENU_FORMAT));

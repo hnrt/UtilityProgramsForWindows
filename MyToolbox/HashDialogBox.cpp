@@ -24,17 +24,24 @@
 using namespace hnrt;
 
 
+enum hnrt::HashSource
+{
+    FROM_FILE,
+    FROM_TEXT
+};
+
+
+constexpr auto REGVAL_ALGORITHM = L"Algorithm";
 constexpr auto REGVAL_SOURCE = L"Source";
-constexpr auto REGVAL_METHOD = L"Method";
 constexpr auto REGVAL_LETTERCASE = L"Lettercase";
 
 
 HashDialogBox::HashDialogBox()
     : MyDialogBox(IDD_HASH, L"Hash", IDC_HASH_VALUE_STATIC)
+    , m_algorithm(HashAlgorithm::MD5)
     , m_hash()
-    , m_uSource(0)
-    , m_uMethod(0)
-    , m_uLettercase(StringOptions::UPPERCASE)
+    , m_source(HashSource::FROM_TEXT)
+    , m_lettercase(StringOptions::UPPERCASE)
     , m_szTextPath()
 {
 }
@@ -48,23 +55,21 @@ void HashDialogBox::OnCreate()
     SetFont(IDC_HASH_CONTENT_EDIT, hFont);
     SetFont(IDC_HASH_VALUE_STATIC, hFont);
     SetFont(IDC_HASH_VERIFY_EDIT, hFont);
-    UINT uSource = IDC_HASH_FILE_RADIO;
-    UINT uMethod = IDC_HASH_MD5_RADIO;
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName);
     if (rc == ERROR_SUCCESS)
     {
-        uSource = RegistryValue::GetDWORD(hKey, REGVAL_SOURCE, 1) == 2 ? IDC_HASH_TEXT_RADIO : IDC_HASH_FILE_RADIO;
-        uMethod = IDC_HASH_MD5_RADIO + (RegistryValue::GetDWORD(hKey, REGVAL_METHOD, 1) - 1) % 5;
-        m_uLettercase = RegistryValue::GetDWORD(hKey, REGVAL_LETTERCASE, 1) == 1 ? StringOptions::UPPERCASE : StringOptions::LOWERCASE;
+        m_algorithm = HashAlgorithmHelpers::FromString(RegistryValue::GetSZ(hKey, REGVAL_ALGORITHM, HashAlgorithmHelpers::ToString(HashAlgorithm::MD5)));
+        m_source = static_cast<HashSource>(RegistryValue::GetDWORD(hKey, REGVAL_SOURCE, HashSource::FROM_TEXT));
+        m_lettercase = RegistryValue::GetDWORD(hKey, REGVAL_LETTERCASE, 1) == 1 ? StringOptions::UPPERCASE : StringOptions::LOWERCASE;
     }
-    ButtonCheck(uSource);
-    ButtonCheck(uMethod);
-    ButtonCheck(IDC_HASH_UPPERCASE_CHECK, m_uLettercase == StringOptions::UPPERCASE);
+    ButtonCheck(HashSourceToControlId(m_source));
+    ButtonCheck(HashAlgorithmToControlId(m_algorithm));
+    ButtonCheck(IDC_HASH_UPPERCASE_CHECK, m_lettercase == StringOptions::UPPERCASE);
     InitializeCodePageComboBox(IDC_HASH_CODEPAGE_COMBO);
     InitializeLineBreakComboBox(IDC_HASH_LINEBREAK_COMBO);
-    OnSelectSource(uSource);
-    OnSelectMethod(uMethod);
+    ChangeSource(-HashSourceToControlId(m_source));
+    ChangeHashAlgorithm(-HashAlgorithmToControlId(m_algorithm));
     OnNew();
     m_menuView
         .Add(ResourceString(IDS_MENU_HASH), IDM_VIEW_HASH);
@@ -77,9 +82,9 @@ void HashDialogBox::OnDestroy()
     LSTATUS rc = hKey.Create(HKEY_CURRENT_USER, m_szRegistryKeyName);
     if (rc == ERROR_SUCCESS)
     {
-        RegistryValue::SetDWORD(hKey, REGVAL_SOURCE, m_uSource == IDC_HASH_FILE_RADIO ? 1 : 2);
-        RegistryValue::SetDWORD(hKey, REGVAL_METHOD, m_uMethod - IDC_HASH_MD5_RADIO + 1);
-        RegistryValue::SetDWORD(hKey, REGVAL_LETTERCASE, m_uLettercase == StringOptions::UPPERCASE ? 1 : 0);
+        RegistryValue::SetSZ(hKey, REGVAL_ALGORITHM, HashAlgorithmHelpers::ToString(m_algorithm));
+        RegistryValue::SetDWORD(hKey, REGVAL_SOURCE, m_source);
+        RegistryValue::SetDWORD(hKey, REGVAL_LETTERCASE, m_lettercase == StringOptions::UPPERCASE ? 1 : 0);
     }
     MyDialogBox::OnDestroy();
 }
@@ -183,7 +188,7 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
         {
             if (ButtonIsChecked(idChild))
             {
-                OnSelectSource(idChild);
+                ChangeSource(idChild);
             }
         }
         else
@@ -202,7 +207,7 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDC_HASH_SHA512_RADIO:
         if (idNotif == BN_CLICKED)
         {
-            OnSelectMethod(idChild);
+            ChangeHashAlgorithm(idChild);
         }
         else
         {
@@ -225,12 +230,12 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     case IDM_SETTINGS_SHA384:
     case IDM_SETTINGS_SHA512:
     {
-        UINT uMethod = 0;
-        if (ApplyToHashAlgorithm(idChild, uMethod, IDC_HASH_MD5_RADIO))
+        int idRadio = 0;
+        if (ApplyToHashAlgorithmSettingMenu(idChild, idRadio))
         {
-            ButtonUncheck(m_uMethod);
-            ButtonCheck(uMethod);
-            OnSelectMethod(uMethod);
+            ButtonUncheck(HashAlgorithmToControlId(m_algorithm));
+            ButtonCheck(idRadio);
+            ChangeHashAlgorithm(idRadio);
         }
         else
         {
@@ -240,9 +245,9 @@ INT_PTR HashDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
     }
     case IDM_SETTINGS_UPPERCASE:
     case IDM_SETTINGS_LOWERCASE:
-        if (ApplyToLettercase(idChild, m_uLettercase))
+        if (ApplyToLettercase(idChild, m_lettercase))
         {
-            ButtonCheck(IDC_HASH_UPPERCASE_CHECK, m_uLettercase == StringOptions::UPPERCASE);
+            ButtonCheck(IDC_HASH_UPPERCASE_CHECK, m_lettercase == StringOptions::UPPERCASE);
             ResetValueLetterCase();
         }
         else
@@ -421,12 +426,12 @@ void HashDialogBox::OnNew()
 void HashDialogBox::OnExecute()
 {
     WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-    OnSelectSource(0);
-    OnSelectMethod(0);
+    ChangeSource(0);
+    ChangeHashAlgorithm(0);
     try
     {
         ULONGLONG nBytesIn;
-        if (m_uSource == IDC_HASH_FILE_RADIO)
+        if (m_source == HashSource::FROM_FILE)
         {
             RefPtr<MyFileDataFeeder> pFeeder(new MyFileDataFeeder());
             pFeeder->Open(GetText(IDC_HASH_PATH_EDIT));
@@ -465,8 +470,8 @@ void HashDialogBox::OnExecute()
     {
         MessageBox(hwnd, e.Message, ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
     }
-    OnSelectSource(m_uSource);
-    OnSelectMethod(m_uMethod);
+    ChangeSource(HashSourceToControlId(m_source));
+    ChangeHashAlgorithm(HashAlgorithmToControlId(m_algorithm));
 }
 
 
@@ -474,7 +479,7 @@ void HashDialogBox::OnCopyResult()
 {
     if (m_hash.ValueLength)
     {
-        String sz = ByteString(m_hash.Value, m_hash.ValueLength).ToHex(m_uLettercase);
+        String sz = ByteString(m_hash.Value, m_hash.ValueLength).ToHex(m_lettercase);
         if (!Clipboard::Write(hwnd, sz))
         {
             MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
@@ -489,24 +494,27 @@ void HashDialogBox::OnFeederNotify(ULONGLONG nBytesIn)
 }
 
 
-void HashDialogBox::OnSelectSource(UINT uSource)
+void HashDialogBox::ChangeSource(int id)
 {
     WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-    BOOL bRadio = uSource ? TRUE : FALSE;
-    BOOL bFile = uSource == IDC_HASH_FILE_RADIO ? TRUE : FALSE;
-    BOOL bText = uSource == IDC_HASH_TEXT_RADIO ? TRUE : FALSE;
-    EnableWindow(IDC_HASH_FILE_RADIO, bRadio);
-    EnableWindow(IDC_HASH_PATH_EDIT, bFile);
-    EnableWindow(IDC_HASH_BROWSE_BUTTON, bFile);
-    EnableWindow(IDC_HASH_TEXT_RADIO, bRadio);
-    EditSetReadOnly(IDC_HASH_CONTENT_EDIT, bText ? FALSE : TRUE);
-    EnableWindow(IDC_HASH_CODEPAGE_COMBO, bText);
-    EnableWindow(IDC_HASH_LINEBREAK_COMBO, bText);
-    if (uSource)
+    if (id)
     {
-        if (m_uSource != uSource)
+        if (id != HashSourceToControlId(m_source))
         {
-            m_uSource = uSource;
+            if (id < 0)
+            {
+                id *= -1;
+            }
+            switch (id)
+            {
+            case IDC_HASH_FILE_RADIO:
+                m_source = HashSource::FROM_FILE;
+                break;
+            case IDC_HASH_TEXT_RADIO:
+            default:
+                m_source = HashSource::FROM_TEXT;
+                break;
+            }
             ClearValue();
             SwitchMenu();
         }
@@ -514,29 +522,57 @@ void HashDialogBox::OnSelectSource(UINT uSource)
         {
         }
     }
-    EnableWindow(IDC_HASH_CALCULATE_BUTTON, uSource == IDC_HASH_FILE_RADIO && GetTextLength(IDC_HASH_PATH_EDIT) > 0 || uSource == IDC_HASH_TEXT_RADIO ? TRUE : FALSE);
+    BOOL bRadio = id ? TRUE : FALSE;
+    BOOL bFile = id == IDC_HASH_FILE_RADIO ? TRUE : FALSE;
+    BOOL bText = id == IDC_HASH_TEXT_RADIO ? TRUE : FALSE;
+    EnableWindow(IDC_HASH_FILE_RADIO, bRadio);
+    EnableWindow(IDC_HASH_PATH_EDIT, bFile);
+    EnableWindow(IDC_HASH_BROWSE_BUTTON, bFile);
+    EnableWindow(IDC_HASH_TEXT_RADIO, bRadio);
+    EditSetReadOnly(IDC_HASH_CONTENT_EDIT, bText ? FALSE : TRUE);
+    EnableWindow(IDC_HASH_CODEPAGE_COMBO, bText);
+    EnableWindow(IDC_HASH_LINEBREAK_COMBO, bText);
+    EnableWindow(IDC_HASH_CALCULATE_BUTTON, id == IDC_HASH_FILE_RADIO && GetTextLength(IDC_HASH_PATH_EDIT) > 0 || id == IDC_HASH_TEXT_RADIO ? TRUE : FALSE);
 }
 
 
-void HashDialogBox::OnSelectMethod(UINT uMethod)
+void HashDialogBox::ChangeHashAlgorithm(int id)
 {
     WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
-    BOOL bRadio = uMethod ? TRUE : FALSE;
-    EnableWindow(IDC_HASH_MD5_RADIO, bRadio);
-    EnableWindow(IDC_HASH_SHA1_RADIO, bRadio);
-    EnableWindow(IDC_HASH_SHA256_RADIO, bRadio);
-    EnableWindow(IDC_HASH_SHA384_RADIO, bRadio);
-    EnableWindow(IDC_HASH_SHA512_RADIO, bRadio);
-    if (uMethod)
+    if (id)
     {
-        if (uMethod != m_uMethod)
+        if (id != HashAlgorithmToControlId(m_algorithm))
         {
-            ApplyToHashAlgorithm(IDM_SETTINGS_MD5 + uMethod - IDC_HASH_MD5_RADIO, m_uMethod, IDC_HASH_MD5_RADIO);
+            if (id < 0)
+            {
+                id *= -1;
+            }
+            switch (id)
+            {
+            case IDC_HASH_MD5_RADIO:
+                m_algorithm = HashAlgorithm::MD5;
+                break;
+            case IDC_HASH_SHA1_RADIO:
+                m_algorithm = HashAlgorithm::SHA1;
+                break;
+            case IDC_HASH_SHA256_RADIO:
+                m_algorithm = HashAlgorithm::SHA256;
+                break;
+            case IDC_HASH_SHA384_RADIO:
+                m_algorithm = HashAlgorithm::SHA384;
+                break;
+            case IDC_HASH_SHA512_RADIO:
+                m_algorithm = HashAlgorithm::SHA512;
+                break;
+            default:
+                throw Exception(L"HashDialogBox::OnSelectMethod: Bad value(%d)", id);
+            }
+            ApplyToHashAlgorithmSettingMenu(IDM_SETTINGS_MD5 + id - IDC_HASH_MD5_RADIO, id);
             m_hash.Close();
             SetValueHeader();
             SetValue();
         }
-        if (m_uSource == IDC_HASH_FILE_RADIO)
+        if (m_source == HashSource::FROM_FILE)
         {
             if (GetTextLength(IDC_HASH_PATH_EDIT) > 0)
             {
@@ -549,7 +585,7 @@ void HashDialogBox::OnSelectMethod(UINT uMethod)
                 m_menuEdit.Enable(IDM_EDIT_EXECUTE, MF_DISABLED);
             }
         }
-        else if (m_uSource == IDC_HASH_TEXT_RADIO)
+        else if (m_source == HashSource::FROM_TEXT)
         {
             EnableWindow(IDC_HASH_CALCULATE_BUTTON);
             m_menuEdit.Enable(IDM_EDIT_EXECUTE, MF_ENABLED);
@@ -560,6 +596,12 @@ void HashDialogBox::OnSelectMethod(UINT uMethod)
         DisableWindow(IDC_HASH_CALCULATE_BUTTON);
         m_menuEdit.Enable(IDM_EDIT_EXECUTE, MF_DISABLED);
     }
+    BOOL bRadio = id ? TRUE : FALSE;
+    EnableWindow(IDC_HASH_MD5_RADIO, bRadio);
+    EnableWindow(IDC_HASH_SHA1_RADIO, bRadio);
+    EnableWindow(IDC_HASH_SHA256_RADIO, bRadio);
+    EnableWindow(IDC_HASH_SHA384_RADIO, bRadio);
+    EnableWindow(IDC_HASH_SHA512_RADIO, bRadio);
 }
 
 
@@ -568,12 +610,12 @@ void HashDialogBox::OnUppercase()
     WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
     if (ButtonIsChecked(IDC_HASH_UPPERCASE_CHECK))
     {
-        ApplyToLettercase(IDM_SETTINGS_UPPERCASE, m_uLettercase);
+        ApplyToLettercase(IDM_SETTINGS_UPPERCASE, m_lettercase);
         ResetValueLetterCase();
     }
     else
     {
-        ApplyToLettercase(IDM_SETTINGS_LOWERCASE, m_uLettercase);
+        ApplyToLettercase(IDM_SETTINGS_LOWERCASE, m_lettercase);
         ResetValueLetterCase();
     }
 }
@@ -581,7 +623,7 @@ void HashDialogBox::OnUppercase()
 
 void HashDialogBox::SwitchMenu()
 {
-    if (m_uSource == IDC_HASH_FILE_RADIO)
+    if (m_source == HashSource::FROM_FILE)
     {
         m_menuFile
             .RemoveAll()
@@ -596,7 +638,7 @@ void HashDialogBox::SwitchMenu()
         m_menuSettings
             .RemoveAll();
     }
-    else if (m_uSource == IDC_HASH_TEXT_RADIO)
+    else if (m_source == HashSource::FROM_TEXT)
     {
         m_menuFile
             .RemoveAll()
@@ -614,41 +656,41 @@ void HashDialogBox::SwitchMenu()
         AddInputCodePageSettingMenus();
         AddOutputCodePageSettingMenus();
     }
-    AddHashAlgorithmSettingMenus(IDM_SETTINGS_MD5 + m_uMethod - IDC_HASH_MD5_RADIO);
-    AddLettercaseSettingMenus(m_uLettercase == StringOptions::UPPERCASE ? IDM_SETTINGS_UPPERCASE : IDM_SETTINGS_LOWERCASE);
+    AddHashAlgorithmSettingMenus(IDM_SETTINGS_MD5 + HashAlgorithmToControlId(m_algorithm) - IDC_HASH_MD5_RADIO);
+    AddLettercaseSettingMenus(m_lettercase == StringOptions::UPPERCASE ? IDM_SETTINGS_UPPERCASE : IDM_SETTINGS_LOWERCASE);
 }
 
 
 void HashDialogBox::Calculate(RefPtr<DataFeeder> pDataFeeder)
 {
     SetValue();
-    switch (m_uMethod)
+    switch (m_algorithm)
     {
-    case IDC_HASH_MD5_RADIO:
+    case HashAlgorithm::MD5:
     {
         MD5Hash hash(pDataFeeder);
         SetValue(hash);
         break;
     }
-    case IDC_HASH_SHA1_RADIO:
+    case HashAlgorithm::SHA1:
     {
         SHA1Hash hash(pDataFeeder);
         SetValue(hash);
         break;
     }
-    case IDC_HASH_SHA256_RADIO:
+    case HashAlgorithm::SHA256:
     {
         SHA256Hash hash(pDataFeeder);
         SetValue(hash);
         break;
     }
-    case IDC_HASH_SHA384_RADIO:
+    case HashAlgorithm::SHA384:
     {
         SHA384Hash hash(pDataFeeder);
         SetValue(hash);
         break;
     }
-    case IDC_HASH_SHA512_RADIO:
+    case HashAlgorithm::SHA512:
     {
         SHA512Hash hash(pDataFeeder);
         SetValue(hash);
@@ -662,7 +704,7 @@ void HashDialogBox::Calculate(RefPtr<DataFeeder> pDataFeeder)
 
 bool HashDialogBox::CanCalculate() const
 {
-    if (m_uSource == IDC_HASH_FILE_RADIO)
+    if (m_source == HashSource::FROM_FILE)
     {
         String szPath = GetText(IDC_HASH_PATH_EDIT).Trim();
         if (!szPath.Len)
@@ -674,7 +716,7 @@ bool HashDialogBox::CanCalculate() const
     }
     else
     {
-        return m_uSource == IDC_HASH_TEXT_RADIO;
+        return m_source == HashSource::FROM_TEXT;
     }
 }
 
@@ -722,7 +764,7 @@ void HashDialogBox::SetValue(PCWSTR psz)
 void HashDialogBox::SetValue(Hash& rHash)
 {
     m_hash = rHash;
-    SetValue(ByteString(m_hash.Value, m_hash.ValueLength).ToHex(m_uLettercase));
+    SetValue(ByteString(m_hash.Value, m_hash.ValueLength).ToHex(m_lettercase));
     if (GetTextLength(IDC_HASH_VERIFY_EDIT) > 0)
     {
         VerifyValue();
@@ -732,7 +774,7 @@ void HashDialogBox::SetValue(Hash& rHash)
 
 void HashDialogBox::ResetValueLetterCase()
 {
-    SetValue(GetText(IDC_HASH_VALUE_STATIC).Lettercase(m_uLettercase));
+    SetValue(GetText(IDC_HASH_VALUE_STATIC).Lettercase(m_lettercase));
 }
 
 
@@ -774,4 +816,83 @@ UINT HashDialogBox::GetCodePage() const
 LineBreak HashDialogBox::GetLineBreak() const
 {
     return static_cast<LineBreak>(ComboBoxGetSelection(IDC_HASH_LINEBREAK_COMBO, LineBreak::CRLF));
+}
+
+
+void HashDialogBox::AddHashAlgorithmSettingMenus(int idMenuItem)
+{
+    m_menuSettings
+        .Add(ResourceString(IDS_MENU_ALGORITHM), Menu()
+        .Add(HashAlgorithmHelpers::ToString(HashAlgorithm::MD5), IDM_SETTINGS_MD5, idMenuItem == IDM_SETTINGS_MD5 ? MF_CHECKED : MF_UNCHECKED)
+        .Add(HashAlgorithmHelpers::ToString(HashAlgorithm::SHA1), IDM_SETTINGS_SHA1, idMenuItem == IDM_SETTINGS_SHA1 ? MF_CHECKED : MF_UNCHECKED)
+        .Add(HashAlgorithmHelpers::ToString(HashAlgorithm::SHA256), IDM_SETTINGS_SHA256, idMenuItem == IDM_SETTINGS_SHA256 ? MF_CHECKED : MF_UNCHECKED)
+        .Add(HashAlgorithmHelpers::ToString(HashAlgorithm::SHA384), IDM_SETTINGS_SHA384, idMenuItem == IDM_SETTINGS_SHA384 ? MF_CHECKED : MF_UNCHECKED)
+        .Add(HashAlgorithmHelpers::ToString(HashAlgorithm::SHA512), IDM_SETTINGS_SHA512, idMenuItem == IDM_SETTINGS_SHA512 ? MF_CHECKED : MF_UNCHECKED));
+}
+
+
+bool HashDialogBox::ApplyToHashAlgorithmSettingMenu(int idMenuItem, int& idRadio)
+{
+    switch (idMenuItem)
+    {
+    case IDM_SETTINGS_MD5:
+        idRadio = IDC_HASH_MD5_RADIO;
+        break;
+    case IDM_SETTINGS_SHA1:
+        idRadio = IDC_HASH_SHA1_RADIO;
+        break;
+    case IDM_SETTINGS_SHA256:
+        idRadio = IDC_HASH_SHA256_RADIO;
+        break;
+    case IDM_SETTINGS_SHA384:
+        idRadio = IDC_HASH_SHA384_RADIO;
+        break;
+    case IDM_SETTINGS_SHA512:
+        idRadio = IDC_HASH_SHA512_RADIO;
+        break;
+    default:
+        return false;
+    }
+    m_menuSettings[ResourceString(IDS_MENU_ALGORITHM)]
+        .Modify(
+            IDM_SETTINGS_MD5, idMenuItem == IDM_SETTINGS_MD5 ? MF_CHECKED : MF_UNCHECKED,
+            IDM_SETTINGS_MD5, HashAlgorithmHelpers::ToString(HashAlgorithm::MD5))
+        .Modify(
+            IDM_SETTINGS_SHA1, idMenuItem == IDM_SETTINGS_SHA1 ? MF_CHECKED : MF_UNCHECKED,
+            IDM_SETTINGS_SHA1, HashAlgorithmHelpers::ToString(HashAlgorithm::SHA1))
+        .Modify(
+            IDM_SETTINGS_SHA256, idMenuItem == IDM_SETTINGS_SHA256 ? MF_CHECKED : MF_UNCHECKED,
+            IDM_SETTINGS_SHA256, HashAlgorithmHelpers::ToString(HashAlgorithm::SHA256))
+        .Modify(
+            IDM_SETTINGS_SHA384, idMenuItem == IDM_SETTINGS_SHA384 ? MF_CHECKED : MF_UNCHECKED,
+            IDM_SETTINGS_SHA384, HashAlgorithmHelpers::ToString(HashAlgorithm::SHA384))
+        .Modify(
+            IDM_SETTINGS_SHA512, idMenuItem == IDM_SETTINGS_SHA512 ? MF_CHECKED : MF_UNCHECKED,
+            IDM_SETTINGS_SHA512, HashAlgorithmHelpers::ToString(HashAlgorithm::SHA512));
+    return true;
+}
+
+
+int HashDialogBox::HashAlgorithmToControlId(HashAlgorithm ha)
+{
+    switch (ha)
+    {
+    case HashAlgorithm::MD5: return IDC_HASH_MD5_RADIO;
+    case HashAlgorithm::SHA1: return IDC_HASH_SHA1_RADIO;
+    case HashAlgorithm::SHA256: return IDC_HASH_SHA256_RADIO;
+    case HashAlgorithm::SHA384: return IDC_HASH_SHA384_RADIO;
+    case HashAlgorithm::SHA512: return IDC_HASH_SHA512_RADIO;
+    default: return IDC_HASH_MD5_RADIO;
+    }
+}
+
+
+int HashDialogBox::HashSourceToControlId(HashSource src)
+{
+    switch (src)
+    {
+    case HashSource::FROM_FILE: return IDC_HASH_FILE_RADIO;
+    case HashSource::FROM_TEXT: return IDC_HASH_TEXT_RADIO;
+    default: return IDC_HASH_TEXT_RADIO;
+    }
 }

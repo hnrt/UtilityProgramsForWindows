@@ -175,6 +175,7 @@
     <ClInclude Include="DateTimeDialogBox.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GuidDialogBox.h" />
+    <ClInclude Include="HashAlgorithm.h" />
     <ClInclude Include="HashDialogBox.h" />
     <ClInclude Include="MyClipboardObserver.h" />
     <ClInclude Include="MyDialogBox.h" />
@@ -199,6 +200,7 @@
     <ClCompile Include="CryptographyDialogBox.cpp" />
     <ClCompile Include="DateTimeDialogBox.cpp" />
     <ClCompile Include="GuidDialogBox.cpp" />
+    <ClCompile Include="HashAlgorithm.cpp" />
     <ClCompile Include="HashDialogBox.cpp" />
     <ClCompile Include="MyClipboardObserver.cpp" />
     <ClCompile Include="MyDialogBox.cpp" />
