@@ -32,14 +32,14 @@ HookInternal::~HookInternal()
 
 void* HookInternal::getOriginal(const char* pszKey) const
 {
-    Map::const_iterator iter = m_Originals.find(pszKey);
+    Map::const_iterator iter = m_Originals.find(String(CP_ACP, pszKey));
     return iter != m_Originals.cend() ? iter->second : nullptr;
 }
 
 
 void* HookInternal::getReplacement(const char* pszKey) const
 {
-    Map::const_iterator iter = m_Replacements.find(pszKey);
+    Map::const_iterator iter = m_Replacements.find(String(CP_ACP, pszKey));
     return iter != m_Replacements.cend() ? iter->second : nullptr;
 }
 

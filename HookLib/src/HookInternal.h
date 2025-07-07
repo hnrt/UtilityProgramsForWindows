@@ -6,7 +6,7 @@
 #include <map>
 #include "hnrt/Hook.h"
 #include "hnrt/SpinLock.h"
-#include "hnrt/StringAcp.h"
+#include "hnrt/String.h"
 
 namespace hnrt
 {
@@ -29,8 +29,8 @@ namespace hnrt
 
 	private:
 
-		typedef std::map<StringAcp, void*> Map;
-		typedef std::pair<StringAcp, void*> Entry;
+		typedef std::map<String, void*> Map;
+		typedef std::pair<String, void*> Entry;
 		typedef std::map<ULONGLONG*, ULONGLONG> OverrideMap;
 		typedef std::pair<ULONGLONG*, ULONGLONG> OverrideEntry;
 		typedef std::map<PBYTE, OverrideMap*> ModuleOverrideMap;

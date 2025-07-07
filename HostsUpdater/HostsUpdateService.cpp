@@ -6,7 +6,7 @@
 #include "hnrt/Path.h"
 #include "hnrt/RegistryValue.h"
 #include "hnrt/Buffer.h"
-#include "hnrt/StringUTF8.h"
+#include "hnrt/MultibyteString.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/Debug.h"
@@ -20,13 +20,13 @@
 using namespace hnrt;
 
 
-#define REGKEY L"SOFTWARE\\hnrt\\HostsUpdater"
-#define REGVAL_VERSION L"Version"
-#define REGVAL_LOGFILE L"LogFile"
-#define LOGFILE_DEFAULT L"%ALLUSERSPROFILE%\\hnrt\\HostsUpdater.log"
-#define REGVAL_HOSTSFILE L"HostsFile"
-#define HOSTSFILE_DEFAULT L"%windir%\\System32\\drivers\\etc\\hosts"
-#define REGKEY_MAPPINGS REGKEY L"\\Mappings"
+constexpr auto REGKEY = L"SOFTWARE\\hnrt\\HostsUpdater";
+constexpr auto REGVAL_VERSION = L"Version";
+constexpr auto REGVAL_LOGFILE = L"LogFile";
+constexpr auto LOGFILE_DEFAULT = L"%ALLUSERSPROFILE%\\hnrt\\HostsUpdater.log";
+constexpr auto REGVAL_HOSTSFILE = L"HostsFile";
+constexpr auto HOSTSFILE_DEFAULT = L"%windir%\\System32\\drivers\\etc\\hosts";
+constexpr auto REGKEY_MAPPINGS = L"SOFTWARE\\hnrt\\HostsUpdater\\Mappings";
 
 
 HostsUpdateService* HostsUpdateService::m_pSingleton = nullptr;
@@ -419,7 +419,7 @@ void HostsUpdateService::Log(PCWSTR pszFormat, ...)
 	sz.VaAppendFormat(pszFormat, argList);
 	va_end(argList);
 	sz.Append(L"\r\n");
-	StringUTF8 szUTF8(sz);
+	MultibyteString szUTF8 = sz.ToUTF8();
 	SpinLock lock(m_lockSelf);
 	WriteFile(m_hLogFile, szUTF8.Ptr, static_cast<DWORD>(szUTF8.Len), NULL, NULL);
 }

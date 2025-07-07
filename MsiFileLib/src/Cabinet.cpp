@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Cabinet.h"
 #include <fcntl.h>
-#include "hnrt/StringAcp.h"
 #include "hnrt/Path.h"
+#include "hnrt/MultibyteString.h"
 #include "hnrt/CabinetException.h"
 #include "hnrt/Heap.h"
 
@@ -111,7 +111,7 @@ void Cabinet::Extract(ICabinetExtractCallbacks& callbacks)
     }
     m_State = CabinetExtractionState::Pending;
     m_pCallbacks = &callbacks;
-    BOOL bRet = FDICopy(m_hfdi, const_cast<LPSTR>(StringAcp(Path::GetFileName(m_InputPath)).Ptr), const_cast<LPSTR>(StringAcp(Path::GetDirectoryName(m_InputPath, true)).Ptr), 0, Notify, NULL, this);
+    BOOL bRet = FDICopy(m_hfdi, const_cast<LPSTR>(Path::GetFileName(m_InputPath).ToAcp().Ptr), const_cast<LPSTR>(Path::GetDirectoryName(m_InputPath, true).ToAcp().Ptr), 0, Notify, NULL, this);
     if (bRet)
     {
         if (m_State != CabinetExtractionState::Pending)
@@ -152,7 +152,7 @@ INT_PTR DIAMONDAPI Cabinet::Open(LPSTR pszFile, int oflag, int pmode)
 
     ICabinetStream* pStream;
 
-    if (!Path::Compare(pszFile, StringAcp(s_szOnMemoryPseudoPath)))
+    if (!Path::Compare(String(CP_ACP, pszFile), s_szOnMemoryPseudoPath))
     {
         pStream = new CabinetMemoryStream(pThis->m_pData, pThis->m_cbSize);
     }

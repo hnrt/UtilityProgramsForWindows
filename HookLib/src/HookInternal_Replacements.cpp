@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "HookInternal.h"
 #include "hnrt/String.h"
+#include "hnrt/MultibyteString.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/Debug.h"
 
@@ -130,13 +131,13 @@ void WINAPI HookInternal::hookGetLocalTime(LPSYSTEMTIME pST)
 
 void HookInternal::InitializeMaps()
 {
-    m_Replacements.insert(Entry("LoadLibraryA", &hookLoadLibraryA));
-    m_Replacements.insert(Entry("LoadLibraryW", &hookLoadLibraryW));
-    m_Replacements.insert(Entry("LoadLibraryExA", &hookLoadLibraryExA));
-    m_Replacements.insert(Entry("LoadLibraryExW", &hookLoadLibraryExW));
-    m_Replacements.insert(Entry("GetSystemTimeAsFileTime", &hookGetSystemTimeAsFileTime));
-    m_Replacements.insert(Entry("GetSystemTime", &hookGetSystemTime));
-    m_Replacements.insert(Entry("GetLocalTime", &hookGetLocalTime));
+    m_Replacements.insert(Entry(String(L"LoadLibraryA"), &hookLoadLibraryA));
+    m_Replacements.insert(Entry(String(L"LoadLibraryW"), &hookLoadLibraryW));
+    m_Replacements.insert(Entry(String(L"LoadLibraryExA"), &hookLoadLibraryExA));
+    m_Replacements.insert(Entry(String(L"LoadLibraryExW"), &hookLoadLibraryExW));
+    m_Replacements.insert(Entry(String(L"GetSystemTimeAsFileTime"), &hookGetSystemTimeAsFileTime));
+    m_Replacements.insert(Entry(String(L"GetSystemTime"), &hookGetSystemTime));
+    m_Replacements.insert(Entry(String(L"GetLocalTime"), &hookGetLocalTime));
     HMODULE hKERNEL32 = GetModuleHandleW(L"KERNEL32.dll");
     if (!hKERNEL32)
     {
@@ -144,7 +145,7 @@ void HookInternal::InitializeMaps()
     }
     for (Map::const_iterator iter = m_Replacements.cbegin(); iter != m_Replacements.cend(); iter++)
     {
-        FARPROC pfn = GetProcAddress(hKERNEL32, iter->first);
+        FARPROC pfn = GetProcAddress(hKERNEL32, iter->first.ToAcp().Ptr);
         if (!pfn)
         {
             throw Win32Exception(GetLastError(), L"GetProcAddress(KERNEL32::%hs) failed.", iter->first);

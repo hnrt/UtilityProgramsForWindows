@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "hnrt/Path.h"
 #include "hnrt/StringCaseInsensitive.h"
-#include "hnrt/StringCaseInsensitiveAcp.h"
-#include "hnrt/StringAcp.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/ComException.h"
 #include "hnrt/WindowsHandle.h"
@@ -12,9 +10,9 @@
 using namespace hnrt;
 
 
-#define DRIVE_LETTER_SEPARATOR_CHAR L':'
-#define DIRECTORY_SEPARATOR_CHAR L'\\'
-#define EXTENSION_LEADER_CHAR L'.'
+constexpr auto DRIVE_LETTER_SEPARATOR_CHAR = L':';
+constexpr auto DIRECTORY_SEPARATOR_CHAR = L'\\';
+constexpr auto EXTENSION_LEADER_CHAR = L'.';
 
 
 const WCHAR Path::DirectorySeparatorChar = DIRECTORY_SEPARATOR_CHAR;
@@ -245,7 +243,7 @@ int Path::Compare(PCWSTR psz1, PCWSTR psz2)
 
 int Path::Compare(PCSTR psz1, PCSTR psz2)
 {
-    return StringCaseAcp::Compare(psz1, -1, psz2, -1);
+    return StringCase::Compare(String(CP_ACP, psz1), -1, String(CP_ACP, psz2), -1);
 }
 
 

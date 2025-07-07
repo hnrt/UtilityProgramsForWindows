@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "SecretInternal.h"
-#include "hnrt/StringUTF8.h"
+#include "hnrt/MultibyteString.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Debug.h"
 
@@ -8,8 +8,8 @@
 using namespace hnrt;
 
 
-#define KEY_SALT 0x43
-#define IV_SALT 0x12
+constexpr auto KEY_SALT = 0x43;
+constexpr auto IV_SALT = 0x12;
 
 
 SecretInternal::SecretInternal()
@@ -105,7 +105,7 @@ void SecretInternal::SetIV(const unsigned char* ptr, size_t len)
 void SecretInternal::SetKey(PCWSTR psz)
 {
     ByteString key(SECRET_KEY_LENGTH);
-    StringUTF8 deserialized(psz);
+    MultibyteString deserialized = String(psz).ToUTF8();
     memcpy_s(key, key.Len, deserialized, deserialized.Len < key.Len ? deserialized.Len : key.Len);
     AddSalt(key, SECRET_KEY_LENGTH, KEY_SALT);
     m_hKey.Generate(m_hAlg, key, SECRET_KEY_LENGTH);
@@ -115,7 +115,7 @@ void SecretInternal::SetKey(PCWSTR psz)
 void SecretInternal::SetIV(PCWSTR psz)
 {
     m_IV.Fill(0);
-    StringUTF8 deserialized(psz);
+    MultibyteString deserialized = String(psz).ToUTF8();
     memcpy_s(m_IV, m_IV.Len, deserialized, deserialized.Len < m_IV.Len ? deserialized.Len : m_IV.Len);
 }
 

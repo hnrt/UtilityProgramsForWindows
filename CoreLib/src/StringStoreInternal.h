@@ -1,17 +1,15 @@
 #pragma once
 
-
 #include <set>
-#include "hnrt/String.h"
-#include "hnrt/StringAcp.h"
-#include "hnrt/StringBuffer.h"
 #include "hnrt/SpinLock.h"
-
 
 namespace hnrt
 {
+    class String;
+    class MultibyteString;
+
     typedef std::set<String> UcsStringSet;
-    typedef std::set<StringAcp> AcpStringSet;
+    typedef std::set<MultibyteString> AcpStringSet;
 
     class StringStoreInternal
     {
@@ -22,8 +20,8 @@ namespace hnrt
         ~StringStoreInternal();
         StringStoreInternal(const StringStoreInternal&) = delete;
         void operator =(const StringStoreInternal&) = delete;
-        PCWSTR Get(PCWSTR psz);
-        PCSTR Get(PCSTR psz);
+        String Get(PCWSTR psz);
+        MultibyteString Get(PCSTR psz);
 
     private:
 

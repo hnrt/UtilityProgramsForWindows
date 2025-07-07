@@ -8,8 +8,6 @@
 #include "hnrt/WindowLayoutSnapshot.h"
 #include "hnrt/LogicalFont.h"
 #include "hnrt/StringBuffer.h"
-#include "hnrt/StringUTF8.h"
-#include "hnrt/StringACP.h"
 #include "hnrt/BCryptKeyHandle.h"
 #include "hnrt/BCryptAuthenticatedCipherModeInfo.h"
 #include "hnrt/Buffer.h"

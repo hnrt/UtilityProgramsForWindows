@@ -6,9 +6,12 @@
 
 namespace hnrt
 {
+    class String;
+    class MultibyteString;
+
     struct StringStore
     {
-        static PCWSTR Get(PCWSTR psz);
-        static PCSTR Get(PCSTR psz);
+        static String Get(PCWSTR psz);
+        static MultibyteString Get(PCSTR psz);
     };
 }

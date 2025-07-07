@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "hnrt/StringAcp.h"
+#include "hnrt/MultibyteString.h"
 
 
 namespace hnrt
@@ -15,7 +15,7 @@ namespace hnrt
         ~MacAddress() = default;
         MacAddress& operator =(const MacAddress& src);
         const char* operator &() const;
-        StringAcp ToStringAcp() const;
+        MultibyteString ToAcp() const;
         bool Parse(const char* psz);
 
     private:

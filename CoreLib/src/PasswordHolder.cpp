@@ -2,7 +2,7 @@
 #include "hnrt/PasswordHolder.h"
 #include "hnrt/SecretFactory.h"
 #include "hnrt/Base64.h"
-#include "hnrt/StringUTF8.h"
+#include "hnrt/MultibyteString.h"
 #include "hnrt/Win32Exception.h"
 
 
@@ -66,9 +66,9 @@ const String& PasswordHolder::get_PlainText() const
 void PasswordHolder::set_PlainText(const String& sz)
 {
     ClearPlainText();
-    StringUTF8 deserialized(sz);
+    MultibyteString deserialized = sz.ToUTF8();
     m_pSecret->Encrypt(deserialized.Ptr, deserialized.Len + 1);
-    deserialized.ZeroFill();
+    memset(const_cast<PCHAR>(deserialized.Ptr), 0, deserialized.Len);
     Base64Encoder enc;
     enc.Append(m_pSecret->Ptr, m_pSecret->Len);
     enc.End();

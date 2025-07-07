@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "StringStoreInternal.h"
 #include "hnrt/Heap.h"
+#include "hnrt/MultibyteString.h"
+#include "hnrt/String.h"
+#include "hnrt/StringBuffer.h"
 
 
 using namespace hnrt;
@@ -33,7 +36,7 @@ StringStoreInternal::StringStoreInternal()
 }
 
 
-PCWSTR StringStoreInternal::Get(PCWSTR psz)
+String StringStoreInternal::Get(PCWSTR psz)
 {
     if (!psz || !*psz)
     {
@@ -50,7 +53,7 @@ PCWSTR StringStoreInternal::Get(PCWSTR psz)
 }
 
 
-PCSTR StringStoreInternal::Get(PCSTR psz)
+MultibyteString StringStoreInternal::Get(PCSTR psz)
 {
     if (!psz || !*psz)
     {
@@ -62,6 +65,6 @@ PCSTR StringStoreInternal::Get(PCSTR psz)
     {
         return *iter;
     }
-    auto iter2 = m_setAcp.insert(StringAcp(psz));
+    auto iter2 = m_setAcp.insert(MultibyteString(psz));
     return *(iter2.first);
 }

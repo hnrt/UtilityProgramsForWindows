@@ -5,7 +5,7 @@
 #include "hnrt/Debug.h"
 #include "hnrt/PasswordHolder.h"
 #include "hnrt/Base64.h"
-#include "hnrt/StringUTF8.h"
+#include "hnrt/MultibyteString.h"
 #include "hnrt/Buffer.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -20,7 +20,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(Test1)
 		{
 			PCWSTR pszSource = L"ŒxŽ@‚ÌDNAŒ^“o˜^ Šg‘å";
-			StringUTF8 input(pszSource);
+			MultibyteString input(CP_UTF8, pszSource);
 
 			PCWSTR pszKey = L"some considered to be unnatural.";
 			PCWSTR pszIV = L"202008231156xxxx";
@@ -79,7 +79,7 @@ namespace UnitTestCoreLib
 				0x1c, 0x0c, 0xbf, 0x99, 0x06, 0x75, 0x4b, 0xea, 0x9e, 0x84, 0xac, 0xfa, 0x3f, 0xc6, 0x3a, 0x55
 			};
 			RefPtr<Secret> secret = SecretFactory::Create(key, iv);
-			StringUTF8 tmp(szInput);
+			MultibyteString tmp(CP_UTF8, szInput);
 			secret->Encrypt(tmp.Ptr, tmp.Len + 1);
 			Buffer<unsigned char> encrypted(secret->Len);
 			memcpy_s(encrypted.Ptr, encrypted.Len, secret->Ptr, secret->Len);

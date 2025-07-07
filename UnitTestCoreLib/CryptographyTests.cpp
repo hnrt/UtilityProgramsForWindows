@@ -5,7 +5,7 @@
 #include "hnrt/BCryptAuthenticatedCipherModeInfo.h"
 #include "hnrt/CryptographyException.h"
 #include "hnrt/Hash.h"
-#include "hnrt/StringUTF8.h"
+#include "hnrt/MultibyteString.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/Base64.h"
 #include "hnrt/StringBuffer.h"
@@ -73,13 +73,13 @@ namespace UnitTestCoreLib
 			Debug::Put(L"Test_AES_128_CBC_Encrypt: Started.");
 			try
 			{
-				StringUTF8 d(L"澤岻奈々子(タクシナナコ)");
-				StringUTF8 keyHint("MAX/NANA");
+				MultibyteString d(CP_UTF8, L"澤岻奈々子(タクシナナコ)");
+				MultibyteString keyHint("MAX/NANA");
 				MD5Hash keyHash(keyHint, keyHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> key(keyHash.ValueLength);
 				memcpy_s(key, key.Len, keyHash.Value, keyHash.ValueLength);
 				Debug::Put(L"Test_AES_128_CBC_Encrypt: key=%s", ToHex(keyHash));
-				StringUTF8 ivHint("20231204");
+				MultibyteString ivHint("20231204");
 				MD5Hash ivHash(ivHint, ivHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> iv(ivHash.ValueLength);
 				memcpy_s(iv, iv.Len, ivHash.Value, ivHash.ValueLength);
@@ -111,13 +111,13 @@ namespace UnitTestCoreLib
 			Debug::Put(L"Test_AES_256_CBC_Encrypt: Started.");
 			try
 			{
-				StringUTF8 d(L"澤岻奈々子(タクシナナコ)");
-				StringUTF8 keyHint("MAX/NANA");
+				MultibyteString d(CP_UTF8, L"澤岻奈々子(タクシナナコ)");
+				MultibyteString keyHint("MAX/NANA");
 				SHA256Hash keyHash(keyHint, keyHint.Len); // 256 bits (32 bytes)
 				Buffer<BYTE> key(keyHash.ValueLength);
 				memcpy_s(key, key.Len, keyHash.Value, keyHash.ValueLength);
 				Debug::Put(L"Test_AES_256_CBC_Encrypt: key=%s", ToHex(keyHash));
-				StringUTF8 ivHint("20231204");
+				MultibyteString ivHint("20231204");
 				MD5Hash ivHash(ivHint, ivHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> iv(ivHash.ValueLength);
 				memcpy_s(iv, iv.Len, ivHash.Value, ivHash.ValueLength);
@@ -152,12 +152,12 @@ namespace UnitTestCoreLib
 				Base64Decoder d;
 				// echo -n "澤岻奈々子(タクシナナコ)"|openssl aes-128-cbc -K 3baa74d5f939a874604238623ed2906d -iv 525a2888da84049530cd95ca7083e717 -base64
 				Assert::IsTrue(d.Parse(L"JWtX4f0wPFTE4x3a2DUhLXc8tzFuuamhMqCT6GC1waj9NQgnpV4p9mG5k0SjAPbK"));
-				StringUTF8 keyHint("MAX/NANA");
+				MultibyteString keyHint("MAX/NANA");
 				MD5Hash keyHash(keyHint, keyHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> key(keyHash.ValueLength);
 				memcpy_s(key, key.Len, keyHash.Value, keyHash.ValueLength);
 				Debug::Put(L"Test_AES_128_CBC_Decrypt: key=%s", ToHex(keyHash));
-				StringUTF8 ivHint("20231204");
+				MultibyteString ivHint("20231204");
 				MD5Hash ivHash(ivHint, ivHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> iv(ivHash.ValueLength);
 				memcpy_s(iv, iv.Len, ivHash.Value, ivHash.ValueLength);
@@ -189,12 +189,12 @@ namespace UnitTestCoreLib
 				Base64Decoder d;
 				// echo -n "澤岻奈々子(タクシナナコ)"|openssl aes-256-cbc -K d230b66ffcc15cb2f7ab7c30ce497a5e7d46059a428d0a1330c6af3de39fd001 -iv 525a2888da84049530cd95ca7083e717 -base64
 				Assert::IsTrue(d.Parse(L"QJdJsUsPX/ZSE9FcfZULAGgb6JFvHDwcNbFJ+yett40Fgen0RCtcSEWJtqew9YB2"));
-				StringUTF8 keyHint("MAX/NANA");
+				MultibyteString keyHint("MAX/NANA");
 				SHA256Hash keyHash(keyHint, keyHint.Len); // 256 bits (32 bytes)
 				Buffer<BYTE> key(keyHash.ValueLength);
 				memcpy_s(key, key.Len, keyHash.Value, keyHash.ValueLength);
 				Debug::Put(L"Test_AES_256_CBC_Decrypt: key=%s", ToHex(keyHash));
-				StringUTF8 ivHint("20231204");
+				MultibyteString ivHint("20231204");
 				MD5Hash ivHash(ivHint, ivHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> iv(ivHash.ValueLength);
 				memcpy_s(iv, iv.Len, ivHash.Value, ivHash.ValueLength);
@@ -223,8 +223,8 @@ namespace UnitTestCoreLib
 			Debug::Put(L"Test_AES_128_ECB_Encrypt: Started.");
 			try
 			{
-				StringUTF8 d(L"日本語123");
-				StringUTF8 keyHint("BENI");
+				MultibyteString d(CP_UTF8, L"日本語123");
+				MultibyteString keyHint("BENI");
 				MD5Hash keyHash(keyHint, keyHint.Len); // 128 bits
 				Buffer<BYTE> key(keyHash.ValueLength);
 				memcpy_s(key, key.Len, keyHash.Value, keyHash.ValueLength);
@@ -256,8 +256,8 @@ namespace UnitTestCoreLib
 			Debug::Put(L"Test_AES_256_ECB_Encrypt: Started.");
 			try
 			{
-				StringUTF8 d(L"日本語123");
-				StringUTF8 keyHint("BENI");
+				MultibyteString d(CP_UTF8, L"日本語123");
+				MultibyteString keyHint("BENI");
 				SHA256Hash keyHash(keyHint, keyHint.Len); // 256 bits
 				Buffer<BYTE> key(keyHash.ValueLength);
 				memcpy_s(key, key.Len, keyHash.Value, keyHash.ValueLength);
@@ -292,7 +292,7 @@ namespace UnitTestCoreLib
 				Base64Decoder d;
 				//echo -n "日本語123"|openssl aes-128-ecb -K 056c5ef8a258a9faaced455d1bba59b1 -base64
 				Assert::IsTrue(d.Parse(L"D7maX+hCE+90+eEQvoNIDQ=="));
-				StringUTF8 keyHint("BENI");
+				MultibyteString keyHint("BENI");
 				MD5Hash keyHash(keyHint, keyHint.Len); // 128 bits
 				Buffer<BYTE> key(keyHash.ValueLength);
 				memcpy_s(key, key.Len, keyHash.Value, keyHash.ValueLength);
@@ -324,7 +324,7 @@ namespace UnitTestCoreLib
 				Base64Decoder d;
 				//echo -n "日本語123"|openssl aes-256-ecb -K 50aaddee463b2eb7e53f9a83251ee15092582855663e04b0cf36f42b87eb84a2 -base64
 				Assert::IsTrue(d.Parse(L"+cqKQajlMuYqTS+qBVAQCg=="));
-				StringUTF8 keyHint("BENI");
+				MultibyteString keyHint("BENI");
 				SHA256Hash keyHash(keyHint, keyHint.Len); // 256 bits
 				Buffer<BYTE> key(keyHash.ValueLength);
 				memcpy_s(key, key.Len, keyHash.Value, keyHash.ValueLength);
@@ -353,14 +353,14 @@ namespace UnitTestCoreLib
 			Debug::Put(L"Test_AES_128_CFB: Started.");
 			try
 			{
-				StringUTF8 text(L"大谷翔平17");
+				MultibyteString text(CP_UTF8, L"大谷翔平17");
 				Debug::Put(L"Test_AES_128_CFB: text=%s (%s)", String(CP_UTF8, text), ByteString(text, text.Len).ToHex());
-				StringUTF8 keyHint("BENI");
+				MultibyteString keyHint("BENI");
 				SHA256Hash keyHash(keyHint, keyHint.Len); // 256 bits (32 bytes)
 				Buffer<BYTE> key(16);
 				memcpy_s(key, key.Len, keyHash.Value, key.Len);
 				Debug::Put(L"Test_AES_128_CFB: key=%s", ByteString(key, key.Len).ToHex());
-				StringUTF8 ivHint("20231208");
+				MultibyteString ivHint("20231208");
 				MD5Hash ivHash(ivHint, ivHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> iv(16);
 				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
@@ -376,8 +376,7 @@ namespace UnitTestCoreLib
 				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
 				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, iv, iv.Len);
 				Debug::Put(L"Test_AES_128_CFB: decrypted=%s", decrypted.ToHex());
-				StringUTF8 result((PCSTR)decrypted, decrypted.Len);
-				Assert::IsTrue(result == text);
+				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Len) == String(CP_UTF8, text.Ptr, text.Len));
 				Debug::Put(L"Test_AES_128_CFB: OK!");
 			}
 			catch (CryptographyException ce)
@@ -392,14 +391,14 @@ namespace UnitTestCoreLib
 			Debug::Put(L"Test_AES_192_CFB: Started.");
 			try
 			{
-				StringUTF8 text(L"大谷翔平17");
+				MultibyteString text(CP_UTF8, L"大谷翔平17");
 				Debug::Put(L"Test_AES_192_CFB: text=%s (%s)", String(CP_UTF8, text), ByteString(text, text.Len).ToHex());
-				StringUTF8 keyHint("BENI");
+				MultibyteString keyHint("BENI");
 				SHA256Hash keyHash(keyHint, keyHint.Len); // 256 bits (32 bytes)
 				Buffer<BYTE> key(24);
 				memcpy_s(key, key.Len, keyHash.Value, key.Len);
 				Debug::Put(L"Test_AES_192_CFB: key=%s", ByteString(key, key.Len).ToHex());
-				StringUTF8 ivHint("20231208");
+				MultibyteString ivHint("20231208");
 				MD5Hash ivHash(ivHint, ivHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> iv(16);
 				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
@@ -415,8 +414,7 @@ namespace UnitTestCoreLib
 				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
 				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, iv, iv.Len);
 				Debug::Put(L"Test_AES_192_CFB: decrypted=%s", decrypted.ToHex());
-				StringUTF8 result((PCSTR)decrypted, decrypted.Len);
-				Assert::IsTrue(result == text);
+				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Len) == String(CP_UTF8, text.Ptr, text.Len));
 				Debug::Put(L"Test_AES_192_CFB: OK!");
 			}
 			catch (CryptographyException ce)
@@ -431,14 +429,14 @@ namespace UnitTestCoreLib
 			Debug::Put(L"Test_AES_256_CFB: Started.");
 			try
 			{
-				StringUTF8 text(L"大谷翔平17");
+				MultibyteString text(CP_UTF8, L"大谷翔平17");
 				Debug::Put(L"Test_AES_256_CFB: text=%s (%s)", String(CP_UTF8, text), ByteString(text, text.Len).ToHex());
-				StringUTF8 keyHint("BENI");
+				MultibyteString keyHint("BENI");
 				SHA256Hash keyHash(keyHint, keyHint.Len); // 256 bits (32 bytes)
 				Buffer<BYTE> key(32);
 				memcpy_s(key, key.Len, keyHash.Value, key.Len);
 				Debug::Put(L"Test_AES_256_CFB: key=%s", ByteString(key, key.Len).ToHex());
-				StringUTF8 ivHint("20231208");
+				MultibyteString ivHint("20231208");
 				MD5Hash ivHash(ivHint, ivHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> iv(16);
 				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
@@ -454,8 +452,7 @@ namespace UnitTestCoreLib
 				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
 				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, iv, iv.Len);
 				Debug::Put(L"Test_AES_256_CFB: decrypted=%s", decrypted.ToHex());
-				StringUTF8 result((PCSTR)decrypted, decrypted.Len);
-				Assert::IsTrue(result == text);
+				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Len) == String(CP_UTF8, text.Ptr, text.Len));
 				Debug::Put(L"Test_AES_256_CFB: OK!");
 			}
 			catch (CryptographyException ce)
@@ -470,9 +467,9 @@ namespace UnitTestCoreLib
 			Debug::Put(L"Test_AES_128_CCM: Started.");
 			try
 			{
-				StringUTF8 text(L"大谷翔平17二刀流");
+				MultibyteString text(CP_UTF8, L"大谷翔平17二刀流");
 				Debug::Put(L"Test_AES_128_CCM: text=%s (%s)", String(CP_UTF8, text), ByteString(text, text.Len).ToHex());
-				StringUTF8 keyHint("BENI");
+				MultibyteString keyHint("BENI");
 				SHA256Hash keyHash(keyHint, keyHint.Len); // 256 bits (32 bytes)
 				Buffer<BYTE> key(16);
 				memcpy_s(key, key.Len, keyHash.Value, key.Len);
@@ -485,7 +482,7 @@ namespace UnitTestCoreLib
 				Debug::Put(L"Test_AES_128_CCM: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
 				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
 				Debug::Put(L"Test_AES_128_CCM: AuthTagLengths[%zu]=%s", tagLengths.size(), StringUtils::JoinBy(tagLengths, L","));
-				StringUTF8 nonceHint("20231208");
+				MultibyteString nonceHint("20231208");
 				MD5Hash nonceHash(nonceHint, nonceHint.Len); // 128 bits (16 bytes)
 				BCryptAuthenticatedCipherModeInfo infoE;
 				BCryptAuthenticatedCipherModeInfo infoD;
@@ -501,7 +498,7 @@ namespace UnitTestCoreLib
 					.SetTag(infoE.pbTag, infoE.cbTag);
 				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, infoD, NULL, 0);
 				Debug::Put(L"Test_AES_128_CCM: decrypted=%s", decrypted.ToHex());
-				Assert::IsTrue(StringUTF8((PCSTR)decrypted, decrypted.Len) == text);
+				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Len) == String(CP_UTF8, text.Ptr, text.Len));
 				Debug::Put(L"Test_AES_128_CCM: OK!");
 			}
 			catch (CryptographyException ce)
@@ -518,7 +515,7 @@ namespace UnitTestCoreLib
 			Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: Started.");
 			try
 			{
-				StringUTF8 text(L"二刀流大谷翔平ドジャースに10年総額7億ドルで移籍、2024年シーズンは50/50を達成しワールドシリーズ制覇。ナショナルリーグMVPに選出され大活躍");
+				MultibyteString text(CP_UTF8, L"二刀流大谷翔平ドジャースに10年総額7億ドルで移籍、2024年シーズンは50/50を達成しワールドシリーズ制覇。ナショナルリーグMVPに選出され大活躍");
 				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: text=%s (%s)", String(CP_UTF8, text), ByteString(text, text.Len).ToHex());
 				Buffer<BYTE> src(((text.Len + 15) / 16) * 16);
 				memcpy_s(src, src.Len, text, text.Len);
@@ -526,7 +523,7 @@ namespace UnitTestCoreLib
 				ByteString src1(src + 16 * 0, 16 * 2);
 				ByteString src2(src + 16 * 2, 16 * 2);
 				ByteString src3(src + 16 * 4, src.Len - 16 * 4);
-				StringUTF8 keyHint("BENI");
+				MultibyteString keyHint("BENI");
 				SHA256Hash keyHash(keyHint, keyHint.Len); // 256 bits (32 bytes)
 				Buffer<BYTE> key(16);
 				memcpy_s(key, key.Len, keyHash.Value, key.Len);
@@ -539,7 +536,7 @@ namespace UnitTestCoreLib
 				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
 				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
 				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: AuthTagLengths[%zu]={%s}", tagLengths.size(), StringUtils::JoinBy(tagLengths, L","));
-				StringUTF8 nonceHint("20231208");
+				MultibyteString nonceHint("20231208");
 				MD5Hash nonceHash(nonceHint, nonceHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> ivE(16);
 				Buffer<BYTE> ivD(16);
@@ -604,7 +601,7 @@ namespace UnitTestCoreLib
 				ByteString decrypted = decrypted1;
 				decrypted += decrypted2;
 				decrypted += decrypted3;
-				Assert::IsTrue(StringUTF8(decrypted, decrypted.Len) == text);
+				Assert::IsTrue(MultibyteString(decrypted, decrypted.Len) == text);
 				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: OK!");
 			}
 			catch (CryptographyException ce)
@@ -620,9 +617,9 @@ namespace UnitTestCoreLib
 			Debug::Put(L"Test_AES_128_GCM: Started.");
 			try
 			{
-				StringUTF8 text(L"大谷翔平17二刀流");
+				MultibyteString text(CP_UTF8, L"大谷翔平17二刀流");
 				Debug::Put(L"Test_AES_128_GCM: text=%s (%s)", String(CP_UTF8, text), ByteString(text, text.Len).ToHex());
-				StringUTF8 keyHint("BENI");
+				MultibyteString keyHint("BENI");
 				SHA256Hash keyHash(keyHint, keyHint.Len); // 256 bits (32 bytes)
 				Buffer<BYTE> key(16);
 				memcpy_s(key, key.Len, keyHash.Value, key.Len);
@@ -635,7 +632,7 @@ namespace UnitTestCoreLib
 				Debug::Put(L"Test_AES_128_GCM: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
 				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
 				Debug::Put(L"Test_AES_128_GCM: AuthTagLengths[%zu]=%s", tagLengths.size(), StringUtils::JoinBy(tagLengths, L","));
-				StringUTF8 nonceHint("20231208");
+				MultibyteString nonceHint("20231208");
 				MD5Hash nonceHash(nonceHint, nonceHint.Len); // 128 bits (16 bytes)
 				BCryptAuthenticatedCipherModeInfo infoE;
 				BCryptAuthenticatedCipherModeInfo infoD;
@@ -651,7 +648,7 @@ namespace UnitTestCoreLib
 					.SetTag(infoE.pbTag, infoE.cbTag);
 				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, infoD, NULL, 0);
 				Debug::Put(L"Test_AES_128_GCM: decrypted[%zu]=%s", decrypted.Len, decrypted.ToHex());
-				Assert::IsTrue(StringUTF8((PCSTR)decrypted, decrypted.Len) == text);
+				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Len) == String(CP_UTF8, text.Ptr, text.Len));
 				Debug::Put(L"Test_AES_128_GCM: OK!");
 			}
 			catch (CryptographyException ce)
@@ -666,9 +663,9 @@ namespace UnitTestCoreLib
 			Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: Started.");
 			try
 			{
-				StringUTF8 text(L"二刀流大谷翔平ドジャースに10年総額7億ドルで移籍");
+				MultibyteString text(CP_UTF8, L"二刀流大谷翔平ドジャースに10年総額7億ドルで移籍");
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: text=%s (%s)", String(CP_UTF8, text), ByteString(text, text.Len).ToHex());
-				StringUTF8 keyHint("BENI");
+				MultibyteString keyHint("BENI");
 				SHA256Hash keyHash(keyHint, keyHint.Len); // 256 bits (32 bytes)
 				Buffer<BYTE> key(16);
 				memcpy_s(key, key.Len, keyHash.Value, key.Len);
@@ -681,7 +678,7 @@ namespace UnitTestCoreLib
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
 				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: AuthTagLengths[%zu]=%s", tagLengths.size(), StringUtils::JoinBy(tagLengths, L","));
-				StringUTF8 nonceHint("20231208");
+				MultibyteString nonceHint("20231208");
 				MD5Hash nonceHash(nonceHint, nonceHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> ivE(16);
 				Buffer<BYTE> ivD(16);
@@ -747,7 +744,7 @@ namespace UnitTestCoreLib
 				ByteString decrypted = decrypted1;
 				decrypted += decrypted2;
 				decrypted += decrypted3;
-				Assert::IsTrue(StringUTF8(decrypted, decrypted.Len) == text);
+				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Len) == String(CP_UTF8, text.Ptr, text.Len));
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: OK!");
 			}
 			catch (CryptographyException ce)

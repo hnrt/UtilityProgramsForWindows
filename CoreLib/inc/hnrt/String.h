@@ -6,6 +6,8 @@
 
 namespace hnrt
 {
+    class MultibyteString;
+
     class String
     {
     public:
@@ -83,6 +85,10 @@ namespace hnrt
         static int Compare(PCWSTR psz1, PCWSTR psz2);
         static int Compare(PCWSTR psz1, PCWSTR psz2, SSIZE_T cch2);
         static int Compare(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2);
+
+        MultibyteString ToAcp() const;
+        MultibyteString ToUTF8() const;
+        MultibyteString ToMultibyteString(UINT) const;
     };
 
     inline String& String::Uppercase()
@@ -115,9 +121,9 @@ namespace hnrt
         return Ptr;
     }
 
-    inline String& String::operator =(const String& other)
+    inline String& String::operator =(const String& src)
     {
-        return Assign(other);
+        return Assign(src);
     }
 
     inline String& String::operator =(PCWSTR psz)
@@ -125,9 +131,9 @@ namespace hnrt
         return Assign(psz);
     }
 
-    inline String& String::operator +=(const String& other)
+    inline String& String::operator +=(const String& src)
     {
-        return Append(other);
+        return Append(src);
     }
 
     inline String& String::operator +=(PCWSTR psz)
