@@ -278,4 +278,23 @@ namespace hnrt
             return nullptr;
         }
     }
+
+    template<typename T>
+    T* AddRef(T* psz)
+    {
+        if (psz)
+        {
+            RefString<T>::GetThis(psz)->AddRef();
+        }
+        return psz;
+    }
+
+    template<typename T>
+    void Release(T* psz)
+    {
+        if (psz)
+        {
+            RefString<T>::GetThis(psz)->Release();
+        }
+    }
 }
