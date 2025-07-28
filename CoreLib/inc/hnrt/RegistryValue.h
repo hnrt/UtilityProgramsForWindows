@@ -18,18 +18,6 @@ namespace hnrt
     {
     public:
 
-        static LSTATUS SetDWORD(HKEY hKey, PCWSTR pszName, DWORD dwValue);
-        static LSTATUS SetQWORD(HKEY hKey, PCWSTR pszName, ULONGLONG qwValue);
-        static LSTATUS SetSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValue);
-        static LSTATUS SetEXPANDSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValue);
-        static LSTATUS SetMULTISZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValues[], SIZE_T nValues);
-        static LSTATUS SetBINARY(HKEY hKey, PCWSTR pszName, const void* pValue, SIZE_T cbValue);
-        static DWORD GetDWORD(HKEY hKey, PCWSTR pszName, DWORD dwDefaultValue = 0);
-        static ULONGLONG GetQWORD(HKEY hKey, PCWSTR pszName, ULONGLONG qwDefaultValue = 0);
-        static String GetSZ(HKEY hKey, PCWSTR pszName, const String& szDefaultValue = String::Empty);
-        static String GetEXPANDSZ(HKEY hKey, PCWSTR pszName, const String& szDefaultValue = String::Empty);
-        static String GetString(HKEY hKey, PCWSTR pszName, const String& szDefaultValue = String::Empty);
-
         RegistryValue();
         RegistryValue(DWORD);
         RegistryValue(ULONGLONG);
@@ -45,6 +33,15 @@ namespace hnrt
         void Clear();
         LSTATUS Query(HKEY hKey, PCWSTR pszName);
         PCWSTR Expand();
+
+    protected:
+
+        DWORD m_dwType;
+        DWORD m_dwSize;
+        RegistryValueHolder m_value;
+
+    public:
+
         DWORD get_Type() const;
         DWORD get_Size() const;
         long get_Int32() const;
@@ -63,11 +60,19 @@ namespace hnrt
         __declspec(property(get = get_SZ)) PCWSTR SZ;
         __declspec(property(get = get_BINARY)) const void* BINARY;
 
-    protected:
+    public:
 
-        DWORD m_dwType;
-        DWORD m_dwSize;
-        RegistryValueHolder m_value;
+        static LSTATUS SetDWORD(HKEY hKey, PCWSTR pszName, DWORD dwValue);
+        static LSTATUS SetQWORD(HKEY hKey, PCWSTR pszName, ULONGLONG qwValue);
+        static LSTATUS SetSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValue);
+        static LSTATUS SetEXPANDSZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValue);
+        static LSTATUS SetMULTISZ(HKEY hKey, PCWSTR pszName, PCWSTR pszValues[], SIZE_T nValues);
+        static LSTATUS SetBINARY(HKEY hKey, PCWSTR pszName, const void* pValue, SIZE_T cbValue);
+        static DWORD GetDWORD(HKEY hKey, PCWSTR pszName, DWORD dwDefaultValue = 0);
+        static ULONGLONG GetQWORD(HKEY hKey, PCWSTR pszName, ULONGLONG qwDefaultValue = 0);
+        static String GetSZ(HKEY hKey, PCWSTR pszName, const String& szDefaultValue = String::Empty);
+        static String GetEXPANDSZ(HKEY hKey, PCWSTR pszName, const String& szDefaultValue = String::Empty);
+        static String GetString(HKEY hKey, PCWSTR pszName, const String& szDefaultValue = String::Empty);
     };
 
     inline DWORD RegistryValue::get_Type() const

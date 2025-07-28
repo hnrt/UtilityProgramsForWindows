@@ -1,33 +1,12 @@
 #include "pch.h"
 #include "hnrt/MultibyteString.h"
-#include "hnrt/RefString.h"
+#include "hnrt/RefMbs.h"
 #include "hnrt/Interlocked.h"
+#include "hnrt/String.h"
 #include "hnrt/Exception.h"
 
 
 using namespace hnrt;
-
-
-typedef RefString<CHAR> RefStr;
-
-
-inline static PSTR AddRef(PSTR psz)
-{
-    if (psz)
-    {
-        RefStr::GetThis(psz)->AddRef();
-    }
-    return psz;
-}
-
-
-inline static void Release(PSTR psz)
-{
-    if (psz)
-    {
-        RefStr::GetThis(psz)->Release();
-    }
-}
 
 
 MultibyteString::MultibyteString()
@@ -37,14 +16,19 @@ MultibyteString::MultibyteString()
 
 
 MultibyteString::MultibyteString(const MultibyteString& src)
-    : m_psz(AddRef(src.m_psz))
+    : m_psz(StringAddRef(src.m_psz))
 {
 }
 
 
 MultibyteString::MultibyteString(PCSTR psz, SSIZE_T cb)
-    : m_psz(RefStr::Create(psz, cb))
+    : m_psz(nullptr)
 {
+    cb = StrLen(psz, cb);
+    if (cb)
+    {
+        m_psz = RefMbs::Create(psz, cb);
+    }
 }
 
 
@@ -60,31 +44,39 @@ MultibyteString::MultibyteString(UINT cp, PCWSTR psz, SSIZE_T cch)
         {
             throw Exception(L"MultibyteString::ctor: WideCharToMultiByte failed.");
         }
-        m_psz = RefStr::Create(cb);
+        m_psz = RefMbs::Create(cb);
         WideCharToMultiByte(cp, dwFlags, psz, static_cast<int>(cch), m_psz, cb, NULL, NULL);
         m_psz[cb] = '\0';
-    }
-    else
-    {
-        m_psz = RefStr::Create("");
     }
 }
 
 
 MultibyteString::~MultibyteString()
 {
-    Release(Interlocked<PSTR>::ExchangePointer(&m_psz, nullptr));
+    StringRelease(Interlocked<PSTR>::ExchangePointer(&m_psz, nullptr));
 }
 
 
 MultibyteString& MultibyteString::operator =(const MultibyteString& src)
 {
-    Release(Interlocked<PSTR>::ExchangePointer(&m_psz, AddRef(src.m_psz)));
+    StringRelease(Interlocked<PSTR>::ExchangePointer(&m_psz, StringAddRef(src.m_psz)));
     return *this;
 }
 
 
-SIZE_T MultibyteString::get_len() const
+SIZE_T MultibyteString::get_Len() const
 {
-    return m_psz ? RefStr::GetThis(m_psz)->Len : 0;
+    return m_psz ? RefMbs::Get(m_psz).Len : 0;
+}
+
+
+MultibyteString hnrt::ToAcp(const String& str)
+{
+    return MultibyteString(CP_ACP, str.Ptr, str.Len);
+}
+
+
+MultibyteString hnrt::ToUTF8(const String& str)
+{
+    return MultibyteString(CP_UTF8, str.Ptr, str.Len);
 }

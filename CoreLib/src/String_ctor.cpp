@@ -16,20 +16,28 @@ String::String()
 
 
 String::String(const String& src)
-    : m_psz(AddRef(src.m_psz))
+    : m_psz(StringAddRef(src.m_psz))
 {
 }
 
 
 String::String(PCWSTR psz, SSIZE_T cch)
-    : m_psz(RefStr::Create(psz, cch))
+    : m_psz(nullptr)
 {
+    if (psz && cch)
+    {
+        cch = StrLen(psz, cch);
+        m_psz = RefStr::Create(cch);
+        MemCpy(m_psz, psz, cch);
+        m_psz[cch] = L'\0';
+    }
 }
 
 
 String::String(PCWSTR pszFormat, va_list argList)
-    : m_psz(RefStr::Create(pszFormat, argList))
+    : m_psz(RefStr::Create(VaStrFmtLen(pszFormat, argList)))
 {
+    VaStrFmt(m_psz, Len + 1, pszFormat, argList);
 }
 
 
@@ -41,7 +49,8 @@ String::String(StringOptions option, PCWSTR psz, ...)
     switch (option)
     {
     case PRINTF:
-        m_psz = RefStr::Create(psz, argList);
+        m_psz = RefStr::Create(VaStrFmtLen(psz, argList));
+        VaStrFmt(m_psz, Len + 1, psz, argList);
         break;
     case CONCAT:
     case CONCAT2:
@@ -52,15 +61,28 @@ String::String(StringOptions option, PCWSTR psz, ...)
     case CONCAT7:
     case CONCAT8:
     case CONCAT9:
-        m_psz = RefStr::Create(option, psz, argList);
+        m_psz = RefStr::Create(VaStrCatLen(option, psz, argList));
+        VaStrCat(option, psz, argList, m_psz);
         break;
     case UPPERCASE:
     case LOWERCASE:
+        m_psz = RefStr::Create(StrLen(psz));
+        MemCpy(m_psz, psz, Len);
+        m_psz[Len] = L'\0';
+        StrCase(option, m_psz, Len);
+        break;
     case TRIM:
     case TRIM_HEAD:
     case TRIM_TAIL:
-        m_psz = RefStr::Create(option, psz);
+    {
+        int start = 0;
+        int end = 0;
+        StrTrimScan(psz, start, end, option);
+        m_psz = RefStr::Create(static_cast<SIZE_T>(end - start));
+        MemCpy(m_psz, psz + start, Len);
+        m_psz[Len] = L'\0';
         break;
+    }
     default:
         throw Exception(L"String::ctor: Bad option.");
     }
@@ -69,8 +91,13 @@ String::String(StringOptions option, PCWSTR psz, ...)
 
 
 String::String(PCWSTR psz1, PCWSTR psz2)
-    : m_psz(RefStr::Create(psz1, psz2))
+    : m_psz(nullptr)
 {
+    SIZE_T cch1 = StrLen(psz1);
+    SIZE_T cch2 = StrLen(psz2);
+    m_psz = RefStr::Create(cch1 + cch2);
+    MemCpy(m_psz, psz1, cch1);
+    MemCpy(m_psz + cch1, psz2, cch2 + 1);
 }
 
 
@@ -81,8 +108,10 @@ String::String(SIZE_T cch)
 
 
 String::String(SIZE_T cch, WCHAR fill)
-    : m_psz(RefStr::Create(cch, fill))
+    : m_psz(RefStr::Create(cch))
 {
+    MemSet(m_psz, fill, Len);
+    m_psz[Len] = L'\0';
 }
 
 
@@ -101,23 +130,10 @@ String::String(UINT cp, PCSTR psz, SSIZE_T cb)
         MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, static_cast<int>(cb), m_psz, cch);
         m_psz[cch] = L'\0';
     }
-    else
-    {
-        m_psz = RefStr::Create(L"");
-    }
 }
 
 
-SIZE_T String::get_len() const
+SIZE_T String::get_Len() const
 {
-    return m_psz ? RefStr::GetThis(m_psz)->Len : 0;
-}
-
-
-void String::set_len(SIZE_T len)
-{
-    if (m_psz)
-    {
-        RefStr::GetThis(m_psz)->SetLength(len);
-    }
+    return m_psz ? RefStr::Get(m_psz).Len : 0;
 }

@@ -15,6 +15,7 @@ namespace hnrt
         StringCaseInsensitive(PCWSTR, SSIZE_T = -1);
         StringCaseInsensitive(const String&);
         ~StringCaseInsensitive();
+
         operator PCWSTR() const;
         operator bool() const;
         StringCaseInsensitive& operator =(const StringCaseInsensitive&);
@@ -29,15 +30,18 @@ namespace hnrt
         bool operator >=(const StringCaseInsensitive&) const;
         StringCaseInsensitive operator +(const StringCaseInsensitive&) const;
         StringCaseInsensitive operator +(const String&) const;
-        PCWSTR get_ptr() const;
-        SIZE_T get_len() const;
-
-        __declspec(property(get = get_ptr)) PCWSTR Ptr;
-        __declspec(property(get = get_len)) SIZE_T Len;
 
     private:
 
         PWSTR m_psz;
+
+    public:
+
+        PCWSTR get_Ptr() const;
+        SIZE_T get_Len() const;
+
+        __declspec(property(get = get_Ptr)) PCWSTR Ptr;
+        __declspec(property(get = get_Len)) SIZE_T Len;
 
     public:
 
@@ -56,7 +60,7 @@ namespace hnrt
         return m_psz != nullptr;
     }
 
-    inline PCWSTR StringCaseInsensitive::get_ptr() const
+    inline PCWSTR StringCaseInsensitive::get_Ptr() const
     {
         return m_psz ? m_psz : L"";
     }

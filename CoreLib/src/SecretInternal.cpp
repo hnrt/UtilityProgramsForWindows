@@ -105,7 +105,7 @@ void SecretInternal::SetIV(const unsigned char* ptr, size_t len)
 void SecretInternal::SetKey(PCWSTR psz)
 {
     ByteString key(SECRET_KEY_LENGTH);
-    MultibyteString deserialized = String(psz).ToUTF8();
+    MultibyteString deserialized = ToUTF8(String(psz));
     memcpy_s(key, key.Len, deserialized, deserialized.Len < key.Len ? deserialized.Len : key.Len);
     AddSalt(key, SECRET_KEY_LENGTH, KEY_SALT);
     m_hKey.Generate(m_hAlg, key, SECRET_KEY_LENGTH);
@@ -115,7 +115,7 @@ void SecretInternal::SetKey(PCWSTR psz)
 void SecretInternal::SetIV(PCWSTR psz)
 {
     m_IV.Fill(0);
-    MultibyteString deserialized = String(psz).ToUTF8();
+    MultibyteString deserialized = ToUTF8(String(psz));
     memcpy_s(m_IV, m_IV.Len, deserialized, deserialized.Len < m_IV.Len ? deserialized.Len : m_IV.Len);
 }
 

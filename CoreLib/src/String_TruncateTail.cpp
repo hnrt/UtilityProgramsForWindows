@@ -9,20 +9,14 @@ String& String::TruncateTail(SIZE_T cch)
 {
     if (m_psz)
     {
-        RefStr* pThis = RefStr::GetThis(m_psz);
-        if (pThis->RefCnt > 1)
+        SIZE_T cch0 = Len;
+        if (cch < cch0)
         {
-            Release(Interlocked<PWSTR>::ExchangePointer(&m_psz, cch < pThis->Len ? RefStr::Create(m_psz, pThis->Len - cch) : nullptr));
-        }
-        else if (cch < pThis->Len)
-        {
-            SIZE_T newLen = pThis->Len - cch;
-            MemSet(&m_psz[newLen], L'\0', cch);
-            pThis->SetLength(newLen);
+            RefStr::Get(m_psz).Truncate(cch0 - cch);
         }
         else
         {
-            pThis->Fill(L'\0');
+            RefStr::Get(m_psz).Truncate(0);
         }
     }
     return *this;

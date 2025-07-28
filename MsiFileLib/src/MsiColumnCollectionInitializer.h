@@ -3,7 +3,7 @@
 
 #include <Msi.h>
 #include <map>
-#include "hnrt/String.h"
+#include "hnrt/StringLessThan.h"
 #include "MsiColumn.h"
 
 

@@ -6,10 +6,12 @@
 
 namespace hnrt
 {
-    class MultibyteString;
-
     class String
     {
+    private:
+
+        PWSTR m_psz;
+
     public:
 
         String();
@@ -22,6 +24,7 @@ namespace hnrt
         String(SIZE_T, WCHAR);
         String(UINT, PCSTR, SSIZE_T = -1);
         ~String();
+
         String& ZeroFill();
         String& Lettercase(StringOptions);
         String& Uppercase();
@@ -49,6 +52,7 @@ namespace hnrt
         long long ToLongLong(long long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
         unsigned long long ToUnsignedLongLong(unsigned long long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
         double ToDouble(double defaultValue = 0L, BOOL* pbSuccessful = nullptr);
+
         operator PCWSTR() const;
         String& operator =(const String&);
         String& operator =(PCWSTR);
@@ -61,22 +65,18 @@ namespace hnrt
         bool operator >(const String&) const;
         bool operator >=(const String&) const;
         String operator +(const String&) const;
-        PCWSTR get_ptr() const;
-        SIZE_T get_len() const;
-        void set_len(SIZE_T);
-        PWCHAR get_buf() const;
+
+    public:
+
+        PCWSTR get_Ptr() const;
+        SIZE_T get_Len() const;
+        PWCHAR get_Buf() const;
         BOOL is_set() const;
 
-        __declspec(property(get = get_ptr)) PCWSTR Ptr;
-        __declspec(property(get = get_len, put = set_len)) SIZE_T Len;
-        __declspec(property(get = get_buf)) PWCHAR Buf;
+        __declspec(property(get = get_Ptr)) PCWSTR Ptr;
+        __declspec(property(get = get_Len)) SIZE_T Len;
+        __declspec(property(get = get_Buf)) PWCHAR Buf;
         __declspec(property(get = is_set)) BOOL IsSet;
-
-    private:
-
-        PWSTR m_psz;
-
-        friend class StringCaseInsensitive;
 
     public:
 
@@ -85,10 +85,6 @@ namespace hnrt
         static int Compare(PCWSTR psz1, PCWSTR psz2);
         static int Compare(PCWSTR psz1, PCWSTR psz2, SSIZE_T cch2);
         static int Compare(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2);
-
-        MultibyteString ToAcp() const;
-        MultibyteString ToUTF8() const;
-        MultibyteString ToMultibyteString(UINT) const;
     };
 
     inline String& String::Uppercase()
@@ -99,21 +95,6 @@ namespace hnrt
     inline String& String::Lowercase()
     {
         return Lettercase(LOWERCASE);
-    }
-
-    inline PCWSTR String::get_ptr() const
-    {
-        return m_psz ? m_psz : L"";
-    }
-
-    inline PWCHAR String::get_buf() const
-    {
-        return m_psz;
-    }
-
-    inline BOOL String::is_set() const
-    {
-        return m_psz ? TRUE : FALSE;
     }
 
     inline String::operator PCWSTR() const
@@ -141,6 +122,21 @@ namespace hnrt
         return Append(psz);
     }
 
+    inline PCWSTR String::get_Ptr() const
+    {
+        return m_psz ? m_psz : L"";
+    }
+
+    inline PWCHAR String::get_Buf() const
+    {
+        return m_psz;
+    }
+
+    inline BOOL String::is_set() const
+    {
+        return m_psz ? TRUE : FALSE;
+    }
+
     inline int String::Compare(PCWSTR psz1, PCWSTR psz2)
     {
         return Compare(psz1, -1, psz2, -1);
@@ -149,17 +145,5 @@ namespace hnrt
     inline int String::Compare(PCWSTR psz1, PCWSTR psz2, SSIZE_T cch2)
     {
         return Compare(psz1, -1, psz2, cch2);
-    }
-
-    class StringLessThan
-    {
-    public:
-
-        bool operator ()(PCWSTR psz1, PCWSTR psz2) const;
-    };
-
-    inline bool StringLessThan::operator ()(PCWSTR psz1, PCWSTR psz2) const
-    {
-        return String::Compare(psz1, -1, psz2, -1) < 0;
     }
 }

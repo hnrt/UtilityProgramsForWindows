@@ -419,7 +419,7 @@ void HostsUpdateService::Log(PCWSTR pszFormat, ...)
 	sz.VaAppendFormat(pszFormat, argList);
 	va_end(argList);
 	sz.Append(L"\r\n");
-	MultibyteString szUTF8 = sz.ToUTF8();
+	MultibyteString szUTF8 = ToUTF8(sz);
 	SpinLock lock(m_lockSelf);
 	WriteFile(m_hLogFile, szUTF8.Ptr, static_cast<DWORD>(szUTF8.Len), NULL, NULL);
 }

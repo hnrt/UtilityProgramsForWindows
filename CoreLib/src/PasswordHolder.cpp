@@ -66,7 +66,7 @@ const String& PasswordHolder::get_PlainText() const
 void PasswordHolder::set_PlainText(const String& sz)
 {
     ClearPlainText();
-    MultibyteString deserialized = sz.ToUTF8();
+    MultibyteString deserialized = ToUTF8(sz);
     m_pSecret->Encrypt(deserialized.Ptr, deserialized.Len + 1);
     memset(const_cast<PCHAR>(deserialized.Ptr), 0, deserialized.Len);
     Base64Encoder enc;

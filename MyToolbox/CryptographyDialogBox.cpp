@@ -16,6 +16,7 @@
 #include "hnrt/WhileInScope.h"
 #include "hnrt/FileMapper.h"
 #include "hnrt/FileWriter.h"
+#include "hnrt/StringLessThan.h"
 #include "hnrt/StringCommons.h"
 #include "hnrt/Debug.h"
 #include <map>

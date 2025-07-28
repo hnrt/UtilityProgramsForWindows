@@ -111,7 +111,7 @@ void Cabinet::Extract(ICabinetExtractCallbacks& callbacks)
     }
     m_State = CabinetExtractionState::Pending;
     m_pCallbacks = &callbacks;
-    BOOL bRet = FDICopy(m_hfdi, const_cast<LPSTR>(Path::GetFileName(m_InputPath).ToAcp().Ptr), const_cast<LPSTR>(Path::GetDirectoryName(m_InputPath, true).ToAcp().Ptr), 0, Notify, NULL, this);
+    BOOL bRet = FDICopy(m_hfdi, const_cast<LPSTR>(ToAcp(Path::GetFileName(m_InputPath)).Ptr), const_cast<LPSTR>(ToAcp(Path::GetDirectoryName(m_InputPath, true)).Ptr), 0, Notify, NULL, this);
     if (bRet)
     {
         if (m_State != CabinetExtractionState::Pending)

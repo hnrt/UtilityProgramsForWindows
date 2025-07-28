@@ -9,7 +9,7 @@
 #pragma warning(pop)
 #include <map>
 #include "hnrt/ComException.h"
-#include "hnrt/String.h"
+#include "hnrt/StringLessThan.h"
 #include "WindowMetrics.h"
 
 

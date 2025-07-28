@@ -12,15 +12,20 @@ namespace hnrt
         RefObj();
         RefObj(const RefObj& src);
         virtual ~RefObj() = default;
-        void operator =(const RefObj& src);
         virtual ULONG AddRef();
         virtual ULONG Release();
-        ULONG get_RefCnt() const;
-        __declspec(property(get = get_RefCnt)) ULONG RefCnt;
 
-    protected:
+        void operator =(const RefObj& src);
+
+    private:
 
         LONG m_RefCnt;
+
+    public:
+
+        ULONG get_RefCnt() const;
+
+        __declspec(property(get = get_RefCnt)) ULONG RefCnt;
     };
 
     inline RefObj::RefObj()
@@ -29,11 +34,7 @@ namespace hnrt
     }
 
     inline RefObj::RefObj(const RefObj& src)
-        : m_RefCnt(1L)
-    {
-    }
-
-    inline void RefObj::operator =(const RefObj& src)
+        : m_RefCnt(src.m_RefCnt)
     {
     }
 
@@ -51,6 +52,11 @@ namespace hnrt
             delete this;
         }
         return count > 0 ? count : 0;
+    }
+
+    inline void RefObj::operator =(const RefObj& src)
+    {
+        m_RefCnt = src.m_RefCnt;
     }
 
     inline ULONG RefObj::get_RefCnt() const

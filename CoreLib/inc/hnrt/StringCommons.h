@@ -634,4 +634,21 @@ namespace hnrt
 	/// <returns></returns>
 	SIZE_T CountCharacter(PCCH str, SSIZE_T count, int codepoint);
 
+	/// <summary>
+	/// This function returns the number of null-terminated strings in the specified buffer.
+	/// The buffer ends with a single null like this:
+	/// xxx\0yyy\0zzz\0\0
+	/// </summary>
+	/// <param name="pszz">Buffer of null-terminated strings that ends with a single null character (an empty string)</param>
+	/// <returns>Number of null-terminated strings excluding the terminating empty string</returns>
+	DWORD CountStrings(PWCHAR pszz);
+
+	/// <summary>
+	/// This function returns the number of null-terminated strings in the specified buffer.
+	/// The buffer ends with a single null like this:
+	/// xxx\0yyy\0zzz\0\0
+	/// </summary>
+	/// <param name="pszz">Buffer of null-terminated strings that ends with a single null character (an empty string)</param>
+	/// <returns>Number of null-terminated strings excluding the terminating empty string</returns>
+	DWORD CountStrings(PCHAR pszz);
 }

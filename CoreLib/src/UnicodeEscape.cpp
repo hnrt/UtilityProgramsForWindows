@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "hnrt/UnicodeEscape.h"
+#include "hnrt/RefStr.h"
 
 
 static const WCHAR szHex[2][17] =
@@ -53,7 +54,7 @@ String hnrt::FromNativeToAscii(PCWSTR psz, bool bLowercase)
 			pOut[-6] = L'\\';
 		}
 	}
-	szText.Len = pOut - szText.Buf;
+	RefStr::Get(szText.Buf).Truncate(pOut - szText.Buf);
 	return szText;
 }
 
@@ -91,6 +92,6 @@ String hnrt::FromAsciiToNative(PCWSTR psz)
 		}
 		*pOut++ = c;
 	}
-	szText.Len = pOut - szText.Buf;
+	RefStr::Get(szText.Buf).Truncate(pOut - szText.Buf);
 	return szText;
 }

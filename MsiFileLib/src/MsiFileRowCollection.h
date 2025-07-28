@@ -2,7 +2,7 @@
 
 
 #include <map>
-#include "hnrt/String.h"
+#include "hnrt/StringLessThan.h"
 #include "hnrt/IMsiFileRowCollection.h"
 
 

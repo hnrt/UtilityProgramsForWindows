@@ -145,7 +145,7 @@ void HookInternal::InitializeMaps()
     }
     for (Map::const_iterator iter = m_Replacements.cbegin(); iter != m_Replacements.cend(); iter++)
     {
-        FARPROC pfn = GetProcAddress(hKERNEL32, iter->first.ToAcp().Ptr);
+        FARPROC pfn = GetProcAddress(hKERNEL32, ToAcp(iter->first).Ptr);
         if (!pfn)
         {
             throw Win32Exception(GetLastError(), L"GetProcAddress(KERNEL32::%hs) failed.", iter->first);

@@ -1,7 +1,7 @@
 #include "InputManager.h"
 #include <atlbase.h>
 #include "hnrt/ComException.h"
-#include "hnrt/String.h"
+#include "hnrt/StringLessThan.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/VirtualKey.h"
 #include "hnrt/Debug.h"

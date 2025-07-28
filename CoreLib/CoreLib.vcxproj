@@ -234,7 +234,9 @@
     <ClInclude Include="inc\hnrt\PasswordHolder.h" />
     <ClInclude Include="inc\hnrt\Path.h" />
     <ClInclude Include="inc\hnrt\RefBin.h" />
+    <ClInclude Include="inc\hnrt\RefMbs.h" />
     <ClInclude Include="inc\hnrt\RefObj.h" />
+    <ClInclude Include="inc\hnrt\RefStr.h" />
     <ClInclude Include="inc\hnrt\RefString.h" />
     <ClInclude Include="inc\hnrt\RegistryKey.h" />
     <ClInclude Include="inc\hnrt\RegistryValue.h" />
@@ -248,7 +250,7 @@
     <ClInclude Include="inc\hnrt\StringCaseInsensitive.h" />
     <ClInclude Include="inc\hnrt\StringCollection.h" />
     <ClInclude Include="inc\hnrt\StringCommons.h" />
-    <ClInclude Include="inc\hnrt\StringHelpers.h" />
+    <ClInclude Include="inc\hnrt\StringLessThan.h" />
     <ClInclude Include="inc\hnrt\StringOptions.h" />
     <ClInclude Include="inc\hnrt\StringStore.h" />
     <ClInclude Include="inc\hnrt\StringUtils.h" />
@@ -276,8 +278,6 @@
     <ClInclude Include="inc\hnrt\SpinLock.h" />
     <ClInclude Include="inc\hnrt\StringBuffer.h" />
     <ClInclude Include="src\SecretInternal.h" />
-    <ClInclude Include="src\StringCaseInsensitiveGeneric.h" />
-    <ClInclude Include="src\StringGeneric.h" />
     <ClInclude Include="src\StringStoreInternal.h" />
     <ClInclude Include="inc\hnrt\String.h" />
     <ClInclude Include="src\String_internal.h" />
@@ -303,6 +303,7 @@
     <ClCompile Include="src\CommandTemplate.cpp" />
     <ClCompile Include="src\CoreLibrary.cpp" />
     <ClCompile Include="src\CountCharacter.cpp" />
+    <ClCompile Include="src\CountStrings.cpp" />
     <ClCompile Include="src\CryptographyException.cpp" />
     <ClCompile Include="src\Debug.cpp" />
     <ClCompile Include="src\DoubleNullTerminatedStringArray.cpp" />
@@ -336,7 +337,17 @@
     </ClCompile>
     <ClCompile Include="src\RefBin.cpp" />
     <ClCompile Include="src\RegistryKey.cpp" />
-    <ClCompile Include="src\RegistryValue.cpp" />
+    <ClCompile Include="src\RegistryValue_static.cpp" />
+    <ClCompile Include="src\RegistryValue_Clear.cpp" />
+    <ClCompile Include="src\RegistryValue_ctor.cpp" />
+    <ClCompile Include="src\RegistryValue_dtor.cpp" />
+    <ClCompile Include="src\RegistryValue_Expand.cpp" />
+    <ClCompile Include="src\RegistryValue_operator_const_void_ptr.cpp" />
+    <ClCompile Include="src\RegistryValue_operator_DWORD.cpp" />
+    <ClCompile Include="src\RegistryValue_operator_PCWSTR.cpp" />
+    <ClCompile Include="src\RegistryValue_operator_selector.cpp" />
+    <ClCompile Include="src\RegistryValue_operator_ULONGLONG.cpp" />
+    <ClCompile Include="src\RegistryValue_Query.cpp" />
     <ClCompile Include="src\ResourceReader.cpp" />
     <ClCompile Include="src\ResourceString.cpp" />
     <ClCompile Include="src\SecretFactory.cpp" />
@@ -350,10 +361,12 @@
     <ClCompile Include="src\StrFmt.cpp" />
     <ClCompile Include="src\StrFmtLen.cpp" />
     <ClCompile Include="src\StringBuffer.cpp" />
-    <ClCompile Include="src\StringCaseInsensitive.cpp" />
+    <ClCompile Include="src\StringCaseInsensitive_ctor.cpp" />
+    <ClCompile Include="src\StringCaseInsensitive_dtor.cpp" />
+    <ClCompile Include="src\StringCaseInsensitive_operator.cpp" />
+    <ClCompile Include="src\StringCaseInsensitive_static.cpp" />
     <ClCompile Include="src\StringCollection.cpp" />
     <ClCompile Include="src\StrToDouble.cpp" />
-    <ClCompile Include="src\StringHelpers.cpp" />
     <ClCompile Include="src\StringStore.cpp" />
     <ClCompile Include="src\StringStoreInternal.cpp" />
     <ClCompile Include="src\StringUtils.cpp" />
@@ -374,7 +387,6 @@
     <ClCompile Include="src\String_ToDouble.cpp" />
     <ClCompile Include="src\String_ToLong.cpp" />
     <ClCompile Include="src\String_ToLongLong.cpp" />
-    <ClCompile Include="src\String_ToMultibyteString.cpp" />
     <ClCompile Include="src\String_ToUnsignedLong.cpp" />
     <ClCompile Include="src\String_ToUnsignedLongLong.cpp" />
     <ClCompile Include="src\String_Trim.cpp" />

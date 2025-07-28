@@ -9,7 +9,7 @@ String& String::Lettercase(StringOptions option)
 {
     if (Len)
     {
-        Release(Interlocked<PWSTR>::ExchangePointer(&m_psz, RefStr::Create(option, Ptr)));
+        StrCase(option, m_psz, Len);
     }
     return *this;
 }

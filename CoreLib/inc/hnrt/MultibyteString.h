@@ -6,6 +6,10 @@ namespace hnrt
 {
     class MultibyteString
     {
+    private:
+
+        PSTR m_psz;
+
     public:
 
         MultibyteString();
@@ -13,18 +17,17 @@ namespace hnrt
         MultibyteString(PCSTR, SSIZE_T = -1);
         MultibyteString(UINT, PCWSTR, SSIZE_T = -1);
         ~MultibyteString();
+
         operator PCSTR() const;
         MultibyteString& operator =(const MultibyteString&);
 
-        PCSTR get_ptr() const;
-        SIZE_T get_len() const;
+    public:
 
-        __declspec(property(get = get_ptr)) PCSTR Ptr;
-        __declspec(property(get = get_len)) SIZE_T Len;
+        PCSTR get_Ptr() const;
+        SIZE_T get_Len() const;
 
-    private:
-
-        PSTR m_psz;
+        __declspec(property(get = get_Ptr)) PCSTR Ptr;
+        __declspec(property(get = get_Len)) SIZE_T Len;
     };
 
     inline MultibyteString::operator PCSTR() const
@@ -32,8 +35,14 @@ namespace hnrt
         return Ptr;
     }
 
-    inline PCSTR MultibyteString::get_ptr() const
+    inline PCSTR MultibyteString::get_Ptr() const
     {
         return m_psz ? m_psz : "";
     }
+
+    class String;
+
+    MultibyteString ToAcp(const String&);
+
+    MultibyteString ToUTF8(const String&);
 }

@@ -3,7 +3,7 @@
 
 #include <map>
 #include "hnrt/Args.h"
-#include "hnrt/String.h"
+#include "hnrt/StringLessThan.h"
 #include "hnrt/RefPtr.h"
 #include "hnrt/IMsiDatabase.h"
 

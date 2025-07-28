@@ -9,7 +9,7 @@ String& String::ZeroFill()
 {
     if (Len)
     {
-        RefStr::GetThis(m_psz)->Fill(L'\0');
+        MemSet(m_psz, L'\0', Len);
     }
     return *this;
 }

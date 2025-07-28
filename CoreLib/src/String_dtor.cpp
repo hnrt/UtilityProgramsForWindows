@@ -7,5 +7,5 @@ using namespace hnrt;
 
 String::~String()
 {
-    Release(Interlocked<PWSTR>::ExchangePointer(&m_psz, nullptr));
+    StringRelease(Interlocked<PWSTR>::ExchangePointer(&m_psz, nullptr));
 }
