@@ -252,7 +252,6 @@
     <ClInclude Include="inc\hnrt\StringCommons.h" />
     <ClInclude Include="inc\hnrt\StringLessThan.h" />
     <ClInclude Include="inc\hnrt\StringOptions.h" />
-    <ClInclude Include="inc\hnrt\StringStore.h" />
     <ClInclude Include="inc\hnrt\StringUtils.h" />
     <ClInclude Include="inc\hnrt\SyntheticInput.h" />
     <ClInclude Include="inc\hnrt\Time.h" />
@@ -278,7 +277,6 @@
     <ClInclude Include="inc\hnrt\SpinLock.h" />
     <ClInclude Include="inc\hnrt\StringBuffer.h" />
     <ClInclude Include="src\SecretInternal.h" />
-    <ClInclude Include="src\StringStoreInternal.h" />
     <ClInclude Include="inc\hnrt\String.h" />
     <ClInclude Include="src\String_internal.h" />
     <ClInclude Include="src\UiAutomationInternal.h" />
@@ -367,8 +365,6 @@
     <ClCompile Include="src\StringCaseInsensitive_static.cpp" />
     <ClCompile Include="src\StringCollection.cpp" />
     <ClCompile Include="src\StrToDouble.cpp" />
-    <ClCompile Include="src\StringStore.cpp" />
-    <ClCompile Include="src\StringStoreInternal.cpp" />
     <ClCompile Include="src\StringUtils.cpp" />
     <ClCompile Include="src\String_Append.cpp" />
     <ClCompile Include="src\String_AppendFormat.cpp" />

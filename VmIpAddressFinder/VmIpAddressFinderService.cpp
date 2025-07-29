@@ -1,6 +1,5 @@
 #include "VmIpAddressFinder.h"
 #include "hnrt/Service.h"
-#include "hnrt/StringStore.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/ComException.h"
 #include "hnrt/ErrorMessage.h"
@@ -271,7 +270,7 @@ DWORD VmIpAddressFinder::ControlService(DWORD dwControl, DWORD dwEventType, LPVO
 }
 
 
-static PCWSTR GetStateText(DWORD dwState)
+static String GetStateText(DWORD dwState)
 {
     return dwState == SERVICE_START_PENDING ? L"SERVICE_START_PENDING" :
         dwState == SERVICE_RUNNING ? L"SERVICE_RUNNING" :
@@ -280,7 +279,7 @@ static PCWSTR GetStateText(DWORD dwState)
         dwState == SERVICE_STOP_PENDING ? L"SERVICE_STOP_PENDING" :
         dwState == SERVICE_PAUSE_PENDING ? L"SERVICE_PAUSE_PENDING" :
         dwState == SERVICE_CONTINUE_PENDING ? L"SERVICE_CONTINUE_PENDING" :
-        StringStore::Get(String(PRINTF, L"%lu", dwState));
+        String(PRINTF, L"%lu", dwState);
 }
 
 
