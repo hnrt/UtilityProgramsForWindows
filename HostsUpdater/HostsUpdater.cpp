@@ -1,5 +1,5 @@
 ﻿#include "HostsUpdateService.h"
-#include "hnrt/StringCaseInsensitive.h"
+#include "hnrt/StringCaseLessThan.h"
 #include "hnrt/Win32Exception.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/ResourceString.h"

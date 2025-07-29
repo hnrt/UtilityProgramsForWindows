@@ -5,10 +5,5 @@
 
 namespace hnrt
 {
-	class StringUtils
-	{
-	public:
-
-		static String JoinBy(const std::vector<DWORD>&, PCWSTR, PCWSTR = L"%lu");
-	};
+	String JoinBy(const std::vector<DWORD>&, PCWSTR, PCWSTR = L"%lu");
 }

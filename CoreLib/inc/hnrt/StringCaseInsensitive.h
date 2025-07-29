@@ -8,6 +8,10 @@ namespace hnrt
 
     class StringCaseInsensitive
     {
+    private:
+
+        PWSTR m_psz;
+
     public:
 
         StringCaseInsensitive();
@@ -30,10 +34,6 @@ namespace hnrt
         bool operator >=(const StringCaseInsensitive&) const;
         StringCaseInsensitive operator +(const StringCaseInsensitive&) const;
         StringCaseInsensitive operator +(const String&) const;
-
-    private:
-
-        PWSTR m_psz;
 
     public:
 
@@ -76,16 +76,4 @@ namespace hnrt
     }
 
     typedef StringCaseInsensitive StringCase;
-
-    class StringCaseLessThan
-    {
-    public:
-
-        bool operator ()(PCWSTR psz1, PCWSTR psz2) const;
-    };
-
-    inline bool StringCaseLessThan::operator ()(PCWSTR psz1, PCWSTR psz2) const
-    {
-        return StringCaseInsensitive::Compare(psz1, psz2) < 0;
-    }
 }

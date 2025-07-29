@@ -7,7 +7,7 @@
 using namespace hnrt;
 
 
-String StringUtils::JoinBy(const std::vector<DWORD>& values, PCWSTR pszSeparator, PCWSTR pszFormat)
+String hnrt::JoinBy(const std::vector<DWORD>& values, PCWSTR pszSeparator, PCWSTR pszFormat)
 {
 	String result;
 	switch (values.size())

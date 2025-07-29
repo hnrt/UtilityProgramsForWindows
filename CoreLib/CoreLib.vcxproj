@@ -248,6 +248,7 @@
     <ClInclude Include="inc\hnrt\SharedMemory.h" />
     <ClInclude Include="inc\hnrt\SidPtr.h" />
     <ClInclude Include="inc\hnrt\StringCaseInsensitive.h" />
+    <ClInclude Include="inc\hnrt\StringCaseLessThan.h" />
     <ClInclude Include="inc\hnrt\StringCollection.h" />
     <ClInclude Include="inc\hnrt\StringCommons.h" />
     <ClInclude Include="inc\hnrt\StringLessThan.h" />
