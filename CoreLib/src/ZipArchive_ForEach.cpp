@@ -6,40 +6,6 @@
 using namespace hnrt;
 
 
-ZipArchive::~ZipArchive()
-{
-    m_pFolder->Release();
-}
-
-
-ZipArchive::ZipArchive(const String& szFileName, Folder* pFolder)
-    : m_szFileName(szFileName)
-    , m_pFolder(pFolder)
-{
-}
-
-
-ZipArchive::ZipArchive(const ZipArchive& src)
-    : m_szFileName(src.m_szFileName)
-    , m_pFolder(src.m_pFolder)
-{
-    m_pFolder->AddRef();
-}
-
-
-ZipArchive& ZipArchive::operator =(const ZipArchive& src)
-{
-    m_szFileName = src.m_szFileName;
-    if (m_pFolder)
-    {
-        m_pFolder->Release();
-    }
-    m_pFolder = src.m_pFolder;
-    m_pFolder->AddRef();
-    return *this;
-}
-
-
 void ZipArchive::ForEach(IZipForEachCallback& callback)
 {
     struct LocalContext

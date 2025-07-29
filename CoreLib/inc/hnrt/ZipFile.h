@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include "hnrt/ZipArchive.h"
-
 
 namespace hnrt
 {

@@ -4,6 +4,7 @@
 #include "hnrt/Debug.h"
 #include "hnrt/Exception.h"
 #include "hnrt/StringBuffer.h"
+#include "hnrt/String.h"
 #include "hnrt/Buffer.h"
 
 
@@ -17,13 +18,13 @@ using namespace hnrt;
 ////////////////////////////////////////////////////////////////////////////
 
 
-typedef std::stack<PWSTR> FuncNameStack;
+typedef std::stack<String> FuncNameStack;
 
 
 static DWORD s_dwTlsIndex = TlsAlloc();
 
 
-static PCWSTR GetFuncName()
+static String GetFuncName()
 {
     FuncNameStack* pStack = reinterpret_cast<FuncNameStack*>(TlsGetValue(s_dwTlsIndex));
     if (pStack && pStack->size())
@@ -32,12 +33,12 @@ static PCWSTR GetFuncName()
     }
     else
     {
-        return nullptr;
+        return String::Empty;
     }
 }
 
 
-static void PushFuncName(PWSTR pszFuncName)
+static void PushFuncName(String pszFuncName)
 {
     FuncNameStack* pStack = reinterpret_cast<FuncNameStack*>(TlsGetValue(s_dwTlsIndex));
     if (!pStack)
@@ -49,7 +50,7 @@ static void PushFuncName(PWSTR pszFuncName)
 }
 
 
-static PWSTR PopFuncName()
+static String PopFuncName()
 {
     FuncNameStack* pStack = reinterpret_cast<FuncNameStack*>(TlsGetValue(s_dwTlsIndex));
     if (!pStack)
@@ -60,7 +61,7 @@ static PWSTR PopFuncName()
     {
         throw Exception(L"Debug::PopFuncName: Empty stack.");
     }
-    PWSTR pszFuncName = pStack->top();
+    String pszFuncName = pStack->top();
     pStack->pop();
     return pszFuncName;
 }
@@ -84,16 +85,15 @@ void Debug::Put(PCWSTR pszFormat, ...)
 
 void Debug::VaPut(PCWSTR pszFormat, va_list argList)
 {
-    StringBuffer buf(128);
-    PCWSTR pszFuncName = GetFuncName();
-    if (pszFuncName)
+    String buf = GetFuncName();
+    if (buf.Len)
     {
-        buf.AppendFormat(L"%s: ", pszFuncName);
+        buf += L": ";
     }
     buf.VaAppendFormat(pszFormat, argList);
     if (buf.Len && buf[buf.Len - 1] != L'\n')
     {
-        buf.AppendFormat(L"\n");
+        buf += L"\n";
     }
     OutputDebugStringW(buf);
 }
@@ -163,16 +163,15 @@ void Debug::VaPut(INT cp, PCSTR pszFormat, va_list argList)
     Buffer<WCHAR> buf2(size2);
     MultiByteToWideChar(cp, MB_PRECOMPOSED, buf1, cb, buf2, cch);
     buf2[cch] = L'\0';
-    StringBuffer buf(128);
-    PCWSTR pszFuncName = GetFuncName();
-    if (pszFuncName)
+    String buf = GetFuncName();
+    if (buf.Len)
     {
-        buf.AppendFormat(L"%s: ", pszFuncName);
+        buf += L": ";
     }
-    buf.Append(buf2);
+    buf += buf2;
     if (buf.Len && buf[buf.Len - 1] != L'\n')
     {
-        buf.AppendFormat(L"\n");
+        buf += L"\n";
     }
     OutputDebugStringW(buf);
 }
@@ -201,5 +200,5 @@ DebugFunc::DebugFunc(PCWSTR pszFormat, ...)
 DebugFunc::~DebugFunc()
 {
     Debug::Put(L"Ended.");
-    free(PopFuncName());
+    PopFuncName();
 }

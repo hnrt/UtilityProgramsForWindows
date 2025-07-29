@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include <Windows.h>
-
 
 namespace hnrt
 {
@@ -10,14 +8,24 @@ namespace hnrt
 
     class StringBuffer
     {
+    protected:
+
+        PWCHAR m_ptr;
+        SIZE_T m_cap;
+        SIZE_T m_len;
+        SIZE_T m_inc;
+
+        void CheckCapacity(SIZE_T);
+
     public:
 
         StringBuffer(const StringBuffer&);
         StringBuffer(SIZE_T = 0);
         StringBuffer(SSIZE_T, PCWSTR);
         StringBuffer(const String&);
-        ~StringBuffer();
-        PWCHAR Detach();
+        virtual ~StringBuffer();
+
+        String Detach();
         StringBuffer& Resize(SIZE_T);
         StringBuffer& Assign(const StringBuffer&);
         StringBuffer& Assign(const String&);
@@ -32,6 +40,7 @@ namespace hnrt
         StringBuffer& AppendFormat(PCWSTR pszFormat, ...);
         StringBuffer& VaAppendFormat(PCWSTR pszFormat, va_list argList);
         StringBuffer& Replace(WCHAR, WCHAR, SIZE_T = 0, int = -1, SIZE_T* = nullptr);
+
         operator PCWSTR() const;
         operator PWSTR();
         PCWSTR operator &() const;
@@ -44,6 +53,7 @@ namespace hnrt
         StringBuffer& operator +=(const String&);
         StringBuffer& operator +=(PCWSTR);
         StringBuffer& operator +=(int);
+
         PWCHAR get_Ptr() const;
         SIZE_T get_Cap() const;
         SIZE_T get_Len() const;
@@ -52,15 +62,6 @@ namespace hnrt
         __declspec(property(get = get_Ptr)) PWCHAR Ptr;
         __declspec(property(get = get_Cap)) SIZE_T Cap;
         __declspec(property(get = get_Len, put = set_Len)) SIZE_T Len;
-
-    protected:
-
-        void CheckCapacity(SIZE_T);
-
-        PWCHAR m_ptr;
-        SIZE_T m_cap;
-        SIZE_T m_len;
-        SIZE_T m_inc;
     };
 
     inline StringBuffer::operator PCWSTR() const
