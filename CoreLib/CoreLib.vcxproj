@@ -310,8 +310,16 @@
     <ClCompile Include="src\ErrorMessage.cpp" />
     <ClCompile Include="src\Exception.cpp" />
     <ClCompile Include="src\FileMapper.cpp" />
+    <ClCompile Include="src\FileTime_ctor.cpp" />
+    <ClCompile Include="src\FileTime_From.cpp" />
+    <ClCompile Include="src\FileTime_FromLocalTime.cpp" />
+    <ClCompile Include="src\FileTime_FromSystemTime.cpp" />
+    <ClCompile Include="src\FileTime_ToSystemTime.cpp" />
     <ClCompile Include="src\FileWriter.cpp" />
     <ClCompile Include="src\FormatException.cpp" />
+    <ClCompile Include="src\GetDayOfWeek.cpp" />
+    <ClCompile Include="src\GetLastDayOfMonth.cpp" />
+    <ClCompile Include="src\GetWeekDay.cpp" />
     <ClCompile Include="src\Guid.cpp" />
     <ClCompile Include="src\Heap.cpp" />
     <ClCompile Include="src\HexFormatException.cpp" />

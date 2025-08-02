@@ -809,5 +809,29 @@
     <ClCompile Include="src\AdapterAddressCollection.cpp">
       <Filter>ソース ファイル\Networking</Filter>
     </ClCompile>
+    <ClCompile Include="src\FileTime_ctor.cpp">
+      <Filter>ソース ファイル\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileTime_FromSystemTime.cpp">
+      <Filter>ソース ファイル\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileTime_FromLocalTime.cpp">
+      <Filter>ソース ファイル\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileTime_From.cpp">
+      <Filter>ソース ファイル\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileTime_ToSystemTime.cpp">
+      <Filter>ソース ファイル\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GetLastDayOfMonth.cpp">
+      <Filter>ソース ファイル\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GetWeekDay.cpp">
+      <Filter>ソース ファイル\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GetDayOfWeek.cpp">
+      <Filter>ソース ファイル\Time</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

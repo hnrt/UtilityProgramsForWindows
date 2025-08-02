@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include "hnrt/String.h"
-
 
 namespace hnrt
 {
@@ -43,15 +41,6 @@ namespace hnrt
 		__declspec(property(get = GetMilliseconds)) LONGLONG Milliseconds;
 		__declspec(property(get = GetSeconds)) LONGLONG Seconds;
 	};
-
-	inline FileTime::FileTime(LONGLONG value)
-		: FILETIME()
-	{
-		LARGE_INTEGER li = { 0 };
-		li.QuadPart = value;
-		dwLowDateTime = li.LowPart;
-		dwHighDateTime = li.HighPart;
-	}
 
 	inline FileTime::FileTime(const FILETIME& src)
 		: FILETIME(src)
