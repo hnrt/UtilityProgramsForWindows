@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "hnrt/ComException.h"
+#include "hnrt/Variant.h"
 #include "ZipInternal.h"
 
 
@@ -21,12 +22,8 @@ Folder* ZipInternal::GetFolder(PCWSTR pszPath)
             throw ComException(hr, L"IShellDispatch unavailable.");
         }
     }
-    VARIANT varPath;
-    VariantInit(&varPath);
-    varPath.vt = VT_BSTR;
-    varPath.bstrVal = SysAllocString(pszPath);
+    Variant varPath(VT_BSTR, pszPath);
     hr = s_pShellDispatch->NameSpace(varPath, &pFolder);
-    VariantClear(&varPath);
     if (hr != S_OK)
     {
         throw ComException(hr, L"Folder unavailable.");

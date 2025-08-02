@@ -13,6 +13,48 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ソース ファイル\Registry">
+      <UniqueIdentifier>{5ea7e657-2197-49d5-b688-1b88593c4f2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\StringCommons">
+      <UniqueIdentifier>{9f8706f2-6b44-4e4a-bc31-cc4118b8a031}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\StringBuffer">
+      <UniqueIdentifier>{f477e1f9-71e7-4c51-898d-358ca7b3d210}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\StringCaseInsensitive">
+      <UniqueIdentifier>{f6fdeffe-879c-435e-a9ea-9827dbefaa52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Zip">
+      <UniqueIdentifier>{80840a10-6887-449b-9213-189741091004}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Binary">
+      <UniqueIdentifier>{0b6c2cea-ddab-402f-a77d-d0e26d187530}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Cryptography">
+      <UniqueIdentifier>{549fdc40-1b86-4bc1-8931-23059e47250b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Windows">
+      <UniqueIdentifier>{cff3dc25-a9c3-46bd-9024-b7ded84fb774}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Unicode">
+      <UniqueIdentifier>{2b4f548f-886b-4b29-944a-f5e05112b412}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\String">
+      <UniqueIdentifier>{1634c06b-6b0d-4622-abe5-04ed36cbde8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Time">
+      <UniqueIdentifier>{47b3f46b-cf18-4522-8a93-96135ca0322d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Runtime">
+      <UniqueIdentifier>{f68aded6-f2bd-41be-a947-bffd3808f827}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\StringHelpers">
+      <UniqueIdentifier>{60ebe9df-1005-4e00-8b96-07ac5723a4ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Networking">
+      <UniqueIdentifier>{6773d9b6-e0e2-4689-9b7a-88fd79692ed3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\framework.h">
@@ -303,457 +345,469 @@
     <ClInclude Include="inc\hnrt\StringCaseLessThan.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="inc\hnrt\Variant.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pch.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringBuffer_CheckCapacity.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ByteString.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Args.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ErrorMessage.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NumberText.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Path.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ComException.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CommandTemplate.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Exception.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\FileWriter.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ResourceReader.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Win32Exception.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipArchive_ForEach.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipArchiveEntry_ExtractTo.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipFile.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipInternal.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AdapterAddressCollection.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\FileMapper.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Service.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Debug.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\KeyValueMap.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\VirtualKey.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\WindowsMessage.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ResourceString.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SecretInternal.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Base64.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PasswordHolder.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Heap.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CoreLibrary.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ComLibrary.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\VersionInfoInternal.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SidPtr.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Impersonator.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\WindowsPlatform.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\KeyboardBitMap.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Guid.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DoubleNullTerminatedStringArray.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StringCollection.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\WindowHelper.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SyntheticInput.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\UiAutomationInternal.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\UiAutomationFactory.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SecretFactory.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Hash.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RegistryKey.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RegistryValue_static.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\WindowsHandle.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CommandLine.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Time.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StringUtils.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\UnicodeEscape.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CryptographyException.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\BCryptAlgHandle.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\BCryptHashHandle.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\BCryptKeyHandle.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\BCryptHandle.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RefBin.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\BCryptAuthenticatedCipherModeInfo.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StrToDouble.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HexFormatException.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CharacterMappingException.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\FormatException.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Base64FormatException.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MultibyteString.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_dtor.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_ctor.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_ZeroFill.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_Lettercase.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_Trim.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_Assign.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="src\String_Append.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_Format.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_VaFormat.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
     <ClCompile Include="src\String_AppendFormat.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\String_VaAppendFormat.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_TruncateHead.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_TruncateTail.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_IndexOf.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_StartsWith.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_EndsWith.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_Replace.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_Wrap.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_Assign.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
     <ClCompile Include="src\String_ChangeLineBreak.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_ToLong.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_ToUnsignedLong.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_ToLongLong.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_ToUnsignedLongLong.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_ToDouble.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\String_operators.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
     <ClCompile Include="src\String_Compare.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\StrLen.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_ctor.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\StrCpy.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_dtor.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\MemCpy.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_EndsWith.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\MemSet.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_Format.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\MemMove.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_IndexOf.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\StrCase.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_Lettercase.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\StrUpr.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_operators.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\StrLwr.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_Replace.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\StrTrim.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_StartsWith.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\StrFmtLen.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_ToDouble.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\VaStrFmtLen.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_ToLong.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\StrFmt.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_ToLongLong.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\VaStrFmt.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_ToUnsignedLong.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\VaStrCat.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_ToUnsignedLongLong.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\IndexOf.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_Trim.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\LastIndexOf.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_TruncateHead.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\IsWhitespace.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_TruncateTail.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\IsDigit.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_VaAppendFormat.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\StrCmp.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_VaFormat.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\StrCaseCmp.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_Wrap.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\CountCharacter.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\String_ZeroFill.cpp">
+      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
-    <ClCompile Include="src\StrToLong.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StrToUnsignedLong.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StrToLongLong.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StrToUnsignedLongLong.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RegistryValue_Expand.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RegistryValue_Query.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CountStrings.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\RegistryKey.cpp">
+      <Filter>ソース ファイル\Registry</Filter>
     </ClCompile>
     <ClCompile Include="src\RegistryValue_Clear.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RegistryValue_operator_const_void_ptr.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RegistryValue_operator_selector.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RegistryValue_operator_PCWSTR.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RegistryValue_operator_ULONGLONG.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RegistryValue_operator_DWORD.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RegistryValue_dtor.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\Registry</Filter>
     </ClCompile>
     <ClCompile Include="src\RegistryValue_ctor.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\Registry</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringCaseInsensitive_ctor.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\RegistryValue_dtor.cpp">
+      <Filter>ソース ファイル\Registry</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringCaseInsensitive_dtor.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\RegistryValue_Expand.cpp">
+      <Filter>ソース ファイル\Registry</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringCaseInsensitive_operator.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\RegistryValue_operator_const_void_ptr.cpp">
+      <Filter>ソース ファイル\Registry</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringCaseInsensitive_static.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\RegistryValue_operator_DWORD.cpp">
+      <Filter>ソース ファイル\Registry</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringBuffer_ctor.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\RegistryValue_operator_PCWSTR.cpp">
+      <Filter>ソース ファイル\Registry</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringBuffer_dtor.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\RegistryValue_operator_selector.cpp">
+      <Filter>ソース ファイル\Registry</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringBuffer_Detach.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\RegistryValue_operator_ULONGLONG.cpp">
+      <Filter>ソース ファイル\Registry</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringBuffer_Resize.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\RegistryValue_Query.cpp">
+      <Filter>ソース ファイル\Registry</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringBuffer_Assign.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\RegistryValue_static.cpp">
+      <Filter>ソース ファイル\Registry</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringBuffer_Format.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\StrCase.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringBuffer_VaFormat.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\StrCaseCmp.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrCmp.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrCpy.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrFmt.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrFmtLen.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CountCharacter.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CountStrings.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IndexOf.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
     </ClCompile>
     <ClCompile Include="src\StringBuffer_Append.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\StringBuffer</Filter>
     </ClCompile>
     <ClCompile Include="src\StringBuffer_AppendFormat.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\StringBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringBuffer_VaAppendFormat.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\StringBuffer_Assign.cpp">
+      <Filter>ソース ファイル\StringBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="src\StringBuffer_Replace.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\StringBuffer_CheckCapacity.cpp">
+      <Filter>ソース ファイル\StringBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringBuffer_ctor.cpp">
+      <Filter>ソース ファイル\StringBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringBuffer_Detach.cpp">
+      <Filter>ソース ファイル\StringBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringBuffer_dtor.cpp">
+      <Filter>ソース ファイル\StringBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringBuffer_Format.cpp">
+      <Filter>ソース ファイル\StringBuffer</Filter>
     </ClCompile>
     <ClCompile Include="src\StringBuffer_property.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\StringBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="src\ZipArchive_ctor.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\StringBuffer_Replace.cpp">
+      <Filter>ソース ファイル\StringBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="src\ZipArchive_dtor.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\StringBuffer_Resize.cpp">
+      <Filter>ソース ファイル\StringBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringBuffer_VaAppendFormat.cpp">
+      <Filter>ソース ファイル\StringBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringBuffer_VaFormat.cpp">
+      <Filter>ソース ファイル\StringBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrLen.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrLwr.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrToDouble.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrToLong.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrToLongLong.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrToUnsignedLong.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrToUnsignedLongLong.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrTrim.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StrUpr.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringCaseInsensitive_ctor.cpp">
+      <Filter>ソース ファイル\StringCaseInsensitive</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringCaseInsensitive_dtor.cpp">
+      <Filter>ソース ファイル\StringCaseInsensitive</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringCaseInsensitive_operator.cpp">
+      <Filter>ソース ファイル\StringCaseInsensitive</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringCaseInsensitive_static.cpp">
+      <Filter>ソース ファイル\StringCaseInsensitive</Filter>
     </ClCompile>
     <ClCompile Include="src\ZipArchive_Assign.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\Zip</Filter>
     </ClCompile>
-    <ClCompile Include="src\ZipArchiveEntry_ctor.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\ZipArchive_ctor.cpp">
+      <Filter>ソース ファイル\Zip</Filter>
     </ClCompile>
-    <ClCompile Include="src\ZipArchiveEntry_dtor.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="src\ZipArchive_dtor.cpp">
+      <Filter>ソース ファイル\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ZipArchive_ForEach.cpp">
+      <Filter>ソース ファイル\Zip</Filter>
     </ClCompile>
     <ClCompile Include="src\ZipArchiveEntry_Assign.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ZipArchiveEntry_ctor.cpp">
+      <Filter>ソース ファイル\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ZipArchiveEntry_dtor.cpp">
+      <Filter>ソース ファイル\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ZipArchiveEntry_ExtractTo.cpp">
+      <Filter>ソース ファイル\Zip</Filter>
     </ClCompile>
     <ClCompile Include="src\ZipArchiveEntry_ForEach.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ZipFile.cpp">
+      <Filter>ソース ファイル\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ZipInternal.cpp">
+      <Filter>ソース ファイル\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MemCpy.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MemMove.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MemSet.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BCryptAlgHandle.cpp">
+      <Filter>ソース ファイル\Cryptography</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BCryptAuthenticatedCipherModeInfo.cpp">
+      <Filter>ソース ファイル\Cryptography</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BCryptHandle.cpp">
+      <Filter>ソース ファイル\Cryptography</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BCryptHashHandle.cpp">
+      <Filter>ソース ファイル\Cryptography</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BCryptKeyHandle.cpp">
+      <Filter>ソース ファイル\Cryptography</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Base64.cpp">
+      <Filter>ソース ファイル\Binary</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Base64FormatException.cpp">
+      <Filter>ソース ファイル\Binary</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ByteString.cpp">
+      <Filter>ソース ファイル\Binary</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RefBin.cpp">
+      <Filter>ソース ファイル\Binary</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IsDigit.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IsWhitespace.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LastIndexOf.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CryptographyException.cpp">
+      <Filter>ソース ファイル\Cryptography</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Path.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringCollection.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VaStrCat.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VaStrFmt.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VaStrFmtLen.cpp">
+      <Filter>ソース ファイル\StringCommons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WindowsHandle.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WindowsMessage.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WindowsPlatform.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Variant_dtor.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Variant_ctor.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Variant_Assign.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VersionInfoInternal.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VirtualKey.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Win32Exception.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WindowHelper.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ComException.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ComLibrary.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileMapper.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileWriter.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Guid.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hash.cpp">
+      <Filter>ソース ファイル\Cryptography</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SidPtr.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Service.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UiAutomationFactory.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UiAutomationInternal.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MultibyteString.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UnicodeEscape.cpp">
+      <Filter>ソース ファイル\Unicode</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ErrorMessage.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Time.cpp">
+      <Filter>ソース ファイル\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ResourceReader.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ResourceString.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\KeyboardBitMap.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Impersonator.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CoreLibrary.cpp">
+      <Filter>ソース ファイル\Runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Exception.cpp">
+      <Filter>ソース ファイル\Runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Debug.cpp">
+      <Filter>ソース ファイル\Runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Heap.cpp">
+      <Filter>ソース ファイル\Runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FormatException.cpp">
+      <Filter>ソース ファイル\Runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HexFormatException.cpp">
+      <Filter>ソース ファイル\Runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SecretFactory.cpp">
+      <Filter>ソース ファイル\Cryptography</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SecretInternal.cpp">
+      <Filter>ソース ファイル\Cryptography</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringUtils.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NumberText.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Args.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\KeyValueMap.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PasswordHolder.cpp">
+      <Filter>ソース ファイル\Cryptography</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SyntheticInput.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DoubleNullTerminatedStringArray.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CommandLine.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CommandTemplate.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CharacterMappingException.cpp">
+      <Filter>ソース ファイル\Unicode</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AdapterAddressCollection.cpp">
+      <Filter>ソース ファイル\Networking</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

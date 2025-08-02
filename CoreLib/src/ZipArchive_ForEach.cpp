@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hnrt/ZipArchive.h"
 #include "hnrt/ComException.h"
+#include "hnrt/Variant.h"
 
 
 using namespace hnrt;
@@ -33,20 +34,17 @@ void ZipArchive::ForEach(IZipForEachCallback& callback)
         throw ComException(hr, L"Folder::Items failed.");
     }
 
-    LONG count = 0;
+    LONG count = 0L;
     hr = ctx.pFolderItems->get_Count(&count);
     if (hr != S_OK)
     {
         throw ComException(hr, L"FolderItems::get_Count failed.");
     }
  
-    VARIANT varIndex;
-    VariantInit(&varIndex);
-    varIndex.vt = VT_I4;
-    for (varIndex.lVal = 0; varIndex.lVal < count; varIndex.lVal++)
+    for (LONG index = 0L; index < count; index++)
     {
         FolderItem* pFolderItem;
-        hr = ctx.pFolderItems->Item(varIndex, &pFolderItem);
+        hr = ctx.pFolderItems->Item(Variant(VT_I4, index), &pFolderItem);
         if (hr != S_OK)
         {
             throw ComException(hr, L"FolderItems::Item failed.");

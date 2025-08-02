@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hnrt/ZipArchiveEntry.h"
 #include "hnrt/Path.h"
+#include "hnrt/Variant.h"
 #include "ZipInternal.h"
 
 
@@ -52,13 +53,8 @@ void ZipArchiveEntry::ExtractTo(PCWSTR pszOutFolder, IZipExtractCallbacks& callb
 
         String pszPath = Path::Combine(pszOutFolder, m_bstrName);
         callbacks.ZipExtractOnStart(pszPath, m_Size);
-        VARIANT item, options;
-        VariantInit(&item);
-        item.vt = VT_DISPATCH;
-        item.pdispVal = m_pFolderItem;
-        VariantInit(&options);
-        options.vt = VT_I4;
-        options.lVal = FOF_NO_UI;
+        Variant item(VT_DISPATCH, m_pFolderItem);
+        Variant options(VT_I4, FOF_NO_UI);
         HRESULT hr = ctx.pFolder->CopyHere(item, options);
         if (hr == S_OK)
         {

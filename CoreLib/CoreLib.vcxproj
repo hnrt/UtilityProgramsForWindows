@@ -260,6 +260,7 @@
     <ClInclude Include="inc\hnrt\UiAutomationFactory.h" />
     <ClInclude Include="inc\hnrt\Unicode.h" />
     <ClInclude Include="inc\hnrt\UnicodeEscape.h" />
+    <ClInclude Include="inc\hnrt\Variant.h" />
     <ClInclude Include="inc\hnrt\VersionInfo.h" />
     <ClInclude Include="inc\hnrt\VirtualKey.h" />
     <ClInclude Include="inc\hnrt\WhileInScope.h" />
@@ -418,6 +419,9 @@
     <ClCompile Include="src\UiAutomationFactory.cpp" />
     <ClCompile Include="src\UiAutomationInternal.cpp" />
     <ClCompile Include="src\UnicodeEscape.cpp" />
+    <ClCompile Include="src\Variant_Assign.cpp" />
+    <ClCompile Include="src\Variant_ctor.cpp" />
+    <ClCompile Include="src\Variant_dtor.cpp" />
     <ClCompile Include="src\VaStrCat.cpp" />
     <ClCompile Include="src\VaStrFmt.cpp" />
     <ClCompile Include="src\VaStrFmtLen.cpp" />
