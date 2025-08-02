@@ -737,7 +737,7 @@
     <ClCompile Include="src\ErrorMessage.cpp">
       <Filter>ソース ファイル\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="src\Time.cpp">
+    <ClCompile Include="src\SystemTimeToString.cpp">
       <Filter>ソース ファイル\Time</Filter>
     </ClCompile>
     <ClCompile Include="src\ResourceReader.cpp">

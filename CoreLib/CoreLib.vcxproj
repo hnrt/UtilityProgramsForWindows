@@ -423,7 +423,7 @@
     <ClCompile Include="src\StrTrim.cpp" />
     <ClCompile Include="src\StrUpr.cpp" />
     <ClCompile Include="src\SyntheticInput.cpp" />
-    <ClCompile Include="src\Time.cpp" />
+    <ClCompile Include="src\SystemTimeToString.cpp" />
     <ClCompile Include="src\UiAutomationFactory.cpp" />
     <ClCompile Include="src\UiAutomationInternal.cpp" />
     <ClCompile Include="src\UnicodeEscape.cpp" />
