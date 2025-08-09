@@ -7,6 +7,12 @@
 #ifdef GetCurrentDirectory
 #undef GetCurrentDirectory
 #endif
+#ifdef CreateDirectory
+#undef CreateDirectory
+#endif
+#ifdef RemoveDirectory
+#undef RemoveDirectory
+#endif
 
 namespace hnrt
 {
@@ -24,7 +30,14 @@ namespace hnrt
         static String Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, INT_PTR cch4 = -1);
         static String Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5, INT_PTR cch5 = -1);
         static String GetKnownFolder(const KNOWNFOLDERID& rid, DWORD dwFlags = 0);
-        static String GetCurrentDirectory(bool bEndsWithSeparator = false);
+        static String GetCurrentDirectory();
+        static String GetTemporaryDirectory();
+        static String GetTemporaryDirectory(PCWSTR);
+        static String GetTemporaryDirectory(PCWSTR, PCWSTR);
+        static String GetTemporaryDirectory(PCWSTR, PCWSTR, PCWSTR);
+        static String GetTemporaryDirectory(PCWSTR, PCWSTR, PCWSTR, PCWSTR);
+        static BOOL CreateDirectory(PCWSTR);
+        static BOOL RemoveDirectory(PCWSTR);
         static int Compare(PCWSTR psz1, PCWSTR psz2);
         static int Compare(PCSTR psz1, PCSTR psz2);
         static bool WildcardMatch(PCWSTR pszPattern, PCWSTR pszSubject);
