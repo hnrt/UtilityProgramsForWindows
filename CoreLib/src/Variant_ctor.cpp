@@ -19,7 +19,7 @@ Variant::Variant(VARTYPE vt_, ...)
 	this->vt = VT_EMPTY;
 	va_list argList;
 	va_start(argList, vt_);
-	VaAssign(vt, argList);
+	VaAssign(vt_, argList);
 	va_end(argList);
 }
 

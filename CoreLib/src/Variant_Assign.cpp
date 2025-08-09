@@ -28,17 +28,17 @@ Variant& Variant::Assign(const Variant& src)
 }
 
 
-Variant& Variant::Assign(VARTYPE vt, ...)
+Variant& Variant::Assign(VARTYPE vt_, ...)
 {
     va_list argList;
-    va_start(argList, vt);
-    VaAssign(vt, argList);
+    va_start(argList, vt_);
+    VaAssign(vt_, argList);
     va_end(argList);
     return *this;
 }
 
 
-void Variant::VaAssign(VARTYPE vt, va_list argList)
+void Variant::VaAssign(VARTYPE vt_, va_list argList)
 {
     switch (this->vt)
     {
@@ -55,8 +55,8 @@ void Variant::VaAssign(VARTYPE vt, va_list argList)
         break;
     }
     memset(this, 0, sizeof(VARIANT));
-    this->vt = vt;
-    switch (vt)
+    this->vt = vt_;
+    switch (vt_)
     {
     case VT_EMPTY: // 0
         break;
