@@ -47,11 +47,12 @@ namespace hnrt
         PCWSTR get_Name() const;
         PCWSTR get_Type() const;
         LONG get_Size() const;
-        bool IsFolder() const;
+        bool get_IsFolder() const;
 
         __declspec(property(get = get_Name)) PCWSTR Name;
         __declspec(property(get = get_Type)) PCWSTR Type;
         __declspec(property(get = get_Size)) LONG Size;
+        __declspec(property(get = get_IsFolder)) bool IsFolder;
     };
 
     inline ZipArchiveEntry& ZipArchiveEntry::operator =(const ZipArchiveEntry& src)
@@ -79,7 +80,7 @@ namespace hnrt
         return m_Size;
     }
 
-    inline bool ZipArchiveEntry::IsFolder() const
+    inline bool ZipArchiveEntry::get_IsFolder() const
     {
         return m_bIsFolder ? true : false;
     }

@@ -599,7 +599,7 @@
     <ClCompile Include="src\ZipArchiveEntry_ForEach.cpp">
       <Filter>ソース ファイル\Zip</Filter>
     </ClCompile>
-    <ClCompile Include="src\ZipFile.cpp">
+    <ClCompile Include="src\ZipFile_OpenRead.cpp">
       <Filter>ソース ファイル\Zip</Filter>
     </ClCompile>
     <ClCompile Include="src\ZipInternal.cpp">
@@ -652,12 +652,6 @@
     </ClCompile>
     <ClCompile Include="src\CryptographyException.cpp">
       <Filter>ソース ファイル\Cryptography</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Path.cpp">
-      <Filter>ソース ファイル\String</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StringCollection.cpp">
-      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
     <ClCompile Include="src\VaStrCat.cpp">
       <Filter>ソース ファイル\StringCommons</Filter>
@@ -727,9 +721,6 @@
     </ClCompile>
     <ClCompile Include="src\UiAutomationInternal.cpp">
       <Filter>ソース ファイル\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MultibyteString.cpp">
-      <Filter>ソース ファイル\String</Filter>
     </ClCompile>
     <ClCompile Include="src\UnicodeEscape.cpp">
       <Filter>ソース ファイル\Unicode</Filter>
@@ -832,6 +823,27 @@
     </ClCompile>
     <ClCompile Include="src\GetDayOfWeek.cpp">
       <Filter>ソース ファイル\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Path.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MultibyteString.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringCollection.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ZipFile_ExtractFiles.cpp">
+      <Filter>ソース ファイル\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Path_GetTemporaryDirectory.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Path_CreateDirectory.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Path_RemoveDirectory.cpp">
+      <Filter>ソース ファイル\StringHelpers</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

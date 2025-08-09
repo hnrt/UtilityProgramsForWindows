@@ -337,6 +337,9 @@
     <ClCompile Include="src\NumberText.cpp" />
     <ClCompile Include="src\PasswordHolder.cpp" />
     <ClCompile Include="src\Path.cpp" />
+    <ClCompile Include="src\Path_CreateDirectory.cpp" />
+    <ClCompile Include="src\Path_GetTemporaryDirectory.cpp" />
+    <ClCompile Include="src\Path_RemoveDirectory.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -449,7 +452,8 @@
     <ClCompile Include="src\ZipArchive_Assign.cpp" />
     <ClCompile Include="src\ZipArchive_ctor.cpp" />
     <ClCompile Include="src\ZipArchive_dtor.cpp" />
-    <ClCompile Include="src\ZipFile.cpp" />
+    <ClCompile Include="src\ZipFile_OpenRead.cpp" />
+    <ClCompile Include="src\ZipFile_ExtractFiles.cpp" />
     <ClCompile Include="src\ZipInternal.cpp" />
     <ClCompile Include="src\Hash.cpp" />
   </ItemGroup>

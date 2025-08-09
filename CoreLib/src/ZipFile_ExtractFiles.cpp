@@ -7,12 +7,6 @@
 using namespace hnrt;
 
 
-ZipArchive* ZipFile::OpenRead(PCWSTR pszPath)
-{
-    return new ZipArchive(pszPath, ZipInternal::GetFolder(pszPath));
-}
-
-
 void ZipFile::ExtractFiles(PCWSTR pszSource, PCWSTR pszFilePattern, PCWSTR pszDestination, IZipExtractCallbacks& callbacks)
 {
     struct LocalContext
@@ -20,14 +14,16 @@ void ZipFile::ExtractFiles(PCWSTR pszSource, PCWSTR pszFilePattern, PCWSTR pszDe
     {
         ZipArchive* pZipArchive;
         PCWSTR pszFilePattern;
-        PCWSTR pszDestination;
+        String strDestination;
         IZipExtractCallbacks& callbacks;
+        bool bExtract;
 
         LocalContext(PCWSTR pszSource, PCWSTR pszFilePattern_, PCWSTR pszDestination_, IZipExtractCallbacks& callbacks_)
             : pZipArchive(OpenRead(pszSource))
             , pszFilePattern(pszFilePattern_)
-            , pszDestination(pszDestination_)
+            , strDestination(pszDestination_)
             , callbacks(callbacks_)
+            , bExtract(false)
         {
         }
 
@@ -38,13 +34,23 @@ void ZipFile::ExtractFiles(PCWSTR pszSource, PCWSTR pszFilePattern, PCWSTR pszDe
 
         virtual void ZipForEach(ZipArchiveEntry& entry)
         {
-            if (Path::WildcardMatch(pszFilePattern, entry.Name))
+            if (entry.IsFolder)
             {
-                entry.ExtractTo(pszDestination, callbacks);
-            }
-            else if (entry.IsFolder())
-            {
+                bool bPrevious = bExtract;
+                if (!bExtract && Path::WildcardMatch(pszFilePattern, entry.Name))
+                {
+                    bExtract = true;
+                }
+                String strOriginal = strDestination;
+                strDestination = Path::Combine(strDestination, entry.Name);
                 entry.ForEach(*this);
+                strDestination = strOriginal;
+                bExtract = bPrevious;
+            }
+            else if (bExtract || Path::WildcardMatch(pszFilePattern, entry.Name))
+            {
+                Path::CreateDirectory(strDestination);
+                entry.ExtractTo(strDestination, callbacks);
             }
         }
 

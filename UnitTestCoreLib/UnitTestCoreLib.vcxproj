@@ -184,6 +184,7 @@
     <ClCompile Include="StringCommonsTests.cpp" />
     <ClCompile Include="StringTests.cpp" />
     <ClCompile Include="VersionInfoTests.cpp" />
+    <ClCompile Include="ZipTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
