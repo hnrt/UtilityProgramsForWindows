@@ -82,3 +82,16 @@ StringCollection& StringCollection::Split(PCWSTR psz, WCHAR sep, bool bAll)
     }
     return *this;
 }
+
+
+bool StringCollection::Contains(PCWSTR psz) const
+{
+    for (DWORD dwIndex = 0; dwIndex < Count; dwIndex++)
+    {
+        if (!String::Compare(operator [](dwIndex), psz))
+        {
+            return true;
+        }
+    }
+    return false;
+}

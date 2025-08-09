@@ -21,5 +21,6 @@ namespace hnrt
         StringCollection& Add(PCWSTR psz, size_t cch);
         StringCollection& RemoveAt(DWORD dwIndex);
         StringCollection& Split(PCWSTR psz, WCHAR sep, bool bAll = false);
+        bool Contains(PCWSTR) const;
     };
 }
