@@ -1,10 +1,12 @@
 #pragma once
 
-
 #include "hnrt/DirectoryEntry.h"
 #include <Shlobj.h>
 #include <vector>
 
+#ifdef GetCurrentDirectory
+#undef GetCurrentDirectory
+#endif
 
 namespace hnrt
 {
@@ -22,6 +24,7 @@ namespace hnrt
         static String Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, INT_PTR cch4 = -1);
         static String Combine(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5, INT_PTR cch5 = -1);
         static String GetKnownFolder(const KNOWNFOLDERID& rid, DWORD dwFlags = 0);
+        static String GetCurrentDirectory(bool bEndsWithSeparator = false);
         static int Compare(PCWSTR psz1, PCWSTR psz2);
         static int Compare(PCSTR psz1, PCSTR psz2);
         static bool WildcardMatch(PCWSTR pszPattern, PCWSTR pszSubject);

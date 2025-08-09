@@ -235,6 +235,28 @@ String Path::GetKnownFolder(const KNOWNFOLDERID& rid, DWORD dwFlags)
 }
 
 
+String Path::GetCurrentDirectory(bool bEndsWithSeparator)
+{
+    WCHAR szPath[MAX_PATH] = { 0 };
+    if (GetCurrentDirectoryW(MAX_PATH, szPath))
+    {
+        String path(szPath);
+        if (bEndsWithSeparator)
+        {
+            return path.EndsWith(DirectorySeparator) ? path : path + DirectorySeparator;
+        }
+        else
+        {
+            return path.EndsWith(DirectorySeparator) ? path.TruncateTail(1) : path;
+        }
+    }
+    else
+    {
+        return String(bEndsWithSeparator ? L".\\" : L".");
+    }
+}
+
+
 int Path::Compare(PCWSTR psz1, PCWSTR psz2)
 {
     return StringCase::Compare(psz1, -1, psz2, -1);
