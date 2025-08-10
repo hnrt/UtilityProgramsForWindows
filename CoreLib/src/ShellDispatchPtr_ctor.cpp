@@ -28,13 +28,13 @@ ShellDispatchPtr& ShellDispatchPtr::operator =(const ShellDispatchPtr& src)
 }
 
 
-ShellDispatchPtr& ShellDispatchPtr::Create()
+ShellDispatchPtr ShellDispatchPtr::Create()
 {
     IShellDispatch6* ptr = NULL;
     HRESULT hr = CoCreateInstance(CLSID_Shell, NULL, CLSCTX_INPROC_SERVER, IID_IShellDispatch6, reinterpret_cast<LPVOID*>(&ptr));
     if (hr == S_OK)
     {
-        return *(new ShellDispatchPtr(ptr));
+        return ShellDispatchPtr(ptr);
     }
     else
     {

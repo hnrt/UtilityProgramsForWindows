@@ -21,7 +21,7 @@ namespace hnrt
 
 		IShellDispatch6* operator ->() const;
 
-		static ShellDispatchPtr& Create();
+		static ShellDispatchPtr Create();
 	};
 
 	inline IShellDispatch6* ShellDispatchPtr::operator ->() const
