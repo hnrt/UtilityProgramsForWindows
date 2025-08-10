@@ -90,9 +90,6 @@
     <ClInclude Include="inc\hnrt\Path.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\ZipInternal.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="inc\hnrt\Buffer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -109,12 +106,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="inc\hnrt\Win32Exception.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\hnrt\ZipArchive.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\hnrt\ZipArchiveEntry.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="inc\hnrt\ZipFile.h">
@@ -348,6 +339,18 @@
     <ClInclude Include="inc\hnrt\Variant.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="inc\hnrt\ShellDispatchPtr.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\hnrt\FolderPtr.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\hnrt\FolderItemsPtr.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\hnrt\FolderItemPtr.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pch.cpp">
@@ -571,39 +574,6 @@
     </ClCompile>
     <ClCompile Include="src\StringCaseInsensitive_static.cpp">
       <Filter>ソース ファイル\StringCaseInsensitive</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipArchive_Assign.cpp">
-      <Filter>ソース ファイル\Zip</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipArchive_ctor.cpp">
-      <Filter>ソース ファイル\Zip</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipArchive_dtor.cpp">
-      <Filter>ソース ファイル\Zip</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipArchive_ForEach.cpp">
-      <Filter>ソース ファイル\Zip</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipArchiveEntry_Assign.cpp">
-      <Filter>ソース ファイル\Zip</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipArchiveEntry_ctor.cpp">
-      <Filter>ソース ファイル\Zip</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipArchiveEntry_dtor.cpp">
-      <Filter>ソース ファイル\Zip</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipArchiveEntry_ExtractTo.cpp">
-      <Filter>ソース ファイル\Zip</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipArchiveEntry_ForEach.cpp">
-      <Filter>ソース ファイル\Zip</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipFile_OpenRead.cpp">
-      <Filter>ソース ファイル\Zip</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ZipInternal.cpp">
-      <Filter>ソース ファイル\Zip</Filter>
     </ClCompile>
     <ClCompile Include="src\MemCpy.cpp">
       <Filter>ソース ファイル\StringCommons</Filter>
@@ -844,6 +814,48 @@
     </ClCompile>
     <ClCompile Include="src\Path_RemoveDirectory.cpp">
       <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShellDispatchPtr_ctor.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FolderPtr_ctor.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FolderPtr_dtor.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShellDispatchPtr_dtor.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FolderItemsPtr_ctor.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FolderItemsPtr_dtor.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FolderItemsPtr_property.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FolderItemPtr_ctor.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FolderItemPtr_property.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FolderItemPtr_dtor.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ZipFile_ctor.cpp">
+      <Filter>ソース ファイル\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FolderItemPtr_ForEach.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FolderItemPtr_CopyTo.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ZipFile_ForEach.cpp">
+      <Filter>ソース ファイル\Zip</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

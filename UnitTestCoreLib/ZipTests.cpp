@@ -10,46 +10,47 @@ using namespace hnrt;
 
 namespace UnitTestCoreLib
 {
-	struct MyZipForEachCallback : IZipForEachCallback
+	struct MyFolderItemForEachCallback : public IFolderItemForEachCallback
 	{
 		StringCollection entries;
 
-		MyZipForEachCallback()
+		MyFolderItemForEachCallback()
 			: entries()
 		{
 		}
 
-		virtual void ZipForEach(ZipArchiveEntry& entry)
+		virtual BOOL ForEach(FolderItemPtr& pFolderItem)
 		{
 			DebugFunc __func(L"MyZipForEachCallback::ZipForEach");
-			Debug::Put(L"name=%s type=%s size=%ld", entry.Name, entry.Type, entry.Size);
-			if (entry.IsFolder)
+			if (pFolderItem.IsFolder)
 			{
-				Debug::Put(L"Beginning of Folder %s", entry.Name);
-				MyZipForEachCallback sub;
-				entry.ForEach(sub);
+				Debug::Put(L"Beginning of Folder %s", pFolderItem.Name);
+				MyFolderItemForEachCallback sub;
+				pFolderItem.ForEach(sub);
 				for (DWORD dwIndex = 0; dwIndex < sub.entries.Count; dwIndex++)
 				{
-					entries.Add(String(CONCAT3, entry.Name, String(L"/"), sub.entries[dwIndex]));
+					entries.Add(String(CONCAT3, pFolderItem.Name, String(L"/"), sub.entries[dwIndex]));
 				}
-				Debug::Put(L"End of Folder %s", entry.Name);
+				Debug::Put(L"End of Folder %s", pFolderItem.Name);
 			}
 			else
 			{
-				entries.Add(entry.Name);
+				Debug::Put(L"name=%s type=%s size=%ld", pFolderItem.Name, pFolderItem.Type, pFolderItem.Size);
+				entries.Add(pFolderItem.Name);
 			}
+			return TRUE;
 		}
 	};
 
-	struct MyZipExtractCallbacks : IZipExtractCallbacks
+	struct MyZipExtractCallbacks : IFolderItemProcessCallbacks
 	{
-		virtual void ZipExtractOnStart(PCWSTR, LONG)
+		virtual void OnStart(PCWSTR, LONG)
 		{
 		}
-		virtual void ZipExtractOnSuccess(PCWSTR pszPath)
+		virtual void OnSuccess(PCWSTR pszPath)
 		{
 		}
-		virtual void ZipExtractOnFailure(PCWSTR pszPath, HRESULT hr)
+		virtual void OnFailure(PCWSTR pszPath, HRESULT hr)
 		{
 		}
 	};
@@ -85,18 +86,18 @@ namespace UnitTestCoreLib
 		{
 			String path = GetZipArchivePath(L"arch1.zip");
 			Assert::AreEqual(true, Path::Exists(path));
-			ZipArchive* p = ZipFile::OpenRead(path);
-			MyZipForEachCallback cbs;
-			p->ForEach(cbs);
-			delete p;
-			Assert::AreEqual(4UL, cbs.entries.Count);
-			Assert::AreEqual(true, cbs.entries.Contains(L"xyzzy.txt"));
-			Assert::AreEqual(true, cbs.entries.Contains(L"quux.txt"));
-			Assert::AreEqual(true, cbs.entries.Contains(L"2001/fred.txt"));
-			Assert::AreEqual(true, cbs.entries.Contains(L"2001/waldo.docx"));
-			Assert::AreEqual(false, cbs.entries.Contains(L"foo.txt"));
-			Assert::AreEqual(false, cbs.entries.Contains(L"2001/bar.txt"));
-			Assert::AreEqual(false, cbs.entries.Contains(L"9999/baz.txt"));
+			ZipFile zip = ZipFile::Open(path);
+			MyFolderItemForEachCallback cbs;
+			zip.ForEach(cbs);
+			StringCollection& entries = cbs.entries;
+			Assert::AreEqual(4UL, entries.Count);
+			Assert::AreEqual(true, entries.Contains(L"xyzzy.txt"));
+			Assert::AreEqual(true, entries.Contains(L"quux.txt"));
+			Assert::AreEqual(true, entries.Contains(L"2001/fred.txt"));
+			Assert::AreEqual(true, entries.Contains(L"2001/waldo.docx"));
+			Assert::AreEqual(false, entries.Contains(L"foo.txt"));
+			Assert::AreEqual(false, entries.Contains(L"2001/bar.txt"));
+			Assert::AreEqual(false, entries.Contains(L"9999/baz.txt"));
 		}
 
 		TEST_METHOD(Test02)
@@ -106,8 +107,9 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(false, Path::Exists(strOutputDirectory));
 			String path = GetZipArchivePath(L"arch1.zip");
 			Assert::AreEqual(true, Path::Exists(path));
+			ZipFile zip = ZipFile::Open(path);
 			MyZipExtractCallbacks cbs;
-			ZipFile::ExtractFiles(path, L"*", strOutputDirectory, cbs);
+			zip.ExtractFiles(L"*", strOutputDirectory, cbs);
 			Assert::AreEqual(true, Path::Exists(Path::Combine(strOutputDirectory, L"xyzzy.txt")));
 			Assert::AreEqual(true, Path::Exists(Path::Combine(strOutputDirectory, L"quux.txt")));
 			Assert::AreEqual(true, Path::Exists(Path::Combine(strOutputDirectory, L"2001", L"fred.txt")));
@@ -124,8 +126,9 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(false, Path::Exists(strOutputDirectory));
 			String path = GetZipArchivePath(L"arch1.zip");
 			Assert::AreEqual(true, Path::Exists(path));
+			ZipFile zip = ZipFile::Open(path);
 			MyZipExtractCallbacks cbs;
-			ZipFile::ExtractFiles(path, L"*.txt", strOutputDirectory, cbs);
+			zip.ExtractFiles(L"*.txt", strOutputDirectory, cbs);
 			Assert::AreEqual(true, Path::Exists(Path::Combine(strOutputDirectory, L"xyzzy.txt")));
 			Assert::AreEqual(true, Path::Exists(Path::Combine(strOutputDirectory, L"quux.txt")));
 			Assert::AreEqual(true, Path::Exists(Path::Combine(strOutputDirectory, L"2001", L"fred.txt")));
@@ -142,8 +145,9 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(false, Path::Exists(strOutputDirectory));
 			String path = GetZipArchivePath(L"arch1.zip");
 			Assert::AreEqual(true, Path::Exists(path));
+			ZipFile zip = ZipFile::Open(path);
 			MyZipExtractCallbacks cbs;
-			ZipFile::ExtractFiles(path, L"2001", strOutputDirectory, cbs);
+			zip.ExtractFiles(L"2001", strOutputDirectory, cbs);
 			Assert::AreEqual(false, Path::Exists(Path::Combine(strOutputDirectory, L"xyzzy.txt")));
 			Assert::AreEqual(false, Path::Exists(Path::Combine(strOutputDirectory, L"quux.txt")));
 			Assert::AreEqual(true, Path::Exists(Path::Combine(strOutputDirectory, L"2001", L"fred.txt")));

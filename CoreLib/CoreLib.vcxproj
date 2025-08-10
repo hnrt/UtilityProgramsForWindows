@@ -217,6 +217,9 @@
     <ClInclude Include="inc\hnrt\FileDataFeeder.h" />
     <ClInclude Include="inc\hnrt\FileMapper.h" />
     <ClInclude Include="inc\hnrt\FileWriter.h" />
+    <ClInclude Include="inc\hnrt\FolderItemPtr.h" />
+    <ClInclude Include="inc\hnrt\FolderItemsPtr.h" />
+    <ClInclude Include="inc\hnrt\FolderPtr.h" />
     <ClInclude Include="inc\hnrt\FormatException.h" />
     <ClInclude Include="inc\hnrt\Guid.h" />
     <ClInclude Include="inc\hnrt\Hash.h" />
@@ -246,6 +249,7 @@
     <ClInclude Include="inc\hnrt\SecretFactory.h" />
     <ClInclude Include="inc\hnrt\Service.h" />
     <ClInclude Include="inc\hnrt\SharedMemory.h" />
+    <ClInclude Include="inc\hnrt\ShellDispatchPtr.h" />
     <ClInclude Include="inc\hnrt\SidPtr.h" />
     <ClInclude Include="inc\hnrt\StringCaseInsensitive.h" />
     <ClInclude Include="inc\hnrt\StringCaseLessThan.h" />
@@ -269,8 +273,6 @@
     <ClInclude Include="inc\hnrt\WindowsHandle.h" />
     <ClInclude Include="inc\hnrt\WindowsMessage.h" />
     <ClInclude Include="inc\hnrt\WindowsPlatform.h" />
-    <ClInclude Include="inc\hnrt\ZipArchive.h" />
-    <ClInclude Include="inc\hnrt\ZipArchiveEntry.h" />
     <ClInclude Include="inc\hnrt\ZipFile.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\NumberTextInternal.h" />
@@ -283,7 +285,6 @@
     <ClInclude Include="src\String_internal.h" />
     <ClInclude Include="src\UiAutomationInternal.h" />
     <ClInclude Include="src\VersionInfoInternal.h" />
-    <ClInclude Include="src\ZipInternal.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AdapterAddressCollection.cpp" />
@@ -316,6 +317,16 @@
     <ClCompile Include="src\FileTime_FromSystemTime.cpp" />
     <ClCompile Include="src\FileTime_ToSystemTime.cpp" />
     <ClCompile Include="src\FileWriter.cpp" />
+    <ClCompile Include="src\FolderItemPtr_CopyTo.cpp" />
+    <ClCompile Include="src\FolderItemPtr_ctor.cpp" />
+    <ClCompile Include="src\FolderItemPtr_dtor.cpp" />
+    <ClCompile Include="src\FolderItemPtr_ForEach.cpp" />
+    <ClCompile Include="src\FolderItemPtr_property.cpp" />
+    <ClCompile Include="src\FolderItemsPtr_ctor.cpp" />
+    <ClCompile Include="src\FolderItemsPtr_dtor.cpp" />
+    <ClCompile Include="src\FolderItemsPtr_property.cpp" />
+    <ClCompile Include="src\FolderPtr_ctor.cpp" />
+    <ClCompile Include="src\FolderPtr_dtor.cpp" />
     <ClCompile Include="src\FormatException.cpp" />
     <ClCompile Include="src\GetDayOfWeek.cpp" />
     <ClCompile Include="src\GetLastDayOfMonth.cpp" />
@@ -364,6 +375,8 @@
     <ClCompile Include="src\SecretFactory.cpp" />
     <ClCompile Include="src\SecretInternal.cpp" />
     <ClCompile Include="src\Service.cpp" />
+    <ClCompile Include="src\ShellDispatchPtr_ctor.cpp" />
+    <ClCompile Include="src\ShellDispatchPtr_dtor.cpp" />
     <ClCompile Include="src\SidPtr.cpp" />
     <ClCompile Include="src\StrCase.cpp" />
     <ClCompile Include="src\StrCaseCmp.cpp" />
@@ -443,19 +456,10 @@
     <ClCompile Include="src\WindowHelper.cpp" />
     <ClCompile Include="src\WindowsMessage.cpp" />
     <ClCompile Include="src\WindowsPlatform.cpp" />
-    <ClCompile Include="src\ZipArchiveEntry_Assign.cpp" />
-    <ClCompile Include="src\ZipArchiveEntry_ctor.cpp" />
-    <ClCompile Include="src\ZipArchiveEntry_dtor.cpp" />
-    <ClCompile Include="src\ZipArchiveEntry_ForEach.cpp" />
-    <ClCompile Include="src\ZipArchive_ForEach.cpp" />
-    <ClCompile Include="src\ZipArchiveEntry_ExtractTo.cpp" />
-    <ClCompile Include="src\ZipArchive_Assign.cpp" />
-    <ClCompile Include="src\ZipArchive_ctor.cpp" />
-    <ClCompile Include="src\ZipArchive_dtor.cpp" />
-    <ClCompile Include="src\ZipFile_OpenRead.cpp" />
+    <ClCompile Include="src\ZipFile_ctor.cpp" />
     <ClCompile Include="src\ZipFile_ExtractFiles.cpp" />
-    <ClCompile Include="src\ZipInternal.cpp" />
     <ClCompile Include="src\Hash.cpp" />
+    <ClCompile Include="src\ZipFile_ForEach.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

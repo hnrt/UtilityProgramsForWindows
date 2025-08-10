@@ -1,60 +1,56 @@
 #include "pch.h"
 #include "hnrt/ZipFile.h"
 #include "hnrt/Path.h"
-#include "ZipInternal.h"
 
 
 using namespace hnrt;
 
 
-void ZipFile::ExtractFiles(PCWSTR pszSource, PCWSTR pszFilePattern, PCWSTR pszDestination, IZipExtractCallbacks& callbacks)
+void ZipFile::ExtractFiles(PCWSTR pszFilePattern, PCWSTR pszDestination, IFolderItemProcessCallbacks& callbacks)
 {
     struct LocalContext
-        : public IZipForEachCallback
+        : public IFolderItemForEachCallback
     {
-        ZipArchive* pZipArchive;
         PCWSTR pszFilePattern;
-        String strDestination;
-        IZipExtractCallbacks& callbacks;
+        String pszDestination;
+        IFolderItemProcessCallbacks& callbacks;
         bool bExtract;
 
-        LocalContext(PCWSTR pszSource, PCWSTR pszFilePattern_, PCWSTR pszDestination_, IZipExtractCallbacks& callbacks_)
-            : pZipArchive(OpenRead(pszSource))
-            , pszFilePattern(pszFilePattern_)
-            , strDestination(pszDestination_)
+        LocalContext(PCWSTR pszFilePattern_, PCWSTR pszDestination_, IFolderItemProcessCallbacks& callbacks_)
+            : pszFilePattern(pszFilePattern_)
+            , pszDestination(pszDestination_)
             , callbacks(callbacks_)
             , bExtract(false)
         {
         }
 
-        ~LocalContext()
-        {
-            delete pZipArchive;
-        }
+        ~LocalContext() = default;
 
-        virtual void ZipForEach(ZipArchiveEntry& entry)
+        virtual BOOL ForEach(FolderItemPtr& pFolderItem)
         {
-            if (entry.IsFolder)
+            String pszName = pFolderItem.Name;
+            if (pFolderItem.IsFolder)
             {
                 bool bPrevious = bExtract;
-                if (!bExtract && Path::WildcardMatch(pszFilePattern, entry.Name))
+                if (!bExtract && Path::WildcardMatch(pszFilePattern, pszName))
                 {
                     bExtract = true;
                 }
-                String strOriginal = strDestination;
-                strDestination = Path::Combine(strDestination, entry.Name);
-                entry.ForEach(*this);
-                strDestination = strOriginal;
+                String pszOriginal = pszDestination;
+                pszDestination = Path::Combine(pszDestination, pszName);
+                pFolderItem.ForEach(*this);
+                pszDestination = pszOriginal;
                 bExtract = bPrevious;
             }
-            else if (bExtract || Path::WildcardMatch(pszFilePattern, entry.Name))
+            else if (bExtract || Path::WildcardMatch(pszFilePattern, pszName))
             {
-                Path::CreateDirectory(strDestination);
-                entry.ExtractTo(strDestination, callbacks);
+                Path::CreateDirectory(pszDestination);
+                pFolderItem.CopyTo(pszDestination, callbacks);
             }
+            return TRUE;
         }
 
-    } ctx(pszSource, pszFilePattern, pszDestination, callbacks);
+    } ctx(pszFilePattern, pszDestination, callbacks);
 
-    ctx.pZipArchive->ForEach(ctx);
+    ForEach(ctx);
 }
