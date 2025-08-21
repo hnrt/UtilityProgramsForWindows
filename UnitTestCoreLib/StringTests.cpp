@@ -133,10 +133,10 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(0, wcscmp(s5, L"789 0  00  000"));
 			Assert::AreEqual(0, wcscmp(s6, L"789 0  00  000  "));
 			Assert::AreEqual(0, wcscmp(s7, L"  789 0  00  000"));
-			s3.Lowercase();
-			s4.Uppercase();
-			s6.Trim(TRIM_TAIL);
-			s7.Trim(TRIM_HEAD);
+			s3 = s3.Lowercase();
+			s4 = s4.Uppercase();
+			s6 = s6.Trim(TRIM_TAIL);
+			s7 = s7.Trim(TRIM_HEAD);
 			Debug::Put(L"StringTest7: [2] s3@%p=\"%s\"", s3, s3);
 			Debug::Put(L"StringTest7: [2] s4@%p=\"%s\"", s4, s4);
 			Debug::Put(L"StringTest7: [2] s6@%p=\"%s\"", s6, s6);

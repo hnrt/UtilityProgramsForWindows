@@ -26,10 +26,10 @@ namespace hnrt
         ~String();
 
         String& ZeroFill();
-        String& Lettercase(StringOptions);
-        String& Uppercase();
-        String& Lowercase();
-        String& Trim(StringOptions = TRIM);
+        String Lettercase(StringOptions);
+        String Uppercase();
+        String Lowercase();
+        String Trim(StringOptions = TRIM);
         String& Assign(const String&);
         String& Assign(PCWSTR, SSIZE_T = -1);
         String& Append(const String&);
@@ -87,12 +87,12 @@ namespace hnrt
         static int Compare(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2);
     };
 
-    inline String& String::Uppercase()
+    inline String String::Uppercase()
     {
         return Lettercase(UPPERCASE);
     }
 
-    inline String& String::Lowercase()
+    inline String String::Lowercase()
     {
         return Lettercase(LOWERCASE);
     }

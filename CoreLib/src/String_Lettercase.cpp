@@ -5,11 +5,12 @@
 using namespace hnrt;
 
 
-String& String::Lettercase(StringOptions option)
+String String::Lettercase(StringOptions option)
 {
-    if (Len)
+    String s(Ptr, Len);
+    if (s.Len)
     {
-        StrCase(option, m_psz, Len);
+        StrCase(option, s.m_psz, s.Len);
     }
-    return *this;
+    return s;
 }
