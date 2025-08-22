@@ -863,5 +863,8 @@
     <ClCompile Include="src\String_LastIndexOf.cpp">
       <Filter>ソース ファイル\String</Filter>
     </ClCompile>
+    <ClCompile Include="src\String_Substring.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

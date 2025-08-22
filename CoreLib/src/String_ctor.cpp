@@ -6,11 +6,11 @@
 using namespace hnrt;
 
 
-const String String::Empty = String();
+const String String::Empty = String(0ULL);
 
 
 String::String()
-    : m_psz(nullptr)
+    : m_psz(StringAddRef(Empty.m_psz))
 {
 }
 
@@ -30,6 +30,10 @@ String::String(PCWSTR psz, SSIZE_T cch)
         m_psz = RefStr::Create(cch);
         MemCpy(m_psz, psz, cch);
         m_psz[cch] = L'\0';
+    }
+    else
+    {
+        m_psz = StringAddRef(Empty.m_psz);
     }
 }
 
@@ -97,17 +101,14 @@ String::String(PCWSTR psz1, PCWSTR psz2)
 }
 
 
-String::String(SIZE_T cch)
-    : m_psz(RefStr::Create(cch))
-{
-}
-
-
 String::String(SIZE_T cch, WCHAR fill)
     : m_psz(RefStr::Create(cch))
 {
-    MemSet(m_psz, fill, Len);
-    m_psz[Len] = L'\0';
+    if (cch)
+    {
+        MemSet(m_psz, fill, cch);
+    }
+    m_psz[cch] = L'\0';
 }
 
 
@@ -125,6 +126,10 @@ String::String(UINT cp, PCSTR psz, SSIZE_T cb)
         m_psz = RefStr::Create(cch);
         MultiByteToWideChar(cp, MB_PRECOMPOSED, psz, static_cast<int>(cb), m_psz, cch);
         m_psz[cch] = L'\0';
+    }
+    else
+    {
+        m_psz = StringAddRef(Empty.m_psz);
     }
 }
 

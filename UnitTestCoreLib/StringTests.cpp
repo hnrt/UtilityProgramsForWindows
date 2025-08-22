@@ -373,6 +373,82 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(-1, o9);
 		}
 
+		TEST_METHOD(Test17)
+		{
+			String s1(L"ABCEDFGHIJKLMNOPQRSTUVWXYZ");
+			String s2 = s1.Substring(-30);
+			String s3 = s1.Substring(-20);
+			String s4 = s1.Substring(-10);
+			String s5 = s1.Substring(-1);
+			String s6 = s1.Substring(0);
+			String s7 = s1.Substring(10);
+			String s8 = s1.Substring(20);
+			String s9 = s1.Substring(30);
+			Debug::Put(L"StringTest17: Substring(-30)=%s", s2);
+			Debug::Put(L"StringTest17: Substring(-20)=%s", s3);
+			Debug::Put(L"StringTest17: Substring(-10)=%s", s4);
+			Debug::Put(L"StringTest17: Substring(-1)=%s", s5);
+			Debug::Put(L"StringTest17: Substring(0)=%s", s6);
+			Debug::Put(L"StringTest17: Substring(10)=%s", s7);
+			Debug::Put(L"StringTest17: Substring(20)=%s", s8);
+			Debug::Put(L"StringTest17: Substring(30)=%s", s9);
+			Assert::AreEqual(L"ABCEDFGHIJKLMNOPQRSTUVWXYZ", s2);
+			Assert::AreEqual(L"GHIJKLMNOPQRSTUVWXYZ", s3);
+			Assert::AreEqual(L"QRSTUVWXYZ", s4);
+			Assert::AreEqual(L"Z", s5);
+			Assert::AreEqual(L"ABCEDFGHIJKLMNOPQRSTUVWXYZ", s6);
+			Assert::AreEqual(L"KLMNOPQRSTUVWXYZ", s7);
+			Assert::AreEqual(L"UVWXYZ", s8);
+			Assert::AreEqual(L"", s9);
+		}
+
+		TEST_METHOD(Test18)
+		{
+			String s1(L"ABCEDFGHIJKLMNOPQRSTUVWXYZ");
+			String s2 = s1.Substring(-30, 20);
+			String s3 = s1.Substring(-20, 20);
+			String s4 = s1.Substring(-10, 20);
+			String s5 = s1.Substring(-1, 20);
+			String s6 = s1.Substring(0, 20);
+			String s7 = s1.Substring(10, 20);
+			String s8 = s1.Substring(20, 20);
+			String s9 = s1.Substring(30, 20);
+			String sA = s1.Substring(0, 30);
+			String sB = s1.Substring(10, 30);
+			String sC = s1.Substring(20, 30);
+			String sD = s1.Substring(0, -1);
+			String sE = s1.Substring(10, -10);
+			String sF = s1.Substring(20, -20);
+			Debug::Put(L"StringTest18: Substring(-30, 20)=%s", s2);
+			Debug::Put(L"StringTest18: Substring(-20, 20)=%s", s3);
+			Debug::Put(L"StringTest18: Substring(-10, 20)=%s", s4);
+			Debug::Put(L"StringTest18: Substring(-1, 20)=%s", s5);
+			Debug::Put(L"StringTest18: Substring(0, 20)=%s", s6);
+			Debug::Put(L"StringTest18: Substring(10, 20)=%s", s7);
+			Debug::Put(L"StringTest18: Substring(20, 20)=%s", s8);
+			Debug::Put(L"StringTest18: Substring(30, 20)=%s", s9);
+			Debug::Put(L"StringTest18: Substring(0, 30)=%s", sA);
+			Debug::Put(L"StringTest18: Substring(10, 30)=%s", sB);
+			Debug::Put(L"StringTest18: Substring(20, 30)=%s", sC);
+			Debug::Put(L"StringTest18: Substring(0, -1)=%s", sD);
+			Debug::Put(L"StringTest18: Substring(10, -10)=%s", sE);
+			Debug::Put(L"StringTest18: Substring(20, -20)=%s", sF);
+			Assert::AreEqual(L"ABCEDFGHIJKLMNOPQRST", s2);
+			Assert::AreEqual(L"GHIJKLMNOPQRST", s3);
+			Assert::AreEqual(L"QRST", s4);
+			Assert::AreEqual(L"", s5);
+			Assert::AreEqual(L"ABCEDFGHIJKLMNOPQRST", s6);
+			Assert::AreEqual(L"KLMNOPQRST", s7);
+			Assert::AreEqual(L"", s8);
+			Assert::AreEqual(L"", s9);
+			Assert::AreEqual(L"ABCEDFGHIJKLMNOPQRSTUVWXYZ", sA);
+			Assert::AreEqual(L"KLMNOPQRSTUVWXYZ", sB);
+			Assert::AreEqual(L"UVWXYZ", sC);
+			Assert::AreEqual(L"ABCEDFGHIJKLMNOPQRSTUVWXY", sD);
+			Assert::AreEqual(L"KLMNOP", sE);
+			Assert::AreEqual(L"", sF);
+		}
+
 	private:
 
 		String* Sprintf(PCWSTR pszFormat, ...)

@@ -404,6 +404,7 @@
     <ClCompile Include="src\StringCollection.cpp" />
     <ClCompile Include="src\String_CompareCaseInsensitively.cpp" />
     <ClCompile Include="src\String_LastIndexOf.cpp" />
+    <ClCompile Include="src\String_Substring.cpp" />
     <ClCompile Include="src\StrToDouble.cpp" />
     <ClCompile Include="src\StringUtils.cpp" />
     <ClCompile Include="src\String_Append.cpp" />

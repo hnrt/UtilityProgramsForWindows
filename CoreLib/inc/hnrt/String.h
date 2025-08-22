@@ -20,8 +20,7 @@ namespace hnrt
         String(PCWSTR, va_list);
         String(StringOptions, PCWSTR, ...);
         String(PCWSTR, PCWSTR);
-        String(SIZE_T);
-        String(SIZE_T, WCHAR);
+        String(SIZE_T, WCHAR = L'\0');
         String(UINT, PCSTR, SSIZE_T = -1);
         ~String();
 
@@ -36,6 +35,8 @@ namespace hnrt
         String& TruncateHead(SIZE_T);
         String& TruncateTail(SIZE_T);
 
+        String Substring(int) const;
+        String Substring(int, int) const;
         String Lettercase(StringOptions);
         String Uppercase();
         String Lowercase();

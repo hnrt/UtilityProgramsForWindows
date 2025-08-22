@@ -7,7 +7,7 @@ using namespace hnrt;
 
 int String::LastIndexOf(int c, SSIZE_T fromIndex) const
 {
-    SIZE_T length = Len;
+    SSIZE_T length = Len;
     if (fromIndex < 0)
     {
         fromIndex += Len;
@@ -30,7 +30,7 @@ int String::LastIndexOf(int c, SSIZE_T fromIndex) const
 
 int String::LastIndexOf(const String& s, SSIZE_T fromIndex) const
 {
-    SIZE_T length = Len;
+    SSIZE_T length = Len;
     if (fromIndex < 0)
     {
         fromIndex += Len;
