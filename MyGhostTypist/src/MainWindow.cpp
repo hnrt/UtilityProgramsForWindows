@@ -58,7 +58,7 @@ void MainWindow::Open(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     m_pCfg->Load();
     C.SetIcon(LoadIconW(hInstance, MAKEINTRESOURCEW(IDI_ICON1)))
         .SetBackground(WHITE_BRUSH);
-    P.SetWindowName(String(PRINTF, ResourceString(IDS_CAPTION_ARG), m_pCfg->CredentialsList.DefaultCredentials->Username))
+    P.SetWindowName(String::Format(ResourceString(IDS_CAPTION_ARG), m_pCfg->CredentialsList.DefaultCredentials->Username))
         .SetWidth(m_pCfg->Width)
         .SetMenu(CreateMenuBar());
     WindowApp::Open(hInstance, lpCmdLine, nCmdShow);
@@ -196,7 +196,7 @@ void MainWindow::OnAbout(HWND hwnd)
 {
     RefPtr<VersionInfo> pV = VersionInfo::Create();
     MessageBoxW(hwnd,
-        String(PRINTF, ResourceString(IDS_VERSIONINFO),
+        String::Format(ResourceString(IDS_VERSIONINFO),
             pV->ProductName,
             pV->FileVersionMajor, pV->FileVersionMinor, pV->FileVersionPatch, pV->FileVersionBuild,
             pV->LegalCopyright ? pV->LegalCopyright : L""),
@@ -234,8 +234,8 @@ void MainWindow::RecreateEditMenus(HWND hwnd)
         String szFormatU, szFormatP;
         if (index < 10)
         {
-            szFormatU = String(PRINTF, L"%s (&%%d)", ResourceString(IDS_COPY_UN));
-            szFormatP = String(PRINTF, L"%s (&%%d)", ResourceString(IDS_COPY_PW));
+            szFormatU = String::Format(L"%s (&%%d)", ResourceString(IDS_COPY_UN));
+            szFormatP = String::Format(L"%s (&%%d)", ResourceString(IDS_COPY_PW));
         }
         else
         {
@@ -244,8 +244,8 @@ void MainWindow::RecreateEditMenus(HWND hwnd)
         }
         RefPtr<Credentials> pCredentials = m_pCfg->CredentialsList[index];
         menuEditCopy
-            .Add(String(PRINTF, szFormatU, pCredentials->Username, (index * 2 + 1) % 10), IDM_EDIT_USERNAME_BASE + index)
-            .Add(String(PRINTF, szFormatP, pCredentials->Username, (index * 2 + 2) % 10), IDM_EDIT_PASSWORD_BASE + index);
+            .Add(String::Format(szFormatU, pCredentials->Username, (index * 2 + 1) % 10), IDM_EDIT_USERNAME_BASE + index)
+            .Add(String::Format(szFormatP, pCredentials->Username, (index * 2 + 2) % 10), IDM_EDIT_PASSWORD_BASE + index);
     }
 }
 
@@ -416,7 +416,7 @@ void MainWindow::Configure(HWND hwnd)
             m_pCfg->TargetList.Append(cd.TargetList[index]->Clone());
         }
         m_pCfg->Save();
-        SetWindowTextW(hwnd, String(PRINTF, ResourceString(IDS_CAPTION_ARG), m_pCfg->CredentialsList.DefaultCredentials->Username));
+        SetWindowTextW(hwnd, String::Format(ResourceString(IDS_CAPTION_ARG), m_pCfg->CredentialsList.DefaultCredentials->Username));
         RecreateEditMenus(hwnd);
         RecreateViewMenus(hwnd);
         RecreateButtons(hwnd);

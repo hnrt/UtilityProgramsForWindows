@@ -28,7 +28,7 @@ MacAddress& MacAddress::operator =(const MacAddress& src)
 
 MultibyteString MacAddress::ToAcp() const
 {
-    return ::ToAcp(String(PRINTF, L"%02X:%02X:%02X:%02X:%02X:%02X", m_data[0], m_data[1], m_data[2], m_data[3], m_data[4], m_data[5]));
+    return ::ToAcp(String::Format(L"%02X:%02X:%02X:%02X:%02X:%02X", m_data[0], m_data[1], m_data[2], m_data[3], m_data[4], m_data[5]));
 }
 
 

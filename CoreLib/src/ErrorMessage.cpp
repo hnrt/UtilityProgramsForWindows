@@ -42,7 +42,7 @@ PCWSTR ErrorMessage::Get(DWORD code)
     }
     else
     {
-        MessageMapEntry entry(code, String(PRINTF, L"Error %lu", code));
+        MessageMapEntry entry(code, String::Format(L"Error %lu", code));
         msgMap.insert(entry);
         return entry.second;
     }

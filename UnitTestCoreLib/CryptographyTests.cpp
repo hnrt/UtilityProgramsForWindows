@@ -246,7 +246,7 @@ namespace UnitTestCoreLib
 			}
 			catch (CryptographyException ce)
 			{
-				Assert::Fail(String(PRINTF, L"Test_AES_128_ECB_Encrypt: %s", ce.Message));
+				Assert::Fail(String::Format(L"Test_AES_128_ECB_Encrypt: %s", ce.Message));
 			}
 			Debug::Put(L"Test_AES_128_ECB_Encrypt: Ended.");
 		}
@@ -279,7 +279,7 @@ namespace UnitTestCoreLib
 			}
 			catch (CryptographyException ce)
 			{
-				Assert::Fail(String(PRINTF, L"Test_AES_256_ECB_Encrypt: %s", ce.Message));
+				Assert::Fail(String::Format(L"Test_AES_256_ECB_Encrypt: %s", ce.Message));
 			}
 			Debug::Put(L"Test_AES_256_ECB_Encrypt: Ended.");
 		}
@@ -311,7 +311,7 @@ namespace UnitTestCoreLib
 			}
 			catch (CryptographyException ce)
 			{
-				Assert::Fail(String(PRINTF, L"Test_AES_128_ECB_Decrypt: %s", ce.Message));
+				Assert::Fail(String::Format(L"Test_AES_128_ECB_Decrypt: %s", ce.Message));
 			}
 			Debug::Put(L"Test_AES_128_ECB_Decrypt: Ended.");
 		}
@@ -343,7 +343,7 @@ namespace UnitTestCoreLib
 			}
 			catch (CryptographyException ce)
 			{
-				Assert::Fail(String(PRINTF, L"Test_AES_256_ECB_Decrypt: %s", ce.Message));
+				Assert::Fail(String::Format(L"Test_AES_256_ECB_Decrypt: %s", ce.Message));
 			}
 			Debug::Put(L"Test_AES_256_ECB_Decrypt: Ended.");
 		}
@@ -381,7 +381,7 @@ namespace UnitTestCoreLib
 			}
 			catch (CryptographyException ce)
 			{
-				Assert::Fail(String(PRINTF, L"Test_AES_128_CFB: %s", ce.Message));
+				Assert::Fail(String::Format(L"Test_AES_128_CFB: %s", ce.Message));
 			}
 			Debug::Put(L"Test_AES_128_CFB: Ended.");
 		}
@@ -419,7 +419,7 @@ namespace UnitTestCoreLib
 			}
 			catch (CryptographyException ce)
 			{
-				Assert::Fail(String(PRINTF, L"Test_AES_192_CFB: %s", ce.Message));
+				Assert::Fail(String::Format(L"Test_AES_192_CFB: %s", ce.Message));
 			}
 			Debug::Put(L"Test_AES_192_CFB: Ended.");
 		}
@@ -457,7 +457,7 @@ namespace UnitTestCoreLib
 			}
 			catch (CryptographyException ce)
 			{
-				Assert::Fail(String(PRINTF, L"Test_AES_256_CFB: %s", ce.Message));
+				Assert::Fail(String::Format(L"Test_AES_256_CFB: %s", ce.Message));
 			}
 			Debug::Put(L"Test_AES_256_CFB: Ended.");
 		}
@@ -503,7 +503,7 @@ namespace UnitTestCoreLib
 			}
 			catch (CryptographyException ce)
 			{
-				Assert::Fail(String(PRINTF, L"Test_AES_128_CCM: %s", ce.Message));
+				Assert::Fail(String::Format(L"Test_AES_128_CCM: %s", ce.Message));
 			}
 			Debug::Put(L"Test_AES_128_CCM: Ended.");
 		}
@@ -606,7 +606,7 @@ namespace UnitTestCoreLib
 			}
 			catch (CryptographyException ce)
 			{
-				Assert::Fail(String(PRINTF, L"Test_AES_128_CCM_CHAIN_CALLS: %s", ce.Message));
+				Assert::Fail(String::Format(L"Test_AES_128_CCM_CHAIN_CALLS: %s", ce.Message));
 			}
 			Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: Ended.");
 		}
@@ -653,7 +653,7 @@ namespace UnitTestCoreLib
 			}
 			catch (CryptographyException ce)
 			{
-				Assert::Fail(String(PRINTF, L"Test_AES_128_GCM: %s", ce.Message));
+				Assert::Fail(String::Format(L"Test_AES_128_GCM: %s", ce.Message));
 			}
 			Debug::Put(L"Test_AES_128_GCM: Ended.");
 		}
@@ -749,7 +749,7 @@ namespace UnitTestCoreLib
 			}
 			catch (CryptographyException ce)
 			{
-				Assert::Fail(String(PRINTF, L"Test_AES_128_GCM_CHAIN_CALLS: %s", ce.Message));
+				Assert::Fail(String::Format(L"Test_AES_128_GCM_CHAIN_CALLS: %s", ce.Message));
 			}
 			Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: Ended.");
 		}

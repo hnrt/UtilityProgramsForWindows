@@ -45,9 +45,9 @@ void GtinDialogBox::OnCreate()
     SetFont(IDC_GTIN_IR_EDIT, hFont);
     SetFont(IDC_GTIN_CD_EDIT, hFont);
     SetText(IDC_GTIN_STATUS_STATIC);
-    ComboBoxAdd(IDC_GTIN_CPL_COMBO, String(PRINTF, L"%d", GS1COMPANYPREFIX_LENGTH7), GS1COMPANYPREFIX_LENGTH7);
-    ComboBoxAdd(IDC_GTIN_CPL_COMBO, String(PRINTF, L"%d", GS1COMPANYPREFIX_LENGTH9), GS1COMPANYPREFIX_LENGTH9);
-    ComboBoxAdd(IDC_GTIN_CPL_COMBO, String(PRINTF, L"%d", GS1COMPANYPREFIX_LENGTH10), GS1COMPANYPREFIX_LENGTH10);
+    ComboBoxAdd(IDC_GTIN_CPL_COMBO, String::Format(L"%d", GS1COMPANYPREFIX_LENGTH7), GS1COMPANYPREFIX_LENGTH7);
+    ComboBoxAdd(IDC_GTIN_CPL_COMBO, String::Format(L"%d", GS1COMPANYPREFIX_LENGTH9), GS1COMPANYPREFIX_LENGTH9);
+    ComboBoxAdd(IDC_GTIN_CPL_COMBO, String::Format(L"%d", GS1COMPANYPREFIX_LENGTH10), GS1COMPANYPREFIX_LENGTH10);
     RegistryKey hKey;
     LSTATUS rc = hKey.Open(HKEY_CURRENT_USER, m_szRegistryKeyName, 0, KEY_READ);
     if (rc == ERROR_SUCCESS)
@@ -66,8 +66,8 @@ void GtinDialogBox::OnCreate()
         SetText(IDC_GTIN_EDIT, RegistryValue::GetSZ(hKey, REGVAL_GTIN13));
     }
     ComboBoxSetSelection(IDC_GTIN_CPL_COMBO, m_GS1CPLength);
-    SetText(IDC_GTIN_CP_STATIC, String(PRINTF, L"%d chars", m_GS1CPLength));
-    SetText(IDC_GTIN_IR_STATIC, String(PRINTF, L"%d chars", GTIN13(m_GS1CPLength).ItemReferenceLenth));
+    SetText(IDC_GTIN_CP_STATIC, String::Format(L"%d chars", m_GS1CPLength));
+    SetText(IDC_GTIN_IR_STATIC, String::Format(L"%d chars", GTIN13(m_GS1CPLength).ItemReferenceLenth));
     ApplyModification(IDC_GTIN_EDIT);
     m_menuView
         .Add(ResourceString(IDS_MENU_GTIN), IDM_VIEW_GTIN);
@@ -474,7 +474,7 @@ void GtinDialogBox::ApplyModification(int id)
             EditSetSelection(IDC_GTIN_CP_EDIT, jan.GS1CompanyPrefixLength);
             SetText(IDC_GTIN_IR_EDIT, jan.ItemReference);
             EditSetSelection(IDC_GTIN_IR_EDIT, jan.ItemReferenceLenth);
-            SetText(IDC_GTIN_CD_EDIT, String(PRINTF, L"%c", jan.CheckDigit));
+            SetText(IDC_GTIN_CD_EDIT, String::Format(L"%c", jan.CheckDigit));
             EditSetSelection(IDC_GTIN_CD_EDIT, 1);
             if (StrCmp(jan, -1, sz, sz.Len))
             {
@@ -508,7 +508,7 @@ void GtinDialogBox::ApplyModification(int id)
                 break;
             }
             GTIN13 jan = GTIN13::Parse(String(szCP, szIR), m_GS1CPLength);
-            SetText(IDC_GTIN_CD_EDIT, String(PRINTF, L"%c", jan.CheckDigit));
+            SetText(IDC_GTIN_CD_EDIT, String::Format(L"%c", jan.CheckDigit));
             EditSetSelection(IDC_GTIN_CD_EDIT, 1);
             SetText(IDC_GTIN_EDIT, jan);
             EditSetSelection(IDC_GTIN_EDIT, GTIN13_LENGTH);

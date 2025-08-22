@@ -297,8 +297,7 @@ DWORD MyDialogBox::VaSetStatus(DWORD dwSet, DWORD dwReset, const SYSTEMTIME& st,
 {
 	if (m_StatusId)
 	{
-		String sz;
-		sz.Format(L"%04d-%02d-%02d %02d:%02d:%02d  ", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+		String sz = String::Format(L"%04d-%02d-%02d %02d:%02d:%02d  ", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 		sz.VaAppendFormat(pszFormat, argList);
 		SetText(m_StatusId, sz);
 	}
@@ -978,7 +977,7 @@ bool MyDialogBox::SaveTextAsFile(int id, PCWSTR pszDoingWhat, String& szPath)
 		bool bBOM = (m_uOutputCodePage == CP_UTF8 || m_uOutputCodePage == CP_UTF16) && m_bOutputBOM;
 		if (bBOM)
 		{
-			wcs.Format(L"%c%s", BYTE_ORDER_MARK, wcs);
+			wcs = String::Format(L"%c%s", BYTE_ORDER_MARK, wcs);
 		}
 		ByteString serialized = ByteString::FromString(wcs, m_uOutputCodePage, m_OutputLineBreak);
 		FileWriter(ofn.lpstrFile).Write(serialized.Ptr, serialized.Len);
@@ -1102,7 +1101,7 @@ void MyDialogBox::InitializeOffsetComboBox(int id, int initialSelection) const
 
 void MyDialogBox::SetLengthText(int id, int expected, int actual) const
 {
-	String sz(PRINTF, ResourceString(IDS_LENGTH_FORMAT), expected);
+	String sz = String::Format(ResourceString(IDS_LENGTH_FORMAT), expected);
 	if (actual > 0)
 	{
 		if (actual < expected)
@@ -1162,17 +1161,17 @@ void MyDialogBox::FilterText(int id, BOOL(*pfnIsValid)(WCHAR))
 
 String MyDialogBox::NumberOfBytes(SIZE_T n)
 {
-	return String(PRINTF, L"%s %s", NumberText(n).Ptr, n > 1ULL ? L"bytes" : L"byte");
+	return String::Format(L"%s %s", NumberText(n).Ptr, n > 1ULL ? L"bytes" : L"byte");
 }
 
 
 String MyDialogBox::NumberOfBits(SIZE_T n)
 {
-	return String(PRINTF, L"%s %s", NumberText(n).Ptr, n > 1ULL ? L"bits" : L"bit");
+	return String::Format(L"%s %s", NumberText(n).Ptr, n > 1ULL ? L"bits" : L"bit");
 }
 
 
 String MyDialogBox::NumberOfChars(SIZE_T n)
 {
-	return String(PRINTF, L"%s %s", NumberText(n).Ptr, n > 1ULL ? L"chars" : L"char");
+	return String::Format(L"%s %s", NumberText(n).Ptr, n > 1ULL ? L"chars" : L"char");
 }

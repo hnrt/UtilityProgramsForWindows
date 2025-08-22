@@ -80,5 +80,5 @@ String ComLibrary::ToString(HRESULT hr)
 #undef  CASE
     default: break;
     }
-    return String(PRINTF, L"%08X", static_cast<int>(hr));
+    return String::Format(L"%08X", static_cast<int>(hr));
 }

@@ -26,27 +26,29 @@ namespace hnrt
         ~String();
 
         String& ZeroFill();
-        String Lettercase(StringOptions);
-        String Uppercase();
-        String Lowercase();
-        String Trim(StringOptions = TRIM);
         String& Assign(const String&);
         String& Assign(PCWSTR, SSIZE_T = -1);
         String& Append(const String&);
         String& Append(PCWSTR, SSIZE_T = -1);
-        String& Format(PCWSTR, ...);
         String& VaFormat(PCWSTR, va_list);
         String& AppendFormat(PCWSTR, ...);
         String& VaAppendFormat(PCWSTR, va_list);
         String& TruncateHead(SIZE_T);
         String& TruncateTail(SIZE_T);
+
+        String Lettercase(StringOptions);
+        String Uppercase();
+        String Lowercase();
+        String Trim(StringOptions = TRIM);
+        String Replace(PCWSTR, PCWSTR, int = INT_MAX) const;
+        String Wrap(UINT, PCWSTR = L"\r\n") const;
+        String ChangeLineBreak(LineBreak) const;
+
         int IndexOf(int, SIZE_T = 0) const;
         int IndexOf(const String&, SIZE_T = 0) const;
         bool StartsWith(PCWSTR, SSIZE_T = -1) const;
         bool EndsWith(PCWSTR, SSIZE_T = -1) const;
-        String Replace(PCWSTR, PCWSTR, int = INT_MAX) const;
-        String Wrap(UINT, PCWSTR = L"\r\n") const;
-        String ChangeLineBreak(LineBreak) const;
+
         long ToLong(long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
         unsigned long ToUnsignedLong(unsigned long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
         long long ToLongLong(long long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
@@ -82,9 +84,13 @@ namespace hnrt
 
         static const String Empty;
 
+        static String Format(PCWSTR, ...);
         static int Compare(PCWSTR psz1, PCWSTR psz2);
         static int Compare(PCWSTR psz1, PCWSTR psz2, SSIZE_T cch2);
         static int Compare(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2);
+        static int CompareCaseInsensitively(PCWSTR psz1, PCWSTR psz2);
+        static int CompareCaseInsensitively(PCWSTR psz1, PCWSTR psz2, SSIZE_T cch2);
+        static int CompareCaseInsensitively(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2);
     };
 
     inline String String::Uppercase()
@@ -145,5 +151,15 @@ namespace hnrt
     inline int String::Compare(PCWSTR psz1, PCWSTR psz2, SSIZE_T cch2)
     {
         return Compare(psz1, -1, psz2, cch2);
+    }
+
+    inline int String::CompareCaseInsensitively(PCWSTR psz1, PCWSTR psz2)
+    {
+        return CompareCaseInsensitively(psz1, -1, psz2, -1);
+    }
+
+    inline int String::CompareCaseInsensitively(PCWSTR psz1, PCWSTR psz2, SSIZE_T cch2)
+    {
+        return CompareCaseInsensitively(psz1, -1, psz2, cch2);
     }
 }

@@ -359,7 +359,7 @@ void HashDialogBox::OnLoadFrom()
         }
         catch (Win32Exception e)
         {
-            SetError(String(PRINTF, L"%s: %s", e.Message, ErrorMessage::Get(e.Error)));
+            SetError(String::Format(L"%s: %s", e.Message, ErrorMessage::Get(e.Error)));
         }
         catch (Exception e)
         {
@@ -379,7 +379,7 @@ void HashDialogBox::OnSaveAs()
         }
         catch (Win32Exception e)
         {
-            SetError(String(PRINTF, L"%s: %s", e.Message, ErrorMessage::Get(e.Error)));
+            SetError(String::Format(L"%s: %s", e.Message, ErrorMessage::Get(e.Error)));
         }
         catch (Exception e)
         {
@@ -455,11 +455,11 @@ void HashDialogBox::OnExecute()
         static const WCHAR szReadFile[] = L"ReadFile";
         if (!wcsncmp(e.Message, szCreateFile, wcslen(szCreateFile)))
         {
-            MessageBox(hwnd, String(PRINTF, ResourceString(IDS_OPENFILE_FAILURE), ErrorMessage::Get(e.Error)), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+            MessageBox(hwnd, String::Format(ResourceString(IDS_OPENFILE_FAILURE), ErrorMessage::Get(e.Error)), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
         }
         else if (!wcsncmp(e.Message, szReadFile, wcslen(szReadFile)))
         {
-            MessageBox(hwnd, String(PRINTF, ResourceString(IDS_READFILE_FAILURE), ErrorMessage::Get(e.Error)), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
+            MessageBox(hwnd, String::Format(ResourceString(IDS_READFILE_FAILURE), ErrorMessage::Get(e.Error)), ResourceString(IDS_APP_TITLE), MB_OK | MB_ICONERROR);
         }
         else
         {
@@ -738,14 +738,14 @@ void HashDialogBox::SetValueHeader() const
 
 void HashDialogBox::SetValueHeader(ULONGLONG nBytesIn) const
 {
-    SetText(IDC_HASH_VALUE_GROUP, String(PRINTF, ResourceString(IDS_VALUE_IN), NumberOfBytes(nBytesIn)));
+    SetText(IDC_HASH_VALUE_GROUP, String::Format(ResourceString(IDS_VALUE_IN), NumberOfBytes(nBytesIn)));
 }
 
 
 void HashDialogBox::SetValueHeader(ULONGLONG nBytesIn, ULONG nBytesOut) const
 {
     ULONG nBitsOut = nBytesOut * 8;
-    SetText(IDC_HASH_VALUE_GROUP, String(PRINTF, ResourceString(IDS_VALUE_IN_OUT), NumberOfBytes(nBytesIn), NumberOfBytes(nBytesOut), NumberOfBits(nBitsOut)));
+    SetText(IDC_HASH_VALUE_GROUP, String::Format(ResourceString(IDS_VALUE_IN_OUT), NumberOfBytes(nBytesIn), NumberOfBytes(nBytesOut), NumberOfBits(nBitsOut)));
 }
 
 
@@ -791,7 +791,7 @@ void HashDialogBox::VerifyValue()
     try
     {
         ByteString bs = ByteString::FromHex(GetText(IDC_HASH_VERIFY_EDIT));
-        SetVerificationResult(String(PRINTF, L" %s ",
+        SetVerificationResult(String::Format(L" %s ",
             ResourceString((bs.Len == m_hash.ValueLength && !memcmp(bs, m_hash.Value, m_hash.ValueLength)) ? IDS_MATCH : IDS_MISMATCH)));
     }
     catch (...)

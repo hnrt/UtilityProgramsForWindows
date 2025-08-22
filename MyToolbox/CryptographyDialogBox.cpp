@@ -1188,31 +1188,31 @@ void CryptographyDialogBox::ChangeChainingMode(int id)
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CBC;
 		SetText(IDC_CRPT_IV_GROUP, L"Initial Vector");
 		SetText(IDC_CRPT_IV_EDIT, m_IV.ToHex(m_HexLetterCase));
-		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes (Block Size)", m_hAlg.BlockLength));
+		SetText(IDC_CRPT_IVLEN_STATIC, String::Format(L"%lu bytes (Block Size)", m_hAlg.BlockLength));
 		break;
 	case IDC_CRPT_AESECB_RADIO:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_ECB;
 		SetText(IDC_CRPT_IV_GROUP, L"Initial Vector");
 		SetText(IDC_CRPT_IV_EDIT);
-		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes (Block Size)", m_hAlg.BlockLength));
+		SetText(IDC_CRPT_IVLEN_STATIC, String::Format(L"%lu bytes (Block Size)", m_hAlg.BlockLength));
 		break;
 	case IDC_CRPT_AESCFB_RADIO:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CFB;
 		SetText(IDC_CRPT_IV_GROUP, L"Initial Vector");
 		SetText(IDC_CRPT_IV_EDIT, m_IV.ToHex(m_HexLetterCase));
-		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes (Block Size)", m_hAlg.BlockLength));
+		SetText(IDC_CRPT_IVLEN_STATIC, String::Format(L"%lu bytes (Block Size)", m_hAlg.BlockLength));
 		break;
 	case IDC_CRPT_AESCCM_RADIO:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_CCM;
 		SetText(IDC_CRPT_IV_GROUP, L"Nonce");
 		SetText(IDC_CRPT_IV_EDIT, m_Nonce.ToHex(m_HexLetterCase));
-		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes", AES_CCM_NONCE_LENGTH));
+		SetText(IDC_CRPT_IVLEN_STATIC, String::Format(L"%lu bytes", AES_CCM_NONCE_LENGTH));
 		break;
 	case IDC_CRPT_AESGCM_RADIO:
 		m_hAlg.ChainingMode = BCRYPT_CHAIN_MODE_GCM;
 		SetText(IDC_CRPT_IV_GROUP, L"Nonce");
 		SetText(IDC_CRPT_IV_EDIT, m_Nonce.ToHex(m_HexLetterCase));
-		SetText(IDC_CRPT_IVLEN_STATIC, String(PRINTF, L"%lu bytes", AES_GCM_NONCE_LENGTH));
+		SetText(IDC_CRPT_IVLEN_STATIC, String::Format(L"%lu bytes", AES_GCM_NONCE_LENGTH));
 		break;
 	}
 	UpdateControlsState(1);

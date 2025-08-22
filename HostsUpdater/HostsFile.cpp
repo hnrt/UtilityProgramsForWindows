@@ -90,8 +90,8 @@ void HostsFile::CreateBackup()
 		return;
 	}
 	DBGFNC(L"HostsFile::CreateBackup");
-	String szFileName(PRINTF, L"%s.backup", m_szFileName);
-	DBGPUT(L"FileName=%s", szFileName.Ptr);
+	String szFileName = String::Format(L"%s.backup", m_szFileName);
+	DBGPUT(L"FileName=%s", szFileName);
 	WindowsHandle hFile = CreateFileW(szFileName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (!m_hFile.isValid)
 	{

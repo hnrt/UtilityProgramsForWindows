@@ -376,13 +376,13 @@ void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName,
 
 void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName, long lValue)
 {
-    SetAttribute(pElement, pszName, String(PRINTF, L"%ld", lValue).Ptr);
+    SetAttribute(pElement, pszName, String::Format(L"%ld", lValue).Ptr);
 }
 
 
 void XmlDocument::SetAttribute(MSXML2::IXMLDOMElement* pElement, PCWSTR pszName, const RectangleMetrics& value)
 {
-    SetAttribute(pElement, pszName, String(PRINTF, L"%ld,%ld,%ld,%ld", value.left, value.top, value.right, value.bottom).Ptr);
+    SetAttribute(pElement, pszName, String::Format(L"%ld,%ld,%ld,%ld", value.left, value.top, value.right, value.bottom).Ptr);
 }
 
 

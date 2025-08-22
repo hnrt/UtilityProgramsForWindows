@@ -4,8 +4,7 @@ namespace hnrt
 {
     enum StringOptions
     {
-        PRINTF = 1,
-        CONCAT,
+        CONCAT = 1,
         CONCAT2,
         CONCAT3,
         CONCAT4,

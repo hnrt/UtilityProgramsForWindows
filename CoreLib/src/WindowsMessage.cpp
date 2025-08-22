@@ -257,15 +257,15 @@ PCWSTR WindowsMessage::get_Name() const
         default:
             if (m_value < WM_USER)
             {
-                m_sz = String(PRINTF, L"WM_%04X", m_value);
+                m_sz = String::Format(L"WM_%04X", m_value);
             }
             else if (m_value < WM_APP)
             {
-                m_sz = String(PRINTF, L"WM_USER_%04X", m_value - WM_USER);
+                m_sz = String::Format(L"WM_USER_%04X", m_value - WM_USER);
             }
             else if (m_value < 0xC000)
             {
-                m_sz = String(PRINTF, L"WM_APP_%04X", m_value - WM_APP);
+                m_sz = String::Format(L"WM_APP_%04X", m_value - WM_APP);
             }
             else if (m_value < 0x10000)
             {
@@ -276,12 +276,12 @@ PCWSTR WindowsMessage::get_Name() const
                 }
                 else
                 {
-                    m_sz = String(PRINTF, L"?%04X?", m_value);
+                    m_sz = String::Format(L"?%04X?", m_value);
                 }
             }
             else
             {
-                m_sz = String(PRINTF, L"?%08X?", m_value);
+                m_sz = String::Format(L"?%08X?", m_value);
             }
             break;
         }

@@ -402,6 +402,7 @@
     <ClCompile Include="src\StringCaseInsensitive_operator.cpp" />
     <ClCompile Include="src\StringCaseInsensitive_static.cpp" />
     <ClCompile Include="src\StringCollection.cpp" />
+    <ClCompile Include="src\String_CompareCaseInsensitively.cpp" />
     <ClCompile Include="src\StrToDouble.cpp" />
     <ClCompile Include="src\StringUtils.cpp" />
     <ClCompile Include="src\String_Append.cpp" />

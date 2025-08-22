@@ -48,10 +48,6 @@ String::String(StringOptions option, PCWSTR psz, ...)
     va_start(argList, psz);
     switch (option)
     {
-    case PRINTF:
-        m_psz = RefStr::Create(VaStrFmtLen(psz, argList));
-        VaStrFmt(m_psz, Len + 1, psz, argList);
-        break;
     case CONCAT:
     case CONCAT2:
     case CONCAT3:

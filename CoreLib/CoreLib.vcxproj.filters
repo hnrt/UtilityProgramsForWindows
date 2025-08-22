@@ -857,5 +857,8 @@
     <ClCompile Include="src\ZipFile_ForEach.cpp">
       <Filter>ソース ファイル\Zip</Filter>
     </ClCompile>
+    <ClCompile Include="src\String_CompareCaseInsensitively.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

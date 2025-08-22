@@ -125,6 +125,6 @@ String hnrt::BCryptErrorLabel(NTSTATUS status)
     CASE(STATUS_INVALID_PARAMETER);
     CASE(STATUS_NOT_SUPPORTED);
 #undef CASE
-    default: return String(PRINTF, L"0x%08lX", status);
+    default: return String::Format(L"0x%08lX", status);
     }
 }

@@ -413,7 +413,7 @@ void HostsUpdateService::Log(PCWSTR pszFormat, ...)
 	}
 	SYSTEMTIME t = { 0 };
 	GetLocalTime(&t);
-	String sz(PRINTF, L"%04d-%02d-%02dT%02d:%02d:%02d.%03d ", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond, t.wMilliseconds);
+	String sz = String::Format(L"%04d-%02d-%02dT%02d:%02d:%02d.%03d ", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond, t.wMilliseconds);
 	va_list argList;
 	va_start(argList, pszFormat);
 	sz.VaAppendFormat(pszFormat, argList);

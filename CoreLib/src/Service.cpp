@@ -94,7 +94,7 @@ ServiceConfiguration& ServiceConfiguration::SetDescription(UINT uId)
     WCHAR szPath[MAX_PATH];
     if (GetModuleFileNameW(NULL, szPath, MAX_PATH))
     {
-        m_Description = String(PRINTF, L"@%s,-%u", szPath, uId);
+        m_Description = String::Format(L"@%s,-%u", szPath, uId);
     }
     else
     {
@@ -145,7 +145,7 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath)
     }
     if (wcschr(pszPath, L' '))
     {
-        m_BinaryPathName = String(PRINTF, L"\"%s\"", pszPath);
+        m_BinaryPathName = String::Format(L"\"%s\"", pszPath);
     }
     else
     {
@@ -160,11 +160,11 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PC
     SetBinaryPathName(pszPath);
     if (wcschr(pszArg1, L' '))
     {
-        m_BinaryPathName = String(PRINTF, L"%s \"%s\"", m_BinaryPathName.Ptr, pszArg1);
+        m_BinaryPathName = String::Format(L"%s \"%s\"", m_BinaryPathName.Ptr, pszArg1);
     }
     else
     {
-        m_BinaryPathName = String(PRINTF, L"%s %s", m_BinaryPathName.Ptr, pszArg1);
+        m_BinaryPathName = String::Format(L"%s %s", m_BinaryPathName.Ptr, pszArg1);
     }
     return *this;
 }
@@ -175,11 +175,11 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PC
     SetBinaryPathName(pszPath, pszArg1);
     if (wcschr(pszArg2, L' '))
     {
-        m_BinaryPathName = String(PRINTF, L"%s \"%s\"", m_BinaryPathName.Ptr, pszArg2);
+        m_BinaryPathName = String::Format(L"%s \"%s\"", m_BinaryPathName.Ptr, pszArg2);
     }
     else
     {
-        m_BinaryPathName = String(PRINTF, L"%s %s", m_BinaryPathName.Ptr, pszArg2);
+        m_BinaryPathName = String::Format(L"%s %s", m_BinaryPathName.Ptr, pszArg2);
     }
     return *this;
 }
@@ -190,11 +190,11 @@ ServiceConfiguration& ServiceConfiguration::SetBinaryPathName(PCWSTR pszPath, PC
     SetBinaryPathName(pszPath, pszArg1, pszArg2);
     if (wcschr(pszArg3, L' '))
     {
-        m_BinaryPathName = String(PRINTF, L"%s \"%s\"", m_BinaryPathName.Ptr, pszArg3);
+        m_BinaryPathName = String::Format(L"%s \"%s\"", m_BinaryPathName.Ptr, pszArg3);
     }
     else
     {
-        m_BinaryPathName = String(PRINTF, L"%s %s", m_BinaryPathName.Ptr, pszArg3);
+        m_BinaryPathName = String::Format(L"%s %s", m_BinaryPathName.Ptr, pszArg3);
     }
     return *this;
 }

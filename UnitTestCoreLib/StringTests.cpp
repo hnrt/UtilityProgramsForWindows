@@ -230,7 +230,7 @@ namespace UnitTestCoreLib
 			String s1 = L"123";
 			Debug::Put(L"StringTest11: [1] s1@%p=\"%s\"", s1, s1);
 			Assert::AreEqual(0, wcscmp(s1, L"123"));
-			s1.Format(L"%d%s", 444, L"quux");
+			s1 = String::Format(L"%d%s", 444, L"quux");
 			Debug::Put(L"StringTest11: [2] s1@%p=\"%s\"", s1, s1);
 			Assert::AreEqual(0, wcscmp(s1, L"444quux"));
 			s1.AppendFormat(L"-%s-%d", L"fred", 555);

@@ -14,7 +14,7 @@ SIZE_T hnrt::StrUpr(WCHAR* str, SSIZE_T count)
 	if (ret)
 	{
 		WCHAR sz[256] = { 0 };
-		throw Exception(L"%s", !_wcserror_s(sz, ret) ? sz : String(PRINTF, L"_wcsupr_s failed with errno of %d", ret));
+		throw Exception(L"%s", !_wcserror_s(sz, ret) ? sz : String::Format(L"_wcsupr_s failed with errno of %d", ret));
 	}
 	return count < 0 ? cch : StrLen(str, count);
 }
@@ -28,7 +28,7 @@ SIZE_T hnrt::StrUpr(CHAR* str, SSIZE_T count)
 	if (ret)
 	{
 		WCHAR sz[256] = { 0 };
-		throw Exception(L"%s", !_wcserror_s(sz, ret) ? sz : String(PRINTF, L"_strupr_s failed with errno of %d", ret));
+		throw Exception(L"%s", !_wcserror_s(sz, ret) ? sz : String::Format(L"_strupr_s failed with errno of %d", ret));
 	}
 	return count < 0 ? cb : StrLen(str, count);
 }

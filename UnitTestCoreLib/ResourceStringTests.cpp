@@ -14,7 +14,7 @@ namespace UnitTestCoreLib
 		TEST_CLASS_INITIALIZE(Initialize)
 		{
 			ResourceString::m_hInstance = GetModuleHandleW(L"UnitTestCoreLib.dll");
-			Logger::WriteMessage(String(PRINTF, L"ResourceString::m_hInstance=%p", ResourceString::m_hInstance));
+			Logger::WriteMessage(String::Format(L"ResourceString::m_hInstance=%p", ResourceString::m_hInstance));
 		}
 
 		TEST_METHOD(Test01)
@@ -31,7 +31,7 @@ namespace UnitTestCoreLib
 		{
 			ResourceString s1(IDS_ENGLISH);
 			ResourceString s2(IDS_JAPANESE);
-			String s3(PRINTF, L"%s|%s", s1, s2);
+			String s3 = String::Format(L"%s|%s", s1, s2);
 			Debug::Put(L"ResourceStringTest2: s3=\"%s\"", s3);
 			Assert::AreEqual(0, wcscmp(s3, L"‰pŒê|“ú–{Œê"));
 		}

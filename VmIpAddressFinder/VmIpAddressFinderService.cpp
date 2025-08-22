@@ -92,7 +92,7 @@ String VmIpAddressFinder::GetServiceCommandPath()
 {
     WCHAR szFileName[MAX_PATH] = { 0 };
     GetModuleFileNameW(NULL, szFileName, MAX_PATH);
-    return String(PRINTF, L"\"%s\" -run", szFileName);
+    return String::Format(L"\"%s\" -run", szFileName);
 }
 
 
@@ -279,7 +279,7 @@ static String GetStateText(DWORD dwState)
         dwState == SERVICE_STOP_PENDING ? L"SERVICE_STOP_PENDING" :
         dwState == SERVICE_PAUSE_PENDING ? L"SERVICE_PAUSE_PENDING" :
         dwState == SERVICE_CONTINUE_PENDING ? L"SERVICE_CONTINUE_PENDING" :
-        String(PRINTF, L"%lu", dwState);
+        String::Format(L"%lu", dwState);
 }
 
 

@@ -19,7 +19,7 @@ static FILE* s_pErrStream = stderr;
 void VmIpAddressFinder::OpenStream()
 {
     DBGFNC(L"VmIpAddressFinder::OpenStream");
-    String szPath = Path::Combine(Path::GetKnownFolder(FOLDERID_PublicDocuments), String(PRINTF, L"%s.log", Instance().m_szName.Ptr));
+    String szPath = Path::Combine(Path::GetKnownFolder(FOLDERID_PublicDocuments), String::Format(L"%s.log", Instance().m_szName.Ptr));
     DBGPUT(L"Path=%s", szPath.Ptr);
     int fd = -1;
     errno_t err = _wsopen_s(&fd, szPath, _O_WRONLY | _O_CREAT | _O_APPEND | _O_U8TEXT, _SH_DENYWR, _S_IREAD | _S_IWRITE);

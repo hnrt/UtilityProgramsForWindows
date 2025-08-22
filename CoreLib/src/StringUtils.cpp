@@ -9,24 +9,23 @@ using namespace hnrt;
 
 String hnrt::JoinBy(const std::vector<DWORD>& values, PCWSTR pszSeparator, PCWSTR pszFormat)
 {
-	String result;
 	switch (values.size())
 	{
 	case 0:
-		break;
+		return String();
 	case 1:
-		result.Format(pszFormat, values[0]);
-		break;
+		return String::Format(pszFormat, values[0]);
 	default:
 	{
+		String result;
 		std::vector<DWORD>::const_iterator iter = values.cbegin();
-		result.Format(pszFormat, *iter);
+		result = String::Format(pszFormat, *iter);
 		String szCombinedFormat(CONCAT2, L"%s", pszFormat);
 		for (iter++; iter != values.cend(); iter++)
 		{
 			result.AppendFormat(szCombinedFormat, pszSeparator, *iter);
 		}
+		return result;
 	}
 	}
-	return result;
 }

@@ -260,7 +260,7 @@ String UiAutomation::GetRoleName(DWORD dwRole)
         ROLETEXT(ROLE_SYSTEM_OUTLINEBUTTON);
 #undef ROLETEXT
     default:
-        return String(PRINTF, L"ROLE_%ld", dwRole);
+        return String::Format(L"ROLE_%ld", dwRole);
     }
 }
 

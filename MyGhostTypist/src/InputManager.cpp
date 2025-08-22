@@ -22,17 +22,17 @@ RefPtr<InputManager> InputManager::Create(PCWSTR pszAppDir, PCWSTR pszInstallDir
     InputManager* km = new InputManager();
     HKL hkl = GetKeyboardLayout(GetCurrentThreadId());
     UINT id = static_cast<UINT>(reinterpret_cast<UINT_PTR>(hkl) & 0xFFFF);
-    String strFileName = Path::Combine(pszAppDir, String(PRINTF, FILENAME, id));
+    String strFileName = Path::Combine(pszAppDir, String::Format(FILENAME, id));
     if (!Path::Exists(strFileName))
     {
-        strFileName = Path::Combine(pszInstallDir, String(PRINTF, FILENAME, id));
+        strFileName = Path::Combine(pszInstallDir, String::Format(FILENAME, id));
         if (!Path::Exists(strFileName))
         {
             id = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-            strFileName = Path::Combine(pszAppDir, String(PRINTF, FILENAME, id));
+            strFileName = Path::Combine(pszAppDir, String::Format(FILENAME, id));
             if (!Path::Exists(strFileName))
             {
-                strFileName = Path::Combine(pszInstallDir, String(PRINTF, FILENAME, id));
+                strFileName = Path::Combine(pszInstallDir, String::Format(FILENAME, id));
                 if (!Path::Exists(strFileName))
                 {
                     throw Exception(ResourceString(IDS_KEYSTROKE_MANAGER_UNAVAILABLE));

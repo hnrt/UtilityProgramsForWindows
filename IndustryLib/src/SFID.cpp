@@ -69,7 +69,7 @@ String SFID::ComputeChecksum(const WCHAR s[])
         a2 = (a2 << 1) | b2;
         a3 = (a3 << 1) | b3;
     }
-    return String(PRINTF, L"%c%c%c", ChecksumTable[a1], ChecksumTable[a2], ChecksumTable[a3]);
+    return String::Format(L"%c%c%c", ChecksumTable[a1], ChecksumTable[a2], ChecksumTable[a3]);
 }
 
 

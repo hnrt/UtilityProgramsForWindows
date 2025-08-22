@@ -744,11 +744,11 @@ INT_PTR CronDialogBox::OnTimer(WPARAM wParam, LPARAM lParam)
 			if (m_cron.GetNextTime(st, st))
 			{
 				FileTime(st).AddMinutes(m_offset).ToSystemTime(st);
-				status.Format(L"OK [ %04d-%02d-%02d %02d:%02d:%02d ]", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+				status = String::Format(L"OK [ %04d-%02d-%02d %02d:%02d:%02d ]", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 			}
 			else
 			{
-				status.Format(L"OK [ No more scheduled time ]");
+				status = String::Format(L"OK [ No more scheduled time ]");
 			}
 			if (GetText(IDC_CRON_EXPR_STATIC) != status)
 			{
@@ -1025,7 +1025,7 @@ void CronDialogBox::AppendToExpression(const String& sz) const
 	{
 		if (GetTextLength(IDC_CRON_EXPR_EDIT) > 0)
 		{
-			SetText(IDC_CRON_EXPR_EDIT, String(PRINTF, L"%s %s", GetText(IDC_CRON_EXPR_EDIT), sz));
+			SetText(IDC_CRON_EXPR_EDIT, String::Format(L"%s %s", GetText(IDC_CRON_EXPR_EDIT), sz));
 		}
 		else
 		{
