@@ -37,10 +37,10 @@ namespace hnrt
 
         String Substring(int) const;
         String Substring(int, int) const;
-        String Lettercase(StringOptions);
-        String Uppercase();
-        String Lowercase();
-        String Trim(StringOptions = TRIM);
+        String Lettercase(StringOptions) const;
+        String Uppercase() const;
+        String Lowercase() const;
+        String Trim(StringOptions = TRIM) const;
         String Replace(PCWSTR, PCWSTR, int = INT_MAX) const;
         String Wrap(UINT, PCWSTR = L"\r\n") const;
         String ChangeLineBreak(LineBreak) const;
@@ -52,17 +52,18 @@ namespace hnrt
         bool StartsWith(PCWSTR, SSIZE_T = -1) const;
         bool EndsWith(PCWSTR, SSIZE_T = -1) const;
 
-        long ToLong(long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
-        unsigned long ToUnsignedLong(unsigned long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
-        long long ToLongLong(long long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
-        unsigned long long ToUnsignedLongLong(unsigned long long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10);
-        double ToDouble(double defaultValue = 0L, BOOL* pbSuccessful = nullptr);
+        long ToLong(long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10) const;
+        unsigned long ToUnsignedLong(unsigned long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10) const;
+        long long ToLongLong(long long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10) const;
+        unsigned long long ToUnsignedLongLong(unsigned long long defaultValue = 0L, BOOL* pbSuccessful = nullptr, int nRadix = 10) const;
+        double ToDouble(double defaultValue = 0L, BOOL* pbSuccessful = nullptr) const;
 
-        operator PCWSTR() const;
         String& operator =(const String&);
         String& operator =(PCWSTR);
         String& operator +=(const String&);
         String& operator +=(PCWSTR);
+
+        operator PCWSTR() const;
         bool operator ==(const String&) const;
         bool operator !=(const String&) const;
         bool operator <(const String&) const;
@@ -96,12 +97,12 @@ namespace hnrt
         static int CompareCaseInsensitively(PCWSTR psz1, SSIZE_T cch1, PCWSTR psz2, SSIZE_T cch2);
     };
 
-    inline String String::Uppercase()
+    inline String String::Uppercase() const
     {
         return Lettercase(UPPERCASE);
     }
 
-    inline String String::Lowercase()
+    inline String String::Lowercase() const
     {
         return Lettercase(LOWERCASE);
     }

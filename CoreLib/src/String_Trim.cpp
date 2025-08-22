@@ -5,7 +5,7 @@
 using namespace hnrt;
 
 
-String String::Trim(StringOptions option)
+String String::Trim(StringOptions option) const
 {
     if (Len)
     {

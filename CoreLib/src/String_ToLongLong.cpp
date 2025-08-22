@@ -5,7 +5,7 @@
 using namespace hnrt;
 
 
-long long String::ToLongLong(long long defaultValue, BOOL* pbSuccessful, int nRadix)
+long long String::ToLongLong(long long defaultValue, BOOL* pbSuccessful, int nRadix) const
 {
     if (Len)
     {

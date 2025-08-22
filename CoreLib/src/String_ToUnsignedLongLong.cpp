@@ -5,7 +5,7 @@
 using namespace hnrt;
 
 
-unsigned long long String::ToUnsignedLongLong(unsigned long long defaultValue, BOOL* pbSuccessful, int nRadix)
+unsigned long long String::ToUnsignedLongLong(unsigned long long defaultValue, BOOL* pbSuccessful, int nRadix) const
 {
     if (Len)
     {

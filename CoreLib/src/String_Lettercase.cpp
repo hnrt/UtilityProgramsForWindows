@@ -5,7 +5,7 @@
 using namespace hnrt;
 
 
-String String::Lettercase(StringOptions option)
+String String::Lettercase(StringOptions option) const
 {
     String s(Ptr, Len);
     if (s.Len)

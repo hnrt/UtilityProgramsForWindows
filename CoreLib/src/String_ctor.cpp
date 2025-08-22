@@ -6,7 +6,7 @@
 using namespace hnrt;
 
 
-const String String::Empty = String(0ULL);
+const String String::Empty = String(0ULL, L'\0');
 
 
 String::String()
