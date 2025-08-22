@@ -315,6 +315,64 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(-1, o9);
 		}
 
+		TEST_METHOD(Test15)
+		{
+			String s1 = L"A quick brown fox jumps over the lazy dog.";
+			int o0 = s1.LastIndexOf('@');
+			int o1 = s1.LastIndexOf('A');
+			int o2 = s1.LastIndexOf('b');
+			int o3 = s1.LastIndexOf('A', 3);
+			int o4 = s1.LastIndexOf('b', 4);
+			int o5 = s1.LastIndexOf(' ');
+			int o6 = s1.LastIndexOf(' ', 2);
+			int o7 = s1.LastIndexOf(' ', 8);
+			Debug::Put(L"StringTest15: LastIndexOf('a')=%d", o0);
+			Debug::Put(L"StringTest15: LastIndexOf('A')=%d", o1);
+			Debug::Put(L"StringTest15: LastIndexOf('b')=%d", o2);
+			Debug::Put(L"StringTest15: LastIndexOf('A',3)=%d", o3);
+			Debug::Put(L"StringTest15: LastIndexOf('b',4)=%d", o4);
+			Debug::Put(L"StringTest15: LastIndexOf(' ')=%d", o5);
+			Debug::Put(L"StringTest15: LastIndexOf(' ',2)=%d", o6);
+			Debug::Put(L"StringTest15: LastIndexOf(' ',8)=%d", o7);
+			Assert::AreEqual(-1, o0);
+			Assert::AreEqual(0, o1);
+			Assert::AreEqual(8, o2);
+			Assert::AreEqual(0, o3);
+			Assert::AreEqual(-1, o4);
+			Assert::AreEqual(37, o5);
+			Assert::AreEqual(1, o6);
+			Assert::AreEqual(7, o7);
+		}
+
+		TEST_METHOD(Test16)
+		{
+			String s1 = L"AAA BXX BBC AAA BBB CCC";
+			int o0 = s1.LastIndexOf(L"123");
+			int o1 = s1.LastIndexOf(L"AA");
+			int o2 = s1.LastIndexOf(L"AA", 1);
+			int o3 = s1.LastIndexOf(L"AA", 2);
+			int o4 = s1.LastIndexOf(L"AA", 13);
+			int o5 = s1.LastIndexOf(L"AA", 14);
+			int o6 = s1.LastIndexOf(L"BBB", 0);
+			int o9 = s1.LastIndexOf(L"BBBB", 0);
+			Debug::Put(L"StringTest16: LastIndexOf(\"123\")=%d", o0);
+			Debug::Put(L"StringTest16: LastIndexOf(\"AA\")=%d", o1);
+			Debug::Put(L"StringTest16: LastIndexOf(\"AA\",1)=%d", o2);
+			Debug::Put(L"StringTest16: LastIndexOf(\"AA\",2)=%d", o3);
+			Debug::Put(L"StringTest16: LastIndexOf(\"AA\",13)=%d", o4);
+			Debug::Put(L"StringTest16: LastIndexOf(\"AA\",14)=%d", o5);
+			Debug::Put(L"StringTest16: LastIndexOf(\"BBB\",0)=%d", o6);
+			Debug::Put(L"StringTest16: LastIndexOf(\"BBBB\",0)=%d", o9);
+			Assert::AreEqual(-1, o0);
+			Assert::AreEqual(13, o1);
+			Assert::AreEqual(0, o2);
+			Assert::AreEqual(1, o3);
+			Assert::AreEqual(12, o4);
+			Assert::AreEqual(13, o5);
+			Assert::AreEqual(-1, o6);
+			Assert::AreEqual(-1, o9);
+		}
+
 	private:
 
 		String* Sprintf(PCWSTR pszFormat, ...)

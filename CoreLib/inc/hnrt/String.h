@@ -46,6 +46,8 @@ namespace hnrt
 
         int IndexOf(int, SIZE_T = 0) const;
         int IndexOf(const String&, SIZE_T = 0) const;
+        int LastIndexOf(int, SSIZE_T = -1) const;
+        int LastIndexOf(const String&, SSIZE_T = -1) const;
         bool StartsWith(PCWSTR, SSIZE_T = -1) const;
         bool EndsWith(PCWSTR, SSIZE_T = -1) const;
 
