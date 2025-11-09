@@ -291,7 +291,7 @@ void Service::Create(SC_HANDLE hSCM, ServiceConfiguration& config)
         config.m_LoadOrderGroup,
         NULL,
         config.m_dependencies,
-        config.m_ServiceStartName,
+        config.m_ServiceStartName.Len == 0 ? NULL : config.m_ServiceStartName,
         config.m_Password);
     if (!m_h)
     {
