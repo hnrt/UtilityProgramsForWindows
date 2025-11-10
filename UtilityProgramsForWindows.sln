@@ -118,6 +118,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IndustryLib", "IndustryLib\
 		{763676DB-D7BC-4FFD-8310-B91A37D796C1} = {763676DB-D7BC-4FFD-8310-B91A37D796C1}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JarLauncher", "JarLauncher\JarLauncher.vcxproj", "{D608D163-9240-4409-822C-B951A27ACC88}"
+	ProjectSection(ProjectDependencies) = postProject
+		{763676DB-D7BC-4FFD-8310-B91A37D796C1} = {763676DB-D7BC-4FFD-8310-B91A37D796C1}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -374,6 +379,18 @@ Global
 		{E093AEBC-EA20-4FB9-BC2B-D94C7E1CA0A2}.Release|x64.Build.0 = Release|x64
 		{E093AEBC-EA20-4FB9-BC2B-D94C7E1CA0A2}.Release|x86.ActiveCfg = Release|Win32
 		{E093AEBC-EA20-4FB9-BC2B-D94C7E1CA0A2}.Release|x86.Build.0 = Release|Win32
+		{D608D163-9240-4409-822C-B951A27ACC88}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{D608D163-9240-4409-822C-B951A27ACC88}.Debug|Any CPU.Build.0 = Debug|x64
+		{D608D163-9240-4409-822C-B951A27ACC88}.Debug|x64.ActiveCfg = Debug|x64
+		{D608D163-9240-4409-822C-B951A27ACC88}.Debug|x64.Build.0 = Debug|x64
+		{D608D163-9240-4409-822C-B951A27ACC88}.Debug|x86.ActiveCfg = Debug|Win32
+		{D608D163-9240-4409-822C-B951A27ACC88}.Debug|x86.Build.0 = Debug|Win32
+		{D608D163-9240-4409-822C-B951A27ACC88}.Release|Any CPU.ActiveCfg = Release|x64
+		{D608D163-9240-4409-822C-B951A27ACC88}.Release|Any CPU.Build.0 = Release|x64
+		{D608D163-9240-4409-822C-B951A27ACC88}.Release|x64.ActiveCfg = Release|x64
+		{D608D163-9240-4409-822C-B951A27ACC88}.Release|x64.Build.0 = Release|x64
+		{D608D163-9240-4409-822C-B951A27ACC88}.Release|x86.ActiveCfg = Release|Win32
+		{D608D163-9240-4409-822C-B951A27ACC88}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
