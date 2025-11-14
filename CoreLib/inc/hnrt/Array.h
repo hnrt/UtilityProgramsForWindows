@@ -10,172 +10,208 @@ namespace hnrt
     {
     public:
 
-        Array(size_t size = 0);
+        Array(SIZE_T capacity = 0);
         Array(const Array<T>& src);
         ~Array();
+        Array<T>& SetCapacity(SIZE_T capacity);
+        Array<T>& SetLength(SIZE_T length);
+        Array<T>& Assign(const Array<T>& src);
+        Array<T>& PushBack(const T& value);
+        const T& At(SSIZE_T index) const;
+        T& At(SSIZE_T index);
         Array<T>& operator =(const Array<T>& src);
-        const T& operator [](LONG index) const;
-        T& operator [](LONG index);
-        T& operator +=(const T& src);
-        Array<T>& Resize(size_t size);
+        Array<T>& operator +=(const T& value);
+        const T& operator [](SSIZE_T index) const;
+        T& operator [](SSIZE_T index);
 
-        DWORD get_Count() const;
+        DWORD get_Length() const;
+        void set_Length(DWORD);
 
-        __declspec(property(get = get_Count)) DWORD Count;
+        __declspec(property(get = get_Length, put = set_Length)) DWORD Length;
 
     protected:
 
         T* m_pBase;
-        DWORD m_dwSize;
-        DWORD m_dwCount;
+        DWORD m_dwCapacity;
+        DWORD m_dwLength;
     };
 
     template<typename T>
-    inline Array<T>::Array(size_t size)
+    inline Array<T>::Array(SIZE_T capacity)
         : m_pBase(nullptr)
-        , m_dwSize(0)
-        , m_dwCount(0)
+        , m_dwCapacity(0)
+        , m_dwLength(0)
     {
-        if (size)
-        {
-            m_pBase = Allocate<T>(size);
-            m_dwSize = static_cast<DWORD>(size);
-        }
+        SetCapacity(capacity);
     }
 
     template<typename T>
     inline Array<T>::Array(const Array<T>& src)
         : m_pBase(nullptr)
-        , m_dwSize(0)
-        , m_dwCount(0)
+        , m_dwCapacity(0)
+        , m_dwLength(0)
     {
-        if (src.m_dwSize)
-        {
-            m_pBase = Allocate<T>(src.m_dwSize);
-            m_dwSize = src.m_dwSize;
-            for (DWORD dwIndex = 0; dwIndex < src.m_dwCount; dwIndex++)
-            {
-                new (&m_pBase[dwIndex]) T(src.m_pBase[dwIndex]);
-            }
-            m_dwCount = src.m_dwCount;
-        }
+        Assign(src);
     }
 
     template<typename T>
     inline Array<T>::~Array()
     {
-        for (DWORD dwIndex = 0; dwIndex < m_dwCount; dwIndex++)
+        SetCapacity(0);
+    }
+
+    template<typename T>
+    inline Array<T>& Array<T>::SetCapacity(SIZE_T capacity)
+    {
+        DWORD dwCapacity = static_cast<DWORD>(capacity);
+        if (m_dwCapacity < dwCapacity)
         {
-            m_pBase[dwIndex].~T();
+            m_pBase = Allocate<T>(m_pBase, dwCapacity);
+            m_dwCapacity = dwCapacity;
         }
-        free(m_pBase);
+        else if (dwCapacity < m_dwCapacity)
+        {
+            while (dwCapacity < m_dwLength)
+            {
+                m_pBase[--m_dwLength].~T();
+            }
+            if (dwCapacity)
+            {
+                m_pBase = Allocate<T>(m_pBase, dwCapacity);
+                m_dwCapacity = dwCapacity;
+            }
+            else
+            {
+                free(m_pBase);
+                m_pBase = nullptr;
+                m_dwCapacity = 0;
+            }
+        }
+        return *this;
+    }
+
+    template<typename T>
+    inline Array<T>& Array<T>::SetLength(SIZE_T length)
+    {
+        DWORD dwLength = static_cast<DWORD>(length);
+        if (m_dwCapacity < dwLength)
+        {
+            SetCapacity(dwLength);
+        }
+        if (m_dwLength < dwLength)
+        {
+            do
+            {
+                new (&m_pBase[m_dwLength++]) T();
+            }
+            while (m_dwLength < dwLength);
+        }
+        else
+        {
+            while (dwLength < m_dwLength)
+            {
+                m_pBase[--m_dwLength].~T();
+            }
+        }
+        return *this;
+    }
+
+    template<typename T>
+    inline Array<T>& Array<T>::Assign(const Array<T>& src)
+    {
+        SetCapacity(0);
+        if (src.m_dwCapacity)
+        {
+            m_pBase = Allocate<T>(src.m_dwCapacity);
+            m_dwCapacity = src.m_dwCapacity;
+            for (DWORD dwIndex = 0; dwIndex < src.m_dwLength; dwIndex++)
+            {
+                new (&m_pBase[dwIndex]) T(src.m_pBase[dwIndex]);
+            }
+            m_dwLength = src.m_dwLength;
+        }
+        return *this;
+    }
+
+    template<typename T>
+    inline Array<T>& Array<T>::PushBack(const T& value)
+    {
+        if (m_dwCapacity < m_dwLength + 1)
+        {
+            DWORD dwCapacity = m_dwCapacity < 16 ? 32 : m_dwCapacity < 65536 ? (m_dwCapacity * 2) : (m_dwCapacity + 65536);
+            SetCapacity(dwCapacity);
+        }
+        new (&m_pBase[m_dwLength++]) T(value);
+        return *this;
+    }
+
+    template<typename T>
+    inline const T& Array<T>::At(SSIZE_T index) const
+    {
+        if (0 <= index && index < static_cast<SSIZE_T>(m_dwLength))
+        {
+            return m_pBase[index];
+        }
+        else if (0 <= static_cast<SSIZE_T>(m_dwLength) + index && index < 0)
+        {
+            return m_pBase[m_dwLength + index];
+        }
+        else
+        {
+            throw std::runtime_error("Array<T>::At: Index out of range.");
+        }
+    }
+
+    template<typename T>
+    inline T& Array<T>::At(SSIZE_T index)
+    {
+        if (0 <= index && index < static_cast<SSIZE_T>(m_dwLength))
+        {
+            return m_pBase[index];
+        }
+        else if (0 <= static_cast<SSIZE_T>(m_dwLength) + index && index < 0)
+        {
+            return m_pBase[m_dwLength + index];
+        }
+        else
+        {
+            throw std::runtime_error("Array<T>::At: Index out of range.");
+        }
     }
 
     template<typename T>
     inline Array<T>& Array<T>::operator =(const Array<T>& src)
     {
-        for (DWORD dwIndex = 0; dwIndex < m_dwCount; dwIndex++)
-        {
-            m_pBase[dwIndex].~T();
-        }
-        free(m_pBase);
-        if (src.m_dwSize)
-        {
-            m_pBase = Allocate<T>(src.m_dwSize);
-            m_dwSize = src.m_dwSize;
-            for (DWORD dwIndex = 0; dwIndex < src.m_dwCount; dwIndex++)
-            {
-                new (&m_pBase[dwIndex]) T(src.m_pBase[dwIndex]);
-            }
-            m_dwCount = src.m_dwCount;
-        }
-        else
-        {
-            m_pBase = nullptr;
-            m_dwSize = 0;
-            m_dwCount = 0;
-        }
-        return *this;
+        return Assign(src);
     }
 
     template<typename T>
-    inline const T& Array<T>::operator [](LONG index) const
+    inline Array<T>& Array<T>::operator +=(const T& value)
     {
-        if (0 <= index && index < static_cast<LONG>(m_dwCount))
-        {
-            return m_pBase[index];
-        }
-        else if (0 <= static_cast<LONG>(m_dwCount) + index && index < 0)
-        {
-            return m_pBase[m_dwCount + index];
-        }
-        else
-        {
-            throw std::runtime_error("Array<T>::operator[]: Index out of range.");
-        }
+        return PushBack(value);
     }
 
     template<typename T>
-    inline T& Array<T>::operator [](LONG index)
+    inline const T& Array<T>::operator [](SSIZE_T index) const
     {
-        if (0 <= index && index < static_cast<LONG>(m_dwCount))
-        {
-            return m_pBase[index];
-        }
-        else if (0 <= static_cast<LONG>(m_dwCount) + index && index < 0)
-        {
-            return m_pBase[m_dwCount + index];
-        }
-        else
-        {
-            throw std::runtime_error("Array<T>::operator[]: Index out of range.");
-        }
+        return At(index);
     }
 
     template<typename T>
-    inline T& Array<T>::operator +=(const T& src)
+    inline T& Array<T>::operator [](SSIZE_T index)
     {
-        if (m_dwCount + 1 > m_dwSize)
-        {
-            DWORD dwSize = m_dwSize < 16 ? 32 : m_dwSize < 65536 ? (m_dwSize * 2) : (m_dwSize + 65536);
-            Resize(dwSize);
-        }
-        new (&m_pBase[m_dwCount++]) T(src);
-        return m_pBase[m_dwCount - 1];
+        return At(index);
     }
 
     template<typename T>
-    inline Array<T>& Array<T>::Resize(size_t size)
+    inline DWORD Array<T>::get_Length() const
     {
-        DWORD dwSize = static_cast<DWORD>(size);
-        if (m_dwSize < dwSize)
-        {
-            m_pBase = Allocate<T>(m_pBase, dwSize);
-            m_dwSize = dwSize;
-        }
-        else if (dwSize < m_dwSize)
-        {
-            while (dwSize < m_dwCount)
-            {
-                m_pBase[--m_dwCount].~T();
-            }
-            if (dwSize)
-            {
-                m_pBase = Allocate<T>(m_pBase, dwSize);
-                m_dwSize = dwSize;
-            }
-            else
-            {
-                m_pBase = nullptr;
-                m_dwSize = 0;
-            }
-        }
-        return *this;
+        return m_dwLength;
     }
 
     template<typename T>
-    inline DWORD Array<T>::get_Count() const
+    inline void Array<T>::set_Length(DWORD dwLength)
     {
-        return m_dwCount;
+        SetLength(dwLength);
     }
 }

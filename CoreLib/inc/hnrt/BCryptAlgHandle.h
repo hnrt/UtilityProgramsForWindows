@@ -20,22 +20,22 @@ namespace hnrt
         DWORD get_ObjectLength() const;
         DWORD get_HashLength() const;
         DWORD get_BlockLength() const;
-        std::vector<DWORD> get_BlockSizeList() const;
-        std::vector<DWORD> get_KeyLengths() const;
+        Array<DWORD> get_BlockSizeList() const;
+        Array<DWORD> get_KeyLengths() const;
         String get_ChainingMode() const;
         void set_ChainingMode(String) const;
         String get_ChainingModeShort() const;
-        std::vector<DWORD> get_AuthTagLengths() const;
+        Array<DWORD> get_AuthTagLengths() const;
 
         __declspec(property(get = get_AlgorithmName)) String AlgorithmName;
         __declspec(property(get = get_ObjectLength)) DWORD ObjectLength;
         __declspec(property(get = get_HashLength)) DWORD HashLength;
         __declspec(property(get = get_BlockLength)) DWORD BlockLength;
-        __declspec(property(get = get_BlockSizeList)) std::vector<DWORD> BlockSizeList;
-        __declspec(property(get = get_KeyLengths)) std::vector<DWORD> KeyLengths;
+        __declspec(property(get = get_BlockSizeList)) Array<DWORD> BlockSizeList;
+        __declspec(property(get = get_KeyLengths)) Array<DWORD> KeyLengths;
         __declspec(property(get = get_ChainingMode, put = set_ChainingMode)) String ChainingMode;
         __declspec(property(get = get_ChainingModeShort)) String ChainingModeShort;
-        __declspec(property(get = get_AuthTagLengths)) std::vector<DWORD> AuthTagLengths;
+        __declspec(property(get = get_AuthTagLengths)) Array<DWORD> AuthTagLengths;
     };
 
     inline BCryptAlgHandle::BCryptAlgHandle()
@@ -76,12 +76,12 @@ namespace hnrt
         return GetPropertyDWORD(BCRYPT_BLOCK_LENGTH);
     }
 
-    inline std::vector<DWORD> BCryptAlgHandle::get_BlockSizeList() const
+    inline Array<DWORD> BCryptAlgHandle::get_BlockSizeList() const
     {
         return GetPropertyArrayDWORD(BCRYPT_BLOCK_SIZE_LIST);
     }
 
-    inline std::vector<DWORD> BCryptAlgHandle::get_KeyLengths() const
+    inline Array<DWORD> BCryptAlgHandle::get_KeyLengths() const
     {
         return GetPropertyKeyLengths(BCRYPT_KEY_LENGTHS);
     }
@@ -96,7 +96,7 @@ namespace hnrt
         SetProperty(BCRYPT_CHAINING_MODE, szChainingMode);
     }
 
-    inline std::vector<DWORD> BCryptAlgHandle::get_AuthTagLengths() const
+    inline Array<DWORD> BCryptAlgHandle::get_AuthTagLengths() const
     {
         return GetPropertyKeyLengths(BCRYPT_AUTH_TAG_LENGTH);
     }

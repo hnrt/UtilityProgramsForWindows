@@ -29,7 +29,7 @@ StringCollection& StringCollection::operator =(const StringCollection& src)
 
 StringCollection& StringCollection::Clear()
 {
-    Resize(0);
+    SetCapacity(0);
     return *this;
 }
 
@@ -50,15 +50,15 @@ StringCollection& StringCollection::Add(PCWSTR psz, size_t cch)
 
 StringCollection& StringCollection::RemoveAt(DWORD dwIndex)
 {
-    if (dwIndex < m_dwCount)
+    if (dwIndex < m_dwLength)
     {
-        m_dwCount--;
-        while (dwIndex < m_dwCount)
+        m_dwLength--;
+        while (dwIndex < m_dwLength)
         {
             m_pBase[dwIndex] = m_pBase[dwIndex + 1];
             dwIndex++;
         }
-        m_pBase[m_dwCount].~String();
+        m_pBase[m_dwLength].~String();
     }
     return *this;
 }
@@ -86,9 +86,9 @@ StringCollection& StringCollection::Split(PCWSTR psz, WCHAR sep, bool bAll)
 
 bool StringCollection::Contains(PCWSTR psz) const
 {
-    for (DWORD dwIndex = 0; dwIndex < Count; dwIndex++)
+    for (DWORD dwIndex = 0; dwIndex < Length; dwIndex++)
     {
-        if (!String::Compare(operator [](dwIndex), psz))
+        if (!String::Compare(At(dwIndex), psz))
         {
             return true;
         }

@@ -137,7 +137,7 @@ namespace hnrt
         MsiPaths(const MsiPaths&) = delete;
         virtual bool get_Null() const { return m_bNull; }
         virtual PCWSTR get_Text() const { return m_szText; }
-        virtual long get_Count() const { return static_cast<long>(m_Paths.Count); }
+        virtual long get_Count() const { return static_cast<long>(m_Paths.Length); }
         virtual PCWSTR operator [](long index) const { return m_Paths[index]; }
 
     protected:

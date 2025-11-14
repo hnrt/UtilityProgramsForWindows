@@ -47,8 +47,6 @@ namespace hnrt
 
 	private:
 
-		String DoRebuild(const UpdateMap& updateEntries, const AppendList& appendEntries);
-
 		String m_szFileName;
 		bool m_bReadOnly;
 		WindowsHandle m_hFile;

@@ -386,7 +386,7 @@ bool Path::ValidateDirectory(PCWSTR psz)
 }
 
 
-std::vector<DirectoryEntry>& Path::ListFiles(std::vector<DirectoryEntry>& entries, PCWSTR psz, PCWSTR pszPattern)
+Array<DirectoryEntry>& Path::ListFiles(Array<DirectoryEntry>& entries, PCWSTR psz, PCWSTR pszPattern)
 {
     WIN32_FIND_DATAW fd = { 0 };
     HANDLE h = FindFirstFileW(Path::Combine(psz, pszPattern), &fd);
@@ -394,13 +394,13 @@ std::vector<DirectoryEntry>& Path::ListFiles(std::vector<DirectoryEntry>& entrie
     {
         if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
         {
-            entries.push_back(DirectoryEntry(fd));
+            entries.PushBack(DirectoryEntry(fd));
         }
         while (FindNextFileW(h, &fd))
         {
             if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
             {
-                entries.push_back(DirectoryEntry(fd));
+                entries.PushBack(DirectoryEntry(fd));
             }
         }
         FindClose(h);
@@ -415,7 +415,7 @@ inline static bool IsCurrentOrParentDirectory(PCWSTR psz)
 }
 
 
-std::vector<DirectoryEntry>& Path::ListDirectories(std::vector<DirectoryEntry>& entries, PCWSTR psz, PCWSTR pszPattern)
+Array<DirectoryEntry>& Path::ListDirectories(Array<DirectoryEntry>& entries, PCWSTR psz, PCWSTR pszPattern)
 {
     WIN32_FIND_DATAW fd = { 0 };
     HANDLE h = FindFirstFileW(Path::Combine(psz, pszPattern), &fd);
@@ -425,7 +425,7 @@ std::vector<DirectoryEntry>& Path::ListDirectories(std::vector<DirectoryEntry>& 
         {
             if (!IsCurrentOrParentDirectory(fd.cFileName))
             {
-                entries.push_back(DirectoryEntry(fd));
+                entries.PushBack(DirectoryEntry(fd));
             }
         }
         while (FindNextFileW(h, &fd))
@@ -434,7 +434,7 @@ std::vector<DirectoryEntry>& Path::ListDirectories(std::vector<DirectoryEntry>& 
             {
                 if (!IsCurrentOrParentDirectory(fd.cFileName))
                 {
-                    entries.push_back(DirectoryEntry(fd));
+                    entries.PushBack(DirectoryEntry(fd));
                 }
             }
         }

@@ -47,7 +47,7 @@ void HostsFile::Close()
 	DBGFNC(L"HostsFile::Close");
 	m_hFile.Close();
 	m_buf.Resize(0);
-	m_Entries.Resize(0);
+	m_Entries.SetCapacity(0);
 	m_dwError = ERROR_SUCCESS;
 }
 
@@ -209,7 +209,7 @@ void HostsFile::Parse()
 {
 	DBGFNC(L"HostsFile::Parse");
 	m_dwError = ERROR_SUCCESS;
-	m_Entries.Resize(0);
+	m_Entries.SetCapacity(0);
 	HostsReader reader(m_buf, m_buf.Len);
 	int t = reader.NextToken();
 	while (true)
@@ -304,7 +304,7 @@ void HostsFile::Rebuild(const UpdateMap& updateEntries, const AppendList& append
 {
 	StringBuffer buf(512);
 	LONGLONG offset = 0;
-	for (DWORD dwIndex = 0; dwIndex < m_Entries.Count; dwIndex++)
+	for (DWORD dwIndex = 0; dwIndex < m_Entries.Length; dwIndex++)
 	{
 		UpdateMap::const_iterator iter = updateEntries.find(&m_Entries[dwIndex]);
 		if (iter != updateEntries.end())
@@ -330,12 +330,12 @@ void HostsFile::Rebuild(const UpdateMap& updateEntries, const AppendList& append
 
 HostEntry* HostsFile::FindByName(const WCHAR* pContent, PCWSTR pszName)
 {
-	for (DWORD dwIndex = 0; dwIndex < m_Entries.Count; dwIndex++)
+	for (DWORD dwIndex = 0; dwIndex < m_Entries.Length; dwIndex++)
 	{
-		HostEntry* pEntry = &m_Entries[dwIndex];
-		if (pEntry->Contains(pContent, pszName))
+		HostEntry& entry = m_Entries[dwIndex];
+		if (entry.Contains(pContent, pszName))
 		{
-			return pEntry;
+			return &m_Entries[dwIndex];
 		}
 	}
 	return nullptr;

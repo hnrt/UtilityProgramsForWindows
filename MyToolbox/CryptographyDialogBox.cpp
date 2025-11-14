@@ -1698,8 +1698,8 @@ void CryptographyDialogBox::UpdateTagSizeRadioBoxes()
 	DWORD dwFlags = 0UL;
 	if (IS_AES_CCM(m_hAlg.ChainingMode) || IS_AES_GCM(m_hAlg.ChainingMode))
 	{
-		std::vector<DWORD> tagLengths = m_hAlg.AuthTagLengths;
-		for (size_t index = 0; index < tagLengths.size(); index++)
+		Array<DWORD> tagLengths = m_hAlg.AuthTagLengths;
+		for (DWORD index = 0; index < tagLengths.Length; index++)
 		{
 			dwFlags |= 1UL << tagLengths[index];
 		}

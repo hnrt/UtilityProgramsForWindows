@@ -7,7 +7,6 @@
 
 
 using namespace hnrt;
-using namespace std;
 
 
 BOOL Path::RemoveDirectory(PCWSTR pszPath)
@@ -23,28 +22,30 @@ BOOL Path::RemoveDirectory(PCWSTR pszPath)
 		DBGPUT(L"The specified path is not of a directory.");
 		return FALSE;
 	}
-	vector<DirectoryEntry> directories;
+	Array<DirectoryEntry> directories;
 	ListDirectories(directories, pszPath);
-	for (vector<DirectoryEntry>::const_iterator iter = directories.begin(); iter != directories.end(); iter++)
+	for (DWORD dwIndex = 0; dwIndex < directories.Length; dwIndex++)
 	{
-		if (!RemoveDirectory(Combine(pszPath, iter->szFileName)))
+		DirectoryEntry& entry = directories[dwIndex];
+		if (!RemoveDirectory(Combine(pszPath, entry.szFileName)))
 		{
 			return FALSE;
 		}
 	}
-	vector<DirectoryEntry> files;
+	Array<DirectoryEntry> files;
 	ListFiles(files, pszPath);
-	for (vector<DirectoryEntry>::const_iterator iter = files.begin(); iter != files.end(); iter++)
+	for (DWORD dwIndex = 0; dwIndex < files.Length; dwIndex++)
 	{
-		if (::DeleteFileW(Combine(pszPath, iter->szFileName)))
+		DirectoryEntry& entry = files[dwIndex];
+		if (::DeleteFileW(Combine(pszPath, entry.szFileName)))
 		{
-			DBGPUT(L"Deleted %s", iter->szFileName);
+			DBGPUT(L"Deleted %s", entry.szFileName);
 		}
 		else
 		{
 #ifdef _DEBUG
 			DWORD dwError = GetLastError();
-			Debug::Put(L"Failed to delete %s (%ld %s)", iter->szFileName, dwError, ErrorMessage::Get(dwError));
+			Debug::Put(L"Failed to delete %s (%ld %s)", entry.szFileName, dwError, ErrorMessage::Get(dwError));
 #endif
 			return FALSE;
 		}

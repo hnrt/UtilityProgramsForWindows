@@ -2,8 +2,8 @@
 
 #include <Windows.h>
 #include <bcrypt.h>
-#include <vector>
 #include "hnrt/String.h"
+#include "hnrt/Array.h"
 
 namespace hnrt
 {
@@ -21,8 +21,8 @@ namespace hnrt
 
 		String GetPropertyString(PCWSTR) const;
 		DWORD GetPropertyDWORD(PCWSTR) const;
-		std::vector<DWORD> GetPropertyArrayDWORD(PCWSTR) const;
-		std::vector<DWORD> GetPropertyKeyLengths(PCWSTR) const;
+		Array<DWORD> GetPropertyArrayDWORD(PCWSTR) const;
+		Array<DWORD> GetPropertyKeyLengths(PCWSTR) const;
 		void SetProperty(PCWSTR, PCWSTR) const;
 
 		BCRYPT_HANDLE m_h;

@@ -212,6 +212,7 @@
     <ClInclude Include="inc\hnrt\Debug.h" />
     <ClInclude Include="inc\hnrt\DirectoryEntry.h" />
     <ClInclude Include="inc\hnrt\DoubleNullTerminatedStringArray.h" />
+    <ClInclude Include="inc\hnrt\Environment.h" />
     <ClInclude Include="inc\hnrt\ErrorMessage.h" />
     <ClInclude Include="inc\hnrt\Exception.h" />
     <ClInclude Include="inc\hnrt\FileDataFeeder.h" />
@@ -309,6 +310,7 @@
     <ClCompile Include="src\CryptographyException.cpp" />
     <ClCompile Include="src\Debug.cpp" />
     <ClCompile Include="src\DoubleNullTerminatedStringArray.cpp" />
+    <ClCompile Include="src\Environment.cpp" />
     <ClCompile Include="src\ErrorMessage.cpp" />
     <ClCompile Include="src\Exception.cpp" />
     <ClCompile Include="src\FileMapper.cpp" />

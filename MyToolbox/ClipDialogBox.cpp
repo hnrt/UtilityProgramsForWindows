@@ -72,16 +72,17 @@ void ClipDialogBox::OnCreate()
 	DisableWindow(IDC_CLIP_DELETE_BUTTON);
 	m_menuView
 		.Add(ResourceString(IDS_MENU_CLIP), IDM_VIEW_CLIP);
-	std::vector<DirectoryEntry> entries;
+	Array<DirectoryEntry> entries;
 	Path::ListFiles(entries, m_szDirectoryPath);
-	if (entries.size() > 0)
+	if (entries.Length > 0)
 	{
-		qsort(&entries[0], entries.size(), sizeof(DirectoryEntry), DirectoryEntryCompare);
-		for (std::vector<DirectoryEntry>::const_iterator iter = entries.cbegin(); iter != entries.cend(); iter++)
+		qsort(&entries[0], entries.Length, sizeof(DirectoryEntry), DirectoryEntryCompare);
+		for (DWORD dwIndex = 0; dwIndex < entries.Length; dwIndex++)
 		{
 			try
 			{
-				String szFileName(iter->szFileName);
+				DirectoryEntry& entry = entries[dwIndex];
+				String szFileName(entry.szFileName);
 				String szFilePath(Path::Combine(m_szDirectoryPath, szFileName));
 				ClipFile file(szFilePath);
 				m_mapHash.insert(ClipEntry(file.Hash, szFileName));

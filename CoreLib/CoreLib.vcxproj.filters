@@ -354,6 +354,9 @@
     <ClInclude Include="inc\hnrt\SemanticVersion.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="inc\hnrt\Environment.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pch.cpp">
@@ -871,6 +874,9 @@
     </ClCompile>
     <ClCompile Include="src\SemanticVersion.cpp">
       <Filter>ソース ファイル\StringHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Environment.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

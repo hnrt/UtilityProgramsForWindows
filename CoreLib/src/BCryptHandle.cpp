@@ -50,7 +50,7 @@ DWORD BCryptHandle::GetPropertyDWORD(PCWSTR pszName) const
 }
 
 
-std::vector<DWORD> BCryptHandle::GetPropertyArrayDWORD(PCWSTR pszName) const
+Array<DWORD> BCryptHandle::GetPropertyArrayDWORD(PCWSTR pszName) const
 {
     Buffer<DWORD> dwValues(16);
     while (true)
@@ -59,11 +59,11 @@ std::vector<DWORD> BCryptHandle::GetPropertyArrayDWORD(PCWSTR pszName) const
         NTSTATUS status = BCryptGetProperty(m_h, pszName, reinterpret_cast<PUCHAR>(&dwValues[0]), static_cast<ULONG>(dwValues.Len * sizeof(DWORD)), &valueLength, 0);
         if (status == STATUS_SUCCESS)
         {
-            std::vector<DWORD> list;
+            Array<DWORD> list;
             ULONG count = valueLength / sizeof(DWORD);
             for (ULONG index = 0; index < count; index++)
             {
-                list.push_back(dwValues[index]);
+                list.PushBack(dwValues[index]);
             }
             return list;
         }
@@ -79,7 +79,7 @@ std::vector<DWORD> BCryptHandle::GetPropertyArrayDWORD(PCWSTR pszName) const
 }
 
 
-std::vector<DWORD> BCryptHandle::GetPropertyKeyLengths(PCWSTR pszName) const
+Array<DWORD> BCryptHandle::GetPropertyKeyLengths(PCWSTR pszName) const
 {
     BCRYPT_KEY_LENGTHS_STRUCT keyLengths = { 0 };
     ULONG valueLength = 0UL;
@@ -92,10 +92,10 @@ std::vector<DWORD> BCryptHandle::GetPropertyKeyLengths(PCWSTR pszName) const
     {
         throw CryptographyException(status, L"BCryptGetProperty(%s) returned an unexpected value; actual=%lu expected=%zu", pszName, valueLength, sizeof(keyLengths));
     }
-    std::vector<DWORD> list;
+    Array<DWORD> list;
     for (DWORD length = keyLengths.dwMinLength; length <= keyLengths.dwMaxLength; length += keyLengths.dwIncrement)
     {
-        list.push_back(length);
+        list.PushBack(length);
     }
     return list;
 }

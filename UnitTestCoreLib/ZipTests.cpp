@@ -27,7 +27,7 @@ namespace UnitTestCoreLib
 				Debug::Put(L"Beginning of Folder %s", pFolderItem.Name);
 				MyFolderItemForEachCallback sub;
 				pFolderItem.ForEach(sub);
-				for (DWORD dwIndex = 0; dwIndex < sub.entries.Count; dwIndex++)
+				for (DWORD dwIndex = 0; dwIndex < sub.entries.Length; dwIndex++)
 				{
 					entries.Add(String(CONCAT3, pFolderItem.Name, String(L"/"), sub.entries[dwIndex]));
 				}
@@ -90,7 +90,7 @@ namespace UnitTestCoreLib
 			MyFolderItemForEachCallback cbs;
 			zip.ForEach(cbs);
 			StringCollection& entries = cbs.entries;
-			Assert::AreEqual(4UL, entries.Count);
+			Assert::AreEqual(4UL, entries.Length);
 			Assert::AreEqual(true, entries.Contains(L"xyzzy.txt"));
 			Assert::AreEqual(true, entries.Contains(L"quux.txt"));
 			Assert::AreEqual(true, entries.Contains(L"2001/fred.txt"));

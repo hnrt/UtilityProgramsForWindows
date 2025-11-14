@@ -3,6 +3,8 @@
 #include <process.h>
 #include "hnrt/CoreLibrary.h"
 #include "hnrt/Path.h"
+#include "hnrt/Environment.h"
+#include "hnrt/StringUtils.h"
 #include "hnrt/SemanticVersion.h"
 #include "hnrt/Buffer.h"
 #include "hnrt/StringBuffer.h"
@@ -21,12 +23,12 @@ static CoreLibrary theCore;
 
 static String FindJavaExe()
 {
-	static const WCHAR szBIN[] = L"bin";
-	static const WCHAR szJAVA_EXE[] = L"java.exe";
-	WCHAR szJAVA_HOME[MAX_PATH] = { 0 };
-	if (GetEnvironmentVariableW(L"JAVA_HOME", szJAVA_HOME, _countof(szJAVA_HOME)))
+	static const WCHAR JAVA_EXE[] = L"java.exe";
+
+	String JAVA_HOME = GetEnvironmentVariable(L"JAVA_HOME");
+	if (JAVA_HOME.Len)
 	{
-		String javaExe = Path::Combine(szJAVA_HOME, szBIN, szJAVA_EXE);
+		String javaExe = Path::Combine(JAVA_HOME, L"bin", JAVA_EXE);
 		if (Path::Exists(javaExe))
 		{
 			Debug::Put(L"%s ...FOUND", javaExe);
@@ -34,18 +36,17 @@ static String FindJavaExe()
 		}
 		Debug::Put(L"%s ...NOT FOUND", javaExe);
 	}
-	DWORD nSize = 32768;
-	Buffer<WCHAR> szPATH(nSize);
-	if (GetEnvironmentVariableW(L"PATH", szPATH, nSize))
+
+	String PATH = GetEnvironmentVariable(L"PATH");
+	if (PATH.Len)
 	{
-		PWCHAR p1 = szPATH;
-		PWCHAR p2 = wcschr(p1, L';');
-		while (p2)
+		Array<String> paths = SplitBy(PATH, L';');
+		for (DWORD dwIndex = 0; dwIndex < paths.Length; dwIndex++)
 		{
-			*p2++ = L'\0';
-			if (p1 + 1 < p2)
+			String next = paths[dwIndex];
+			if (next.Len)
 			{
-				String javaExe = Path::Combine(p1, szJAVA_EXE);
+				String javaExe = Path::Combine(next, JAVA_EXE);
 				if (Path::Exists(javaExe))
 				{
 					Debug::Put(L"%s ...FOUND", javaExe);
@@ -53,20 +54,9 @@ static String FindJavaExe()
 				}
 				Debug::Put(L"%s ...NOT FOUND", javaExe);
 			}
-			p1 = p2;
-			p2 = wcschr(p1, L';');
-		}
-		if (*p1)
-		{
-			String javaExe = Path::Combine(p1, szJAVA_EXE);
-			if (Path::Exists(javaExe))
-			{
-				Debug::Put(L"%s ...FOUND", javaExe);
-				return javaExe;
-			}
-			Debug::Put(L"%s ...NOT FOUND", javaExe);
 		}
 	}
+
 	return String::Empty;
 }
 
@@ -81,27 +71,28 @@ static String FindJar(const wchar_t* pszExe)
 	Debug::Put(L"dir=%s", dirPath);
 	Debug::Put(L"file=%s", fileName);
 	Debug::Put(L"pattern=%s", pattern);
-	std::vector<DirectoryEntry> entries;
+	Array<DirectoryEntry> entries;
 	Path::ListFiles(entries, dirPath, pattern);
 	String jarFile;
 	SemanticVersion version;
-	for (std::vector<DirectoryEntry>::const_iterator iter = entries.cbegin(); iter != entries.cend(); iter++)
+	for (DWORD dwIndex = 0; dwIndex < entries.Length; dwIndex++)
 	{
-		if (iter->szFileName.Len == fileName.Len)
+		DirectoryEntry& entry = entries[dwIndex];
+		if (entry.szFileName.Len == fileName.Len)
 		{
-			jarFile = iter->szFileName;
+			jarFile = entry.szFileName;
 			version = SemanticVersion(L"");
 			break;
 		}
-		if (iter->szFileName.Ptr[nBaseName] == L'-')
+		if (entry.szFileName.Ptr[nBaseName] == L'-')
 		{
-			int nVersion = static_cast<int>(iter->szFileName.Len) - nBaseName - 1 - nExtension;
-			String s = String::Format(L"%.*s", nVersion, iter->szFileName.Ptr + nBaseName + 1);
+			int nVersion = static_cast<int>(entry.szFileName.Len) - nBaseName - 1 - nExtension;
+			String s = String::Format(L"%.*s", nVersion, entry.szFileName.Ptr + nBaseName + 1);
 			SemanticVersion v(s);
-			Debug::Put(L"candidate=%s major=%d minor=%d patch=%d prerelease=%s build=%s", iter->szFileName, v.Major, v.Minor, v.Patch, v.PreRelease, v.Build);
+			Debug::Put(L"candidate=%s major=%d minor=%d patch=%d prerelease=%s build=%s", entry.szFileName, v.Major, v.Minor, v.Patch, v.PreRelease, v.Build);
 			if (jarFile.Len == 0 || version < v)
 			{
-				jarFile = iter->szFileName;
+				jarFile = entry.szFileName;
 				version = v;
 			}
 		}

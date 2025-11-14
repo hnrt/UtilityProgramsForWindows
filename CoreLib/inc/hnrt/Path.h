@@ -1,8 +1,8 @@
 #pragma once
 
 #include "hnrt/DirectoryEntry.h"
+#include "hnrt/Array.h"
 #include <Shlobj.h>
-#include <vector>
 
 #ifdef GetCurrentDirectory
 #undef GetCurrentDirectory
@@ -47,7 +47,7 @@ namespace hnrt
         static bool IsAbsolute(PCWSTR psz);
         static INT64 GetSize(PCWSTR psz);
         static bool ValidateDirectory(PCWSTR psz);
-        static std::vector<DirectoryEntry>& ListFiles(std::vector<DirectoryEntry>& entries, PCWSTR psz, PCWSTR pszPattern = L"*");
-        static std::vector<DirectoryEntry>& ListDirectories(std::vector<DirectoryEntry>& entries, PCWSTR psz, PCWSTR pszPattern = L"*");
+        static Array<DirectoryEntry>& ListFiles(Array<DirectoryEntry>& entries, PCWSTR psz, PCWSTR pszPattern = L"*");
+        static Array<DirectoryEntry>& ListDirectories(Array<DirectoryEntry>& entries, PCWSTR psz, PCWSTR pszPattern = L"*");
     };
 }

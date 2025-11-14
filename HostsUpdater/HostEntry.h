@@ -30,7 +30,7 @@ namespace hnrt
 
 	inline bool HostEntry::Contains(const WCHAR* pContent, PCWSTR pszValue)
 	{
-		for (DWORD dwIndex = 0; dwIndex < Names.Count; dwIndex++)
+		for (DWORD dwIndex = 0; dwIndex < Names.Length; dwIndex++)
 		{
 			if (!Names[dwIndex].Compare(pContent, pszValue))
 			{

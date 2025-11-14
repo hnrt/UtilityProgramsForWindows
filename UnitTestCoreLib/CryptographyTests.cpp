@@ -31,13 +31,13 @@ namespace UnitTestCoreLib
 				Assert::AreEqual(L"AES", hAlg.AlgorithmName);
 				Debug::Put(L"CryptographyTest01: BlockLength=%lu", hAlg.BlockLength);
 				Assert::AreEqual(16UL, hAlg.BlockLength);
-				std::vector<DWORD> bsList = hAlg.BlockSizeList;
-				Debug::Put(L"CryptographyTest01: BlockSizeList=[%zu]{%s}", bsList.size(), JoinBy(bsList, L","));
-				Assert::AreEqual(1ULL, bsList.size());
+				Array<DWORD> bsList = hAlg.BlockSizeList;
+				Debug::Put(L"CryptographyTest01: BlockSizeList=[%zu]{%s}", bsList.Length, JoinBy(bsList, L","));
+				Assert::AreEqual(1UL, bsList.Length);
 				Assert::AreEqual(16UL, bsList[0]);
-				std::vector<DWORD> kList = hAlg.KeyLengths;
-				Debug::Put(L"CryptographyTest01: KeyLengths=[%zu]{%s}", kList.size(), JoinBy(kList, L","));
-				Assert::AreEqual(3ULL, kList.size());
+				Array<DWORD> kList = hAlg.KeyLengths;
+				Debug::Put(L"CryptographyTest01: KeyLengths=[%zu]{%s}", kList.Length, JoinBy(kList, L","));
+				Assert::AreEqual(3UL, kList.Length);
 				Assert::AreEqual(128UL, kList[0]);
 				Assert::AreEqual(192UL, kList[1]);
 				Assert::AreEqual(256UL, kList[2]);
@@ -480,15 +480,15 @@ namespace UnitTestCoreLib
 				BCryptKeyHandle hKey;
 				hKey.Generate(hAlg, key, key.Len);
 				Debug::Put(L"Test_AES_128_CCM: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
-				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
-				Debug::Put(L"Test_AES_128_CCM: AuthTagLengths[%zu]=%s", tagLengths.size(), JoinBy(tagLengths, L","));
+				Array<DWORD> tagLengths = hAlg.AuthTagLengths;
+				Debug::Put(L"Test_AES_128_CCM: AuthTagLengths[%zu]=%s", tagLengths.Length, JoinBy(tagLengths, L","));
 				MultibyteString nonceHint("20231208");
 				MD5Hash nonceHash(nonceHint, nonceHint.Len); // 128 bits (16 bytes)
 				BCryptAuthenticatedCipherModeInfo infoE;
 				BCryptAuthenticatedCipherModeInfo infoD;
 				infoE
 					.SetNonce(nonceHash.Value, AES_CCM_NONCE_LENGTH)
-					.SetTagSize(tagLengths[tagLengths.size() - 1]);
+					.SetTagSize(tagLengths[-1]);
 				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(text.Ptr), text.Len, infoE, NULL, 0);
 				Debug::Put(L"Test_AES_128_CCM: encrypted=%s", encrypted.ToHex());
 				Debug::Put(L"Test_AES_128_CCM: tag=%s", ByteString(infoE.pbTag, infoE.cbTag).ToHex());
@@ -534,8 +534,8 @@ namespace UnitTestCoreLib
 				BCryptKeyHandle hKey;
 				hKey.Generate(hAlg, key, key.Len);
 				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
-				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
-				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: AuthTagLengths[%zu]={%s}", tagLengths.size(), StringUtils::JoinBy(tagLengths, L","));
+				Array<DWORD> tagLengths = hAlg.AuthTagLengths;
+				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: AuthTagLengths[%zu]={%s}", tagLengths.Length, StringUtils::JoinBy(tagLengths, L","));
 				MultibyteString nonceHint("20231208");
 				MD5Hash nonceHash(nonceHint, nonceHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> ivE(16);
@@ -549,7 +549,7 @@ namespace UnitTestCoreLib
 				infoE
 					.SetNonce(nonceHash.Value, AES_CCM_NONCE_LENGTH)
 					.SetTagSize(tagLengths[0])
-					.SetMacContextSize(tagLengths[tagLengths.size() - 1])
+					.SetMacContextSize(tagLengths[-1])
 					.SetAuthData(aad, sizeof(aad))
 					.SetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
 				Debug::Put(L"Test_AES_128_CCM_CHAIN_CALLS: nonce[%lu]=%s", infoE.cbNonce, ByteString(infoE.pbNonce, infoE.cbNonce).ToHex());
@@ -578,7 +578,7 @@ namespace UnitTestCoreLib
 				infoD
 					.SetNonce(nonceHash.Value, AES_CCM_NONCE_LENGTH)
 					.SetTagSize(infoE.cbTag)
-					.SetMacContextSize(tagLengths[tagLengths.size() - 1])
+					.SetMacContextSize(tagLengths[-1])
 					.SetAuthData(aad, sizeof(aad))
 					.SetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
 				ByteString decrypted1 = hKey.Decrypt((PUCHAR)encrypted1, encrypted1.Len, infoD, ivD, ivD.Len);
@@ -630,15 +630,15 @@ namespace UnitTestCoreLib
 				BCryptKeyHandle hKey;
 				hKey.Generate(hAlg, key, key.Len);
 				Debug::Put(L"Test_AES_128_GCM: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
-				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
-				Debug::Put(L"Test_AES_128_GCM: AuthTagLengths[%zu]=%s", tagLengths.size(), JoinBy(tagLengths, L","));
+				Array<DWORD> tagLengths = hAlg.AuthTagLengths;
+				Debug::Put(L"Test_AES_128_GCM: AuthTagLengths[%zu]=%s", tagLengths.Length, JoinBy(tagLengths, L","));
 				MultibyteString nonceHint("20231208");
 				MD5Hash nonceHash(nonceHint, nonceHint.Len); // 128 bits (16 bytes)
 				BCryptAuthenticatedCipherModeInfo infoE;
 				BCryptAuthenticatedCipherModeInfo infoD;
 				infoE
 					.SetNonce(nonceHash.Value, AES_GCM_NONCE_LENGTH)
-					.SetTagSize(tagLengths[tagLengths.size() - 1]);
+					.SetTagSize(tagLengths[-1]);
 				Debug::Put(L"Test_AES_128_GCM: nonce=%s", ByteString(infoE.pbNonce, infoE.cbNonce).ToHex());
 				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(text.Ptr), text.Len, infoE, NULL, 0);
 				Debug::Put(L"Test_AES_128_GCM: encrypted=%s", encrypted.ToHex());
@@ -676,8 +676,8 @@ namespace UnitTestCoreLib
 				BCryptKeyHandle hKey;
 				hKey.Generate(hAlg, key, key.Len);
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: KeyLength=%lu %s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
-				std::vector<DWORD> tagLengths = hAlg.AuthTagLengths;
-				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: AuthTagLengths[%zu]=%s", tagLengths.size(), JoinBy(tagLengths, L","));
+				Array<DWORD> tagLengths = hAlg.AuthTagLengths;
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: AuthTagLengths[%zu]=%s", tagLengths.Length, JoinBy(tagLengths, L","));
 				MultibyteString nonceHint("20231208");
 				MD5Hash nonceHash(nonceHint, nonceHint.Len); // 128 bits (16 bytes)
 				Buffer<BYTE> ivE(16);
@@ -691,7 +691,7 @@ namespace UnitTestCoreLib
 				infoE
 					.SetNonce(nonceHash.Value, AES_GCM_NONCE_LENGTH)
 					.SetTagSize(tagLengths[0])
-					.SetMacContextSize(tagLengths[tagLengths.size() - 1])
+					.SetMacContextSize(tagLengths[-1])
 					.SetAuthData(aad, sizeof(aad))
 					.SetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: nonce=%s", ByteString(infoE.pbNonce, infoE.cbNonce).ToHex());
@@ -711,7 +711,7 @@ namespace UnitTestCoreLib
 				// ENCRYPTION #3
 				infoE
 					.ResetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
-				ByteString encrypted3 = hKey.Encrypt(const_cast<PSTR>(text.Ptr) + 16 * 2, text.Len - 16 * 2, infoE, ivE, ivE.Len);
+				ByteString encrypted3 = hKey.Encrypt(const_cast<PSTR>(text.Ptr) + 16 * 2, text.Len - 16LL * 2LL, infoE, ivE, ivE.Len);
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: encrypted3[%zu]=%s", encrypted3.Len, encrypted3.ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: tag=%s", ByteString(infoE.pbTag, infoE.cbTag).ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", ByteString(ivE, ivE.Len).ToHex());
@@ -725,7 +725,7 @@ namespace UnitTestCoreLib
 				infoD
 					.SetNonce(nonceHash.Value, AES_GCM_NONCE_LENGTH)
 					.SetTag(infoE.pbTag, infoE.cbTag)
-					.SetMacContextSize(tagLengths[tagLengths.size() - 1])
+					.SetMacContextSize(tagLengths[-1])
 					.SetAuthData(aad, sizeof(aad))
 					.SetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
 				ByteString decrypted1 = hKey.Decrypt((PUCHAR)encrypted + 16 * 0, 16, infoD, ivD, ivD.Len);
@@ -738,7 +738,7 @@ namespace UnitTestCoreLib
 				// DECRYPTION #3
 				infoD
 					.ResetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
-				ByteString decrypted3 = hKey.Decrypt((PUCHAR)encrypted + 16 * 2, encrypted.Len - 16 * 2, infoD, ivD, ivD.Len);
+				ByteString decrypted3 = hKey.Decrypt((PUCHAR)encrypted + 16 * 2, encrypted.Len - 16LL * 2LL, infoD, ivD, ivD.Len);
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: decrypted3[%zu]=%s", decrypted3.Len, decrypted3.ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", ByteString(ivD, ivD.Len).ToHex());
 				ByteString decrypted = decrypted1;
