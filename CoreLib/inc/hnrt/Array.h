@@ -26,8 +26,11 @@ namespace hnrt
 
         DWORD get_Length() const;
         void set_Length(DWORD);
+        DWORD get_Capacity() const;
+        void set_Capacity(DWORD);
 
         __declspec(property(get = get_Length, put = set_Length)) DWORD Length;
+        __declspec(property(get = get_Capacity, put = set_Capacity)) DWORD Capacity;
 
     protected:
 
@@ -213,5 +216,17 @@ namespace hnrt
     inline void Array<T>::set_Length(DWORD dwLength)
     {
         SetLength(dwLength);
+    }
+
+    template<typename T>
+    inline DWORD Array<T>::get_Capacity() const
+    {
+        return m_dwCapacity;
+    }
+
+    template<typename T>
+    inline void Array<T>::set_Capacity(DWORD dwCapacity)
+    {
+        SetCapacity(dwCapacity);
     }
 }
