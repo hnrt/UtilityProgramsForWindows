@@ -42,7 +42,7 @@ RegistryValue::RegistryValue(PCWSTR pszValue, DWORD dwType)
 	if (m_dwType == REG_SZ || m_dwType == REG_EXPAND_SZ || m_dwType == REG_LINK)
 	{
 		m_value.psz = RefStr::Create(pszValue);
-		m_dwSize = static_cast<DWORD>((RefStr::Get(m_value.psz).Len + 1) * sizeof(WCHAR));
+		m_dwSize = static_cast<DWORD>((RefStr::Get(m_value.psz).Length + 1) * sizeof(WCHAR));
 	}
 	else
 	{

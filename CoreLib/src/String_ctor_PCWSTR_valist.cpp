@@ -1,0 +1,12 @@
+#include "pch.h"
+#include "String_internal.h"
+
+
+using namespace hnrt;
+
+
+String::String(PCWSTR pszFormat, va_list argList)
+    : m_psz(RefStr::Create(VaStrFmtLen(pszFormat, argList)))
+{
+    VaStrFmt(m_psz, Len + 1, pszFormat, argList);
+}

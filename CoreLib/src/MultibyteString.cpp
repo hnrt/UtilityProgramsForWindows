@@ -66,7 +66,7 @@ MultibyteString& MultibyteString::operator =(const MultibyteString& src)
 
 SIZE_T MultibyteString::get_Len() const
 {
-    return m_psz ? RefMbs::Get(m_psz).Len : 0;
+    return m_psz ? RefMbs::Get(m_psz).Length : 0;
 }
 
 

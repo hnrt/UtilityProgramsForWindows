@@ -290,7 +290,7 @@ void DialogBox::EditPaste(int id) const
         return;
     }
     String szText2 = Clipboard::Read(hwnd);
-    if (!szText2.IsSet)
+    if (!szText2.Len)
     {
         MessageBoxW(hwnd, L"Unable to read text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
         return;

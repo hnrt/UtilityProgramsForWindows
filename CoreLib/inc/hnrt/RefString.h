@@ -12,7 +12,7 @@ namespace hnrt
 	{
     private:
 
-        ULONG m_Len;
+        ULONG m_Length;
 
         RefString(SIZE_T);
         RefString(const T*, SIZE_T);
@@ -30,9 +30,9 @@ namespace hnrt
 
     public:
 
-        SIZE_T get_Len() const;
+        SIZE_T get_Length() const;
 
-        __declspec(property(get = get_Len)) SIZE_T Len;
+        __declspec(property(get = get_Length)) SIZE_T Length;
 
     public:
 
@@ -45,14 +45,14 @@ namespace hnrt
     template<typename T>
     RefString<T>::RefString(SIZE_T cch)
         : RefObj()
-        , m_Len(static_cast<ULONG>(cch))
+        , m_Length(static_cast<ULONG>(cch))
     {
     }
 
     template<typename T>
     RefString<T>::RefString(const T* psz, SIZE_T cch)
         : RefObj()
-        , m_Len(static_cast<ULONG>(cch))
+        , m_Length(static_cast<ULONG>(cch))
     {
         T* ptr = Get(*this);
         MemCpy(ptr, psz, cch);
@@ -62,17 +62,17 @@ namespace hnrt
     template<typename T>
     RefString<T>::~RefString()
     {
-        MemSet(Get(*this), 0, m_Len);
+        MemSet(Get(*this), 0, m_Length);
     }
 
     template<typename T>
     void RefString<T>::Truncate(SIZE_T cch)
     {
-        if (cch < static_cast<SIZE_T>(m_Len))
+        if (cch < static_cast<SIZE_T>(m_Length))
         {
             T* ptr = Get(*this);
-            MemSet(ptr + cch, 0, static_cast<SIZE_T>(m_Len) - cch);
-            m_Len = static_cast<ULONG>(cch);
+            MemSet(ptr + cch, 0, static_cast<SIZE_T>(m_Length) - cch);
+            m_Length = static_cast<ULONG>(cch);
         }
     }
 
@@ -96,9 +96,9 @@ namespace hnrt
     }
 
     template<typename T>
-    ::SIZE_T RefString<T>::get_Len() const
+    ::SIZE_T RefString<T>::get_Length() const
     {
-        return static_cast<::SIZE_T>(m_Len);
+        return static_cast<::SIZE_T>(m_Length);
     }
 
     template<typename T>

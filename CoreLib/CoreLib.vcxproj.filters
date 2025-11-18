@@ -878,5 +878,29 @@
     <ClCompile Include="src\Environment.cpp">
       <Filter>ソース ファイル\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="src\String_Empty.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
+    <ClCompile Include="src\String_ctor_String.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
+    <ClCompile Include="src\String_ctor_PCWSTR_SSIZE.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
+    <ClCompile Include="src\String_ctor_PCWSTR_valist.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
+    <ClCompile Include="src\String_ctor_StringOptions.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
+    <ClCompile Include="src\String_ctor_PCWSTR_PCWSTR.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
+    <ClCompile Include="src\String_ctor_SIZE_WCHAR.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
+    <ClCompile Include="src\String_ctor_UINT_PCSTR_SSIZE.cpp">
+      <Filter>ソース ファイル\String</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

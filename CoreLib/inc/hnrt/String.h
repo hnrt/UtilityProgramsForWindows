@@ -77,12 +77,10 @@ namespace hnrt
         PCWSTR get_Ptr() const;
         SIZE_T get_Len() const;
         PWCHAR get_Buf() const;
-        BOOL is_set() const;
 
         __declspec(property(get = get_Ptr)) PCWSTR Ptr;
         __declspec(property(get = get_Len)) SIZE_T Len;
         __declspec(property(get = get_Buf)) PWCHAR Buf;
-        __declspec(property(get = is_set)) BOOL IsSet;
 
     public:
 
@@ -140,11 +138,6 @@ namespace hnrt
     inline PWCHAR String::get_Buf() const
     {
         return m_psz;
-    }
-
-    inline BOOL String::is_set() const
-    {
-        return m_psz ? TRUE : FALSE;
     }
 
     inline int String::Compare(PCWSTR psz1, PCWSTR psz2)

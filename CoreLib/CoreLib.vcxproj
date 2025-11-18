@@ -407,6 +407,14 @@
     <ClCompile Include="src\StringCaseInsensitive_static.cpp" />
     <ClCompile Include="src\StringCollection.cpp" />
     <ClCompile Include="src\String_CompareCaseInsensitively.cpp" />
+    <ClCompile Include="src\String_ctor_PCWSTR_PCWSTR.cpp" />
+    <ClCompile Include="src\String_ctor_PCWSTR_SSIZE.cpp" />
+    <ClCompile Include="src\String_ctor_PCWSTR_valist.cpp" />
+    <ClCompile Include="src\String_ctor_SIZE_WCHAR.cpp" />
+    <ClCompile Include="src\String_ctor_String.cpp" />
+    <ClCompile Include="src\String_ctor_StringOptions.cpp" />
+    <ClCompile Include="src\String_ctor_UINT_PCSTR_SSIZE.cpp" />
+    <ClCompile Include="src\String_Empty.cpp" />
     <ClCompile Include="src\String_LastIndexOf.cpp" />
     <ClCompile Include="src\String_Substring.cpp" />
     <ClCompile Include="src\StrToDouble.cpp" />

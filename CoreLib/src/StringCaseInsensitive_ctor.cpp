@@ -38,5 +38,5 @@ StringCaseInsensitive::StringCaseInsensitive(const String& src)
 
 SIZE_T StringCaseInsensitive::get_Len() const
 {
-    return m_psz ? RefStr::Get(m_psz).Len : 0;
+    return m_psz ? RefStr::Get(m_psz).Length : 0;
 }

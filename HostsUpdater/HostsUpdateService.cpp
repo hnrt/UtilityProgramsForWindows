@@ -545,7 +545,7 @@ void HostsUpdateService::ReadRegistry()
 			}
 		}
 	}
-	if (!m_szHostsFile.IsSet)
+	if (!m_szHostsFile.Len)
 	{
 		Log(L"WARNING: No hosts file name is set.");
 	}
