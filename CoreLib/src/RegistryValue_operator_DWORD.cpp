@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <Windows.h>
 #include "hnrt/RegistryValue.h"
 #include "hnrt/Exception.h"
 

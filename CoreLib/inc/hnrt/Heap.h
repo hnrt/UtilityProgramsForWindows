@@ -1,9 +1,8 @@
 #pragma once
 
-
-#include <Windows.h>
+#include <cstdarg>
 #include <malloc.h>
-
+#include <Windows.h>
 
 namespace hnrt
 {
@@ -38,7 +37,7 @@ namespace hnrt
     template<typename T>
     void Deallocate(T*& ptr)
     {
-        free(Detach<T>(ptr));
+        ::free(Detach<T>(ptr));
     }
 
     PSTR Clone(PCSTR psz);

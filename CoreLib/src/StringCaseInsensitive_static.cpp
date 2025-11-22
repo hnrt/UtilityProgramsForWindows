@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <Windows.h>
 #include "hnrt/StringCaseInsensitive.h"
 #include "hnrt/StringCommons.h"
 

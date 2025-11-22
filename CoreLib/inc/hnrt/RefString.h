@@ -1,8 +1,9 @@
 #pragma once
 
 #include "hnrt/RefObj.h"
-#include "hnrt/StringCommons.h"
 #include "hnrt/Heap.h"
+#include <malloc.h>
+#include <Windows.h>
 
 namespace hnrt
 {
@@ -86,13 +87,13 @@ namespace hnrt
     template<typename T>
     void RefString<T>::operator delete(void* ptr)
     {
-        free(ptr);
+        ::free(ptr);
     }
 
     template<typename T>
     void RefString<T>::operator delete(void* ptr, ::size_t)
     {
-        free(ptr);
+        ::free(ptr);
     }
 
     template<typename T>

@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <Windows.h>
 #include "hnrt/RegistryKey.h"
 #include "hnrt/Interlocked.h"
 

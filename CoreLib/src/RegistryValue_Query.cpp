@@ -1,9 +1,9 @@
 #include "pch.h"
+#include <Windows.h>
 #include "hnrt/RegistryValue.h"
-#include "hnrt/Heap.h"
+#include "hnrt/StringCommons.h"
 #include "hnrt/RefStr.h"
 #include "hnrt/RefBin.h"
-#include "hnrt/StringCommons.h"
 #include "hnrt/Buffer.h"
 
 

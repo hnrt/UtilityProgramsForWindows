@@ -1,5 +1,8 @@
 #include "pch.h"
+#include <Windows.h>
 #include "hnrt/MultibyteString.h"
+#include "hnrt/StringCommons.h"
+#include "hnrt/RefString.h"
 #include "hnrt/RefMbs.h"
 #include "hnrt/Interlocked.h"
 #include "hnrt/String.h"

@@ -1,5 +1,8 @@
 #include "pch.h"
+#include <Windows.h>
 #include "hnrt/UnicodeEscape.h"
+#include "hnrt/StringCommons.h"
+#include "hnrt/String.h"
 #include "hnrt/RefStr.h"
 
 
@@ -32,7 +35,7 @@ using namespace hnrt;
 
 String hnrt::FromNativeToAscii(PCWSTR psz, bool bLowercase)
 {
-	String szText(wcslen(psz) * 6ULL);
+	String szText(StrLen(psz) * 6ULL);
 	WCHAR* pOut = szText.Buf;
 	const WCHAR* pCur = psz;
 	const WCHAR* pHex = szHex[bLowercase ? 1 : 0];
@@ -61,7 +64,7 @@ String hnrt::FromNativeToAscii(PCWSTR psz, bool bLowercase)
 
 String hnrt::FromAsciiToNative(PCWSTR psz)
 {
-	String szText(wcslen(psz));
+	String szText(StrLen(psz));
 	WCHAR* pOut = szText.Buf;
 	const WCHAR* pCur = psz;
 	WCHAR c;

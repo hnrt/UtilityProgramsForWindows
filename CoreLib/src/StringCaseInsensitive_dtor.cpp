@@ -1,7 +1,9 @@
 #include "pch.h"
+#include <Windows.h>
 #include "hnrt/StringCaseInsensitive.h"
-#include "hnrt/RefStr.h"
 #include "hnrt/Interlocked.h"
+#include "hnrt/StringCommons.h"
+#include "hnrt/RefString.h"
 
 
 using namespace hnrt;

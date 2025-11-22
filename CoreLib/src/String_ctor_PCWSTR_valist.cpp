@@ -1,5 +1,9 @@
 #include "pch.h"
-#include "String_internal.h"
+#include <cstdarg>
+#include <Windows.h>
+#include "hnrt/String.h"
+#include "hnrt/StringCommons.h"
+#include "hnrt/RefStr.h"
 
 
 using namespace hnrt;

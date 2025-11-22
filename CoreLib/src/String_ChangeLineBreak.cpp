@@ -1,5 +1,7 @@
 #include "pch.h"
-#include "String_internal.h"
+#include <Windows.h>
+#include "hnrt/LineBreak.h"
+#include "hnrt/String.h"
 
 
 using namespace hnrt;

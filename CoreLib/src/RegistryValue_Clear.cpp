@@ -1,8 +1,10 @@
 #include "pch.h"
+#include <Windows.h>
 #include "hnrt/RegistryValue.h"
-#include "hnrt/RefStr.h"
-#include "hnrt/RefBin.h"
 #include "hnrt/Interlocked.h"
+#include "hnrt/StringCommons.h"
+#include "hnrt/RefString.h"
+#include "hnrt/RefBin.h"
 
 
 using namespace hnrt;

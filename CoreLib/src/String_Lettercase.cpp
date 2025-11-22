@@ -1,5 +1,6 @@
 #include "pch.h"
-#include "String_internal.h"
+#include "hnrt/String.h"
+#include "hnrt/StringCommons.h"
 
 
 using namespace hnrt;

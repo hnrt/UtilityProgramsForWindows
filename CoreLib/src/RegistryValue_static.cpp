@@ -1,7 +1,7 @@
 #include "pch.h"
+#include <wchar.h>
+#include <Windows.h>
 #include "hnrt/RegistryValue.h"
-#include "hnrt/Heap.h"
-#include "hnrt/Exception.h"
 #include "hnrt/Buffer.h"
 
 

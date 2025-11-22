@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "String_internal.h"
+#include "hnrt/String.h"
 
 
 using namespace hnrt;
