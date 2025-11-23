@@ -4,6 +4,11 @@
 #include "hnrt/ComException.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/Debug.h"
+#include <hnrt/String.h>
+#include <hnrt/Args.h>
+#include <hnrt/Exception.h>
+#include <exception>
+#include <Windows.h>
 
 
 using namespace hnrt;
@@ -283,8 +288,8 @@ static String GetStateText(DWORD dwState)
 }
 
 
-#define MAX_ATTEMPTS 10
-#define RETRY_INTERVAL 1000
+constexpr auto MAX_ATTEMPTS = 10;
+constexpr auto RETRY_INTERVAL = 1000;
 
 
 void VmIpAddressFinder::SetServiceStatus(DWORD dwState)

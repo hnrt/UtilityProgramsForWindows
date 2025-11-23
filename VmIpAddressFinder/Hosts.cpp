@@ -1,8 +1,9 @@
-#include <ctype.h>
-#include <stdexcept>
+#include <string.h>
+#include <cctype>
+#include <list>
+#include <Windows.h>
 #include "Hosts.h"
-#include "hnrt/Heap.h"
-#include "hnrt/Interlocked.h"
+#include "hnrt/MultibyteString.h"
 
 
 using namespace hnrt;
@@ -226,22 +227,16 @@ int Hosts::ReadChar()
 
 HostsNode::HostsNode(HostsNodeType type, const char* psz)
     : m_type(type)
-    , m_psz(psz ? Clone(psz) : nullptr)
+    , m_psz(psz)
     , m_pNext(nullptr)
     , m_pHost(nullptr)
 {
 }
 
 
-HostsNode::~HostsNode()
-{
-    free(m_psz);
-}
-
-
 void HostsNode::SetText(PCWSTR psz)
 {
-    free(Interlocked<char*>::ExchangePointer(&m_psz, ToAcp(psz)));
+    m_psz = MultibyteString(CP_ACP, psz);
 }
 
 

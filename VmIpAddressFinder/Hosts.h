@@ -1,9 +1,8 @@
 #pragma once
 
-
-#include <Windows.h>
 #include <list>
-
+#include <Windows.h>
+#include "hnrt/MultibyteString.h"
 
 namespace hnrt
 {
@@ -25,7 +24,7 @@ namespace hnrt
 
         HostsNode(HostsNodeType type, const char* psz = nullptr);
         HostsNode(const HostsNode&) = delete;
-        ~HostsNode();
+        ~HostsNode() = default;
         HostsNode& operator = (const HostsNode&) = delete;
         void SetText(PCWSTR psz);
         HostsNodeType get_Type() const;
@@ -43,7 +42,7 @@ namespace hnrt
     private:
 
         HostsNodeType m_type;
-        char* m_psz;
+        MultibyteString m_psz;
         HostsNode* m_pNext;
         HostsNode* m_pHost;
     };

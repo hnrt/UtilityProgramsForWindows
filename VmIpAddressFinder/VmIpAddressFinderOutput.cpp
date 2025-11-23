@@ -1,7 +1,16 @@
 #include "VmIpAddressFinder.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cstdarg>
+#include <corecrt.h>
 #include <io.h>
 #include <fcntl.h>
+#include <share.h>
+#include <sys/stat.h>
+#include <Windows.h>
+#include <KnownFolders.h>
 #include "hnrt/SpinLock.h"
+#include "hnrt/String.h"
 #include "hnrt/Path.h"
 #include "hnrt/Exception.h"
 #include "hnrt/Debug.h"

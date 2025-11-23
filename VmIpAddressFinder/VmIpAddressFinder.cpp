@@ -1,11 +1,15 @@
-﻿#include "VmIpAddressFinder.h"
-#include "GuestIntrinsicExchangeItems.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <locale.h>
-#include <stdexcept>
+﻿#include <cstdlib>
+#include <clocale>
+#include <exception>
 #include <list>
+#include <winsock2.h>
+#include <ws2def.h>
+#include <IPTypes.h>
+#include <KnownFolders.h>
+#include <WbemCli.h>
+#include "VmIpAddressFinder.h"
+#include "GuestIntrinsicExchangeItems.h"
+#include "hnrt/RefPtr.h"
 #include "hnrt/Path.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/StringCollection.h"
@@ -15,6 +19,13 @@
 #include "hnrt/Win32Exception.h"
 #include "hnrt/ErrorMessage.h"
 #include "hnrt/Debug.h"
+#include "hnrt/AdapterAddressCollection.h"
+#include "hnrt/Buffer.h"
+#include "hnrt/ComLibrary.h"
+#include "hnrt/Exception.h"
+#include "hnrt/KeyValueMap.h"
+#include "hnrt/String.h"
+#include "Hosts.h"
 
 
 #pragma comment(lib, "wbemuuid.lib")
