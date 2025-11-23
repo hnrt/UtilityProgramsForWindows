@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdarg>
 #include <malloc.h>
 #include <Windows.h>
 
@@ -31,7 +30,7 @@ namespace hnrt
     template<typename T>
     T* Detach(T*& ptr)
     {
-        return reinterpret_cast<T*>(InterlockedExchangePointer(reinterpret_cast<void**>(&ptr), nullptr));
+        return reinterpret_cast<T*>(_InterlockedExchangePointer(reinterpret_cast<void**>(&ptr), nullptr));
     }
 
     template<typename T>
@@ -39,38 +38,4 @@ namespace hnrt
     {
         ::free(Detach<T>(ptr));
     }
-
-    PSTR Clone(PCSTR psz);
-    PSTR Clone(PCSTR psz, size_t cb);
-    PSTR* Clone(PSTR* ppsz, size_t count, size_t size = 0);
-    PSTR* Resize(PSTR* ppsz, size_t size);
-    void Free(PSTR* ppsz);
-    DWORD ArraySize(PSTR* ppsz);
-    PSTR Format(PCSTR pszFormat, ...);
-    PSTR VaFormat(PCSTR pszFormat, va_list argList);
-    PSTR VaAppendFormat(PSTR psz, INT_PTR cb, PCSTR pszFormat, va_list argList);
-    PSTR VaConcatFormat(PCSTR psz, INT_PTR cb, PCSTR pszFormat, va_list argList);
-    PSTR Concat(PCSTR psz1, PCSTR psz2);
-    PSTR Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3);
-    PSTR Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4);
-    PSTR Concat(PCSTR psz1, PCSTR psz2, PCSTR psz3, PCSTR psz4, PCSTR psz5);
-    PSTR ToAcp(PCWSTR psz, INT_PTR cch = -1);
-    PSTR ToAcp(UINT cp, PCWSTR psz, INT_PTR cch = -1);
-
-    PWSTR Clone(PCWSTR psz);
-    PWSTR Clone(PCWSTR psz, size_t cch);
-    PWSTR* Clone(PWSTR* ppsz, size_t count, size_t size = 0);
-    PWSTR* Resize(PWSTR* ppsz, size_t size);
-    void Free(PWSTR* ppsz);
-    DWORD ArraySize(PWSTR* ppsz);
-    PWSTR Format(PCWSTR pszFormat, ...);
-    PWSTR VaFormat(PCWSTR pszFormat, va_list argList);
-    PWSTR VaAppendFormat(PWSTR psz, INT_PTR cch, PCWSTR pszFormat, va_list argList);
-    PWSTR VaConcatFormat(PCWSTR psz, INT_PTR cch, PCWSTR pszFormat, va_list argList);
-    PWSTR Concat(PCWSTR psz1, PCWSTR psz2);
-    PWSTR Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3);
-    PWSTR Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4);
-    PWSTR Concat(PCWSTR psz1, PCWSTR psz2, PCWSTR psz3, PCWSTR psz4, PCWSTR psz5);
-    PWSTR ToUcs(PCSTR psz, INT_PTR cb = -1);
-    PWSTR ToUcs(UINT cp, PCSTR psz, INT_PTR cb = -1);
 }
