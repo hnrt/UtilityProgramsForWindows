@@ -19,8 +19,4 @@ String::String(PCWSTR psz, SSIZE_T cch)
         MemCpy(m_psz, psz, cch);
         m_psz[cch] = L'\0';
     }
-    else
-    {
-        m_psz = StringAddRef(Empty.m_psz);
-    }
 }

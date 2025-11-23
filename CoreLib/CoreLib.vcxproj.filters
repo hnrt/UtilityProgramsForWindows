@@ -902,5 +902,8 @@
     <ClCompile Include="src\String_ctor_UINT_PCSTR_SSIZE.cpp">
       <Filter>ソース ファイル\String</Filter>
     </ClCompile>
+    <ClCompile Include="src\WindowsPlatform_GetModuleName.cpp">
+      <Filter>ソース ファイル\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

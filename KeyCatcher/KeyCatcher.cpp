@@ -1,8 +1,11 @@
+#include <cstdlib>
+#include <cctype>
+#include <list>
+#include <Windows.h>
 #include "KeyCatcher.h"
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "hnrt/String.h"
+#include "hnrt/Path.h"
+#include "hnrt/WindowsPlatform.h"
 #include "hnrt/Debug.h"
 #include "hnrt/WindowsMessage.h"
 #include "hnrt/KeystrokeMessageFlags.h"
@@ -12,7 +15,6 @@
 #include "hnrt/Unicode.h"
 #include "hnrt/Exception.h"
 #include "hnrt/ErrorMessage.h"
-#include "hnrt/Heap.h"
 
 
 using namespace hnrt;
@@ -25,26 +27,11 @@ LONG KeyCatcher::m_RefCount = 0;
 static const WCHAR s_szClassName[] = { L"HnrtKeyCatcher" };
 
 
-static PWSTR GetExePath()
-{
-    static WCHAR szPath[MAX_PATH];
-    if (!szPath[0])
-    {
-        if (!GetModuleFileNameW(NULL, szPath, MAX_PATH))
-        {
-            DWORD dwError = GetLastError();
-            throw Exception(L"KeyCatcher::ctor failed to get the module path. (Error %lu %s)", dwError, ErrorMessage::Get(dwError));
-        }
-    }
-    return Clone(szPath);
-}
-
-
 KeyCatcher::KeyCatcher(HINSTANCE hInstance)
-    : m_pszExePath(GetExePath())
+    : m_ExePath(GetModuleFileName())
     , m_hInstance(hInstance)
     , m_KeyInput()
-    , m_pszFileName(nullptr)
+    , m_FileName(nullptr)
 {
     if (InterlockedIncrement(&m_RefCount) == 1)
     {
@@ -72,8 +59,6 @@ KeyCatcher::~KeyCatcher()
     {
         UnregisterClassW(s_szClassName, m_hInstance);
     }
-    free(m_pszFileName);
-    free(m_pszExePath);
 }
 
 
@@ -116,7 +101,7 @@ LRESULT CALLBACK KeyCatcher::MessageCallback(HWND hwnd, UINT uMsg, WPARAM wParam
                 VirtualKey(wParam).Value, VirtualKey(wParam).Name,
                 static_cast<UINT>(lParam),
                 km.flags.RepeatCount, km.flags.ScanCode, km.flags.ExtendedKey, km.flags.ContextCode, km.flags.PreviousKeyState, km.flags.TransitionState);
-            if (pThis->m_pszFileName)
+            if (pThis->m_FileName)
             {
                 pThis->PushBack(uMsg, wParam, lParam);
             }
@@ -132,7 +117,7 @@ LRESULT CALLBACK KeyCatcher::MessageCallback(HWND hwnd, UINT uMsg, WPARAM wParam
                 static_cast<UINT>(wParam), static_cast<UINT>(wParam),
                 static_cast<UINT>(lParam),
                 km.flags.RepeatCount, km.flags.ScanCode, km.flags.ExtendedKey, km.flags.ContextCode, km.flags.PreviousKeyState, km.flags.TransitionState);
-            if (pThis->m_pszFileName)
+            if (pThis->m_FileName)
             {
                 pThis->PushBack(uMsg, wParam, lParam);
             }
@@ -168,22 +153,21 @@ int KeyCatcher::Run()
 }
 
 
-PCWSTR KeyCatcher::get_Name() const
+String KeyCatcher::get_Name() const
 {
-    return !m_pszExePath ? L"keycatcher.exe" : wcschr(m_pszExePath, L'\\') ? wcsrchr(m_pszExePath, L'\\') + 1 : m_pszExePath;
+    return Path::GetFileNameWithoutExtension(m_ExePath);
 }
 
 
-PCWSTR KeyCatcher::get_FileName() const
+String KeyCatcher::get_FileName() const
 {
-    return m_pszFileName;
+    return m_FileName;
 }
 
 
-void KeyCatcher::set_FileName(PCWSTR pszFileName)
+void KeyCatcher::set_FileName(String strFileName)
 {
-    Deallocate(m_pszFileName);
-    m_pszFileName = Clone(pszFileName);
+    m_FileName = strFileName;
 }
 
 
@@ -203,7 +187,7 @@ void KeyCatcher::PushBack(UINT uMessage, WPARAM wParam, LPARAM lParam)
 
 void KeyCatcher::Save()
 {
-    if (!m_pszFileName)
+    if (!m_FileName)
     {
         return;
     }
@@ -251,7 +235,7 @@ void KeyCatcher::Save()
             break;
         }
     }
-    FileWriter f(m_pszFileName);
+    FileWriter f(m_FileName);
     f.Write(s.Ptr, s.Len * sizeof(WCHAR));
     f.Close();
 }

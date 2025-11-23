@@ -471,6 +471,7 @@
     <ClCompile Include="src\WindowHelper.cpp" />
     <ClCompile Include="src\WindowsMessage.cpp" />
     <ClCompile Include="src\WindowsPlatform.cpp" />
+    <ClCompile Include="src\WindowsPlatform_GetModuleName.cpp" />
     <ClCompile Include="src\ZipFile_ctor.cpp" />
     <ClCompile Include="src\ZipFile_ExtractFiles.cpp" />
     <ClCompile Include="src\Hash.cpp" />

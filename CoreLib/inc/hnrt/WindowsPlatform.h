@@ -1,8 +1,11 @@
 #pragma once
 
-
 #include <Windows.h>
+#include "hnrt/String.h"
 
+#ifdef GetModuleFileName
+#undef GetModuleFileName
+#endif // GetModuleFileName
 
 namespace hnrt
 {
@@ -38,4 +41,13 @@ namespace hnrt
         /// <returns>Either 64 or 32 will be returned according to its bitness. 0 will be returned on error.</returns>
         static int ProcessBitness(DWORD);
     };
+
+    /// <summary>
+    /// Retrieves the fully qualified path for the file that contains the specified module.
+    /// The module must have been loaded by the current process.
+    /// </summary>
+    /// <param name="hModule">A handle to the loaded module whose path is being requested. If this parameter is NULL, the function retrieves the path of the executable file of the current process.</param>
+    /// <returns>The fully qualified path.</returns>
+    String GetModuleFileName(HMODULE hModule = 0);
+
 }

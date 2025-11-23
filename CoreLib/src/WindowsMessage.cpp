@@ -1,5 +1,8 @@
 #include "pch.h"
+#include <cstdlib>
+#include <Windows.h>
 #include "hnrt/WindowsMessage.h"
+#include "hnrt/String.h"
 
 
 using namespace hnrt;

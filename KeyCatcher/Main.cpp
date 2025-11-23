@@ -1,6 +1,8 @@
+#include <cstdlib>
+#include <exception>
+#include <wchar.h>
+#include <sal.h>
 #include <Windows.h>
-#include <stdlib.h>
-#include <stdexcept>
 #include "KeyCatcher.h"
 #include "hnrt/ResourceString.h"
 #include "hnrt/Args.h"

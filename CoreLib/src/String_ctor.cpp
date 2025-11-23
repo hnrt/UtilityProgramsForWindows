@@ -19,3 +19,9 @@ SIZE_T String::get_Len() const
 {
     return m_psz ? RefStr::Get(m_psz).Length : 0;
 }
+
+
+void String::set_Len(SIZE_T length)
+{
+    RefStr::Get(m_psz).Truncate(length);
+}

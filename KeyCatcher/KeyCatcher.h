@@ -1,9 +1,8 @@
 #pragma once
 
-
-#include <Windows.h>
 #include <list>
-
+#include <Windows.h>
+#include "hnrt/String.h"
 
 namespace hnrt
 {
@@ -17,12 +16,12 @@ namespace hnrt
         void operator =(const KeyCatcher&) = delete;
         void Initialize(int nCmdShow);
         int Run();
-        PCWSTR get_Name() const;
-        PCWSTR get_FileName() const;
-        void set_FileName(PCWSTR pszFileName);
+        String get_Name() const;
+        String get_FileName() const;
+        void set_FileName(String pszFileName);
 
-        __declspec(property(get = get_Name)) PCWSTR Name;
-        __declspec(property(get = get_FileName, put = set_FileName)) PCWSTR FileName;
+        __declspec(property(get = get_Name)) String Name;
+        __declspec(property(get = get_FileName, put = set_FileName)) String FileName;
 
     private:
 
@@ -45,9 +44,9 @@ namespace hnrt
             void operator =(const KeyMessage&);
         };
 
-        PWSTR m_pszExePath;
+        String m_ExePath;
         HINSTANCE m_hInstance;
         std::list<KeyMessage> m_KeyInput;
-        PWSTR m_pszFileName;
+        String m_FileName;
     };
 }

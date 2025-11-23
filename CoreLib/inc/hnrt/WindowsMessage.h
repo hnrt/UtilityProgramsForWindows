@@ -1,8 +1,7 @@
 #pragma once
 
-
+#include <Windows.h>
 #include "hnrt/String.h"
-
 
 namespace hnrt
 {
@@ -29,7 +28,7 @@ namespace hnrt
 
     inline WindowsMessage::WindowsMessage(UINT uMsg)
         : m_value(uMsg)
-        , m_sz()
+        , m_sz(nullptr)
     {
     }
 

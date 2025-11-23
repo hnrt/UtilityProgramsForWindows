@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdarg>
+#include <climits>
 #include <Windows.h>
 #include "hnrt/StringOptions.h"
 #include "hnrt/LineBreak.h"
@@ -75,12 +77,13 @@ namespace hnrt
     public:
 
         PCWSTR get_Ptr() const;
-        SIZE_T get_Len() const;
         PWCHAR get_Buf() const;
+        SIZE_T get_Len() const;
+        void set_Len(SIZE_T);
 
         __declspec(property(get = get_Ptr)) PCWSTR Ptr;
-        __declspec(property(get = get_Len)) SIZE_T Len;
         __declspec(property(get = get_Buf)) PWCHAR Buf;
+        __declspec(property(get = get_Len, put = set_Len)) SIZE_T Len;
 
     public:
 
@@ -132,7 +135,7 @@ namespace hnrt
 
     inline PCWSTR String::get_Ptr() const
     {
-        return m_psz ? m_psz : L"";
+        return m_psz;
     }
 
     inline PWCHAR String::get_Buf() const
