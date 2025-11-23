@@ -1,10 +1,18 @@
 #include "pch.h"
+#include <string.h>
+#include <cctype>
+#include <ShlObj_core.h>
+#include <shtypes.h>
+#include <Windows.h>
 #include "hnrt/Path.h"
+#include "hnrt/String.h"
 #include "hnrt/StringCaseInsensitive.h"
 #include "hnrt/StringBuffer.h"
 #include "hnrt/ComException.h"
 #include "hnrt/WindowsHandle.h"
-#include <ctype.h>
+#include "hnrt/Exception.h"
+#include "hnrt/Array.h"
+#include "hnrt/DirectoryEntry.h"
 
 
 using namespace hnrt;
@@ -40,7 +48,7 @@ String Path::GetFileNameWithoutExtension(PCWSTR psz)
 String Path::GetExtension(PCWSTR psz)
 {
     PCWSTR pszExtension = wcsrchr(wcschr(psz, DIRECTORY_SEPARATOR_CHAR) ? wcsrchr(psz, DIRECTORY_SEPARATOR_CHAR) + 1 : psz, EXTENSION_LEADER_CHAR);
-    return String(pszExtension);
+    return String(pszExtension ? pszExtension : L"");
 }
 
 

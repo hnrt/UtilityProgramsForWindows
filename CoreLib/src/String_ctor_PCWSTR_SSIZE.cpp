@@ -12,7 +12,7 @@ using namespace hnrt;
 String::String(PCWSTR psz, SSIZE_T cch)
     : m_psz(nullptr)
 {
-    if (psz && cch)
+    if (psz)
     {
         cch = StrLen(psz, cch);
         m_psz = RefStr::Create(cch);
