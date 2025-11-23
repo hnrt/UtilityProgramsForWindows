@@ -1,7 +1,8 @@
 #include "pch.h"
+#include <string.h>
+#include <Windows.h>
 #include "hnrt/StringCollection.h"
-#include "hnrt/Heap.h"
-#include "hnrt/Exception.h"
+#include "hnrt/Array.h"
 #include "hnrt/String.h"
 
 
@@ -50,15 +51,16 @@ StringCollection& StringCollection::Add(PCWSTR psz, size_t cch)
 
 StringCollection& StringCollection::RemoveAt(DWORD dwIndex)
 {
-    if (dwIndex < m_dwLength)
+    if (dwIndex < Length)
     {
-        m_dwLength--;
-        while (dwIndex < m_dwLength)
+        DWORD dwEnd = static_cast<DWORD>(Length);
+        dwEnd--;
+        while (dwIndex < dwEnd)
         {
             m_pBase[dwIndex] = m_pBase[dwIndex + 1];
             dwIndex++;
         }
-        m_pBase[m_dwLength].~String();
+        Length--;
     }
     return *this;
 }

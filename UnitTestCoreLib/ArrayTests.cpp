@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 #include "hnrt/Array.h"
-#include "hnrt/Debug.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace hnrt;
@@ -213,8 +212,35 @@ namespace UnitTestCoreLib
 			Assert::IsFalse(x[-1].m_b);
 			Assert::AreEqual(400, x[-2].m_a);
 			Assert::IsTrue(x[-2].m_b);
-			Assert::AreEqual(37ULL, Quux::c);
-			Assert::AreEqual(4ULL, Quux::d);
+			Assert::AreEqual(69ULL, Quux::c);
+			Assert::AreEqual(36ULL, Quux::d);
+		}
+
+		TEST_METHOD(Test0012)
+		{
+			Quux::Init();
+			Array<Quux> x;
+			Assert::AreEqual(0UL, x.Capacity);
+			Assert::AreEqual(0UL, x.Length);
+			x += Quux(200, false);
+			x += Quux(250, false);
+			Array<Quux> y;
+			x += y;
+			Assert::AreEqual(32UL, x.Capacity);
+			Assert::AreEqual(2UL, x.Length);
+			y += Quux(300, true);
+			y += Quux(350, true);
+			x += y;
+			Assert::AreEqual(32UL, x.Capacity);
+			Assert::AreEqual(4UL, x.Length);
+			Assert::AreEqual(200, x[0].m_a);
+			Assert::IsFalse(x[0].m_b);
+			Assert::AreEqual(250, x[1].m_a);
+			Assert::IsFalse(x[1].m_b);
+			Assert::AreEqual(300, x[2].m_a);
+			Assert::IsTrue(x[2].m_b);
+			Assert::AreEqual(350, x[3].m_a);
+			Assert::IsTrue(x[3].m_b);
 		}
 	};
 }

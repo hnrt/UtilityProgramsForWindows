@@ -1,9 +1,9 @@
 #pragma once
 
-
+#include <ctime>
+#include <Windows.h>
 #include "hnrt/String.h"
 #include "hnrt/Time.h"
-
 
 namespace hnrt
 {
@@ -16,6 +16,7 @@ namespace hnrt
         ULONGLONG nFileSize;
         String szFileName;
 
+        DirectoryEntry() = default;
         DirectoryEntry(const WIN32_FIND_DATAW&);
         DirectoryEntry(const DirectoryEntry&);
         ~DirectoryEntry() = default;

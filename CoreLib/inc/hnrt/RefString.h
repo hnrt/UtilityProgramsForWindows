@@ -1,9 +1,9 @@
 #pragma once
 
-#include "hnrt/RefObj.h"
-#include "hnrt/Heap.h"
 #include <malloc.h>
 #include <Windows.h>
+#include "hnrt/RefObj.h"
+#include "hnrt/Heap.h"
 
 namespace hnrt
 {

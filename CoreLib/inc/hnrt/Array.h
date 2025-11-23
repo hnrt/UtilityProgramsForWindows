@@ -1,163 +1,165 @@
 #pragma once
 
-#include "hnrt/Heap.h"
 #include <stdexcept>
+#include <Windows.h>
+#include "hnrt/RefArray.h"
+#include "hnrt/Interlocked.h"
 
 namespace hnrt
 {
     template<typename T>
     class Array
     {
+    protected:
+
+        T* m_pBase;
+
     public:
 
         Array(SIZE_T capacity = 0);
         Array(const Array<T>& src);
         ~Array();
-        Array<T>& SetCapacity(SIZE_T capacity);
-        Array<T>& SetLength(SIZE_T length);
+        ULONG GetCapacity() const;
+        void SetCapacity(ULONG uCapacity);
+        ULONG GetLength() const;
+        void SetLength(ULONG uLength);
         Array<T>& Assign(const Array<T>& src);
         Array<T>& PushBack(const T& value);
+        Array<T>& PushBack(const Array<T>& src);
         const T& At(SSIZE_T index) const;
         T& At(SSIZE_T index);
+
         Array<T>& operator =(const Array<T>& src);
         Array<T>& operator +=(const T& value);
+        Array<T>& operator +=(const Array<T>& src);
         const T& operator [](SSIZE_T index) const;
         T& operator [](SSIZE_T index);
 
-        DWORD get_Length() const;
-        void set_Length(DWORD);
-        DWORD get_Capacity() const;
-        void set_Capacity(DWORD);
-
-        __declspec(property(get = get_Length, put = set_Length)) DWORD Length;
-        __declspec(property(get = get_Capacity, put = set_Capacity)) DWORD Capacity;
-
-    protected:
-
-        T* m_pBase;
-        DWORD m_dwCapacity;
-        DWORD m_dwLength;
+        __declspec(property(get = GetCapacity, put = SetCapacity)) ULONG Capacity;
+        __declspec(property(get = GetLength, put = SetLength)) ULONG Length;
     };
 
     template<typename T>
-    inline Array<T>::Array(SIZE_T capacity)
+    Array<T>::Array(SIZE_T capacity)
         : m_pBase(nullptr)
-        , m_dwCapacity(0)
-        , m_dwLength(0)
     {
-        SetCapacity(capacity);
-    }
-
-    template<typename T>
-    inline Array<T>::Array(const Array<T>& src)
-        : m_pBase(nullptr)
-        , m_dwCapacity(0)
-        , m_dwLength(0)
-    {
-        Assign(src);
-    }
-
-    template<typename T>
-    inline Array<T>::~Array()
-    {
-        SetCapacity(0);
-    }
-
-    template<typename T>
-    inline Array<T>& Array<T>::SetCapacity(SIZE_T capacity)
-    {
-        DWORD dwCapacity = static_cast<DWORD>(capacity);
-        if (m_dwCapacity < dwCapacity)
+        if (capacity)
         {
-            m_pBase = Allocate<T>(m_pBase, dwCapacity);
-            m_dwCapacity = dwCapacity;
+            m_pBase = RefArray<T>::Create(capacity);
         }
-        else if (dwCapacity < m_dwCapacity)
+    }
+
+    template<typename T>
+    Array<T>::Array(const Array<T>& src)
+        : m_pBase(ArrayAddRef<T>(src.m_pBase))
+    {
+    }
+
+    template<typename T>
+    Array<T>::~Array()
+    {
+        ArrayRelease<T>(Interlocked<T*>::ExchangePointer(&m_pBase, nullptr));
+    }
+
+    template<typename T>
+    ULONG Array<T>::GetCapacity() const
+    {
+        return m_pBase ? static_cast<ULONG>(RefArray<T>::Get(m_pBase).Capacity) : 0;
+    }
+
+    template<typename T>
+    void Array<T>::SetCapacity(ULONG uCapacity)
+    {
+        if (Capacity < uCapacity)
         {
-            while (dwCapacity < m_dwLength)
+            T* pBase = RefArray<T>::Create(uCapacity);
+            if (m_pBase)
             {
-                m_pBase[--m_dwLength].~T();
+                RefArray<T>::Get(pBase).PushBack(RefArray<T>::Get(m_pBase));
             }
-            if (dwCapacity)
+            ArrayRelease<T>(Interlocked<T*>::ExchangePointer(&m_pBase, pBase));
+        }
+        else if (uCapacity < Capacity)
+        {
+            if (uCapacity)
             {
-                m_pBase = Allocate<T>(m_pBase, dwCapacity);
-                m_dwCapacity = dwCapacity;
+                RefArray<T>::Get(m_pBase).Capacity = uCapacity;
             }
             else
             {
-                free(m_pBase);
-                m_pBase = nullptr;
-                m_dwCapacity = 0;
+                ArrayRelease<T>(Interlocked<T*>::ExchangePointer(&m_pBase, nullptr));
             }
         }
+    }
+
+    template<typename T>
+    ULONG Array<T>::GetLength() const
+    {
+        return m_pBase ? static_cast<ULONG>(RefArray<T>::Get(m_pBase).Length) : 0;
+    }
+
+    template<typename T>
+    void Array<T>::SetLength(ULONG uLength)
+    {
+        if (Capacity < uLength)
+        {
+            SetCapacity(uLength);
+        }
+        if (m_pBase)
+        {
+            RefArray<T>::Get(m_pBase).Length = uLength;
+        }
+    }
+
+    template<typename T>
+    Array<T>& Array<T>::Assign(const Array<T>& src)
+    {
+        ArrayRelease<T>(Interlocked<T*>::ExchangePointer(&m_pBase, ArrayAddRef<T>(src.m_pBase)));
         return *this;
     }
 
     template<typename T>
-    inline Array<T>& Array<T>::SetLength(SIZE_T length)
+    Array<T>& Array<T>::PushBack(const T& value)
     {
-        DWORD dwLength = static_cast<DWORD>(length);
-        if (m_dwCapacity < dwLength)
+        ULONG length = Length;
+        ULONG capacity = Capacity;
+        if (length == capacity)
         {
-            SetCapacity(dwLength);
+            SetCapacity(capacity < 16 ? 32 : capacity < 65536 ? capacity * 2 : capacity + 65536);
         }
-        if (m_dwLength < dwLength)
+        RefArray<T>::Get(m_pBase).PushBack(value);
+        return *this;
+    }
+
+    template<typename T>
+    Array<T>& Array<T>::PushBack(const Array<T>& src)
+    {
+        ULONG delta = src.Length;
+        if (delta)
         {
-            do
+            ULONG length = Length;
+            ULONG capacity = Capacity;
+            while (capacity < length + delta)
             {
-                new (&m_pBase[m_dwLength++]) T();
+                SetCapacity(capacity < 16 ? 32 : capacity < 65536 ? capacity * 2 : capacity + 65536);
+                capacity = Capacity;
             }
-            while (m_dwLength < dwLength);
-        }
-        else
-        {
-            while (dwLength < m_dwLength)
-            {
-                m_pBase[--m_dwLength].~T();
-            }
+            RefArray<T>::Get(m_pBase).PushBack(RefArray<T>::Get(src.m_pBase));
         }
         return *this;
     }
 
     template<typename T>
-    inline Array<T>& Array<T>::Assign(const Array<T>& src)
+    const T& Array<T>::At(SSIZE_T index) const
     {
-        SetCapacity(0);
-        if (src.m_dwCapacity)
-        {
-            m_pBase = Allocate<T>(src.m_dwCapacity);
-            m_dwCapacity = src.m_dwCapacity;
-            for (DWORD dwIndex = 0; dwIndex < src.m_dwLength; dwIndex++)
-            {
-                new (&m_pBase[dwIndex]) T(src.m_pBase[dwIndex]);
-            }
-            m_dwLength = src.m_dwLength;
-        }
-        return *this;
-    }
-
-    template<typename T>
-    inline Array<T>& Array<T>::PushBack(const T& value)
-    {
-        if (m_dwCapacity < m_dwLength + 1)
-        {
-            DWORD dwCapacity = m_dwCapacity < 16 ? 32 : m_dwCapacity < 65536 ? (m_dwCapacity * 2) : (m_dwCapacity + 65536);
-            SetCapacity(dwCapacity);
-        }
-        new (&m_pBase[m_dwLength++]) T(value);
-        return *this;
-    }
-
-    template<typename T>
-    inline const T& Array<T>::At(SSIZE_T index) const
-    {
-        if (0 <= index && index < static_cast<SSIZE_T>(m_dwLength))
+        SSIZE_T length = static_cast<SSIZE_T>(Length);
+        if (0 <= index && index < length)
         {
             return m_pBase[index];
         }
-        else if (0 <= static_cast<SSIZE_T>(m_dwLength) + index && index < 0)
+        else if (0 <= length + index && index < 0)
         {
-            return m_pBase[m_dwLength + index];
+            return m_pBase[length + index];
         }
         else
         {
@@ -166,15 +168,16 @@ namespace hnrt
     }
 
     template<typename T>
-    inline T& Array<T>::At(SSIZE_T index)
+    T& Array<T>::At(SSIZE_T index)
     {
-        if (0 <= index && index < static_cast<SSIZE_T>(m_dwLength))
+        SSIZE_T length = static_cast<SSIZE_T>(Length);
+        if (0 <= index && index < length)
         {
             return m_pBase[index];
         }
-        else if (0 <= static_cast<SSIZE_T>(m_dwLength) + index && index < 0)
+        else if (0 <= length + index && index < 0)
         {
-            return m_pBase[m_dwLength + index];
+            return m_pBase[length + index];
         }
         else
         {
@@ -183,50 +186,32 @@ namespace hnrt
     }
 
     template<typename T>
-    inline Array<T>& Array<T>::operator =(const Array<T>& src)
+    Array<T>& Array<T>::operator =(const Array<T>& src)
     {
         return Assign(src);
     }
 
     template<typename T>
-    inline Array<T>& Array<T>::operator +=(const T& value)
+    Array<T>& Array<T>::operator +=(const T& value)
     {
         return PushBack(value);
     }
 
     template<typename T>
-    inline const T& Array<T>::operator [](SSIZE_T index) const
+    Array<T>& Array<T>::operator +=(const Array<T>& src)
+    {
+        return PushBack(src);
+    }
+
+    template<typename T>
+    const T& Array<T>::operator [](SSIZE_T index) const
     {
         return At(index);
     }
 
     template<typename T>
-    inline T& Array<T>::operator [](SSIZE_T index)
+    T& Array<T>::operator [](SSIZE_T index)
     {
         return At(index);
-    }
-
-    template<typename T>
-    inline DWORD Array<T>::get_Length() const
-    {
-        return m_dwLength;
-    }
-
-    template<typename T>
-    inline void Array<T>::set_Length(DWORD dwLength)
-    {
-        SetLength(dwLength);
-    }
-
-    template<typename T>
-    inline DWORD Array<T>::get_Capacity() const
-    {
-        return m_dwCapacity;
-    }
-
-    template<typename T>
-    inline void Array<T>::set_Capacity(DWORD dwCapacity)
-    {
-        SetCapacity(dwCapacity);
     }
 }
