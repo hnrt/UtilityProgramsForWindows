@@ -24,9 +24,9 @@ namespace hnrt
         virtual ~RefString();
         void Truncate(SIZE_T);
 
-        void* operator new(::size_t, ::size_t);
+        void* operator new(size_t, size_t);
         void operator delete(void*);
-        void operator delete(void*, ::size_t);
+        void operator delete(void*, size_t);
         void operator =(const RefString&) = delete;
 
     public:
@@ -78,9 +78,9 @@ namespace hnrt
     }
 
     template<typename T>
-    void* RefString<T>::operator new(::size_t size, ::size_t cch)
+    void* RefString<T>::operator new(size_t size, size_t cch)
     {
-        ::size_t required = sizeof(RefString<T>) + (cch + 1) * sizeof(T);
+        size_t required = sizeof(RefString<T>) + (cch + 1) * sizeof(T);
         return Malloc(required > size ? required : size);
     }
 
@@ -91,15 +91,15 @@ namespace hnrt
     }
 
     template<typename T>
-    void RefString<T>::operator delete(void* ptr, ::size_t)
+    void RefString<T>::operator delete(void* ptr, size_t)
     {
         ::free(ptr);
     }
 
     template<typename T>
-    ::SIZE_T RefString<T>::get_Length() const
+    SIZE_T RefString<T>::get_Length() const
     {
-        return static_cast<::SIZE_T>(m_Length);
+        return static_cast<SIZE_T>(m_Length);
     }
 
     template<typename T>
