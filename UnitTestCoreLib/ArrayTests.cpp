@@ -149,7 +149,7 @@ namespace UnitTestCoreLib
 			Quux::Init();
 			Array<Quux> x;
 			x.SetLength(2);
-			Assert::AreEqual(2UL, x.Capacity);
+			Assert::AreEqual(32UL, x.Capacity);
 			Assert::AreEqual(2UL, x.Length);
 			Assert::AreEqual(100, x[0].m_a);
 			Assert::IsTrue(x[0].m_b);
@@ -165,7 +165,7 @@ namespace UnitTestCoreLib
 			Array<Quux> x;
 			x.SetLength(2);
 			x.SetLength(0);
-			Assert::AreEqual(2UL, x.Capacity);
+			Assert::AreEqual(32UL, x.Capacity);
 			Assert::AreEqual(0UL, x.Length);
 			Assert::AreEqual(2ULL, Quux::c);
 			Assert::AreEqual(2ULL, Quux::d);
@@ -190,30 +190,34 @@ namespace UnitTestCoreLib
 		TEST_METHOD(Test0011)
 		{
 			Quux::Init();
-			Array<Quux> x;
-			x += Quux(200, false);
-			x += Quux(250, false);
-			x.Length = 32;
-			x += Quux(300, false);
-			x[-2] = Quux(400, true);
-			Assert::AreEqual(64UL, x.Capacity);
-			Assert::AreEqual(33UL, x.Length);
-			Assert::AreEqual(200, x[0].m_a);
-			Assert::IsFalse(x[0].m_b);
-			Assert::AreEqual(250, x[1].m_a);
-			Assert::IsFalse(x[1].m_b);
-			Assert::AreEqual(100, x[2].m_a);
-			Assert::IsTrue(x[2].m_b);
-			Assert::AreEqual(400, x[31].m_a);
-			Assert::IsTrue(x[31].m_b);
-			Assert::AreEqual(300, x[32].m_a);
-			Assert::IsFalse(x[32].m_b);
-			Assert::AreEqual(300, x[-1].m_a);
-			Assert::IsFalse(x[-1].m_b);
-			Assert::AreEqual(400, x[-2].m_a);
-			Assert::IsTrue(x[-2].m_b);
-			Assert::AreEqual(69ULL, Quux::c);
-			Assert::AreEqual(36ULL, Quux::d);
+			{
+				Array<Quux> x;
+				x += Quux(200, false);
+				x += Quux(250, false);
+				x.Length = 32;
+				x += Quux(300, false);
+				x[-2] = Quux(400, true);
+				Assert::AreEqual(64UL, x.Capacity);
+				Assert::AreEqual(33UL, x.Length);
+				Assert::AreEqual(200, x[0].m_a);
+				Assert::IsFalse(x[0].m_b);
+				Assert::AreEqual(250, x[1].m_a);
+				Assert::IsFalse(x[1].m_b);
+				Assert::AreEqual(100, x[2].m_a);
+				Assert::IsTrue(x[2].m_b);
+				Assert::AreEqual(400, x[31].m_a);
+				Assert::IsTrue(x[31].m_b);
+				Assert::AreEqual(300, x[32].m_a);
+				Assert::IsFalse(x[32].m_b);
+				Assert::AreEqual(300, x[-1].m_a);
+				Assert::IsFalse(x[-1].m_b);
+				Assert::AreEqual(400, x[-2].m_a);
+				Assert::IsTrue(x[-2].m_b);
+				Assert::AreEqual(37ULL, Quux::c);
+				Assert::AreEqual(4ULL, Quux::d);
+			}
+			Assert::AreEqual(37ULL, Quux::c);
+			Assert::AreEqual(37ULL, Quux::d);
 		}
 
 		TEST_METHOD(Test0012)

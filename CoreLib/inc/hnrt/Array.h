@@ -16,7 +16,7 @@ namespace hnrt
 
     public:
 
-        Array(SIZE_T capacity = 0);
+        Array(SIZE_T initialCapacity = 0);
         Array(const Array<T>& src);
         ~Array();
         ULONG GetCapacity() const;
@@ -37,16 +37,16 @@ namespace hnrt
 
         __declspec(property(get = GetCapacity, put = SetCapacity)) ULONG Capacity;
         __declspec(property(get = GetLength, put = SetLength)) ULONG Length;
+
+    private:
+
+        static ULONG newCapacity(ULONG x);
     };
 
     template<typename T>
-    Array<T>::Array(SIZE_T capacity)
-        : m_pBase(nullptr)
+    Array<T>::Array(SIZE_T initialCapacity)
+        : m_pBase(RefArray<T>::Create(initialCapacity))
     {
-        if (capacity)
-        {
-            m_pBase = RefArray<T>::Create(capacity);
-        }
     }
 
     template<typename T>
@@ -70,26 +70,7 @@ namespace hnrt
     template<typename T>
     void Array<T>::SetCapacity(ULONG uCapacity)
     {
-        if (Capacity < uCapacity)
-        {
-            T* pBase = RefArray<T>::Create(uCapacity);
-            if (m_pBase)
-            {
-                RefArray<T>::Get(pBase).PushBack(RefArray<T>::Get(m_pBase));
-            }
-            ArrayRelease<T>(Interlocked<T*>::ExchangePointer(&m_pBase, pBase));
-        }
-        else if (uCapacity < Capacity)
-        {
-            if (uCapacity)
-            {
-                RefArray<T>::Get(m_pBase).Capacity = uCapacity;
-            }
-            else
-            {
-                ArrayRelease<T>(Interlocked<T*>::ExchangePointer(&m_pBase, nullptr));
-            }
-        }
+        Interlocked<T*>::ExchangePointer(&m_pBase, RefArray<T>::Resize(m_pBase, uCapacity));
     }
 
     template<typename T>
@@ -103,7 +84,7 @@ namespace hnrt
     {
         if (Capacity < uLength)
         {
-            SetCapacity(uLength);
+            SetCapacity(newCapacity(uLength));
         }
         if (m_pBase)
         {
@@ -125,7 +106,7 @@ namespace hnrt
         ULONG capacity = Capacity;
         if (length == capacity)
         {
-            SetCapacity(capacity < 16 ? 32 : capacity < 65536 ? capacity * 2 : capacity + 65536);
+            SetCapacity(newCapacity(capacity));
         }
         RefArray<T>::Get(m_pBase).PushBack(value);
         return *this;
@@ -137,12 +118,10 @@ namespace hnrt
         ULONG delta = src.Length;
         if (delta)
         {
-            ULONG length = Length;
-            ULONG capacity = Capacity;
-            while (capacity < length + delta)
+            ULONG required = Length + delta;
+            if (Capacity < required)
             {
-                SetCapacity(capacity < 16 ? 32 : capacity < 65536 ? capacity * 2 : capacity + 65536);
-                capacity = Capacity;
+                SetCapacity(newCapacity(required));
             }
             RefArray<T>::Get(m_pBase).PushBack(RefArray<T>::Get(src.m_pBase));
         }
@@ -213,5 +192,23 @@ namespace hnrt
     T& Array<T>::operator [](SSIZE_T index)
     {
         return At(index);
+    }
+
+    template<typename T>
+    ULONG Array<T>::newCapacity(ULONG x)
+    {
+        // next power of 2
+        if ((x & (x - 1)) != 0)
+        {
+            x--;
+            x |= x >> 1;
+            x |= x >> 2;
+            x |= x >> 4;
+            x |= x >> 8;
+            x |= x >> 16;
+            x++;
+        }
+        x = x < 16 ? 32 : x < 65536 ? x * 2 : x + 65536;
+        return x;
     }
 }
