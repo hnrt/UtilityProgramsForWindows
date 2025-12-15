@@ -2,6 +2,7 @@
 
 #include <malloc.h>
 #include <Windows.h>
+#include <stdexcept>
 #include "hnrt/RefObj.h"
 #include "hnrt/Heap.h"
 
@@ -65,6 +66,12 @@ namespace hnrt
 		/// <param name="src">Reference of the RefArray instance in which the T instances are to be copied</param>
 		/// <returns>True on success, false otherwise</returns>
 		bool PushBack(const RefArray& src);
+		/// <summary>
+		/// Removes an element that is pointed to by the index.
+		/// </summary>
+		/// <param name="index">Index number of the element to remove</param>
+		/// <returns>Instance that has been removed</returns>
+		T Remove(SSIZE_T index);
 
 		void* operator new(size_t, size_t);
 		void operator delete(void*);
@@ -191,6 +198,35 @@ namespace hnrt
 			}
 		}
 		return true;
+	}
+
+	template<typename T>
+	T RefArray<T>::Remove(SSIZE_T index)
+	{
+		if (index < 0)
+		{
+			index += m_Length;
+		}
+		if (0 <= index && index < m_Length)
+		{
+			T* pBase = RefArray<T>::Get(*this);
+			T ret = pBase[index];
+			for (;;)
+			{
+				pBase[index].~T();
+				if (++index >= m_Length)
+				{
+					m_Length--;
+					break;
+				}
+				new (&pBase[index - 1]) T(pBase[index]);
+			}
+			return ret;
+		}
+		else
+		{
+			throw std::runtime_error("RefArray<T>::Remove: Index out of range.");
+		}
 	}
 
 	template<typename T>

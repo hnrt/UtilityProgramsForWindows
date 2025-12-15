@@ -26,6 +26,7 @@ namespace hnrt
         Array<T>& Assign(const Array<T>& src);
         Array<T>& PushBack(const T& value);
         Array<T>& PushBack(const Array<T>& src);
+        T Remove(SSIZE_T index);
         const T& At(SSIZE_T index) const;
         T& At(SSIZE_T index);
 
@@ -126,6 +127,19 @@ namespace hnrt
             RefArray<T>::Get(m_pBase).PushBack(RefArray<T>::Get(src.m_pBase));
         }
         return *this;
+    }
+
+    template<typename T>
+    T Array<T>::Remove(SSIZE_T index)
+    {
+        if (m_pBase)
+        {
+            return RefArray<T>::Get(m_pBase).Remove(index);
+        }
+        else
+        {
+            throw std::runtime_error("Array<T>::Remove: Index out of range.");
+        }
     }
 
     template<typename T>

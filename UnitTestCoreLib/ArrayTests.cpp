@@ -246,5 +246,63 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(350, x[3].m_a);
 			Assert::IsTrue(x[3].m_b);
 		}
+
+		TEST_METHOD(Test0013)
+		{
+			Quux::Init();
+			{
+				Array<Quux> x;
+				x += Quux(100, true);
+				x += Quux(101, true);
+				x += Quux(102, true);
+				x += Quux(103, true);
+				x += Quux(104, true);
+				Assert::AreEqual(10ULL, Quux::c);
+				Assert::AreEqual(5ULL, Quux::d);
+				Assert::AreEqual(5UL, x.Length);
+				Assert::AreEqual(100, x[0].m_a);
+				Assert::AreEqual(101, x[1].m_a);
+				Assert::AreEqual(102, x[2].m_a);
+				Assert::AreEqual(103, x[3].m_a);
+				Assert::AreEqual(104, x[4].m_a);
+				Quux a = x.Remove(0);
+				Assert::AreEqual(16ULL, Quux::c);
+				Assert::AreEqual(11ULL, Quux::d);
+				Assert::AreEqual(4UL, x.Length);
+				Assert::AreEqual(101, x[0].m_a);
+				Assert::AreEqual(102, x[1].m_a);
+				Assert::AreEqual(103, x[2].m_a);
+				Assert::AreEqual(104, x[3].m_a);
+				Assert::AreEqual(100, a.m_a);
+				Quux b = x.Remove(-1);
+				Assert::AreEqual(18ULL, Quux::c);
+				Assert::AreEqual(13ULL, Quux::d);
+				Assert::AreEqual(3UL, x.Length);
+				Assert::AreEqual(101, x[0].m_a);
+				Assert::AreEqual(102, x[1].m_a);
+				Assert::AreEqual(103, x[2].m_a);
+				Assert::AreEqual(104, b.m_a);
+				Quux c = x.Remove(1);
+				Assert::AreEqual(21ULL, Quux::c);
+				Assert::AreEqual(16ULL, Quux::d);
+				Assert::AreEqual(2UL, x.Length);
+				Assert::AreEqual(101, x[0].m_a);
+				Assert::AreEqual(103, x[1].m_a);
+				Assert::AreEqual(102, c.m_a);
+				Quux d = x.Remove(0);
+				Assert::AreEqual(24ULL, Quux::c);
+				Assert::AreEqual(19ULL, Quux::d);
+				Assert::AreEqual(1UL, x.Length);
+				Assert::AreEqual(103, x[0].m_a);
+				Assert::AreEqual(101, d.m_a);
+				Quux e = x.Remove(0);
+				Assert::AreEqual(26ULL, Quux::c);
+				Assert::AreEqual(21ULL, Quux::d);
+				Assert::AreEqual(0UL, x.Length);
+				Assert::AreEqual(103, e.m_a);
+			}
+			Assert::AreEqual(26ULL, Quux::c);
+			Assert::AreEqual(26ULL, Quux::d);
+		}
 	};
 }
