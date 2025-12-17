@@ -2,6 +2,8 @@
 #include "MsiDataFactory.h"
 #include "MsiUtils.h"
 #include "hnrt/String.h"
+#include "hnrt/Array.h"
+#include "hnrt/StringUtils.h"
 #include "hnrt/Heap.h"
 #include "hnrt/Exception.h"
 
@@ -135,7 +137,7 @@ MsiPaths::MsiPaths(MSIHANDLE hRecord, UINT uField)
 {
     if (m_szText)
     {
-        m_Paths.Split(m_szText, L';');
+        m_Paths = SplitBy(m_szText, L';');
     }
 }
 

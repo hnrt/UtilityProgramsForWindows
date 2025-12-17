@@ -29,6 +29,7 @@ namespace hnrt
         T Remove(SSIZE_T index);
         const T& At(SSIZE_T index) const;
         T& At(SSIZE_T index);
+        bool Contains(const T& value) const;
 
         Array<T>& operator =(const Array<T>& src);
         Array<T>& operator +=(const T& value);
@@ -176,6 +177,20 @@ namespace hnrt
         {
             throw std::runtime_error("Array<T>::At: Index out of range.");
         }
+    }
+
+    template<typename T>
+    bool Array<T>::Contains(const T& value) const
+    {
+        ULONG length = Length;
+        for (ULONG index = 0; index < length; index++)
+        {
+            if (At(index) == value)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     template<typename T>

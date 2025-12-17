@@ -256,7 +256,6 @@
     <ClInclude Include="inc\hnrt\SidPtr.h" />
     <ClInclude Include="inc\hnrt\StringCaseInsensitive.h" />
     <ClInclude Include="inc\hnrt\StringCaseLessThan.h" />
-    <ClInclude Include="inc\hnrt\StringCollection.h" />
     <ClInclude Include="inc\hnrt\StringCommons.h" />
     <ClInclude Include="inc\hnrt\StringLessThan.h" />
     <ClInclude Include="inc\hnrt\StringOptions.h" />
@@ -406,7 +405,6 @@
     <ClCompile Include="src\StringCaseInsensitive_dtor.cpp" />
     <ClCompile Include="src\StringCaseInsensitive_operator.cpp" />
     <ClCompile Include="src\StringCaseInsensitive_static.cpp" />
-    <ClCompile Include="src\StringCollection.cpp" />
     <ClCompile Include="src\String_CompareCaseInsensitively.cpp" />
     <ClCompile Include="src\String_ctor_PCWSTR_PCWSTR.cpp" />
     <ClCompile Include="src\String_ctor_PCWSTR_SSIZE.cpp" />

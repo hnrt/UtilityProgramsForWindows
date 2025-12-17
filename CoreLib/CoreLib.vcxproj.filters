@@ -201,9 +201,6 @@
     <ClInclude Include="inc\hnrt\DoubleNullTerminatedStringArray.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="inc\hnrt\StringCollection.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="inc\hnrt\String.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -807,9 +804,6 @@
       <Filter>ソース ファイル\StringHelpers</Filter>
     </ClCompile>
     <ClCompile Include="src\MultibyteString.cpp">
-      <Filter>ソース ファイル\StringHelpers</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StringCollection.cpp">
       <Filter>ソース ファイル\StringHelpers</Filter>
     </ClCompile>
     <ClCompile Include="src\ZipFile_ExtractFiles.cpp">

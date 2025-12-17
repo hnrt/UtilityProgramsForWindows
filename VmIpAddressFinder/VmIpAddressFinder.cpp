@@ -12,7 +12,9 @@
 #include "hnrt/RefPtr.h"
 #include "hnrt/Path.h"
 #include "hnrt/StringBuffer.h"
-#include "hnrt/StringCollection.h"
+#include "hnrt/String.h"
+#include "hnrt/Array.h"
+#include "hnrt/StringUtils.h"
 #include "hnrt/FileMapper.h"
 #include "hnrt/FileWriter.h"
 #include "hnrt/ComException.h"
@@ -24,7 +26,6 @@
 #include "hnrt/ComLibrary.h"
 #include "hnrt/Exception.h"
 #include "hnrt/KeyValueMap.h"
-#include "hnrt/String.h"
 #include "Hosts.h"
 
 
@@ -394,8 +395,7 @@ void VmIpAddressFinder::FindAddresses(KeyValueMap& nameAddressMap)
         {
             DebugPut(guestIntrinsicExchangeItems, L"GuestIntrinsicExchangeItems");
         }
-        StringCollection addresses;
-        addresses.Split(guestIntrinsicExchangeItems.NetworkAddressIPv4, L';');
+        Array<String> addresses = SplitBy(guestIntrinsicExchangeItems.NetworkAddressIPv4, L';');
         for (DWORD index = 0; index < addresses.Length; index++)
         {
             PCWSTR pszAddr = addresses[index];

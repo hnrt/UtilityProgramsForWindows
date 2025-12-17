@@ -3,7 +3,8 @@
 
 #include <Msi.h>
 #include "hnrt/ByteString.h"
-#include "hnrt/StringCollection.h"
+#include "hnrt/String.h"
+#include "hnrt/Array.h"
 #include "hnrt/MsiColumnDataType.h"
 #include "hnrt/IMsiData.h"
 
@@ -144,7 +145,7 @@ namespace hnrt
 
         bool m_bNull;
         String m_szText;
-        StringCollection m_Paths;
+        Array<String> m_Paths;
     };
 
     class MsiVersion

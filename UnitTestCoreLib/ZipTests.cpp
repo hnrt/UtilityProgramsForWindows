@@ -3,7 +3,8 @@
 #include "hnrt/ZipFile.h"
 #include "hnrt/Debug.h"
 #include "hnrt/Path.h"
-#include "hnrt/StringCollection.h"
+#include "hnrt/String.h"
+#include "hnrt/Array.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace hnrt;
@@ -12,7 +13,7 @@ namespace UnitTestCoreLib
 {
 	struct MyFolderItemForEachCallback : public IFolderItemForEachCallback
 	{
-		StringCollection entries;
+		Array<String> entries;
 
 		MyFolderItemForEachCallback()
 			: entries()
@@ -29,14 +30,14 @@ namespace UnitTestCoreLib
 				pFolderItem.ForEach(sub);
 				for (DWORD dwIndex = 0; dwIndex < sub.entries.Length; dwIndex++)
 				{
-					entries.Add(String(CONCAT3, pFolderItem.Name, String(L"/"), sub.entries[dwIndex]));
+					entries += String(CONCAT3, pFolderItem.Name, String(L"/"), sub.entries[dwIndex]);
 				}
 				Debug::Put(L"End of Folder %s", pFolderItem.Name);
 			}
 			else
 			{
 				Debug::Put(L"name=%s type=%s size=%ld", pFolderItem.Name, pFolderItem.Type, pFolderItem.Size);
-				entries.Add(pFolderItem.Name);
+				entries += pFolderItem.Name;
 			}
 			return TRUE;
 		}
@@ -89,7 +90,7 @@ namespace UnitTestCoreLib
 			ZipFile zip = ZipFile::Open(path);
 			MyFolderItemForEachCallback cbs;
 			zip.ForEach(cbs);
-			StringCollection& entries = cbs.entries;
+			Array<String>& entries = cbs.entries;
 			Assert::AreEqual(4UL, entries.Length);
 			Assert::AreEqual(true, entries.Contains(L"xyzzy.txt"));
 			Assert::AreEqual(true, entries.Contains(L"quux.txt"));
