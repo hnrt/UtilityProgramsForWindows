@@ -44,6 +44,7 @@ namespace hnrt
 		void OnTagLengthChange(int);
 		void OnKeyChange();
 		void OnIVChange();
+		void OnTagChange();
 		void ChangeAaDataDisplayMode(int);
 		void OnOriginalDataChange();
 		void OnOriginalDataDisplayModeChange(int);
@@ -55,8 +56,13 @@ namespace hnrt
 		void OnCodePageChange();
 		void OnLineBreakChange();
 		void SetMode(int);
-		void UpdateTagSizeRadioBoxes();
+		void UpdateTagControls();
+		void UpdateAADControls();
 		ByteString GetAaData() const;
+		void InitializeEncryptionFormatComboBox(int value) const;
+		void OnEncryptionFormatChange();
+		void InitializeCharsPerLineComboBox(int value) const;
+		void OnCharsPerLineChange();
 
 		static PCWSTR ControlIdToChainingMode(int);
 		static int ChainingModeToControlId(PCWSTR);
@@ -74,6 +80,7 @@ namespace hnrt
 		ByteString m_Key;
 		ByteString m_IV;
 		ByteString m_Nonce;
+		ByteString m_Tag;
 		int m_CcmTagLength;
 		int m_GcmTagLength;
 		DataDisplayMode m_AaDataDisplayMode;
@@ -88,6 +95,8 @@ namespace hnrt
 		String m_szOriginalDataPath;
 		String m_szEncryptedDataPath;
 		BOOL m_bWrapData;
+		int m_EncryptionFormatMode;
+		int m_CharsPerLine;
 	};
 }
 
@@ -104,3 +113,6 @@ namespace hnrt
 #define FLAG_TAG112 (1UL<<14)
 #define FLAG_TAG120 (1UL<<15)
 #define FLAG_TAG128 (1UL<<16)
+
+#define ENCRYPTIONFORMAT_IVPREPEND (1U<<0)
+#define ENCRYPTIONFORMAT_TAGAPPEND (1U<<1)
