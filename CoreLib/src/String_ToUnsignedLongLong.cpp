@@ -9,7 +9,7 @@ using namespace hnrt;
 
 unsigned long long String::ToUnsignedLongLong(unsigned long long defaultValue, BOOL* pbSuccessful, int nRadix) const
 {
-    if (Len)
+    if (Length)
     {
         PWCHAR pStop = nullptr;
         unsigned long long value = StrToUnsignedLongLong(&m_psz[0], &pStop, nRadix);

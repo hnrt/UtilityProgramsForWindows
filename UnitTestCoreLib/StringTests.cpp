@@ -89,14 +89,14 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(0, wcscmp(s6, L"GHIJKL"));
 			Assert::AreEqual(0, wcscmp(s7, L"GHIJKL"));
 			Assert::AreEqual(0, wcscmp(s8, L"GHIJKL"));
-			Assert::AreEqual(1ULL, s1.Len);
-			Assert::AreEqual(2ULL, s2.Len);
-			Assert::AreEqual(3ULL, s3.Len);
-			Assert::AreEqual(4ULL, s4.Len);
-			Assert::AreEqual(5ULL, s5.Len);
-			Assert::AreEqual(6ULL, s6.Len);
-			Assert::AreEqual(6ULL, s7.Len);
-			Assert::AreEqual(6ULL, s8.Len);
+			Assert::AreEqual(1ULL, s1.Length);
+			Assert::AreEqual(2ULL, s2.Length);
+			Assert::AreEqual(3ULL, s3.Length);
+			Assert::AreEqual(4ULL, s4.Length);
+			Assert::AreEqual(5ULL, s5.Length);
+			Assert::AreEqual(6ULL, s6.Length);
+			Assert::AreEqual(6ULL, s7.Length);
+			Assert::AreEqual(6ULL, s8.Length);
 		}
 
 		TEST_METHOD(Test06)

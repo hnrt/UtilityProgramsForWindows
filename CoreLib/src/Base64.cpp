@@ -234,14 +234,14 @@ bool Base64Decoder::Parse(PCWSTR psz)
         {
             Resize((len / 4) * 3);
             unsigned char* pDst = *this;
-            unsigned char* pEnd = pDst + Len - 3;
+            unsigned char* pEnd = pDst + Length - 3;
             Decode(psz, pDst, pEnd);
         }
         else if (psz[len - 2] != L'=')
         {
             Resize((len / 4) * 3 - 1);
             unsigned char* pDst = *this;
-            unsigned char* pEnd = pDst + Len - 3;
+            unsigned char* pEnd = pDst + Length - 3;
             Decode(psz, pDst, pEnd);
             PCWSTR pCur = psz + len - 4;
             int b0 = pCur[0] < 0x80 ? s_DecodingTable[pCur[0]] : -1;
@@ -258,7 +258,7 @@ bool Base64Decoder::Parse(PCWSTR psz)
         {
             Resize((len / 4) * 3 - 2);
             unsigned char* pDst = *this;
-            unsigned char* pEnd = pDst + Len - 3;
+            unsigned char* pEnd = pDst + Length - 3;
             Decode(psz, pDst, pEnd);
             PCWSTR pCur = psz + len - 4;
             int b0 = pCur[0] < 0x80 ? s_DecodingTable[pCur[0]] : -1;
@@ -269,7 +269,7 @@ bool Base64Decoder::Parse(PCWSTR psz)
             }
             pEnd[2] = static_cast<unsigned char>((b0 << 2) | (b1 >> 4));
         }
-        DBGPUT(L"DataLen=%zu", Len);
+        DBGPUT(L"DataLen=%zu", Length);
         return true;
     }
     catch (Exception e)

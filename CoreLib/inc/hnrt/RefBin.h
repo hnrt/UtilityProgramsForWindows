@@ -9,7 +9,7 @@ namespace hnrt
 	{
     private:
 
-        size_t m_Len;
+        size_t m_Length;
 
         RefBin(size_t);
         RefBin(const void*, size_t);
@@ -26,9 +26,9 @@ namespace hnrt
 
     public:
 
-        size_t get_Len() const;
+        size_t get_Length() const;
 
-        __declspec(property(get = get_Len)) size_t Len;
+        __declspec(property(get = get_Length)) size_t Length;
 
     public:
 
@@ -38,19 +38,19 @@ namespace hnrt
         static void* Create(const void*, size_t);
     };
 
-    inline size_t RefBin::get_Len() const
+    inline size_t RefBin::get_Length() const
     {
-        return m_Len;
-    }
-
-    inline void* RefBin::Get(RefBin& bin)
-    {
-        return &bin + 1;
+        return m_Length;
     }
 
     inline RefBin& RefBin::Get(void* ptr)
     {
         return *(reinterpret_cast<RefBin*>(ptr) - 1);
+    }
+
+    inline void* RefBin::Get(RefBin& bin)
+    {
+        return &bin + 1;
     }
 
     inline void* RefBin::Create(size_t len)

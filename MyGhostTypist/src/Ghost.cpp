@@ -217,7 +217,7 @@ int Ghost::Process()
         {
             PCWSTR pszName = dynamic_cast<TypeUsernameAction*>(pAction.Ptr)->Name;
             RefPtr<Credentials> pCredentials = pszName && *pszName ? m_pConfiguration->CredentialsList[pszName] : m_pConfiguration->CredentialsList.DefaultCredentials;
-            if (pCredentials && pCredentials->Username.Len > 0)
+            if (pCredentials && pCredentials->Username.Length > 0)
             {
                 if ((pAction->Flags & AC_FLAG_AA))
                 {
@@ -245,7 +245,7 @@ int Ghost::Process()
         {
             PCWSTR pszName = dynamic_cast<TypePasswordAction*>(pAction.Ptr)->Name;
             RefPtr<Credentials> pCredentials = pszName && *pszName ? m_pConfiguration->CredentialsList[pszName] : m_pConfiguration->CredentialsList.DefaultCredentials;
-            if (pCredentials && pCredentials->Password.Len > 0)
+            if (pCredentials && pCredentials->Password.Length > 0)
             {
                 if ((pAction->Flags & AC_FLAG_AA))
                 {

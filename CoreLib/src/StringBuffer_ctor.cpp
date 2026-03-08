@@ -66,10 +66,10 @@ StringBuffer::StringBuffer(SSIZE_T capacity, PCWSTR psz)
 
 
 StringBuffer::StringBuffer(const String& other)
-    : m_ptr(Allocate<WCHAR>(other.Len + 1))
-    , m_cap(other.Len + 1)
-    , m_len(other.Len)
+    : m_ptr(Allocate<WCHAR>(other.Length + 1))
+    , m_cap(other.Length + 1)
+    , m_len(other.Length)
     , m_inc(1)
 {
-    MemCpy(m_ptr, other.Ptr, other.Len + 1);
+    MemCpy(m_ptr, other.Ptr, other.Length + 1);
 }

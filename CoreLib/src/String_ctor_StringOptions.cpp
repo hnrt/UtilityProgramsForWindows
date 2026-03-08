@@ -34,9 +34,9 @@ String::String(StringOptions option, PCWSTR psz, ...)
     case UPPERCASE:
     case LOWERCASE:
         m_psz = RefStr::Create(StrLen(psz));
-        MemCpy(m_psz, psz, Len);
-        m_psz[Len] = L'\0';
-        StrCase(option, m_psz, Len);
+        MemCpy(m_psz, psz, Length);
+        m_psz[Length] = L'\0';
+        StrCase(option, m_psz, Length);
         break;
     case TRIM:
     case TRIM_HEAD:
@@ -46,8 +46,8 @@ String::String(StringOptions option, PCWSTR psz, ...)
         int end = 0;
         StrTrimScan(psz, start, end, option);
         m_psz = RefStr::Create(static_cast<SIZE_T>(end - start));
-        MemCpy(m_psz, psz + start, Len);
-        m_psz[Len] = L'\0';
+        MemCpy(m_psz, psz + start, Length);
+        m_psz[Length] = L'\0';
         break;
     }
     default:

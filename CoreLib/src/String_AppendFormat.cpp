@@ -15,7 +15,7 @@ String& String::AppendFormat(PCWSTR pszFormat, ...)
 {
     va_list argList;
     va_start(argList, pszFormat);
-    SIZE_T cch1 = Len;
+    SIZE_T cch1 = Length;
     SIZE_T cch2 = VaStrFmtLen(pszFormat, argList);
     PWSTR psz = RefStr::Create(cch1 + cch2);
     MemCpy(psz, m_psz, cch1);

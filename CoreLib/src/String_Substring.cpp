@@ -7,7 +7,7 @@ using namespace hnrt;
 
 String String::Substring(int startIndex) const
 {
-	int length = static_cast<int>(Len);
+	int length = static_cast<int>(Length);
 	if (startIndex < 0)
 	{
 		startIndex += length;
@@ -26,7 +26,7 @@ String String::Substring(int startIndex) const
 
 String String::Substring(int startIndex, int endIndex) const
 {
-	int length = static_cast<int>(Len);
+	int length = static_cast<int>(Length);
 	if (startIndex < 0)
 	{
 		startIndex += length;

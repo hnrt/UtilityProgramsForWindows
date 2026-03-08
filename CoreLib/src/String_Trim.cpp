@@ -10,7 +10,7 @@ using namespace hnrt;
 
 String String::Trim(StringOptions option) const
 {
-    if (Len)
+    if (Length)
     {
         int start = 0;
         int end = 0;

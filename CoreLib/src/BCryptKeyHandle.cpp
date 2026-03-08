@@ -42,7 +42,7 @@ void BCryptKeyHandle::Import(const BCryptAlgHandle& hAlg, const ByteString& keyB
 
     delete[] Interlocked<PUCHAR>::ExchangePointer(&m_pObject, new UCHAR[dwObjectLength]);
 
-    NTSTATUS status = BCryptImportKey(hAlg, NULL, BCRYPT_OPAQUE_KEY_BLOB, &m_h, m_pObject, dwObjectLength, const_cast<PUCHAR>((const unsigned char*)keyBlob), static_cast<ULONG>(keyBlob.Len), 0);
+    NTSTATUS status = BCryptImportKey(hAlg, NULL, BCRYPT_OPAQUE_KEY_BLOB, &m_h, m_pObject, dwObjectLength, const_cast<PUCHAR>((const unsigned char*)keyBlob), static_cast<ULONG>(keyBlob.Length), 0);
     if (status != STATUS_SUCCESS)
     {
         throw CryptographyException(status, L"BCryptImportKey failed with status of %s.", BCryptErrorLabel(status));

@@ -49,9 +49,9 @@ void GuidDialogBox::OnCreate()
         }
     }
     ButtonCheck(m_uCurrentlySelected);
-    if (initData.Len == sizeof(m_guid))
+    if (initData.Length == sizeof(m_guid))
     {
-        memcpy_s(&m_guid, initData.Len, initData.Ptr, initData.Len);
+        memcpy_s(&m_guid, initData.Length, initData.Ptr, initData.Length);
         ChangeFormat();
     }
     else

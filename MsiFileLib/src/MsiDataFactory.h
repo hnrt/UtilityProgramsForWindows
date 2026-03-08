@@ -175,7 +175,7 @@ namespace hnrt
         MsiBinary(const MsiBinary&) = delete;
         virtual bool get_Null() const { return m_bNull; }
         virtual const BYTE* get_Ptr() const { return m_data; }
-        virtual size_t get_Len() const { return m_data.Len; }
+        virtual size_t get_Len() const { return m_data.Length; }
 
     protected:
 

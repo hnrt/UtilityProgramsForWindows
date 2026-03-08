@@ -317,8 +317,8 @@ bool PercentCodecDialogBox::Encode()
 	{
 		SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
 		String szText = GetText(IDC_PCTC_ORG_EDIT);
-		Buffer<WCHAR> buf((szText.Len + 1ULL) * 4ULL * 3ULL);
-		Encode(szText, static_cast<UINT>(szText.Len + 1ULL), m_CodePage, buf, static_cast<UINT>(buf.Len), m_bUsePlus);
+		Buffer<WCHAR> buf((szText.Length + 1ULL) * 4ULL * 3ULL);
+		Encode(szText, static_cast<UINT>(szText.Length + 1ULL), m_CodePage, buf, static_cast<UINT>(buf.Len), m_bUsePlus);
 		SetText(IDC_PCTC_ENC_EDIT, buf);
 		SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR,
 			ResourceString(IDS_W_DONE_X_IN_Y_OUT), szLeader, NumberOfChars(GetTextLength(IDC_PCTC_ORG_EDIT)), NumberOfChars(GetTextLength(IDC_PCTC_ENC_EDIT)));
@@ -340,8 +340,8 @@ bool PercentCodecDialogBox::Decode()
 	{
 		SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
 		String szText = GetText(IDC_PCTC_ENC_EDIT);
-		Buffer<WCHAR> buf(szText.Len + 1ULL);
-		Decode(szText, static_cast<UINT>(szText.Len + 1ULL), m_CodePage, buf, static_cast<UINT>(buf.Len));
+		Buffer<WCHAR> buf(szText.Length + 1ULL);
+		Decode(szText, static_cast<UINT>(szText.Length + 1ULL), m_CodePage, buf, static_cast<UINT>(buf.Len));
 		SetText(IDC_PCTC_ORG_EDIT, buf);
 		SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR,
 			ResourceString(IDS_W_DONE_X_IN_Y_OUT), szLeader, NumberOfChars(GetTextLength(IDC_PCTC_ENC_EDIT)), NumberOfChars(GetTextLength(IDC_PCTC_ORG_EDIT)));

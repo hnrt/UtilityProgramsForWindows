@@ -9,7 +9,7 @@ using namespace hnrt;
 
 String String::ChangeLineBreak(LineBreak lbSpec) const
 {
-    SIZE_T len = Len;
+    SIZE_T len = Length;
     if (len > 0 && (lbSpec == LineBreak::CRLF || lbSpec == LineBreak::LF))
     {
         SIZE_T cLF = 0;

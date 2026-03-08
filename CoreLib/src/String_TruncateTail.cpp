@@ -13,7 +13,7 @@ String& String::TruncateTail(SIZE_T cch)
 {
     if (m_psz)
     {
-        SIZE_T cch0 = Len;
+        SIZE_T cch0 = Length;
         if (cch < cch0)
         {
             RefStr::Get(m_psz).Truncate(cch0 - cch);

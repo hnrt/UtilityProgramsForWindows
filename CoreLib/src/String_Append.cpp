@@ -12,10 +12,10 @@ using namespace hnrt;
 
 String& String::Append(const String& src)
 {
-    if (src.Len)
+    if (src.Length)
     {
-        SIZE_T cch1 = Len;
-        SIZE_T cch2 = src.Len;
+        SIZE_T cch1 = Length;
+        SIZE_T cch2 = src.Length;
         PWSTR psz = RefStr::Create(cch1 + cch2);
         MemCpy(psz, m_psz, cch1);
         MemCpy(psz + cch1, src.m_psz, cch2 + 1);
@@ -29,7 +29,7 @@ String& String::Append(PCWSTR psz, SSIZE_T cch)
 {
     if (psz && cch)
     {
-        SIZE_T cch1 = Len;
+        SIZE_T cch1 = Length;
         SIZE_T cch2 = StrLen(psz, cch);
         PWSTR psz3 = RefStr::Create(cch1 + cch2);
         MemCpy(psz3, m_psz, cch1);

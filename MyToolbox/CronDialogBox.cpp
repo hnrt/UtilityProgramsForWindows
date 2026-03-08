@@ -181,7 +181,7 @@ void CronDialogBox::OnCreate()
 			ComboBoxSetSelection(IDC_CRON_OFFSET_COMBO, dwBaseOffset);
 		}
 	}
-	if (szExpression.Len)
+	if (szExpression.Length)
 	{
 		SetText(IDC_CRON_EXPR_EDIT, szExpression);
 	}
@@ -1021,7 +1021,7 @@ void CronDialogBox::ClearExpression() const
 
 void CronDialogBox::AppendToExpression(const String& sz) const
 {
-	if (sz.Len)
+	if (sz.Length)
 	{
 		if (GetTextLength(IDC_CRON_EXPR_EDIT) > 0)
 		{

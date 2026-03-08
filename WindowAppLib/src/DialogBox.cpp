@@ -280,7 +280,7 @@ void DialogBox::EditPaste(int id) const
     // |<--- off2 --->|<--- cch2 --->|<--- cch3 --->|
     //
     String szText1 = GetText(id);
-    int cch = static_cast<int>(szText1.Len);
+    int cch = static_cast<int>(szText1.Length);
     int off2 = 0;
     int off3 = 0;
     EditGetSelection(id, off2, off3);
@@ -290,7 +290,7 @@ void DialogBox::EditPaste(int id) const
         return;
     }
     String szText2 = Clipboard::Read(hwnd);
-    if (!szText2.Len)
+    if (!szText2.Length)
     {
         MessageBoxW(hwnd, L"Unable to read text.", L"CLIPBOARD", MB_ICONERROR | MB_OK);
         return;
@@ -300,7 +300,7 @@ void DialogBox::EditPaste(int id) const
     szText3.Append(szText2);
     szText3.Append(&szText1[off3]);
     SetText(id, szText3);
-    int off4 = off2 + static_cast<int>(szText2.Len);
+    int off4 = off2 + static_cast<int>(szText2.Length);
     EditSetSelection(id, off4, off4);
     SetFocus(id);
 }
@@ -316,7 +316,7 @@ void DialogBox::EditDelete(int id) const
     // |<--- off2 --->|<--- cch3 --->|
     //
     String szText1 = GetText(id);
-    int cch = static_cast<int>(szText1.Len);
+    int cch = static_cast<int>(szText1.Length);
     int off2 = 0;
     int off3 = 0;
     EditGetSelection(id, off2, off3);

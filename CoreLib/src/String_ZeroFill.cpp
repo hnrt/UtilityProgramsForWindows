@@ -8,9 +8,9 @@ using namespace hnrt;
 
 String& String::ZeroFill()
 {
-    if (Len)
+    if (Length)
     {
-        MemSet(m_psz, L'\0', Len);
+        MemSet(m_psz, L'\0', Length);
     }
     return *this;
 }

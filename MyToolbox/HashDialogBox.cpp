@@ -444,8 +444,8 @@ void HashDialogBox::OnExecute()
             UINT uCodePage = GetCodePage();
             LineBreak uLineBreak = GetLineBreak();
             ByteString data = ByteString::FromString(szContent, uCodePage, uLineBreak);
-            Calculate(RefPtr<DataFeeder>(new ByteDataFeeder(data, data.Len)));
-            nBytesIn = data.Len;
+            Calculate(RefPtr<DataFeeder>(new ByteDataFeeder(data, data.Length)));
+            nBytesIn = data.Length;
         }
         SetValueHeader(nBytesIn, m_hash.ValueLength);
     }
@@ -707,7 +707,7 @@ bool HashDialogBox::CanCalculate() const
     if (m_source == HashSource::FROM_FILE)
     {
         String szPath = GetText(IDC_HASH_PATH_EDIT).Trim();
-        if (!szPath.Len)
+        if (!szPath.Length)
         {
             return false;
         }
@@ -792,7 +792,7 @@ void HashDialogBox::VerifyValue()
     {
         ByteString bs = ByteString::FromHex(GetText(IDC_HASH_VERIFY_EDIT));
         SetVerificationResult(String::Format(L" %s ",
-            ResourceString((bs.Len == m_hash.ValueLength && !memcmp(bs, m_hash.Value, m_hash.ValueLength)) ? IDS_MATCH : IDS_MISMATCH)));
+            ResourceString((bs.Length == m_hash.ValueLength && !memcmp(bs, m_hash.Value, m_hash.ValueLength)) ? IDS_MATCH : IDS_MISMATCH)));
     }
     catch (...)
     {

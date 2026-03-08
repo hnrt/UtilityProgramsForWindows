@@ -480,7 +480,7 @@ void ConfigurationTreeView::RefreshCredentialsList()
 void ConfigurationTreeView::RefreshCredentials(ULONG index, HTREEITEM hItem)
 {
     StringBuffer szText(260);
-    if (m_cc[index]->Key.Len > 0)
+    if (m_cc[index]->Key.Length > 0)
     {
         szText.AppendFormat(L"%s [%s]", m_cc[index]->Username.Ptr, m_cc[index]->Key.Ptr);
     }

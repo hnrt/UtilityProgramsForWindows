@@ -65,9 +65,9 @@ void ClipFile::Save(const String& szHash, const String& szContent) const
 {
 	FileWriter file(m_szPath, CREATE_NEW);
 	file.Write(&Separator, sizeof(WCHAR));
-	file.Write(szHash, szHash.Len * sizeof(WCHAR));
+	file.Write(szHash, szHash.Length * sizeof(WCHAR));
 	file.Write(&Separator, sizeof(WCHAR));
-	file.Write(szContent, szContent.Len * sizeof(WCHAR));
+	file.Write(szContent, szContent.Length * sizeof(WCHAR));
 	file.Close();
 }
 
@@ -75,7 +75,7 @@ void ClipFile::Save(const String& szHash, const String& szContent) const
 void ClipFile::Save(const String& szHeader, const String& szHash, const String& szContent) const
 {
 	FileWriter file(m_szPath, CREATE_ALWAYS);
-	if (wmemchr(szHeader, Separator, szHeader.Len))
+	if (wmemchr(szHeader, Separator, szHeader.Length))
 	{
 		StringBuffer header(szHeader);
 		header.Replace(Separator, L' ');
@@ -83,12 +83,12 @@ void ClipFile::Save(const String& szHeader, const String& szHash, const String& 
 	}
 	else
 	{
-		file.Write(szHeader, szHeader.Len * sizeof(WCHAR));
+		file.Write(szHeader, szHeader.Length * sizeof(WCHAR));
 	}
 	file.Write(&Separator, sizeof(WCHAR));
-	file.Write(szHash, szHash.Len * sizeof(WCHAR));
+	file.Write(szHash, szHash.Length * sizeof(WCHAR));
 	file.Write(&Separator, sizeof(WCHAR));
-	file.Write(szContent, szContent.Len * sizeof(WCHAR));
+	file.Write(szContent, szContent.Length * sizeof(WCHAR));
 	file.Close();
 }
 

@@ -39,16 +39,16 @@ void PasswordHolder::set_Encrypted(const String& sz)
 
 const String& PasswordHolder::get_PlainText() const
 {
-    if (!m_szPlainText.Len)
+    if (!m_szPlainText.Length)
     {
-        if (m_szEncrypted.Len)
+        if (m_szEncrypted.Length)
         {
             Base64Decoder dec;
             if (!dec.Parse(m_szEncrypted))
             {
                 throw Exception(L"PasswordHolder failed base64 decoding.");
             }
-            m_pSecret->Decrypt(dec.Ptr, dec.Len);
+            m_pSecret->Decrypt(dec.Ptr, dec.Length);
             int cch = MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<LPCCH>(m_pSecret->Ptr), -1, NULL, 0);
             if (cch < 0)
             {

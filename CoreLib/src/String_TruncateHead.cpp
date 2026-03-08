@@ -13,7 +13,7 @@ String& String::TruncateHead(SIZE_T cch)
 {
     if (m_psz)
     {
-        SIZE_T cch0 = Len;
+        SIZE_T cch0 = Length;
         if (cch < cch0)
         {
             MemMove(m_psz, m_psz + cch, cch0 - cch);

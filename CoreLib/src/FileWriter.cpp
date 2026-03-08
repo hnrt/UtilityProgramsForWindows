@@ -11,7 +11,7 @@ FileWriter::FileWriter(const String& szPath, DWORD dwCreationDisposition)
     , m_h()
     , m_count(0)
 {
-    if (m_szPath.Len)
+    if (m_szPath.Length)
     {
         m_h = CreateFileW(m_szPath, GENERIC_WRITE, 0, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
         if (m_h == INVALID_HANDLE_VALUE)
@@ -24,7 +24,7 @@ FileWriter::FileWriter(const String& szPath, DWORD dwCreationDisposition)
 
 void FileWriter::Open(DWORD dwCreationDisposition)
 {
-    if (!m_szPath.Len)
+    if (!m_szPath.Length)
     {
         throw Win32Exception(ERROR_INVALID_DATA, L"Failed to open a file due to no path specified.");
     }

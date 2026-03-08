@@ -75,11 +75,11 @@ SIZE_T MultibyteString::get_Len() const
 
 MultibyteString hnrt::ToAcp(const String& str)
 {
-    return MultibyteString(CP_ACP, str.Ptr, str.Len);
+    return MultibyteString(CP_ACP, str.Ptr, str.Length);
 }
 
 
 MultibyteString hnrt::ToUTF8(const String& str)
 {
-    return MultibyteString(CP_UTF8, str.Ptr, str.Len);
+    return MultibyteString(CP_UTF8, str.Ptr, str.Length);
 }
