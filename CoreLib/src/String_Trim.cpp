@@ -19,6 +19,6 @@ String String::Trim(StringOptions option) const
     }
     else
     {
-        return String();
+        return String(*this);
     }
 }
