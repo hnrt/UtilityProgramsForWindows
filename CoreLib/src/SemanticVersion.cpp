@@ -10,8 +10,8 @@ SemanticVersion::SemanticVersion()
 	, m_Major(-1)
 	, m_Minor(-1)
 	, m_Patch(-1)
-	, m_PreRelease()
-	, m_Build()
+	, m_PreRelease(L"")
+	, m_Build(L"")
 {
 }
 
@@ -21,8 +21,8 @@ SemanticVersion::SemanticVersion(PCWSTR psz)
 	, m_Major(-1)
 	, m_Minor(-1)
 	, m_Patch(-1)
-	, m_PreRelease()
-	, m_Build()
+	, m_PreRelease(L"")
+	, m_Build(L"")
 {
 	Parse(psz);
 }
@@ -56,7 +56,7 @@ String SemanticVersion::ToString() const
 	switch (m_Level)
 	{
 	case 0:
-		return String::Format(L"");
+		return String(L"");
 	case 1:
 		return String::Format(L"%d", m_Major);
 	case 2:
@@ -82,7 +82,7 @@ String SemanticVersion::ToString() const
 			return String::Format(L"%d.%d.%d", m_Major, m_Minor, m_Patch);
 		}
 	default:
-		return String::Format(L"");
+		return String(L"");
 	}
 }
 

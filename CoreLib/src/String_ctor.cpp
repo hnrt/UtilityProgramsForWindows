@@ -10,7 +10,7 @@ using namespace hnrt;
 
 
 String::String()
-    : m_psz(StringAddRef(Empty.m_psz))
+    : m_psz(nullptr)
 {
 }
 

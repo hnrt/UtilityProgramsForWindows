@@ -15,7 +15,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(Test01)
 		{
 			String s;
-			Assert::AreEqual(0, wcscmp(s, L""));
+			Assert::AreEqual(nullptr, s);
 		}
 
 		TEST_METHOD(Test02)
