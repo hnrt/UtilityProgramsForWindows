@@ -40,10 +40,10 @@ namespace hnrt
         String ToBase64() const;
         String ToString(UINT = 0, bool bStrict = true) const;
         void* get_Ptr() const;
-        size_t get_Len() const;
+        size_t get_Length() const;
 
         __declspec(property(get = get_Ptr)) void* Ptr;
-        __declspec(property(get = get_Len)) size_t Len;
+        __declspec(property(get = get_Length)) size_t Length;
 
     private:
 

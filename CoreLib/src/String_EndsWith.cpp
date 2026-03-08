@@ -14,9 +14,9 @@ bool String::EndsWith(PCWSTR psz, SSIZE_T cch) const
     {
         return true;
     }
-    else if (cchActual <= Len)
+    else if (cchActual <= Length)
     {
-        return Compare(m_psz + Len - cchActual, cchActual, psz, cchActual) == 0;
+        return Compare(m_psz + Length - cchActual, cchActual, psz, cchActual) == 0;
     }
     else
     {

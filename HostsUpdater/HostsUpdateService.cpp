@@ -504,13 +504,13 @@ void HostsUpdateService::ReadRegistry()
 	if (key.Open(HKEY_LOCAL_MACHINE, REGKEY, 0, KEY_READ) == ERROR_SUCCESS)
 	{
 		String szLogFileName = RegistryValue::GetString(key, REGVAL_LOGFILE);
-		if (szLogFileName.Len)
+		if (szLogFileName.Length)
 		{
 			DBGPUT(L"%s=%s", REGVAL_LOGFILE, szLogFileName);
 			OpenLogFile(szLogFileName);
 		}
 		String szHostsFileName = RegistryValue::GetString(key, REGVAL_HOSTSFILE);
-		if (szHostsFileName.Len)
+		if (szHostsFileName.Length)
 		{
 			DBGPUT(L"%s=%s", REGVAL_HOSTSFILE, szHostsFileName);
 			m_szHostsFile = szHostsFileName;
@@ -545,7 +545,7 @@ void HostsUpdateService::ReadRegistry()
 			}
 		}
 	}
-	if (!m_szHostsFile.Len)
+	if (!m_szHostsFile.Length)
 	{
 		Log(L"WARNING: No hosts file name is set.");
 	}
@@ -559,7 +559,7 @@ void HostsUpdateService::ReadRegistry()
 void HostsUpdateService::ProcessHostsFile()
 {
 	DBGFNC(L"HostsUpdateService::ProcessHostsFile");
-	if (!m_szHostsFile.Len)
+	if (!m_szHostsFile.Length)
 	{
 		DBGPUT(L"m_szHostsFile=null");
 		return;

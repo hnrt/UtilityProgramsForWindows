@@ -8,10 +8,10 @@ using namespace hnrt;
 
 String String::Lettercase(StringOptions option) const
 {
-    String s(Ptr, Len);
-    if (s.Len)
+    String s(Ptr, Length);
+    if (s.Length)
     {
-        StrCase(option, s.m_psz, s.Len);
+        StrCase(option, s.m_psz, s.Length);
     }
     return s;
 }

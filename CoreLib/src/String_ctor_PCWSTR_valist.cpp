@@ -12,5 +12,5 @@ using namespace hnrt;
 String::String(PCWSTR pszFormat, va_list argList)
     : m_psz(RefStr::Create(VaStrFmtLen(pszFormat, argList)))
 {
-    VaStrFmt(m_psz, Len + 1, pszFormat, argList);
+    VaStrFmt(m_psz, Length + 1, pszFormat, argList);
 }

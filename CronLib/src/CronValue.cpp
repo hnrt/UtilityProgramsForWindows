@@ -234,7 +234,7 @@ String CronValue::ToString() const
 	String sz;
 	for (RefPtr<CronValue> pCur = Self; pCur; pCur = pCur->Next)
 	{
-		if (sz.Len)
+		if (sz.Length)
 		{
 			sz.AppendFormat(L",");
 		}

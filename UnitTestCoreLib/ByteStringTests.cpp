@@ -15,17 +15,17 @@ namespace UnitTestCoreLib
 		TEST_METHOD(Test01)
 		{
 			ByteString bs;
-			Debug::Put(L"ByteStringTest01: Ptr=%p Len=%zu", bs.Ptr, bs.Len);
+			Debug::Put(L"ByteStringTest01: Ptr=%p Len=%zu", bs.Ptr, bs.Length);
 			Assert::AreEqual(nullptr, bs);
-			Assert::AreEqual(0ULL, bs.Len);
+			Assert::AreEqual(0ULL, bs.Length);
 		}
 
 		TEST_METHOD(Test02)
 		{
 			ByteString bs(100);
-			Debug::Put(L"ByteStringTest02: Ptr=%p Len=%zu", bs.Ptr, bs.Len);
+			Debug::Put(L"ByteStringTest02: Ptr=%p Len=%zu", bs.Ptr, bs.Length);
 			Assert::AreNotEqual(nullptr, bs);
-			Assert::AreEqual(100ULL, bs.Len);
+			Assert::AreEqual(100ULL, bs.Length);
 		}
 
 		TEST_METHOD(Test03)

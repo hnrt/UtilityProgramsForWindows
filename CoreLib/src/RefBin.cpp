@@ -9,7 +9,7 @@ using namespace hnrt;
 
 RefBin::RefBin(size_t len)
     : RefObj()
-    , m_Len(len)
+    , m_Length(len)
 {
     memset(Get(*this), 0, len);
 }
@@ -17,7 +17,7 @@ RefBin::RefBin(size_t len)
 
 RefBin::RefBin(const void* ptr, size_t len)
     : RefObj()
-    , m_Len(len)
+    , m_Length(len)
 {
     memcpy_s(Get(*this), len, ptr, len);
 }
@@ -25,8 +25,7 @@ RefBin::RefBin(const void* ptr, size_t len)
 
 RefBin::~RefBin()
 {
-    memset(Get(*this), 0, m_Len);
-    m_Len = 0;
+    memset(this, 0, sizeof(RefBin) + m_Length);
 }
 
 

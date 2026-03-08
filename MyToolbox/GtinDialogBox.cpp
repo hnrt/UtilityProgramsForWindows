@@ -437,7 +437,7 @@ void GtinDialogBox::GTIN13Add(int delta)
     try
     {
         String sz = GetText(IDC_GTIN_EDIT);
-        if (sz.Len == GTIN13_LENGTH_EXCLUDING_CD || sz.Len == GTIN13_LENGTH)
+        if (sz.Length == GTIN13_LENGTH_EXCLUDING_CD || sz.Length == GTIN13_LENGTH)
         {
             WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
             GTIN13 jan = GTIN13::Parse(sz, m_GS1CPLength);
@@ -462,7 +462,7 @@ void GtinDialogBox::ApplyModification(int id)
         try
         {
             String sz = GetText(IDC_GTIN_EDIT);
-            if (sz.Len == 0)
+            if (sz.Length == 0)
             {
                 SetText(IDC_GTIN_CP_EDIT);
                 SetText(IDC_GTIN_IR_EDIT);
@@ -476,12 +476,12 @@ void GtinDialogBox::ApplyModification(int id)
             EditSetSelection(IDC_GTIN_IR_EDIT, jan.ItemReferenceLenth);
             SetText(IDC_GTIN_CD_EDIT, String::Format(L"%c", jan.CheckDigit));
             EditSetSelection(IDC_GTIN_CD_EDIT, 1);
-            if (StrCmp(jan, -1, sz, sz.Len))
+            if (StrCmp(jan, -1, sz, sz.Length))
             {
                 SetText(IDC_GTIN_EDIT, jan);
                 EditSetSelection(IDC_GTIN_EDIT, GTIN13_LENGTH);
             }
-            if (sz.Len == GTIN13_LENGTH_EXCLUDING_CD)
+            if (sz.Length == GTIN13_LENGTH_EXCLUDING_CD)
             {
                 SetStatusText(ResourceString(IDS_OK_CHECKDIGIT_COMPUTED));
             }
@@ -501,7 +501,7 @@ void GtinDialogBox::ApplyModification(int id)
         {
             String szCP = GetText(IDC_GTIN_CP_EDIT);
             String szIR = GetText(IDC_GTIN_IR_EDIT);
-            if (szCP.Len == 0 && szIR.Len == 0)
+            if (szCP.Length == 0 && szIR.Length == 0)
             {
                 SetText(IDC_GTIN_CD_EDIT);
                 SetText(IDC_GTIN_EDIT);

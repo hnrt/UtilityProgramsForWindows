@@ -431,7 +431,7 @@ void SfidDialogBox::UpdateControlsState()
 void SfidDialogBox::ChangeContent(LONGLONG delta)
 {
     String szUniqueId = GetText(IDC_SFID_UNIQUEID_EDIT);
-    if (szUniqueId.Len > SFID_UNIQUEID_LENGTH)
+    if (szUniqueId.Length > SFID_UNIQUEID_LENGTH)
     {
         SetStatusTextOnError(L"%s: Too long", SFID_UNIQUEID_NAME);
         return;
@@ -459,7 +459,7 @@ void SfidDialogBox::ApplyModification(int id)
         try
         {
             String sz = GetText(IDC_SFID_EDIT);
-            if (sz.Len == 0)
+            if (sz.Length == 0)
             {
                 SetText(IDC_SFID_KEYPREFIX_EDIT);
                 SetText(IDC_SFID_INSTANCE_EDIT);
@@ -476,12 +476,12 @@ void SfidDialogBox::ApplyModification(int id)
             EditSetSelection(IDC_SFID_UNIQUEID_EDIT, SFID_UNIQUEID_LENGTH);
             SetText(IDC_SFID_CHECKSUM_EDIT, id.Checksum);
             EditSetSelection(IDC_SFID_CHECKSUM_EDIT, SFID_CHECKSUM_LENGTH);
-            if (StrCmp(id, -1, sz, sz.Len))
+            if (StrCmp(id, -1, sz, sz.Length))
             {
                 SetText(IDC_SFID_EDIT, id);
                 EditSetSelection(IDC_SFID_EDIT, SFID_LENGTH);
             }
-            if (sz.Len == SFID_LENGTH_EXCLUDING_CHECKSUM)
+            if (sz.Length == SFID_LENGTH_EXCLUDING_CHECKSUM)
             {
                 SetStatusText(ResourceString(IDS_OK_CHECKSUM_COMPUTED));
             }
@@ -503,7 +503,7 @@ void SfidDialogBox::ApplyModification(int id)
             String szKeyPrefix = GetText(IDC_SFID_KEYPREFIX_EDIT);
             String szInstance = GetText(IDC_SFID_INSTANCE_EDIT);
             String szUniqueId = GetText(IDC_SFID_UNIQUEID_EDIT);
-            if (szKeyPrefix.Len == 0 && szInstance.Len == 0 && szUniqueId.Len == 0)
+            if (szKeyPrefix.Length == 0 && szInstance.Length == 0 && szUniqueId.Length == 0)
             {
                 SetText(IDC_SFID_CHECKSUM_EDIT);
                 SetText(IDC_SFID_EDIT);

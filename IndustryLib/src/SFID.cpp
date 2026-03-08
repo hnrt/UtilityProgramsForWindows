@@ -264,7 +264,7 @@ int SFID::ParseBase62(PCWSTR psz, int length, int offset, bool bCheckEnd)
 LONGLONG SFID::ComputeSerialNumber(String sz)
 {
     ULONGLONG value = 0;
-    int length = static_cast<int>(sz.Len);
+    int length = static_cast<int>(sz.Length);
     for (int index = 0; index < length; index++)
     {
         WCHAR c = sz[index];

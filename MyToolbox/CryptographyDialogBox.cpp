@@ -532,7 +532,7 @@ INT_PTR CryptographyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 	case IDC_CRPT_KEY_EDIT:
 	{
 		size_t required = m_KeyLength;
-		SetTextColor(hdc, (m_Key.Len * 8 == required) ? RGB_GOOD : (m_Key.Len * 8 > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
+		SetTextColor(hdc, (m_Key.Length * 8 == required) ? RGB_GOOD : (m_Key.Length * 8 > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
 		break;
 	}
 	case IDC_CRPT_IV_EDIT:
@@ -540,17 +540,17 @@ INT_PTR CryptographyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 		if (IS_AES_CCM(m_hAlg.ChainingMode))
 		{
 			size_t required = AES_CCM_NONCE_LENGTH;
-			SetTextColor(hdc, (m_Nonce.Len == required) ? RGB_GOOD : (m_Nonce.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
+			SetTextColor(hdc, (m_Nonce.Length == required) ? RGB_GOOD : (m_Nonce.Length > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
 		}
 		else if (IS_AES_GCM(m_hAlg.ChainingMode))
 		{
 			size_t required = AES_GCM_NONCE_LENGTH;
-			SetTextColor(hdc, (m_Nonce.Len == required) ? RGB_GOOD : (m_Nonce.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
+			SetTextColor(hdc, (m_Nonce.Length == required) ? RGB_GOOD : (m_Nonce.Length > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
 		}
 		else
 		{
 			size_t required = m_hAlg.BlockLength;
-			SetTextColor(hdc, (m_IV.Len == required) ? RGB_GOOD : (m_IV.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
+			SetTextColor(hdc, (m_IV.Length == required) ? RGB_GOOD : (m_IV.Length > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
 		}
 		break;
 	}
@@ -559,12 +559,12 @@ INT_PTR CryptographyDialogBox::OnControlColorEdit(WPARAM wParam, LPARAM lParam)
 		if (IS_AES_CCM(m_hAlg.ChainingMode))
 		{
 			size_t required = m_CcmTagLength;
-			SetTextColor(hdc, (m_Tag.Len == required) ? RGB_GOOD : (m_Tag.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
+			SetTextColor(hdc, (m_Tag.Length == required) ? RGB_GOOD : (m_Tag.Length > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
 		}
 		else if (IS_AES_GCM(m_hAlg.ChainingMode))
 		{
 			size_t required = m_GcmTagLength;
-			SetTextColor(hdc, (m_Tag.Len == required) ? RGB_GOOD : (m_Tag.Len > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
+			SetTextColor(hdc, (m_Tag.Length == required) ? RGB_GOOD : (m_Tag.Length > required) ? RGB_TOO_MANY : RGB_TOO_FEW);
 		}
 		break;
 	}
@@ -691,8 +691,8 @@ void CryptographyDialogBox::UpdateControlsState(int id)
 		EnableWindow(IDC_CRPT_COPYORG_BUTTON, GetTextLength(IDC_CRPT_ORG_EDIT) > 0 ? TRUE : FALSE);
 		EnableWindow(IDC_CRPT_COPYENC_BUTTON, GetTextLength(IDC_CRPT_ENC_EDIT) > 0 ? TRUE : FALSE);
 		m_menuFile
-			.Enable(IDM_FILE_SAVE1AS, (m_OriginalData.Len > 0) ? MF_ENABLED : MF_DISABLED)
-			.Enable(IDM_FILE_SAVE2AS, (m_EncryptedData.Len > 0) ? MF_ENABLED : MF_DISABLED);
+			.Enable(IDM_FILE_SAVE1AS, (m_OriginalData.Length > 0) ? MF_ENABLED : MF_DISABLED)
+			.Enable(IDM_FILE_SAVE2AS, (m_EncryptedData.Length > 0) ? MF_ENABLED : MF_DISABLED);
 		//FALLTHROUGH
 	case IDC_CRPT_KEY_EDIT:
 	case IDC_CRPT_IV_EDIT:
@@ -702,19 +702,19 @@ void CryptographyDialogBox::UpdateControlsState(int id)
 		}
 		else if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
 		{
-			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_IV.Len >= m_hAlg.BlockLength && m_OriginalData.Len > 0) ? TRUE : FALSE;
+			bEnabled = (m_Key.Length * 8 >= m_KeyLength && m_IV.Length >= m_hAlg.BlockLength && m_OriginalData.Length > 0) ? TRUE : FALSE;
 		}
 		else if (IS_AES_ECB(m_hAlg.ChainingMode))
 		{
-			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_OriginalData.Len > 0) ? TRUE : FALSE;
+			bEnabled = (m_Key.Length * 8 >= m_KeyLength && m_OriginalData.Length > 0) ? TRUE : FALSE;
 		}
 		else if (IS_AES_CCM(m_hAlg.ChainingMode))
 		{
-			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_Nonce.Len >= AES_CCM_NONCE_LENGTH && m_OriginalData.Len > 0) ? TRUE : FALSE;
+			bEnabled = (m_Key.Length * 8 >= m_KeyLength && m_Nonce.Length >= AES_CCM_NONCE_LENGTH && m_OriginalData.Length > 0) ? TRUE : FALSE;
 		}
 		else if (IS_AES_GCM(m_hAlg.ChainingMode))
 		{
-			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_Nonce.Len >= AES_GCM_NONCE_LENGTH && m_OriginalData.Len > 0) ? TRUE : FALSE;
+			bEnabled = (m_Key.Length * 8 >= m_KeyLength && m_Nonce.Length >= AES_GCM_NONCE_LENGTH && m_OriginalData.Length > 0) ? TRUE : FALSE;
 		}
 		else
 		{
@@ -727,19 +727,19 @@ void CryptographyDialogBox::UpdateControlsState(int id)
 		}
 		else if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
 		{
-			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_IV.Len >= m_hAlg.BlockLength && m_EncryptedData.Len > 0) ? TRUE : FALSE;
+			bEnabled = (m_Key.Length * 8 >= m_KeyLength && m_IV.Length >= m_hAlg.BlockLength && m_EncryptedData.Length > 0) ? TRUE : FALSE;
 		}
 		else if (IS_AES_ECB(m_hAlg.ChainingMode))
 		{
-			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_EncryptedData.Len > 0) ? TRUE : FALSE;
+			bEnabled = (m_Key.Length * 8 >= m_KeyLength && m_EncryptedData.Length > 0) ? TRUE : FALSE;
 		}
 		else if (IS_AES_CCM(m_hAlg.ChainingMode))
 		{
-			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_Nonce.Len >= AES_CCM_NONCE_LENGTH && m_EncryptedData.Len > 0) ? TRUE : FALSE;
+			bEnabled = (m_Key.Length * 8 >= m_KeyLength && m_Nonce.Length >= AES_CCM_NONCE_LENGTH && m_EncryptedData.Length > 0) ? TRUE : FALSE;
 		}
 		else if (IS_AES_GCM(m_hAlg.ChainingMode))
 		{
-			bEnabled = (m_Key.Len * 8 >= m_KeyLength && m_Nonce.Len >= AES_GCM_NONCE_LENGTH && m_EncryptedData.Len > 0) ? TRUE : FALSE;
+			bEnabled = (m_Key.Length * 8 >= m_KeyLength && m_Nonce.Length >= AES_GCM_NONCE_LENGTH && m_EncryptedData.Length > 0) ? TRUE : FALSE;
 		}
 		else
 		{
@@ -750,13 +750,13 @@ void CryptographyDialogBox::UpdateControlsState(int id)
 	case IDC_CRPT_ORG_EDIT:
 		EnableWindow(IDC_CRPT_COPYORG_BUTTON, GetTextLength(IDC_CRPT_ORG_EDIT) > 0 ? TRUE : FALSE);
 		m_menuFile
-			.Enable(IDM_FILE_SAVE1AS, (m_OriginalData.Len > 0) ? MF_ENABLED : MF_DISABLED);
+			.Enable(IDM_FILE_SAVE1AS, (m_OriginalData.Length > 0) ? MF_ENABLED : MF_DISABLED);
 		UpdateControlsState(IDC_CRPT_KEY_EDIT);
 		break;
 	case IDC_CRPT_ENC_EDIT:
 		EnableWindow(IDC_CRPT_COPYENC_BUTTON, GetTextLength(IDC_CRPT_ENC_EDIT) > 0 ? TRUE : FALSE);
 		m_menuFile
-			.Enable(IDM_FILE_SAVE2AS, (m_EncryptedData.Len > 0) ? MF_ENABLED : MF_DISABLED);
+			.Enable(IDM_FILE_SAVE2AS, (m_EncryptedData.Length > 0) ? MF_ENABLED : MF_DISABLED);
 		UpdateControlsState(IDC_CRPT_KEY_EDIT);
 		break;
 	default:
@@ -829,15 +829,15 @@ void CryptographyDialogBox::OnSave1As()
 		{
 			m_szOriginalDataPath = szPath2;
 			SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
-			if (!m_OriginalData.Len)
+			if (!m_OriginalData.Length)
 			{
 				FileWriter(m_szOriginalDataPath).Write("", 0);
 			}
 			else
 			{
-				FileWriter(m_szOriginalDataPath).Write(m_OriginalData.Ptr, m_OriginalData.Len);
+				FileWriter(m_szOriginalDataPath).Write(m_OriginalData.Ptr, m_OriginalData.Length);
 			}
-			SetStatus(FLAG_STATUS_SUCCESSFUL, 0, ResourceString(IDS_DONE_OUT), szLeader, NumberOfBytes(m_OriginalData.Len));
+			SetStatus(FLAG_STATUS_SUCCESSFUL, 0, ResourceString(IDS_DONE_OUT), szLeader, NumberOfBytes(m_OriginalData.Length));
 		}
 		catch (Win32Exception e)
 		{
@@ -909,15 +909,15 @@ void CryptographyDialogBox::OnSave2As()
 		{
 			m_szEncryptedDataPath = szPath2;
 			SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
-			if (!m_EncryptedData.Len)
+			if (!m_EncryptedData.Length)
 			{
 				FileWriter(m_szEncryptedDataPath).Write("", 0);
 			}
 			else
 			{
-				FileWriter(m_szEncryptedDataPath).Write(m_EncryptedData.Ptr, m_EncryptedData.Len);
+				FileWriter(m_szEncryptedDataPath).Write(m_EncryptedData.Ptr, m_EncryptedData.Length);
 			}
-			SetStatus(FLAG_STATUS_SUCCESSFUL, 0, ResourceString(IDS_DONE_OUT), szLeader, NumberOfBytes(m_EncryptedData.Len));
+			SetStatus(FLAG_STATUS_SUCCESSFUL, 0, ResourceString(IDS_DONE_OUT), szLeader, NumberOfBytes(m_EncryptedData.Length));
 		}
 		catch (Win32Exception e)
 		{
@@ -941,94 +941,94 @@ void CryptographyDialogBox::Encrypt()
 	try
 	{
 		SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
-		if (m_Key.Len * 8 < m_KeyLength)
+		if (m_Key.Length * 8 < m_KeyLength)
 		{
 			throw Exception(L"Private key is shorter than %d bytes long.", m_KeyLength / 8);
 		}
 		ByteString encrypted;
 		BCryptKeyHandle hKey;
-		if (m_Key.Len * 8 != m_KeyLength)
+		if (m_Key.Length * 8 != m_KeyLength)
 		{
 			ByteString key0 = m_Key;
 			m_Key = ByteString(m_KeyLength / 8);
-			if (key0.Len < m_Key.Len)
+			if (key0.Length < m_Key.Length)
 			{
-				memcpy_s(m_Key.Ptr, m_Key.Len, key0.Ptr, key0.Len);
-				memset(static_cast<PBYTE>(m_Key.Ptr) + key0.Len, 0, m_Key.Len - key0.Len);
+				memcpy_s(m_Key.Ptr, m_Key.Length, key0.Ptr, key0.Length);
+				memset(static_cast<PBYTE>(m_Key.Ptr) + key0.Length, 0, m_Key.Length - key0.Length);
 			}
 			else
 			{
-				memcpy_s(m_Key.Ptr, m_Key.Len, key0.Ptr, m_Key.Len);
+				memcpy_s(m_Key.Ptr, m_Key.Length, key0.Ptr, m_Key.Length);
 			}
 		}
-		DBGPUT(L"key[%zu]=%s", m_Key.Len, m_Key.ToHex());
-		hKey.Generate(m_hAlg, m_Key.Ptr, m_Key.Len);
+		DBGPUT(L"key[%zu]=%s", m_Key.Length, m_Key.ToHex());
+		hKey.Generate(m_hAlg, m_Key.Ptr, m_Key.Length);
 		if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
 		{
-			if (m_IV.Len != m_hAlg.BlockLength)
+			if (m_IV.Length != m_hAlg.BlockLength)
 			{
 				ByteString iv0 = m_IV;
 				m_IV = ByteString(m_hAlg.BlockLength);
-				if (iv0.Len < m_IV.Len)
+				if (iv0.Length < m_IV.Length)
 				{
-					memcpy_s(m_IV.Ptr, m_IV.Len, iv0.Ptr, iv0.Len);
-					memset(static_cast<PBYTE>(m_IV.Ptr) + iv0.Len, 0, m_IV.Len - iv0.Len);
+					memcpy_s(m_IV.Ptr, m_IV.Length, iv0.Ptr, iv0.Length);
+					memset(static_cast<PBYTE>(m_IV.Ptr) + iv0.Length, 0, m_IV.Length - iv0.Length);
 				}
 				else
 				{
-					memcpy_s(m_IV.Ptr, m_IV.Len, iv0.Ptr, m_IV.Len);
+					memcpy_s(m_IV.Ptr, m_IV.Length, iv0.Ptr, m_IV.Length);
 				}
 			}
 			ByteString plaintext = m_OriginalData.Pkcs5Padding(m_hAlg.BlockLength);
 			ByteString iv = m_IV.Clone();
-			DBGPUT(L"iv[%zu]=%s", iv.Len, iv.ToHex());
-			encrypted = hKey.Encrypt(plaintext.Ptr, plaintext.Len, iv.Ptr, iv.Len, 0);
-			DBGPUT(L"Encrypted %zu bytes", encrypted.Len);
+			DBGPUT(L"iv[%zu]=%s", iv.Length, iv.ToHex());
+			encrypted = hKey.Encrypt(plaintext.Ptr, plaintext.Length, iv.Ptr, iv.Length, 0);
+			DBGPUT(L"Encrypted %zu bytes", encrypted.Length);
 			if ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_IVPREPEND) != 0)
 			{
-				ByteString ivPrecedes(m_IV.Len + encrypted.Len);
-				memcpy_s(reinterpret_cast<PBYTE>(ivPrecedes.Ptr), ivPrecedes.Len, m_IV.Ptr, m_IV.Len);
-				memcpy_s(reinterpret_cast<PBYTE>(ivPrecedes.Ptr) + m_IV.Len, ivPrecedes.Len - m_IV.Len, encrypted.Ptr, encrypted.Len);
+				ByteString ivPrecedes(m_IV.Length + encrypted.Length);
+				memcpy_s(reinterpret_cast<PBYTE>(ivPrecedes.Ptr), ivPrecedes.Length, m_IV.Ptr, m_IV.Length);
+				memcpy_s(reinterpret_cast<PBYTE>(ivPrecedes.Ptr) + m_IV.Length, ivPrecedes.Length - m_IV.Length, encrypted.Ptr, encrypted.Length);
 				encrypted = ivPrecedes;
 			}
 		}
 		else if (IS_AES_ECB(m_hAlg.ChainingMode))
 		{
 			ByteString plaintext = m_OriginalData.Pkcs5Padding(m_hAlg.BlockLength);
-			encrypted = hKey.Encrypt(plaintext.Ptr, plaintext.Len, nullptr, 0, 0);
-			DBGPUT(L"Encrypted %zu bytes", encrypted.Len);
+			encrypted = hKey.Encrypt(plaintext.Ptr, plaintext.Length, nullptr, 0, 0);
+			DBGPUT(L"Encrypted %zu bytes", encrypted.Length);
 		}
 		else if (IS_AES_CCM(m_hAlg.ChainingMode))
 		{
 			ByteString nonce = m_Nonce.Clone().Resize(AES_CCM_NONCE_LENGTH);
 			BCryptAuthenticatedCipherModeInfo info;
 			info
-				.SetNonce(nonce.Ptr, nonce.Len)
+				.SetNonce(nonce.Ptr, nonce.Length)
 				.SetTagSize(m_CcmTagLength);
 			DBGPUT(L"nonce[%lu]=%s", info.cbNonce, ByteString(info.pbNonce, info.cbNonce).ToHex());
 			DBGPUT(L"tag[%lu]", info.cbTag);
 			if (GetTextLength(IDC_CRPT_AAD_EDIT) > 0)
 			{
 				ByteString aad = GetAaData();
-				info.SetAuthData(aad.Ptr, aad.Len);
+				info.SetAuthData(aad.Ptr, aad.Length);
 				DBGPUT(L"aad[%lu]=%s", info.cbAuthData, ByteString(info.pbAuthData, info.cbAuthData).ToHex());
 			}
-			encrypted = hKey.Encrypt(m_OriginalData.Ptr, m_OriginalData.Len, info, NULL, 0);
+			encrypted = hKey.Encrypt(m_OriginalData.Ptr, m_OriginalData.Length, info, NULL, 0);
 			m_Tag = ByteString(info.pbTag, info.cbTag);
 			SetText(IDC_CRPT_TAG_EDIT, m_Tag.ToHex());
-			DBGPUT(L"Encrypted %zu bytes", encrypted.Len);
+			DBGPUT(L"Encrypted %zu bytes", encrypted.Length);
 			if ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_IVPREPEND) != 0)
 			{
-				ByteString noncePrecedes(m_Nonce.Len + encrypted.Len);
-				memcpy_s(reinterpret_cast<PBYTE>(noncePrecedes.Ptr), noncePrecedes.Len, m_Nonce.Ptr, m_Nonce.Len);
-				memcpy_s(reinterpret_cast<PBYTE>(noncePrecedes.Ptr) + m_Nonce.Len, noncePrecedes.Len - m_Nonce.Len, encrypted.Ptr, encrypted.Len);
+				ByteString noncePrecedes(m_Nonce.Length + encrypted.Length);
+				memcpy_s(reinterpret_cast<PBYTE>(noncePrecedes.Ptr), noncePrecedes.Length, m_Nonce.Ptr, m_Nonce.Length);
+				memcpy_s(reinterpret_cast<PBYTE>(noncePrecedes.Ptr) + m_Nonce.Length, noncePrecedes.Length - m_Nonce.Length, encrypted.Ptr, encrypted.Length);
 				encrypted = noncePrecedes;
 			}
 			if ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_TAGAPPEND) != 0)
 			{
-				ByteString tagFollows(encrypted.Len + m_Tag.Len);
-				memcpy_s(reinterpret_cast<PBYTE>(tagFollows.Ptr), tagFollows.Len, encrypted.Ptr, encrypted.Len);
-				memcpy_s(reinterpret_cast<PBYTE>(tagFollows.Ptr) + encrypted.Len, tagFollows.Len - encrypted.Len, m_Tag.Ptr, m_Tag.Len);
+				ByteString tagFollows(encrypted.Length + m_Tag.Length);
+				memcpy_s(reinterpret_cast<PBYTE>(tagFollows.Ptr), tagFollows.Length, encrypted.Ptr, encrypted.Length);
+				memcpy_s(reinterpret_cast<PBYTE>(tagFollows.Ptr) + encrypted.Length, tagFollows.Length - encrypted.Length, m_Tag.Ptr, m_Tag.Length);
 				encrypted = tagFollows;
 			}
 			DBGPUT(L"tag[%lu]=%s", info.cbTag, ByteString(info.pbTag, info.cbTag).ToHex());
@@ -1038,32 +1038,32 @@ void CryptographyDialogBox::Encrypt()
 			ByteString nonce = m_Nonce.Clone().Resize(AES_GCM_NONCE_LENGTH);
 			BCryptAuthenticatedCipherModeInfo info;
 			info
-				.SetNonce(nonce.Ptr, nonce.Len)
+				.SetNonce(nonce.Ptr, nonce.Length)
 				.SetTagSize(m_GcmTagLength);
 			DBGPUT(L"nonce[%lu]=%s", info.cbNonce, ByteString(info.pbNonce, info.cbNonce).ToHex());
 			DBGPUT(L"tag[%lu]", info.cbTag);
 			if (GetTextLength(IDC_CRPT_AAD_EDIT) > 0)
 			{
 				ByteString aad = GetAaData();
-				info.SetAuthData(aad.Ptr, aad.Len);
+				info.SetAuthData(aad.Ptr, aad.Length);
 				DBGPUT(L"aad[%lu]=%s", info.cbAuthData, ByteString(info.pbAuthData, info.cbAuthData).ToHex());
 			}
-			encrypted = hKey.Encrypt(m_OriginalData.Ptr, m_OriginalData.Len, info, NULL, 0);
+			encrypted = hKey.Encrypt(m_OriginalData.Ptr, m_OriginalData.Length, info, NULL, 0);
 			m_Tag = ByteString(info.pbTag, info.cbTag);
 			SetText(IDC_CRPT_TAG_EDIT, m_Tag.ToHex());
-			DBGPUT(L"Encrypted %zu bytes", encrypted.Len);
+			DBGPUT(L"Encrypted %zu bytes", encrypted.Length);
 			if ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_IVPREPEND) != 0)
 			{
-				ByteString noncePrecedes(m_Nonce.Len + encrypted.Len);
-				memcpy_s(reinterpret_cast<PBYTE>(noncePrecedes.Ptr), noncePrecedes.Len, m_Nonce.Ptr, m_Nonce.Len);
-				memcpy_s(reinterpret_cast<PBYTE>(noncePrecedes.Ptr) + m_Nonce.Len, noncePrecedes.Len - m_Nonce.Len, encrypted.Ptr, encrypted.Len);
+				ByteString noncePrecedes(m_Nonce.Length + encrypted.Length);
+				memcpy_s(reinterpret_cast<PBYTE>(noncePrecedes.Ptr), noncePrecedes.Length, m_Nonce.Ptr, m_Nonce.Length);
+				memcpy_s(reinterpret_cast<PBYTE>(noncePrecedes.Ptr) + m_Nonce.Length, noncePrecedes.Length - m_Nonce.Length, encrypted.Ptr, encrypted.Length);
 				encrypted = noncePrecedes;
 			}
 			if ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_TAGAPPEND) != 0)
 			{
-				ByteString tagFollows(encrypted.Len + m_Tag.Len);
-				memcpy_s(reinterpret_cast<PBYTE>(tagFollows.Ptr), tagFollows.Len, encrypted.Ptr, encrypted.Len);
-				memcpy_s(reinterpret_cast<PBYTE>(tagFollows.Ptr) + encrypted.Len, tagFollows.Len - encrypted.Len, m_Tag.Ptr, m_Tag.Len);
+				ByteString tagFollows(encrypted.Length + m_Tag.Length);
+				memcpy_s(reinterpret_cast<PBYTE>(tagFollows.Ptr), tagFollows.Length, encrypted.Ptr, encrypted.Length);
+				memcpy_s(reinterpret_cast<PBYTE>(tagFollows.Ptr) + encrypted.Length, tagFollows.Length - encrypted.Length, m_Tag.Ptr, m_Tag.Length);
 				encrypted = tagFollows;
 			}
 			DBGPUT(L"tag[%lu]=%s", info.cbTag, ByteString(info.pbTag, info.cbTag).ToHex());
@@ -1076,7 +1076,7 @@ void CryptographyDialogBox::Encrypt()
 		m_EncryptedData = encrypted;
 		SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
 		SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, 0, st, ResourceString(IDS_W_DONE_X_IN_Y_OUT),
-			szLeader, NumberOfBytes(m_OriginalData.Len), NumberOfBytes(m_EncryptedData.Len));
+			szLeader, NumberOfBytes(m_OriginalData.Length), NumberOfBytes(m_EncryptedData.Length));
 	}
 	catch (Exception e)
 	{
@@ -1097,46 +1097,46 @@ void CryptographyDialogBox::Decrypt()
 	try
 	{
 		SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
-		if (m_Key.Len * 8 < m_KeyLength)
+		if (m_Key.Length * 8 < m_KeyLength)
 		{
 			throw Exception(L"Private key is shorter than %d bytes long.", m_KeyLength / 8);
 		}
 		ByteString decrypted;
 		BCryptKeyHandle hKey;
-		if (m_Key.Len * 8 != m_KeyLength)
+		if (m_Key.Length * 8 != m_KeyLength)
 		{
 			ByteString key0 = m_Key;
 			m_Key = ByteString(m_KeyLength / 8);
-			if (key0.Len < m_Key.Len)
+			if (key0.Length < m_Key.Length)
 			{
-				memcpy_s(m_Key.Ptr, m_Key.Len, key0.Ptr, key0.Len);
-				memset(static_cast<PBYTE>(m_Key.Ptr) + key0.Len, 0, m_Key.Len - key0.Len);
+				memcpy_s(m_Key.Ptr, m_Key.Length, key0.Ptr, key0.Length);
+				memset(static_cast<PBYTE>(m_Key.Ptr) + key0.Length, 0, m_Key.Length - key0.Length);
 			}
 			else
 			{
-				memcpy_s(m_Key.Ptr, m_Key.Len, key0.Ptr, m_Key.Len);
+				memcpy_s(m_Key.Ptr, m_Key.Length, key0.Ptr, m_Key.Length);
 			}
 		}
-		DBGPUT(L"key[%zu]=%s", m_Key.Len, m_Key.ToHex());
-		hKey.Generate(m_hAlg, m_Key.Ptr, m_Key.Len);
+		DBGPUT(L"key[%zu]=%s", m_Key.Length, m_Key.ToHex());
+		hKey.Generate(m_hAlg, m_Key.Ptr, m_Key.Length);
 		if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
 		{
 			ByteString iv;
 			ByteString encrypted;
 			if ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_IVPREPEND) != 0)
 			{
-				if (m_EncryptedData.Len <= m_hAlg.BlockLength)
+				if (m_EncryptedData.Length <= m_hAlg.BlockLength)
 				{
 					throw Exception(L"Encrypted data is too short.");
 				}
 				iv = ByteString(m_EncryptedData.Ptr, m_hAlg.BlockLength);
-				encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_hAlg.BlockLength, m_EncryptedData.Len - m_hAlg.BlockLength);
+				encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_hAlg.BlockLength, m_EncryptedData.Length - m_hAlg.BlockLength);
 			}
-			else if (m_IV.Len < m_hAlg.BlockLength)
+			else if (m_IV.Length < m_hAlg.BlockLength)
 			{
 				iv = ByteString(m_hAlg.BlockLength);
-				memcpy_s(iv.Ptr, iv.Len, m_IV.Ptr, m_IV.Len);
-				memset(static_cast<PBYTE>(iv.Ptr) + m_IV.Len, 0, iv.Len - m_IV.Len);
+				memcpy_s(iv.Ptr, iv.Length, m_IV.Ptr, m_IV.Length);
+				memset(static_cast<PBYTE>(iv.Ptr) + m_IV.Length, 0, iv.Length - m_IV.Length);
 				encrypted = m_EncryptedData.Clone();
 			}
 			else
@@ -1144,16 +1144,16 @@ void CryptographyDialogBox::Decrypt()
 				iv = ByteString(m_IV.Ptr, m_hAlg.BlockLength);
 				encrypted = m_EncryptedData.Clone();
 			}
-			DBGPUT(L"iv[%zu]=%s", iv.Len, iv.ToHex());
-			decrypted = hKey.Decrypt(encrypted.Ptr, encrypted.Len, iv.Ptr, iv.Len, 0);
+			DBGPUT(L"iv[%zu]=%s", iv.Length, iv.ToHex());
+			decrypted = hKey.Decrypt(encrypted.Ptr, encrypted.Length, iv.Ptr, iv.Length, 0);
 			decrypted.RemovePkcs5Padding(m_hAlg.BlockLength);
-			DBGPUT(L"Decrypted %zu bytes", decrypted.Len);
+			DBGPUT(L"Decrypted %zu bytes", decrypted.Length);
 		}
 		else if (IS_AES_ECB(m_hAlg.ChainingMode))
 		{
-			decrypted = hKey.Decrypt(m_EncryptedData.Ptr, m_EncryptedData.Len, nullptr, 0, 0);
+			decrypted = hKey.Decrypt(m_EncryptedData.Ptr, m_EncryptedData.Length, nullptr, 0, 0);
 			decrypted.RemovePkcs5Padding(m_hAlg.BlockLength);
-			DBGPUT(L"Decrypted %zu bytes", decrypted.Len);
+			DBGPUT(L"Decrypted %zu bytes", decrypted.Length);
 		}
 		else if (IS_AES_CCM(m_hAlg.ChainingMode))
 		{
@@ -1162,50 +1162,50 @@ void CryptographyDialogBox::Decrypt()
 			ByteString tag;
 			if ((m_EncryptionFormatMode & (ENCRYPTIONFORMAT_IVPREPEND | ENCRYPTIONFORMAT_TAGAPPEND)) == (ENCRYPTIONFORMAT_IVPREPEND | ENCRYPTIONFORMAT_TAGAPPEND))
 			{
-				if (m_EncryptedData.Len <= (AES_CCM_NONCE_LENGTH + m_CcmTagLength))
+				if (m_EncryptedData.Length <= (AES_CCM_NONCE_LENGTH + m_CcmTagLength))
 				{
 					throw Exception(L"Encrypted data is too short.");
 				}
 				nonce = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr), AES_CCM_NONCE_LENGTH);
-				encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + AES_CCM_NONCE_LENGTH, m_EncryptedData.Len - AES_CCM_NONCE_LENGTH - m_CcmTagLength);
-				tag = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_EncryptedData.Len - m_CcmTagLength, m_CcmTagLength);
+				encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + AES_CCM_NONCE_LENGTH, m_EncryptedData.Length - AES_CCM_NONCE_LENGTH - m_CcmTagLength);
+				tag = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_EncryptedData.Length - m_CcmTagLength, m_CcmTagLength);
 			}
 			else if ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_IVPREPEND) == ENCRYPTIONFORMAT_IVPREPEND)
 			{
-				if (m_EncryptedData.Len <= AES_CCM_NONCE_LENGTH)
+				if (m_EncryptedData.Length <= AES_CCM_NONCE_LENGTH)
 				{
 					throw Exception(L"Encrypted data is too short.");
 				}
 				nonce = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr), AES_CCM_NONCE_LENGTH);
-				encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + AES_CCM_NONCE_LENGTH, m_EncryptedData.Len - AES_CCM_NONCE_LENGTH);
+				encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + AES_CCM_NONCE_LENGTH, m_EncryptedData.Length - AES_CCM_NONCE_LENGTH);
 				tag = m_Tag.Clone().Resize(m_CcmTagLength);
 			}
 			else if ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_TAGAPPEND) == ENCRYPTIONFORMAT_TAGAPPEND)
 			{
-				if (m_EncryptedData.Len <= m_CcmTagLength)
+				if (m_EncryptedData.Length <= m_CcmTagLength)
 				{
 					throw Exception(L"Encrypted data is too short.");
 				}
-				if (m_Nonce.Len < AES_CCM_NONCE_LENGTH)
+				if (m_Nonce.Length < AES_CCM_NONCE_LENGTH)
 				{
 					nonce = ByteString(AES_CCM_NONCE_LENGTH);
-					memcpy_s(nonce.Ptr, nonce.Len, m_Nonce.Ptr, m_Nonce.Len);
-					memset(static_cast<PBYTE>(nonce.Ptr) + m_Nonce.Len, 0, nonce.Len - m_Nonce.Len);
-					encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr), m_EncryptedData.Len - m_CcmTagLength);
-					tag = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_EncryptedData.Len - m_CcmTagLength, m_CcmTagLength);
+					memcpy_s(nonce.Ptr, nonce.Length, m_Nonce.Ptr, m_Nonce.Length);
+					memset(static_cast<PBYTE>(nonce.Ptr) + m_Nonce.Length, 0, nonce.Length - m_Nonce.Length);
+					encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr), m_EncryptedData.Length - m_CcmTagLength);
+					tag = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_EncryptedData.Length - m_CcmTagLength, m_CcmTagLength);
 				}
 				else
 				{
 					nonce = ByteString(static_cast<PBYTE>(m_Nonce.Ptr), AES_CCM_NONCE_LENGTH);
-					encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr), m_EncryptedData.Len - m_CcmTagLength);
-					tag = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_EncryptedData.Len - m_CcmTagLength, m_CcmTagLength);
+					encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr), m_EncryptedData.Length - m_CcmTagLength);
+					tag = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_EncryptedData.Length - m_CcmTagLength, m_CcmTagLength);
 				}
 			}
-			else if (m_Nonce.Len < AES_CCM_NONCE_LENGTH)
+			else if (m_Nonce.Length < AES_CCM_NONCE_LENGTH)
 			{
 				nonce = ByteString(AES_CCM_NONCE_LENGTH);
-				memcpy_s(nonce.Ptr, nonce.Len, m_Nonce.Ptr, m_Nonce.Len);
-				memset(static_cast<PBYTE>(nonce.Ptr) + m_Nonce.Len, 0, nonce.Len - m_Nonce.Len);
+				memcpy_s(nonce.Ptr, nonce.Length, m_Nonce.Ptr, m_Nonce.Length);
+				memset(static_cast<PBYTE>(nonce.Ptr) + m_Nonce.Length, 0, nonce.Length - m_Nonce.Length);
 				encrypted = m_EncryptedData.Clone();
 				tag = m_Tag.Clone().Resize(m_CcmTagLength);
 			}
@@ -1217,18 +1217,18 @@ void CryptographyDialogBox::Decrypt()
 			}
 			BCryptAuthenticatedCipherModeInfo info;
 			info
-				.SetNonce(nonce.Ptr, nonce.Len)
-				.SetTag(tag.Ptr, tag.Len);
+				.SetNonce(nonce.Ptr, nonce.Length)
+				.SetTag(tag.Ptr, tag.Length);
 			DBGPUT(L"nonce[%lu]=%s", info.cbNonce, ByteString(info.pbNonce, info.cbNonce).ToHex());
 			DBGPUT(L"tag[%lu]=%s", info.cbTag, ByteString(info.pbTag, info.cbTag).ToHex());
 			if (GetTextLength(IDC_CRPT_AAD_EDIT) > 0)
 			{
 				ByteString aad = GetAaData();
-				info.SetAuthData(aad.Ptr, aad.Len);
+				info.SetAuthData(aad.Ptr, aad.Length);
 				DBGPUT(L"aad[%lu]=%s", info.cbAuthData, ByteString(info.pbAuthData, info.cbAuthData).ToHex());
 			}
-			decrypted = hKey.Decrypt(encrypted.Ptr, encrypted.Len, info, NULL, 0);
-			DBGPUT(L"Decrypted %zu bytes", decrypted.Len);
+			decrypted = hKey.Decrypt(encrypted.Ptr, encrypted.Length, info, NULL, 0);
+			DBGPUT(L"Decrypted %zu bytes", decrypted.Length);
 			m_Tag = tag;
 			SetText(IDC_CRPT_TAG_EDIT, m_Tag.ToHex());
 		}
@@ -1239,50 +1239,50 @@ void CryptographyDialogBox::Decrypt()
 			ByteString tag;
 			if ((m_EncryptionFormatMode & (ENCRYPTIONFORMAT_IVPREPEND | ENCRYPTIONFORMAT_TAGAPPEND)) == (ENCRYPTIONFORMAT_IVPREPEND | ENCRYPTIONFORMAT_TAGAPPEND))
 			{
-				if (m_EncryptedData.Len <= (AES_CCM_NONCE_LENGTH + m_GcmTagLength))
+				if (m_EncryptedData.Length <= (AES_CCM_NONCE_LENGTH + m_GcmTagLength))
 				{
 					throw Exception(L"Encrypted data is too short.");
 				}
 				nonce = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr), AES_CCM_NONCE_LENGTH);
-				encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + AES_CCM_NONCE_LENGTH, m_EncryptedData.Len - AES_CCM_NONCE_LENGTH - m_GcmTagLength);
-				tag = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_EncryptedData.Len - m_GcmTagLength, m_GcmTagLength);
+				encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + AES_CCM_NONCE_LENGTH, m_EncryptedData.Length - AES_CCM_NONCE_LENGTH - m_GcmTagLength);
+				tag = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_EncryptedData.Length - m_GcmTagLength, m_GcmTagLength);
 			}
 			else if ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_IVPREPEND) == ENCRYPTIONFORMAT_IVPREPEND)
 			{
-				if (m_EncryptedData.Len <= AES_CCM_NONCE_LENGTH)
+				if (m_EncryptedData.Length <= AES_CCM_NONCE_LENGTH)
 				{
 					throw Exception(L"Encrypted data is too short.");
 				}
 				nonce = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr), AES_CCM_NONCE_LENGTH);
-				encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + AES_CCM_NONCE_LENGTH, m_EncryptedData.Len - AES_CCM_NONCE_LENGTH);
+				encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + AES_CCM_NONCE_LENGTH, m_EncryptedData.Length - AES_CCM_NONCE_LENGTH);
 				tag = m_Tag.Clone().Resize(m_GcmTagLength);
 			}
 			else if ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_TAGAPPEND) == ENCRYPTIONFORMAT_TAGAPPEND)
 			{
-				if (m_EncryptedData.Len <= m_GcmTagLength)
+				if (m_EncryptedData.Length <= m_GcmTagLength)
 				{
 					throw Exception(L"Encrypted data is too short.");
 				}
-				if (m_Nonce.Len < AES_CCM_NONCE_LENGTH)
+				if (m_Nonce.Length < AES_CCM_NONCE_LENGTH)
 				{
 					nonce = ByteString(AES_CCM_NONCE_LENGTH);
-					memcpy_s(nonce.Ptr, nonce.Len, m_Nonce.Ptr, m_Nonce.Len);
-					memset(static_cast<PBYTE>(nonce.Ptr) + m_Nonce.Len, 0, nonce.Len - m_Nonce.Len);
-					encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr), m_EncryptedData.Len - m_GcmTagLength);
-					tag = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_EncryptedData.Len - m_GcmTagLength, m_GcmTagLength);
+					memcpy_s(nonce.Ptr, nonce.Length, m_Nonce.Ptr, m_Nonce.Length);
+					memset(static_cast<PBYTE>(nonce.Ptr) + m_Nonce.Length, 0, nonce.Length - m_Nonce.Length);
+					encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr), m_EncryptedData.Length - m_GcmTagLength);
+					tag = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_EncryptedData.Length - m_GcmTagLength, m_GcmTagLength);
 				}
 				else
 				{
 					nonce = ByteString(static_cast<PBYTE>(m_Nonce.Ptr), AES_CCM_NONCE_LENGTH);
-					encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr), m_EncryptedData.Len - m_GcmTagLength);
-					tag = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_EncryptedData.Len - m_GcmTagLength, m_GcmTagLength);
+					encrypted = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr), m_EncryptedData.Length - m_GcmTagLength);
+					tag = ByteString(reinterpret_cast<PBYTE>(m_EncryptedData.Ptr) + m_EncryptedData.Length - m_GcmTagLength, m_GcmTagLength);
 				}
 			}
-			else if (m_Nonce.Len < AES_CCM_NONCE_LENGTH)
+			else if (m_Nonce.Length < AES_CCM_NONCE_LENGTH)
 			{
 				nonce = ByteString(AES_CCM_NONCE_LENGTH);
-				memcpy_s(nonce.Ptr, nonce.Len, m_Nonce.Ptr, m_Nonce.Len);
-				memset(static_cast<PBYTE>(nonce.Ptr) + m_Nonce.Len, 0, nonce.Len - m_Nonce.Len);
+				memcpy_s(nonce.Ptr, nonce.Length, m_Nonce.Ptr, m_Nonce.Length);
+				memset(static_cast<PBYTE>(nonce.Ptr) + m_Nonce.Length, 0, nonce.Length - m_Nonce.Length);
 				encrypted = m_EncryptedData.Clone();
 				tag = m_Tag.Clone().Resize(m_GcmTagLength);
 			}
@@ -1294,18 +1294,18 @@ void CryptographyDialogBox::Decrypt()
 			}
 			BCryptAuthenticatedCipherModeInfo info;
 			info
-				.SetNonce(nonce.Ptr, nonce.Len)
-				.SetTag(tag.Ptr, tag.Len);
+				.SetNonce(nonce.Ptr, nonce.Length)
+				.SetTag(tag.Ptr, tag.Length);
 			DBGPUT(L"nonce[%lu]=%s", info.cbNonce, ByteString(info.pbNonce, info.cbNonce).ToHex());
 			DBGPUT(L"tag[%lu]=%s", info.cbTag, ByteString(info.pbTag, info.cbTag).ToHex());
 			if (GetTextLength(IDC_CRPT_AAD_EDIT) > 0)
 			{
 				ByteString aad = GetAaData();
-				info.SetAuthData(aad.Ptr, aad.Len);
+				info.SetAuthData(aad.Ptr, aad.Length);
 				DBGPUT(L"aad[%lu]=%s", info.cbAuthData, ByteString(info.pbAuthData, info.cbAuthData).ToHex());
 			}
-			decrypted = hKey.Decrypt(encrypted.Ptr, encrypted.Len, info, NULL, 0);
-			DBGPUT(L"Decrypted %zu bytes", decrypted.Len);
+			decrypted = hKey.Decrypt(encrypted.Ptr, encrypted.Length, info, NULL, 0);
+			DBGPUT(L"Decrypted %zu bytes", decrypted.Length);
 			m_Tag = tag;
 			SetText(IDC_CRPT_TAG_EDIT, m_Tag.ToHex());
 		}
@@ -1317,7 +1317,7 @@ void CryptographyDialogBox::Decrypt()
 		m_OriginalData = decrypted;
 		SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
 		SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, 0, st, ResourceString(IDS_W_DONE_X_IN_Y_OUT),
-			szLeader, NumberOfBytes(m_EncryptedData.Len), NumberOfBytes(m_OriginalData.Len));
+			szLeader, NumberOfBytes(m_EncryptedData.Length), NumberOfBytes(m_OriginalData.Length));
 	}
 	catch (Exception e)
 	{
@@ -1344,18 +1344,18 @@ void CryptographyDialogBox::OnAdjustKey()
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SIZE_T required = m_KeyLength / 8;
-	if (m_Key.Len < required)
+	if (m_Key.Length < required)
 	{
 		ByteString key(required);
 		key.Fill(0);
-		memcpy_s(key, key.Len, m_Key.Ptr, m_Key.Len);
+		memcpy_s(key, key.Length, m_Key.Ptr, m_Key.Length);
 		m_Key = key;
 		SetText(IDC_CRPT_KEY_EDIT, m_Key.ToHex(m_HexLetterCase));
 	}
-	else if (m_Key.Len > required)
+	else if (m_Key.Length > required)
 	{
 		ByteString key(required);
-		memcpy_s(key, key.Len, m_Key.Ptr, key.Len);
+		memcpy_s(key, key.Length, m_Key.Ptr, key.Length);
 		m_Key = key;
 		SetText(IDC_CRPT_KEY_EDIT, m_Key.ToHex(m_HexLetterCase));
 	}
@@ -1369,18 +1369,18 @@ void CryptographyDialogBox::OnAdjustIV()
 	if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
 	{
 		SIZE_T required = m_hAlg.BlockLength;
-		if (m_IV.Len < required)
+		if (m_IV.Length < required)
 		{
 			ByteString iv(required);
 			iv.Fill(0);
-			memcpy_s(iv, iv.Len, m_IV.Ptr, m_IV.Len);
+			memcpy_s(iv, iv.Length, m_IV.Ptr, m_IV.Length);
 			m_IV = iv;
 			SetText(IDC_CRPT_IV_EDIT, m_IV.ToHex(m_HexLetterCase));
 		}
-		else if (m_IV.Len > required)
+		else if (m_IV.Length > required)
 		{
 			ByteString iv(required);
-			memcpy_s(iv, iv.Len, m_IV.Ptr, iv.Len);
+			memcpy_s(iv, iv.Length, m_IV.Ptr, iv.Length);
 			m_IV = iv;
 			SetText(IDC_CRPT_IV_EDIT, m_IV.ToHex(m_HexLetterCase));
 		}
@@ -1388,18 +1388,18 @@ void CryptographyDialogBox::OnAdjustIV()
 	else if (IS_AES_CCM(m_hAlg.ChainingMode) || IS_AES_GCM(m_hAlg.ChainingMode))
 	{
 		SIZE_T required = IS_AES_CCM(m_hAlg.ChainingMode) ? AES_CCM_NONCE_LENGTH : AES_GCM_NONCE_LENGTH;
-		if (m_Nonce.Len < required)
+		if (m_Nonce.Length < required)
 		{
 			ByteString nonce(required);
 			nonce.Fill(0);
-			memcpy_s(nonce, nonce.Len, m_Nonce.Ptr, m_Nonce.Len);
+			memcpy_s(nonce, nonce.Length, m_Nonce.Ptr, m_Nonce.Length);
 			m_Nonce = nonce;
 			SetText(IDC_CRPT_IV_EDIT, m_Nonce.ToHex(m_HexLetterCase));
 		}
-		else if (m_Nonce.Len > required)
+		else if (m_Nonce.Length > required)
 		{
 			ByteString nonce(required);
-			memcpy_s(nonce, nonce.Len, m_Nonce.Ptr, nonce.Len);
+			memcpy_s(nonce, nonce.Length, m_Nonce.Ptr, nonce.Length);
 			m_Nonce = nonce;
 			SetText(IDC_CRPT_IV_EDIT, m_Nonce.ToHex(m_HexLetterCase));
 		}
@@ -1595,7 +1595,7 @@ void CryptographyDialogBox::OnOriginalDataChange()
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	String szText = GetText(IDC_CRPT_ORG_EDIT);
-	if (!szText.Len)
+	if (!szText.Length)
 	{
 		SetMode(MODE_IDLE);
 	}
@@ -1697,7 +1697,7 @@ void CryptographyDialogBox::OnEncryptedDataChange()
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	String szText = GetText(IDC_CRPT_ENC_EDIT);
-	if (!szText.Len)
+	if (!szText.Length)
 	{
 		SetMode(MODE_IDLE);
 	}
@@ -1797,11 +1797,11 @@ void CryptographyDialogBox::OnHexFormatChange()
 	{
 		SetText(IDC_CRPT_AAD_EDIT, GetText(IDC_CRPT_AAD_EDIT).Lettercase(m_HexLetterCase));
 	}
-	if (m_OriginalDataDisplayMode == DataDisplayMode::HEX && m_OriginalData.Len > 0)
+	if (m_OriginalDataDisplayMode == DataDisplayMode::HEX && m_OriginalData.Length > 0)
 	{
 		SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
 	}
-	if (m_EncryptedDataDisplayMode == DataDisplayMode::HEX && m_EncryptedData.Len > 0)
+	if (m_EncryptedDataDisplayMode == DataDisplayMode::HEX && m_EncryptedData.Length > 0)
 	{
 		SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
 	}
@@ -1889,7 +1889,7 @@ void CryptographyDialogBox::SetMode(int value)
 		switch (prev)
 		{
 		case MODE_ENCRYPTION:
-			if (m_Tag.Len)
+			if (m_Tag.Length)
 			{
 				m_Tag.Resize(0);
 				SetText(IDC_CRPT_TAG_EDIT);
@@ -1898,12 +1898,12 @@ void CryptographyDialogBox::SetMode(int value)
 		default:
 			break;
 		}
-		if (m_OriginalData.Len)
+		if (m_OriginalData.Length)
 		{
 			m_OriginalData.Resize(0);
 			SetText(IDC_CRPT_ORG_EDIT);
 		}
-		if (m_EncryptedData.Len)
+		if (m_EncryptedData.Length)
 		{
 			m_EncryptedData.Resize(0);
 			SetText(IDC_CRPT_ENC_EDIT);
@@ -1918,12 +1918,12 @@ void CryptographyDialogBox::SetMode(int value)
 			UpdateControlsState(1);
 			break;
 		case MODE_ENCRYPTION:
-			if (m_Tag.Len)
+			if (m_Tag.Length)
 			{
 				m_Tag.Resize(0);
 				SetText(IDC_CRPT_TAG_EDIT);
 			}
-			if (m_EncryptedData.Len)
+			if (m_EncryptedData.Length)
 			{
 				m_EncryptedData.Resize(0);
 				SetText(IDC_CRPT_ENC_EDIT);
@@ -1943,7 +1943,7 @@ void CryptographyDialogBox::SetMode(int value)
 			UpdateControlsState(1);
 			break;
 		case MODE_DECRYPTION:
-			if (m_OriginalData.Len)
+			if (m_OriginalData.Length)
 			{
 				m_OriginalData.Resize(0);
 				SetText(IDC_CRPT_ORG_EDIT);
@@ -2071,7 +2071,7 @@ void CryptographyDialogBox::OnEncryptionFormatChange()
 	{
 		return;
 	}
-	if (m_EncryptedData.Len > 0)
+	if (m_EncryptedData.Length > 0)
 	{
 		if ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_IVPREPEND) != 0)
 		{
@@ -2079,16 +2079,16 @@ void CryptographyDialogBox::OnEncryptionFormatChange()
 			{
 				if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
 				{
-					ByteString bs(m_IV.Len + m_EncryptedData.Len);
-					memcpy_s(static_cast<unsigned char*>(bs.Ptr) + 0, bs.Len, m_IV.Ptr, m_IV.Len);
-					memcpy_s(static_cast<unsigned char*>(bs.Ptr) + m_IV.Len, bs.Len - m_IV.Len, m_EncryptedData.Ptr, m_EncryptedData.Len);
+					ByteString bs(m_IV.Length + m_EncryptedData.Length);
+					memcpy_s(static_cast<unsigned char*>(bs.Ptr) + 0, bs.Length, m_IV.Ptr, m_IV.Length);
+					memcpy_s(static_cast<unsigned char*>(bs.Ptr) + m_IV.Length, bs.Length - m_IV.Length, m_EncryptedData.Ptr, m_EncryptedData.Length);
 					m_EncryptedData = bs;
 					SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
 				}
 				else if (IS_AES_CCM(m_hAlg.ChainingMode) || IS_AES_GCM(m_hAlg.ChainingMode)) {
-					ByteString bs(m_Nonce.Len + m_EncryptedData.Len);
-					memcpy_s(static_cast<unsigned char*>(bs.Ptr) + 0, bs.Len, m_Nonce.Ptr, m_Nonce.Len);
-					memcpy_s(static_cast<unsigned char*>(bs.Ptr) + m_Nonce.Len, bs.Len - m_Nonce.Len, m_EncryptedData.Ptr, m_EncryptedData.Len);
+					ByteString bs(m_Nonce.Length + m_EncryptedData.Length);
+					memcpy_s(static_cast<unsigned char*>(bs.Ptr) + 0, bs.Length, m_Nonce.Ptr, m_Nonce.Length);
+					memcpy_s(static_cast<unsigned char*>(bs.Ptr) + m_Nonce.Length, bs.Length - m_Nonce.Length, m_EncryptedData.Ptr, m_EncryptedData.Length);
 					m_EncryptedData = bs;
 					SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
 				}
@@ -2099,21 +2099,21 @@ void CryptographyDialogBox::OnEncryptionFormatChange()
 			if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
 			{
 				m_IV = ByteString(static_cast<const char*>(m_EncryptedData.Ptr), m_hAlg.BlockLength);
-				m_EncryptedData = ByteString(static_cast<const char*>(m_EncryptedData.Ptr) + m_hAlg.BlockLength, m_EncryptedData.Len - m_hAlg.BlockLength);
+				m_EncryptedData = ByteString(static_cast<const char*>(m_EncryptedData.Ptr) + m_hAlg.BlockLength, m_EncryptedData.Length - m_hAlg.BlockLength);
 				SetText(IDC_CRPT_IV_EDIT, m_IV.ToHex());
 				SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
 			}
 			else if (IS_AES_CCM(m_hAlg.ChainingMode))
 			{
 				m_Nonce = ByteString(static_cast<const char*>(m_EncryptedData.Ptr), AES_CCM_NONCE_LENGTH);
-				m_EncryptedData = ByteString(static_cast<const char*>(m_EncryptedData.Ptr) + AES_CCM_NONCE_LENGTH, m_EncryptedData.Len - AES_CCM_NONCE_LENGTH);
+				m_EncryptedData = ByteString(static_cast<const char*>(m_EncryptedData.Ptr) + AES_CCM_NONCE_LENGTH, m_EncryptedData.Length - AES_CCM_NONCE_LENGTH);
 				SetText(IDC_CRPT_IV_EDIT, m_Nonce.ToHex());
 				SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
 			}
 			else if (IS_AES_GCM(m_hAlg.ChainingMode))
 			{
 				m_Nonce = ByteString(static_cast<const char*>(m_EncryptedData.Ptr), AES_GCM_NONCE_LENGTH);
-				m_EncryptedData = ByteString(static_cast<const char*>(m_EncryptedData.Ptr) + AES_GCM_NONCE_LENGTH, m_EncryptedData.Len - AES_GCM_NONCE_LENGTH);
+				m_EncryptedData = ByteString(static_cast<const char*>(m_EncryptedData.Ptr) + AES_GCM_NONCE_LENGTH, m_EncryptedData.Length - AES_GCM_NONCE_LENGTH);
 				SetText(IDC_CRPT_IV_EDIT, m_Nonce.ToHex());
 				SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
 			}
@@ -2135,10 +2135,10 @@ void CryptographyDialogBox::OnEncryptionFormatChange()
 			size_t len = IS_AES_CCM(m_hAlg.ChainingMode) ? m_CcmTagLength : IS_AES_GCM(m_hAlg.ChainingMode) ? m_GcmTagLength : 0;
 			if (len > 0)
 			{
-				if (m_EncryptedData.Len > len)
+				if (m_EncryptedData.Length > len)
 				{
-					m_Tag = ByteString(static_cast<const char*>(m_EncryptedData.Ptr) + m_EncryptedData.Len - len, len);
-					m_EncryptedData = ByteString(static_cast<const char*>(m_EncryptedData.Ptr) + 0, m_EncryptedData.Len - len);
+					m_Tag = ByteString(static_cast<const char*>(m_EncryptedData.Ptr) + m_EncryptedData.Length - len, len);
+					m_EncryptedData = ByteString(static_cast<const char*>(m_EncryptedData.Ptr) + 0, m_EncryptedData.Length - len);
 					SetText(IDC_CRPT_TAG_EDIT, m_Tag.ToHex());
 					SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
 				}

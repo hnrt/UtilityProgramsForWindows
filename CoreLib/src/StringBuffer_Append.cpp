@@ -20,10 +20,10 @@ StringBuffer& StringBuffer::Append(const StringBuffer& other)
 
 StringBuffer& StringBuffer::Append(const String& other)
 {
-    if (other.Len)
+    if (other.Length)
     {
-        CheckCapacity(other.Len);
-        m_len += StrCpy(m_ptr + m_len, other.Ptr, other.Len);
+        CheckCapacity(other.Length);
+        m_len += StrCpy(m_ptr + m_len, other.Ptr, other.Length);
     }
     return *this;
 }

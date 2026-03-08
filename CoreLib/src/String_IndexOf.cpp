@@ -9,7 +9,7 @@ using namespace hnrt;
 
 int String::IndexOf(int c, SIZE_T fromIndex) const
 {
-    SIZE_T length = Len;
+    SIZE_T length = Length;
     if (m_psz && fromIndex < length)
     {
         int index = hnrt::IndexOf(m_psz + fromIndex, c, length - fromIndex);
@@ -21,7 +21,7 @@ int String::IndexOf(int c, SIZE_T fromIndex) const
 
 int String::IndexOf(const String& s, SIZE_T fromIndex) const
 {
-    SIZE_T length = Len;
+    SIZE_T length = Length;
     if (m_psz && fromIndex < length)
     {
         int index = hnrt::IndexOf(m_psz + fromIndex, s, length - fromIndex);

@@ -349,8 +349,8 @@ void Base64DialogBox::OnSave1As()
         {
             SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
             ByteString original = GetOriginalData();
-            FileWriter(m_szOriginalPath).Write(original.Ptr, original.Len);
-            SetStatus(FLAG_STATUS_SUCCESSFUL, 0, ResourceString(IDS_DONE_OUT), szLeader, NumberOfBytes(original.Len));
+            FileWriter(m_szOriginalPath).Write(original.Ptr, original.Length);
+            SetStatus(FLAG_STATUS_SUCCESSFUL, 0, ResourceString(IDS_DONE_OUT), szLeader, NumberOfBytes(original.Length));
         }
         catch (Exception e)
         {
@@ -389,8 +389,8 @@ void Base64DialogBox::OnSave2As()
         {
             SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
             ByteString encoded = GetEncodedData();
-            FileWriter(m_szEncodedPath).Write(encoded.Ptr, encoded.Len);
-            SetStatus(FLAG_STATUS_SUCCESSFUL, 0, ResourceString(IDS_DONE_OUT), szLeader, NumberOfBytes(encoded.Len));
+            FileWriter(m_szEncodedPath).Write(encoded.Ptr, encoded.Length);
+            SetStatus(FLAG_STATUS_SUCCESSFUL, 0, ResourceString(IDS_DONE_OUT), szLeader, NumberOfBytes(encoded.Length));
         }
         catch (Exception e)
         {
@@ -410,7 +410,7 @@ bool Base64DialogBox::Encode()
         ByteString original = GetOriginalData();
         SetText(IDC_BS64_ENC_EDIT, original.ToBase64().Wrap(m_CharsPerLine));
         SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE2_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR,
-            ResourceString(IDS_W_DONE_X_IN_Y_OUT), szLeader, NumberOfBytes(original.Len), NumberOfChars(GetTextLength(IDC_BS64_ENC_EDIT)));
+            ResourceString(IDS_W_DONE_X_IN_Y_OUT), szLeader, NumberOfBytes(original.Length), NumberOfChars(GetTextLength(IDC_BS64_ENC_EDIT)));
         return true;
     }
     catch (Exception e)
@@ -431,7 +431,7 @@ bool Base64DialogBox::Decode()
         SetStatus(FLAG_BUSY, MASK_STATUS, szLeader);
         SetOriginalData(GetDecodedData());
         SetStatus(FLAG_STATUS_SUCCESSFUL | FLAG_PANE1_SUCCESSFUL, FLAG_PANE1_ERROR | FLAG_PANE2_ERROR,
-            ResourceString(IDS_W_DONE_X_IN_Y_OUT), szLeader, NumberOfChars(GetTextLength(IDC_BS64_ENC_EDIT)), NumberOfBytes(GetOriginalData().Len));
+            ResourceString(IDS_W_DONE_X_IN_Y_OUT), szLeader, NumberOfChars(GetTextLength(IDC_BS64_ENC_EDIT)), NumberOfBytes(GetOriginalData().Length));
         return true;
     }
     catch (Exception e)

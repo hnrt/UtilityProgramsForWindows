@@ -11,7 +11,7 @@ using namespace hnrt;
 
 const String& WindowHelper::get_ClassName() const
 {
-    if (!m_szClassName.Len)
+    if (!m_szClassName.Length)
     {
         if (m_hwnd)
         {
@@ -40,7 +40,7 @@ void WindowHelper::set_ClassName(const String& szClassName)
 
 const String& WindowHelper::get_WindowText() const
 {
-    if (!m_szWindowText.Len)
+    if (!m_szWindowText.Length)
     {
         if (m_hwnd)
         {

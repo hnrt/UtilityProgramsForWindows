@@ -13,7 +13,7 @@ String String::Wrap(UINT width, PCWSTR pszNewLine) const
     {
         return String(*this);
     }
-    SIZE_T len = Len;
+    SIZE_T len = Length;
     SIZE_T lenNewLine = StrLen(pszNewLine);
     SIZE_T delta = (len / static_cast<SIZE_T>(width)) * lenNewLine;
     String sz(len + delta);

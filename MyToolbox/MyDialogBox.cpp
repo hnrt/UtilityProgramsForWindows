@@ -927,7 +927,7 @@ bool MyDialogBox::LoadTextFromFile(int id, PCWSTR pszDoingWhat, String& szPath)
 			throw Exception(ResourceString(IDS_MSG_TOO_LARGE_FILE));
 		}
 		String sz = ByteString(fm.Ptr, fm.Len).ToString(m_uInputCodePage);
-		bool bBOM = sz.Len && sz[0] == BYTE_ORDER_MARK;
+		bool bBOM = sz.Length && sz[0] == BYTE_ORDER_MARK;
 		if (bBOM)
 		{
 			SetText(id, &sz[1]);
@@ -940,7 +940,7 @@ bool MyDialogBox::LoadTextFromFile(int id, PCWSTR pszDoingWhat, String& szPath)
 			id == m_Pane1Id ? MASK_PANE1 :
 			id == m_Pane2Id ? MASK_PANE2 : 0,
 			ResourceString(IDS_W_DONE_X_Y_IN_Z),
-			pszDoingWhat, NumberOfBytes(fm.Len), NumberOfChars(sz.Len), bBOM ? ResourceString(IDS_BOM_REMOVED) : L"");
+			pszDoingWhat, NumberOfBytes(fm.Len), NumberOfChars(sz.Length), bBOM ? ResourceString(IDS_BOM_REMOVED) : L"");
 		szPath = szPath2;
 	}
 	catch (Win32Exception e)
@@ -980,10 +980,10 @@ bool MyDialogBox::SaveTextAsFile(int id, PCWSTR pszDoingWhat, String& szPath)
 			wcs = String::Format(L"%c%s", BYTE_ORDER_MARK, wcs);
 		}
 		ByteString serialized = ByteString::FromString(wcs, m_uOutputCodePage, m_OutputLineBreak);
-		FileWriter(ofn.lpstrFile).Write(serialized.Ptr, serialized.Len);
+		FileWriter(ofn.lpstrFile).Write(serialized.Ptr, serialized.Length);
 		SetStatus(FLAG_STATUS_SUCCESSFUL, 0,
 			ResourceString(IDS_W_DONE_X_Y_OUT_Z),
-			pszDoingWhat, NumberOfBytes(serialized.Len), NumberOfChars(wcs.Len), bBOM ? ResourceString(IDS_BOM_PREPENDED) : L"");
+			pszDoingWhat, NumberOfBytes(serialized.Length), NumberOfChars(wcs.Length), bBOM ? ResourceString(IDS_BOM_PREPENDED) : L"");
 		szPath = szPath2;
 	}
 	catch (Win32Exception e)
@@ -1124,7 +1124,7 @@ void MyDialogBox::FilterText(int id, BOOL(*pfnIsValid)(WCHAR))
 	int end = 0;
 	EditGetSelection(id, start, end);
 	String sz = GetText(id);
-	Buffer<WCHAR> buf(sz.Len + 1);
+	Buffer<WCHAR> buf(sz.Length + 1);
 	const WCHAR* pQ = &sz[0];
 	const WCHAR* pR = pQ;
 	WCHAR* pW = &buf[0];

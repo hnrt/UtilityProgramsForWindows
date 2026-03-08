@@ -9,7 +9,7 @@ using namespace hnrt;
 
 double String::ToDouble(double defaultValue, BOOL* pbSuccessful) const
 {
-    if (Len)
+    if (Length)
     {
         PWCHAR pStop = nullptr;
         double value = StrToDouble(&m_psz[0], &pStop);

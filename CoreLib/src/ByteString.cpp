@@ -45,12 +45,13 @@ inline void Release(void* ptr)
 
 
 ByteString::ByteString(size_t len)
-    : m_ptr(len ? RefBin::Create(len) : nullptr)
+    : m_ptr(RefBin::Create(len))
 {
 }
 
+
 ByteString::ByteString(const void* ptr, size_t len)
-    : m_ptr(len ? RefBin::Create(ptr, len) : nullptr)
+    : m_ptr(RefBin::Create(ptr, len))
 {
 }
 
@@ -80,8 +81,8 @@ ByteString& ByteString::operator +=(const ByteString& other)
     {
         if (other.m_ptr)
         {
-            size_t len1 = RefBin::Get(m_ptr).Len;
-            size_t len2 = RefBin::Get(other.m_ptr).Len;
+            size_t len1 = RefBin::Get(m_ptr).Length;
+            size_t len2 = RefBin::Get(other.m_ptr).Length;
             void* ptr1 = _InterlockedExchangePointer(&m_ptr, RefBin::Create(len1 + len2));
             memcpy_s(m_ptr, len1, ptr1, len1);
             memcpy_s(reinterpret_cast<unsigned char*>(m_ptr) + len1, len2, other.m_ptr, len2);
@@ -98,15 +99,32 @@ ByteString& ByteString::operator +=(const ByteString& other)
 
 ByteString ByteString::operator +(const ByteString& other)
 {
-    ByteString bs(*this);
-    bs += other;
-    return bs;
+    if (m_ptr)
+    {
+        if (other.m_ptr)
+        {
+            size_t len1 = RefBin::Get(m_ptr).Length;
+            size_t len2 = RefBin::Get(other.m_ptr).Length;
+            ByteString bs(len1 + len2);
+            memcpy_s(bs.m_ptr, len1, m_ptr, len1);
+            memcpy_s(reinterpret_cast<unsigned char*>(bs.m_ptr) + len1, len2, other.m_ptr, len2);
+            return bs;
+        }
+        else
+        {
+            return ByteString(*this);
+        }
+    }
+    else
+    {
+        return ByteString(other);
+    }
 }
 
 
 const unsigned char& ByteString::operator [](INT_PTR index) const
 {
-    INT_PTR len = Len;
+    INT_PTR len = Length;
     if (0 <= index && index < len)
     {
         return reinterpret_cast<const unsigned char*>(m_ptr)[index];
@@ -125,7 +143,7 @@ const unsigned char& ByteString::operator [](INT_PTR index) const
 
 unsigned char& ByteString::operator [](INT_PTR index)
 {
-    INT_PTR len = Len;
+    INT_PTR len = Length;
     if (0 <= index && index < len)
     {
         return reinterpret_cast<unsigned char*>(m_ptr)[index];
@@ -144,7 +162,7 @@ unsigned char& ByteString::operator [](INT_PTR index)
 
 ByteString& ByteString::Resize(size_t len)
 {
-    size_t len0 = Len;
+    size_t len0 = Length;
     if (len != len0)
     {
         void* ptr0 = _InterlockedExchangePointer(&m_ptr, len ? RefBin::Create(len) : nullptr);
@@ -175,14 +193,14 @@ ByteString& ByteString::Resize(size_t len)
 
 ByteString& ByteString::Fill(int value)
 {
-    memset(m_ptr, value, Len);
+    memset(m_ptr, value, Length);
     return *this;
 }
 
 
 ByteString ByteString::Clone() const
 {
-    size_t len = Len;
+    size_t len = Length;
     ByteString bs(len);
     memcpy_s(bs.m_ptr, len, m_ptr, len);
     return bs;
@@ -191,8 +209,8 @@ ByteString ByteString::Clone() const
 
 ByteString ByteString::Pkcs5Padding(DWORD dwBlockLength) const
 {
-    size_t PayloadLength = Len;
-    size_t PaddingLength = dwBlockLength - Len % dwBlockLength;
+    size_t PayloadLength = Length;
+    size_t PaddingLength = dwBlockLength - Length % dwBlockLength;
     ByteString bs(PayloadLength + PaddingLength);
     memcpy_s(bs.m_ptr, PayloadLength, m_ptr, PayloadLength);
     memset(reinterpret_cast<unsigned char*>(bs.m_ptr) + PayloadLength, static_cast<int>(PaddingLength), PaddingLength);
@@ -202,7 +220,7 @@ ByteString ByteString::Pkcs5Padding(DWORD dwBlockLength) const
 
 ByteString& ByteString::RemovePkcs5Padding(DWORD dwBlockLength)
 {
-    size_t len = Len;
+    size_t len = Length;
     if (len < dwBlockLength)
     {
         throw Exception(L"ByteString is too short.");
@@ -224,12 +242,12 @@ static const WCHAR s_HexEncodingTable[2][17] = {
 
 String ByteString::ToHex(StringOptions LetterCase) const
 {
-    if (Len > 0)
+    if (Length > 0)
     {
-        String sz(Len * 2, L'\0');
+        String sz(Length * 2, L'\0');
         PWCH pDst = const_cast<PWCH>(sz.Ptr);
         const BYTE* pCur = reinterpret_cast<const BYTE*>(m_ptr);
-        const BYTE* pEnd = reinterpret_cast<const BYTE*>(m_ptr) + Len;
+        const BYTE* pEnd = reinterpret_cast<const BYTE*>(m_ptr) + Length;
         PCWSTR pszCharacters = s_HexEncodingTable[LetterCase == StringOptions::LOWERCASE ? 0 : 1];
         while (pCur < pEnd)
         {
@@ -251,13 +269,13 @@ static const WCHAR s_Base64EncodingTable[65] = { L"ABCDEFGHIJKLMNOPQRSTUVWXYZabc
 
 String ByteString::ToBase64() const
 {
-    if (Len > 0)
+    if (Length > 0)
     {
-        SIZE_T rem = Len % 3;
-        String sz(((Len + 2) / 3) * 4, L'\0');
+        SIZE_T rem = Length % 3;
+        String sz(((Length + 2) / 3) * 4, L'\0');
         PWCH pDst = const_cast<PWCH>(sz.Ptr);
         const BYTE* pCur = reinterpret_cast<const BYTE*>(m_ptr);
-        const BYTE* pEnd = reinterpret_cast<const BYTE*>(m_ptr) + Len - rem;
+        const BYTE* pEnd = reinterpret_cast<const BYTE*>(m_ptr) + Length - rem;
         while (pCur < pEnd)
         {
             int b0 = static_cast<int>(*pCur++);
@@ -297,16 +315,16 @@ String ByteString::ToBase64() const
 
 String ByteString::ToString(UINT uCodePage, bool bStrict) const
 {
-    if (Len > 0)
+    if (Length > 0)
     {
         if (uCodePage == CP_UTF16)
         {
-            if (bStrict && (Len % sizeof(WCHAR)) != 0)
+            if (bStrict && (Length % sizeof(WCHAR)) != 0)
             {
                 throw CharacterMappingException(EXTRA_BYTE_FOLLOWS);
             }
             LPCWCH pch = reinterpret_cast<LPCWCH>(Ptr);
-            int cch = static_cast<int>(Len / sizeof(WCHAR));
+            int cch = static_cast<int>(Length / sizeof(WCHAR));
             if (bStrict && CountCharacter(pch, cch, 0) > 0)
             {
                 throw CharacterMappingException(MALFORMED_STRING);
@@ -321,7 +339,7 @@ String ByteString::ToString(UINT uCodePage, bool bStrict) const
         else if (uCodePage)
         {
             LPCCH pb = reinterpret_cast<LPCCH>(Ptr);
-            int cb = static_cast<int>(Len);
+            int cb = static_cast<int>(Length);
             DWORD dwFlags = ((uCodePage == CP_UTF8 || uCodePage == CP_GB18030) ? 0 : MB_PRECOMPOSED) | (bStrict ? MB_ERR_INVALID_CHARS : 0);
             int cch = MultiByteToWideChar(uCodePage, dwFlags, pb, cb, NULL, 0);
             if (cch == 0)
@@ -335,7 +353,7 @@ String ByteString::ToString(UINT uCodePage, bool bStrict) const
             {
                 throw CharacterMappingException(GetLastError());
             }
-            else if (cch != sz.Len)
+            else if (cch != sz.Length)
             {
                 throw CharacterMappingException(INCONSISTENT_NUMBER_OF_CHARACTERS);
             }
@@ -349,7 +367,7 @@ String ByteString::ToString(UINT uCodePage, bool bStrict) const
         {
             static const BYTE bomUTF8[] = { 0xEF, 0xBB, 0xBF };
             static const BYTE bomUTF16[] = { 0xFF, 0xFE };
-            if (Len >= 3 && !memcmp(Ptr, bomUTF8, 3))
+            if (Length >= 3 && !memcmp(Ptr, bomUTF8, 3))
             {
                 try
                 {
@@ -359,7 +377,7 @@ String ByteString::ToString(UINT uCodePage, bool bStrict) const
                 {
                 }
             }
-            else if (Len >= 2 && !memcmp(Ptr, bomUTF16, 2))
+            else if (Length >= 2 && !memcmp(Ptr, bomUTF16, 2))
             {
                 try
                 {
@@ -422,16 +440,16 @@ String ByteString::ToString(UINT uCodePage, bool bStrict) const
 }
 
 
-size_t ByteString::get_Len() const
+size_t ByteString::get_Length() const
 {
-    return m_ptr ? RefBin::Get(m_ptr).Len : 0;
+    return m_ptr ? RefBin::Get(m_ptr).Length : 0;
 }
 
 
 int ByteString::Compare(const ByteString& bs1, const ByteString& bs2)
 {
-    size_t len1 = bs1.Len;
-    size_t len2 = bs2.Len;
+    size_t len1 = bs1.Length;
+    size_t len2 = bs2.Length;
     if (len1 < len2)
     {
         int d = memcmp(bs1.m_ptr, bs2.m_ptr, len1);
@@ -874,12 +892,12 @@ ByteString ByteString::FromBase64(PCSTR psz)
 
 ByteString ByteString::FromString(const String& strSource, UINT uCodePage, LineBreak lbSpec)
 {
-    if (strSource.Len > 0)
+    if (strSource.Length > 0)
     {
         String str = strSource.ChangeLineBreak(lbSpec);
         if (uCodePage == CP_UTF16)
         {
-            return ByteString(str.Ptr, str.Len * sizeof(WCHAR));
+            return ByteString(str.Ptr, str.Length * sizeof(WCHAR));
         }
         else
         {
@@ -889,7 +907,7 @@ ByteString ByteString::FromString(const String& strSource, UINT uCodePage, LineB
                 WC_NO_BEST_FIT_CHARS;
             BOOL bConvError = FALSE;
             PBOOL pbConvError = uCodePage == CP_UTF8 ? NULL : &bConvError;
-            int cb = WideCharToMultiByte(uCodePage, dwFlags, str.Ptr, static_cast<int>(str.Len), NULL, 0, NULL, pbConvError);
+            int cb = WideCharToMultiByte(uCodePage, dwFlags, str.Ptr, static_cast<int>(str.Length), NULL, 0, NULL, pbConvError);
             if (cb == 0)
             {
                 throw CharacterMappingException(GetLastError());
@@ -899,7 +917,7 @@ ByteString ByteString::FromString(const String& strSource, UINT uCodePage, LineB
                 throw CharacterMappingException(UNMAPPABLE_CHARACTERS);
             }
             ByteString bs(cb);
-            cb = WideCharToMultiByte(uCodePage, dwFlags, str.Ptr, static_cast<int>(str.Len), reinterpret_cast<LPSTR>(bs.Ptr), static_cast<int>(bs.Len), NULL, pbConvError);
+            cb = WideCharToMultiByte(uCodePage, dwFlags, str.Ptr, static_cast<int>(str.Length), reinterpret_cast<LPSTR>(bs.Ptr), static_cast<int>(bs.Length), NULL, pbConvError);
             if (cb == 0)
             {
                 throw CharacterMappingException(GetLastError());
@@ -908,7 +926,7 @@ ByteString ByteString::FromString(const String& strSource, UINT uCodePage, LineB
             {
                 throw CharacterMappingException(UNMAPPABLE_CHARACTERS);
             }
-            else if (cb != bs.Len)
+            else if (cb != bs.Length)
             {
                 throw CharacterMappingException(INCONSISTENT_NUMBER_OF_CHARACTERS);
             }

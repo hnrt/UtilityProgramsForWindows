@@ -20,7 +20,7 @@ namespace UnitTestCoreLib
 
 			Base64Decoder d;
 			Assert::IsTrue(d.Parse(e.Ptr));
-			Assert::AreEqual((size_t)0, d.Len);
+			Assert::AreEqual((size_t)0, d.Length);
 		}
 
 		TEST_METHOD(Test1)
@@ -32,7 +32,7 @@ namespace UnitTestCoreLib
 
 			Base64Decoder d;
 			Assert::IsTrue(d.Parse(e.Ptr));
-			Assert::AreEqual((size_t)1, d.Len);
+			Assert::AreEqual((size_t)1, d.Length);
 			Assert::AreEqual(static_cast<unsigned char>('A'), d[0]);
 		}
 
@@ -45,7 +45,7 @@ namespace UnitTestCoreLib
 
 			Base64Decoder d;
 			Assert::IsTrue(d.Parse(e.Ptr));
-			Assert::AreEqual((size_t)2, d.Len);
+			Assert::AreEqual((size_t)2, d.Length);
 			Assert::AreEqual(static_cast<unsigned char>('A'), d[0]);
 			Assert::AreEqual(static_cast<unsigned char>('B'), d[1]);
 		}
@@ -59,7 +59,7 @@ namespace UnitTestCoreLib
 
 			Base64Decoder d;
 			Assert::IsTrue(d.Parse(e.Ptr));
-			Assert::AreEqual((size_t)3, d.Len);
+			Assert::AreEqual((size_t)3, d.Length);
 			Assert::AreEqual(static_cast<unsigned char>('A'), d[0]);
 			Assert::AreEqual(static_cast<unsigned char>('B'), d[1]);
 			Assert::AreEqual(static_cast<unsigned char>('C'), d[2]);
@@ -74,7 +74,7 @@ namespace UnitTestCoreLib
 
 			Base64Decoder d;
 			Assert::IsTrue(d.Parse(e.Ptr));
-			Assert::AreEqual((size_t)4, d.Len);
+			Assert::AreEqual((size_t)4, d.Length);
 			Assert::AreEqual(static_cast<unsigned char>('A'), d[0]);
 			Assert::AreEqual(static_cast<unsigned char>('B'), d[1]);
 			Assert::AreEqual(static_cast<unsigned char>('C'), d[2]);
@@ -90,7 +90,7 @@ namespace UnitTestCoreLib
 
 			Base64Decoder d;
 			Assert::IsTrue(d.Parse(e.Ptr));
-			Assert::AreEqual((size_t)5, d.Len);
+			Assert::AreEqual((size_t)5, d.Length);
 			Assert::AreEqual(static_cast<unsigned char>('A'), d[0]);
 			Assert::AreEqual(static_cast<unsigned char>('B'), d[1]);
 			Assert::AreEqual(static_cast<unsigned char>('C'), d[2]);
@@ -107,7 +107,7 @@ namespace UnitTestCoreLib
 
 			Base64Decoder d;
 			Assert::IsTrue(d.Parse(e.Ptr));
-			Assert::AreEqual((size_t)6, d.Len);
+			Assert::AreEqual((size_t)6, d.Length);
 			Assert::AreEqual(static_cast<unsigned char>('A'), d[0]);
 			Assert::AreEqual(static_cast<unsigned char>('B'), d[1]);
 			Assert::AreEqual(static_cast<unsigned char>('C'), d[2]);
@@ -125,7 +125,7 @@ namespace UnitTestCoreLib
 
 			Base64Decoder d;
 			Assert::IsTrue(d.Parse(e.Ptr));
-			Assert::AreEqual((size_t)7, d.Len);
+			Assert::AreEqual((size_t)7, d.Length);
 			Assert::AreEqual(static_cast<unsigned char>('A'), d[0]);
 			Assert::AreEqual(static_cast<unsigned char>('B'), d[1]);
 			Assert::AreEqual(static_cast<unsigned char>('C'), d[2]);
@@ -144,7 +144,7 @@ namespace UnitTestCoreLib
 
 			Base64Decoder d;
 			Assert::IsTrue(d.Parse(e.Ptr));
-			Assert::AreEqual((size_t)8, d.Len);
+			Assert::AreEqual((size_t)8, d.Length);
 			Assert::AreEqual(static_cast<unsigned char>('A'), d[0]);
 			Assert::AreEqual(static_cast<unsigned char>('B'), d[1]);
 			Assert::AreEqual(static_cast<unsigned char>('C'), d[2]);
@@ -164,7 +164,7 @@ namespace UnitTestCoreLib
 
 			Base64Decoder d;
 			Assert::IsTrue(d.Parse(e.Ptr));
-			Assert::AreEqual((size_t)9, d.Len);
+			Assert::AreEqual((size_t)9, d.Length);
 			Assert::AreEqual(static_cast<unsigned char>('A'), d[0]);
 			Assert::AreEqual(static_cast<unsigned char>('B'), d[1]);
 			Assert::AreEqual(static_cast<unsigned char>('C'), d[2]);

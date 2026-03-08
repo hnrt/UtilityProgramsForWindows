@@ -9,10 +9,10 @@ using namespace hnrt;
 
 int String::LastIndexOf(int c, SSIZE_T fromIndex) const
 {
-    SSIZE_T length = Len;
+    SSIZE_T length = Length;
     if (fromIndex < 0)
     {
-        fromIndex += Len;
+        fromIndex += Length;
         if (fromIndex < 0)
         {
             return -1;
@@ -32,10 +32,10 @@ int String::LastIndexOf(int c, SSIZE_T fromIndex) const
 
 int String::LastIndexOf(const String& s, SSIZE_T fromIndex) const
 {
-    SSIZE_T length = Len;
+    SSIZE_T length = Length;
     if (fromIndex < 0)
     {
-        fromIndex += Len;
+        fromIndex += Length;
         if (fromIndex < 0)
         {
             return -1;

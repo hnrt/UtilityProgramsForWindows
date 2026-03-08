@@ -92,7 +92,7 @@ namespace UnitTestCoreLib
 				Debug::Put(L"Test_AES_128_CBC_Encrypt: KeyLength=%lu ChainingMode=%s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
 				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(d.Ptr), d.Len, iv, iv.Len);
 				Base64Encoder e;
-				e.Append(encrypted, encrypted.Len);
+				e.Append(encrypted, encrypted.Length);
 				e.End();
 				Debug::Put(L"Test_AES_128_CBC_Encrypt: encrypted=%s", e.Ptr);
 				// echo -n "澤岻奈々子(タクシナナコ)"|openssl aes-128-cbc -K 3baa74d5f939a874604238623ed2906d -iv 525a2888da84049530cd95ca7083e717 -base64
@@ -130,7 +130,7 @@ namespace UnitTestCoreLib
 				Debug::Put(L"Test_AES_256_CBC_Encrypt: KeyLength=%lu ChainingMode=%s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
 				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(d.Ptr), d.Len, iv, iv.Len);
 				Base64Encoder e;
-				e.Append(encrypted, encrypted.Len);
+				e.Append(encrypted, encrypted.Length);
 				e.End();
 				Debug::Put(L"Test_AES_256_CBC_Encrypt: encrypted=%s", e.Ptr);
 				// echo -n "澤岻奈々子(タクシナナコ)"|openssl aes-256-cbc -K d230b66ffcc15cb2f7ab7c30ce497a5e7d46059a428d0a1330c6af3de39fd001 -iv 525a2888da84049530cd95ca7083e717 -base64
@@ -168,8 +168,8 @@ namespace UnitTestCoreLib
 				BCryptKeyHandle hKey;
 				hKey.Generate(hAlg, key, key.Len);
 				Debug::Put(L"Test_AES_128_CBC_Decrypt: KeyLength=%lu ChainingMode=%s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
-				ByteString decrypted = hKey.Decrypt(d, d.Len, iv, iv.Len);
-				String sz(CP_UTF8, decrypted, decrypted.Len);
+				ByteString decrypted = hKey.Decrypt(d, d.Length, iv, iv.Len);
+				String sz(CP_UTF8, decrypted, decrypted.Length);
 				Debug::Put(L"Test_AES_128_CBC_Decrypt: decrypted=%s", sz);
 				Assert::AreEqual(L"澤岻奈々子(タクシナナコ)", sz);
 				Debug::Put(L"Test_AES_128_CBC_Decrypt: OK!");
@@ -205,8 +205,8 @@ namespace UnitTestCoreLib
 				BCryptKeyHandle hKey;
 				hKey.Generate(hAlg, key, key.Len);
 				Debug::Put(L"Test_AES_256_CBC_Decrypt: KeyLength=%lu ChainingMode=%s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
-				ByteString decrypted = hKey.Decrypt(d, d.Len, iv, iv.Len);
-				String sz(CP_UTF8, decrypted, decrypted.Len);
+				ByteString decrypted = hKey.Decrypt(d, d.Length, iv, iv.Len);
+				String sz(CP_UTF8, decrypted, decrypted.Length);
 				Debug::Put(L"Test_AES_256_CBC_Decrypt: decrypted=%s", sz);
 				Assert::AreEqual(L"澤岻奈々子(タクシナナコ)", sz);
 				Debug::Put(L"Test_AES_256_CBC_Decrypt: OK!");
@@ -237,7 +237,7 @@ namespace UnitTestCoreLib
 				Debug::Put(L"Test_AES_128_ECB_Encrypt: KeyLength=%lu ChainingMode=%s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
 				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(d.Ptr), d.Len);
 				Base64Encoder e;
-				e.Append(encrypted, encrypted.Len);
+				e.Append(encrypted, encrypted.Length);
 				e.End();
 				Debug::Put(L"Test_AES_128_ECB_Encrypt: encrypted=%s", e.Ptr);
 				//echo -n "日本語123"|openssl aes-128-ecb -K 056c5ef8a258a9faaced455d1bba59b1 -base64
@@ -270,7 +270,7 @@ namespace UnitTestCoreLib
 				Debug::Put(L"Test_AES_256_ECB_Encrypt: KeyLength=%lu ChainingMode=%s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
 				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(d.Ptr), d.Len);
 				Base64Encoder e;
-				e.Append(encrypted, encrypted.Len);
+				e.Append(encrypted, encrypted.Length);
 				e.End();
 				Debug::Put(L"Test_AES_256_ECB_Encrypt: encrypted=%s", e.Ptr);
 				//echo -n "日本語123"|openssl aes-256-ecb -K 50aaddee463b2eb7e53f9a83251ee15092582855663e04b0cf36f42b87eb84a2 -base64
@@ -303,8 +303,8 @@ namespace UnitTestCoreLib
 				BCryptKeyHandle hKey;
 				hKey.Generate(hAlg, key, key.Len);
 				Debug::Put(L"Test_AES_128_ECB_Decrypt: KeyLength=%lu ChainingMode=%s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
-				ByteString decrypted = hKey.Decrypt(d, d.Len);
-				String sz(CP_UTF8, decrypted, decrypted.Len);
+				ByteString decrypted = hKey.Decrypt(d, d.Length);
+				String sz(CP_UTF8, decrypted, decrypted.Length);
 				Debug::Put(L"Test_AES_128_ECB_Decrypt: decrypted=%s", sz);
 				Assert::AreEqual(L"日本語123", sz);
 				Debug::Put(L"Test_AES_128_ECB_Decrypt: OK!");
@@ -335,8 +335,8 @@ namespace UnitTestCoreLib
 				BCryptKeyHandle hKey;
 				hKey.Generate(hAlg, key, key.Len);
 				Debug::Put(L"Test_AES_256_ECB_Decrypt: KeyLength=%lu ChainingMode=%s BlockLength=%lu", hKey.KeyLength, hAlg.ChainingMode, hAlg.BlockLength);
-				ByteString decrypted = hKey.Decrypt(d, d.Len);
-				String sz(CP_UTF8, decrypted, decrypted.Len);
+				ByteString decrypted = hKey.Decrypt(d, d.Length);
+				String sz(CP_UTF8, decrypted, decrypted.Length);
 				Debug::Put(L"Test_AES_256_ECB_Decrypt: decrypted=%s", sz);
 				Assert::AreEqual(L"日本語123", sz);
 				Debug::Put(L"Test_AES_256_ECB_Decrypt: OK!");
@@ -374,9 +374,9 @@ namespace UnitTestCoreLib
 				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(text.Ptr), text.Len, iv, iv.Len);
 				Debug::Put(L"Test_AES_128_CFB: encrypted=%s", encrypted.ToHex());
 				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
-				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, iv, iv.Len);
+				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Length, iv, iv.Len);
 				Debug::Put(L"Test_AES_128_CFB: decrypted=%s", decrypted.ToHex());
-				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Len) == String(CP_UTF8, text.Ptr, text.Len));
+				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Length) == String(CP_UTF8, text.Ptr, text.Len));
 				Debug::Put(L"Test_AES_128_CFB: OK!");
 			}
 			catch (CryptographyException ce)
@@ -412,9 +412,9 @@ namespace UnitTestCoreLib
 				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(text.Ptr), text.Len, iv, iv.Len);
 				Debug::Put(L"Test_AES_192_CFB: encrypted=%s", encrypted.ToHex());
 				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
-				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, iv, iv.Len);
+				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Length, iv, iv.Len);
 				Debug::Put(L"Test_AES_192_CFB: decrypted=%s", decrypted.ToHex());
-				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Len) == String(CP_UTF8, text.Ptr, text.Len));
+				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Length) == String(CP_UTF8, text.Ptr, text.Len));
 				Debug::Put(L"Test_AES_192_CFB: OK!");
 			}
 			catch (CryptographyException ce)
@@ -450,9 +450,9 @@ namespace UnitTestCoreLib
 				ByteString encrypted = hKey.Encrypt(const_cast<PSTR>(text.Ptr), text.Len, iv, iv.Len);
 				Debug::Put(L"Test_AES_256_CFB: encrypted=%s", encrypted.ToHex());
 				memcpy_s(iv, iv.Len, ivHash.Value, iv.Len);
-				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, iv, iv.Len);
+				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Length, iv, iv.Len);
 				Debug::Put(L"Test_AES_256_CFB: decrypted=%s", decrypted.ToHex());
-				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Len) == String(CP_UTF8, text.Ptr, text.Len));
+				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Length) == String(CP_UTF8, text.Ptr, text.Len));
 				Debug::Put(L"Test_AES_256_CFB: OK!");
 			}
 			catch (CryptographyException ce)
@@ -496,9 +496,9 @@ namespace UnitTestCoreLib
 				infoD
 					.SetNonce(nonceHash.Value, AES_CCM_NONCE_LENGTH)
 					.SetTag(infoE.pbTag, infoE.cbTag);
-				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, infoD, NULL, 0);
+				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Length, infoD, NULL, 0);
 				Debug::Put(L"Test_AES_128_CCM: decrypted=%s", decrypted.ToHex());
-				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Len) == String(CP_UTF8, text.Ptr, text.Len));
+				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Length) == String(CP_UTF8, text.Ptr, text.Len));
 				Debug::Put(L"Test_AES_128_CCM: OK!");
 			}
 			catch (CryptographyException ce)
@@ -646,9 +646,9 @@ namespace UnitTestCoreLib
 				infoD
 					.SetNonce(nonceHash.Value, AES_GCM_NONCE_LENGTH)
 					.SetTag(infoE.pbTag, infoE.cbTag);
-				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Len, infoD, NULL, 0);
-				Debug::Put(L"Test_AES_128_GCM: decrypted[%zu]=%s", decrypted.Len, decrypted.ToHex());
-				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Len) == String(CP_UTF8, text.Ptr, text.Len));
+				ByteString decrypted = hKey.Decrypt(encrypted, encrypted.Length, infoD, NULL, 0);
+				Debug::Put(L"Test_AES_128_GCM: decrypted[%zu]=%s", decrypted.Length, decrypted.ToHex());
+				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Length) == String(CP_UTF8, text.Ptr, text.Len));
 				Debug::Put(L"Test_AES_128_GCM: OK!");
 			}
 			catch (CryptographyException ce)
@@ -696,14 +696,14 @@ namespace UnitTestCoreLib
 					.SetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: nonce=%s", ByteString(infoE.pbNonce, infoE.cbNonce).ToHex());
 				ByteString encrypted1 = hKey.Encrypt(const_cast<PSTR>(text.Ptr) + 16 * 0, 16, infoE, ivE, ivE.Len);
-				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: encrypted1[%zu]=%s", encrypted1.Len, encrypted1.ToHex());
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: encrypted1[%zu]=%s", encrypted1.Length, encrypted1.ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: tag=%s", ByteString(infoE.pbTag, infoE.cbTag).ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", ByteString(ivE, ivE.Len).ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: flags=%lx", infoE.dwFlags);
 				ByteString tag1(infoE.pbTag, infoE.cbTag);
 				// ENCRYPTION #2
 				ByteString encrypted2 = hKey.Encrypt(const_cast<PSTR>(text.Ptr) + 16 * 1, 16, infoE, ivE, ivE.Len);
-				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: encrypted2[%zu]=%s", encrypted2.Len, encrypted2.ToHex());
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: encrypted2[%zu]=%s", encrypted2.Length, encrypted2.ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: tag=%s", ByteString(infoE.pbTag, infoE.cbTag).ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", ByteString(ivE, ivE.Len).ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: flags=%lx", infoE.dwFlags);
@@ -712,7 +712,7 @@ namespace UnitTestCoreLib
 				infoE
 					.ResetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
 				ByteString encrypted3 = hKey.Encrypt(const_cast<PSTR>(text.Ptr) + 16 * 2, text.Len - 16LL * 2LL, infoE, ivE, ivE.Len);
-				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: encrypted3[%zu]=%s", encrypted3.Len, encrypted3.ToHex());
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: encrypted3[%zu]=%s", encrypted3.Length, encrypted3.ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: tag=%s", ByteString(infoE.pbTag, infoE.cbTag).ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", ByteString(ivE, ivE.Len).ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: flags=%lx", infoE.dwFlags);
@@ -720,7 +720,7 @@ namespace UnitTestCoreLib
 				ByteString encrypted = encrypted1;
 				encrypted += encrypted2;
 				encrypted += encrypted3;
-				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: encrypted[%zu]=%s", encrypted.Len, encrypted.ToHex());
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: encrypted[%zu]=%s", encrypted.Length, encrypted.ToHex());
 				// DECRYPTION #1
 				infoD
 					.SetNonce(nonceHash.Value, AES_GCM_NONCE_LENGTH)
@@ -729,22 +729,22 @@ namespace UnitTestCoreLib
 					.SetAuthData(aad, sizeof(aad))
 					.SetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
 				ByteString decrypted1 = hKey.Decrypt((PUCHAR)encrypted + 16 * 0, 16, infoD, ivD, ivD.Len);
-				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: decrypted1[%zu]=%s", decrypted1.Len, decrypted1.ToHex());
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: decrypted1[%zu]=%s", decrypted1.Length, decrypted1.ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", ByteString(ivD, ivD.Len).ToHex());
 				// DECRYPTION #2
 				ByteString decrypted2 = hKey.Decrypt((PUCHAR)encrypted + 16 * 1, 16, infoD, ivD, ivD.Len);
-				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: decrypted2[%zu]=%s", decrypted2.Len, decrypted2.ToHex());
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: decrypted2[%zu]=%s", decrypted2.Length, decrypted2.ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", ByteString(ivD, ivD.Len).ToHex());
 				// DECRYPTION #3
 				infoD
 					.ResetFlags(BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG);
-				ByteString decrypted3 = hKey.Decrypt((PUCHAR)encrypted + 16 * 2, encrypted.Len - 16LL * 2LL, infoD, ivD, ivD.Len);
-				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: decrypted3[%zu]=%s", decrypted3.Len, decrypted3.ToHex());
+				ByteString decrypted3 = hKey.Decrypt((PUCHAR)encrypted + 16 * 2, encrypted.Length - 16LL * 2LL, infoD, ivD, ivD.Len);
+				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: decrypted3[%zu]=%s", decrypted3.Length, decrypted3.ToHex());
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: iv=%s", ByteString(ivD, ivD.Len).ToHex());
 				ByteString decrypted = decrypted1;
 				decrypted += decrypted2;
 				decrypted += decrypted3;
-				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Len) == String(CP_UTF8, text.Ptr, text.Len));
+				Assert::IsTrue(String(CP_UTF8, reinterpret_cast<PCHAR>(decrypted.Ptr), decrypted.Length) == String(CP_UTF8, text.Ptr, text.Len));
 				Debug::Put(L"Test_AES_128_GCM_CHAIN_CALLS: OK!");
 			}
 			catch (CryptographyException ce)

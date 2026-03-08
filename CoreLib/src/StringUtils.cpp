@@ -45,7 +45,7 @@ static void DoSplitBy(PCWCHAR pCur, PCWCHAR pEnd, WCHAR separator, Array<String>
 Array<String> hnrt::SplitBy(String str, WCHAR separator)
 {
 	Array<String> list;
-	DoSplitBy(str.Ptr, str.Ptr + str.Len, separator, list);
+	DoSplitBy(str.Ptr, str.Ptr + str.Length, separator, list);
 	return list;
 }
 

@@ -11,7 +11,7 @@ String String::Replace(PCWSTR psz1, PCWSTR psz2, int count) const
 {
     if (m_psz)
     {
-        SSIZE_T len = Len;
+        SSIZE_T len = Length;
         SSIZE_T len1 = StrLen(psz1);
         PWCHAR pEnd = m_psz + len;
         PWCHAR pCur = m_psz;

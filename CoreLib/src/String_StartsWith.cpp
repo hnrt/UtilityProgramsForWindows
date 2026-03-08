@@ -14,7 +14,7 @@ bool String::StartsWith(PCWSTR psz, SSIZE_T cch) const
     {
         return true;
     }
-    else if (cchActual <= Len)
+    else if (cchActual <= Length)
     {
         return Compare(m_psz, cchActual, psz, cchActual) == 0;
     }

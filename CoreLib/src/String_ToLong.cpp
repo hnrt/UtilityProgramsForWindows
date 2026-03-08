@@ -9,7 +9,7 @@ using namespace hnrt;
 
 long String::ToLong(long defaultValue, BOOL* pbSuccessful, int nRadix) const
 {
-    if (Len)
+    if (Length)
     {
         PWCHAR pStop = nullptr;
         long value = StrToLong(&m_psz[0], &pStop, nRadix);

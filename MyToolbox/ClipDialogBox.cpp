@@ -200,7 +200,7 @@ void ClipDialogBox::OnCopy()
 {
 	m_bProcessing = true;
 	String szContent = GetText(IDC_CLIP_BODY_EDIT);
-	if (!Clipboard::Write(hwnd, szContent, szContent.Len))
+	if (!Clipboard::Write(hwnd, szContent, szContent.Length))
 	{
 		MessageBoxW(hwnd, ResourceString(IDS_MSG_CLIPBOARD_COPY_ERROR), ResourceString(IDS_APP_TITLE), MB_ICONERROR | MB_OK);
 	}
@@ -330,7 +330,7 @@ void ClipDialogBox::OnSelectionChange()
 		}
 		String szItem = ListBoxGetText(IDC_CLIP_FILENAME_LIST, index);
 		int nameLen = szItem.IndexOf(L' ');
-		String szName(szItem, nameLen >= 0 ? nameLen : szItem.Len);
+		String szName(szItem, nameLen >= 0 ? nameLen : szItem.Length);
 		String szFilePath = Path::Combine(m_szDirectoryPath, szName);
 		ClipFile file(szFilePath);
 		String item = String::Format(L"%s %s", szName, file.Header);

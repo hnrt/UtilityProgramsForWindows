@@ -106,7 +106,7 @@ void SecretInternal::SetKey(PCWSTR psz)
 {
     ByteString key(SECRET_KEY_LENGTH);
     MultibyteString deserialized = ToUTF8(String(psz));
-    memcpy_s(key, key.Len, deserialized, deserialized.Len < key.Len ? deserialized.Len : key.Len);
+    memcpy_s(key, key.Length, deserialized, deserialized.Len < key.Length ? deserialized.Len : key.Length);
     AddSalt(key, SECRET_KEY_LENGTH, KEY_SALT);
     m_hKey.Generate(m_hAlg, key, SECRET_KEY_LENGTH);
 }
@@ -116,7 +116,7 @@ void SecretInternal::SetIV(PCWSTR psz)
 {
     m_IV.Fill(0);
     MultibyteString deserialized = ToUTF8(String(psz));
-    memcpy_s(m_IV, m_IV.Len, deserialized, deserialized.Len < m_IV.Len ? deserialized.Len : m_IV.Len);
+    memcpy_s(m_IV, m_IV.Length, deserialized, deserialized.Len < m_IV.Length ? deserialized.Len : m_IV.Length);
 }
 
 
@@ -130,26 +130,26 @@ void SecretInternal::Encrypt(const void* ptr, size_t len)
 {
     ByteString src(sizeof(ULONG) + len);
     *reinterpret_cast<ULONG*>(src.Ptr) = static_cast<ULONG>(len);
-    memcpy_s((char*)src + sizeof(ULONG), src.Len - sizeof(ULONG), ptr, len);
+    memcpy_s((char*)src + sizeof(ULONG), src.Length - sizeof(ULONG), ptr, len);
 
     ByteString iv(SECRET_IV_LENGTH);
-    memcpy_s(iv, iv.Len, m_IV, SECRET_IV_LENGTH);
-    AddSalt(iv, iv.Len, IV_SALT);
+    memcpy_s(iv, iv.Length, m_IV, SECRET_IV_LENGTH);
+    AddSalt(iv, iv.Length, IV_SALT);
 
-    m_Processed = m_hKey.Encrypt(src.Ptr, src.Len, iv, SECRET_IV_LENGTH);
+    m_Processed = m_hKey.Encrypt(src.Ptr, src.Length, iv, SECRET_IV_LENGTH);
 }
 
 
 void SecretInternal::Decrypt(const void* ptr, size_t len)
 {
     ByteString iv(SECRET_IV_LENGTH);
-    memcpy_s(iv, iv.Len, m_IV, SECRET_IV_LENGTH);
-    AddSalt(iv, iv.Len, IV_SALT);
+    memcpy_s(iv, iv.Length, m_IV, SECRET_IV_LENGTH);
+    AddSalt(iv, iv.Length, IV_SALT);
 
     ByteString decrypted = m_hKey.Decrypt(const_cast<void*>(ptr), len, iv, SECRET_IV_LENGTH);
 
     m_Processed = ByteString(*reinterpret_cast<ULONG*>(decrypted.Ptr));
-    memcpy_s(m_Processed, m_Processed.Len, (char*)decrypted + sizeof(ULONG), m_Processed.Len);
+    memcpy_s(m_Processed, m_Processed.Length, (char*)decrypted + sizeof(ULONG), m_Processed.Length);
 }
 
 
@@ -161,5 +161,5 @@ const void* SecretInternal::get_Ptr() const
 
 size_t SecretInternal::get_Len() const
 {
-    return m_Processed.Len;
+    return m_Processed.Length;
 }

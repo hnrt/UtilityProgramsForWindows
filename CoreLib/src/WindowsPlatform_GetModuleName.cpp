@@ -18,6 +18,6 @@ String hnrt::GetModuleFileName(HMODULE hModule)
 		DWORD dwError = GetLastError();
 		throw Exception(L"GetModuleFileName failed. (Error %lu %s)", dwError, ErrorMessage::Get(dwError));
 	}
-	fileName.Len = dwLength;
+	fileName.Length = dwLength;
 	return fileName;
 }

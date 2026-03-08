@@ -40,11 +40,11 @@ StringCaseInsensitive& StringCaseInsensitive::operator +=(const StringCaseInsens
 
 StringCaseInsensitive& StringCaseInsensitive::operator +=(const String& src)
 {
-    if (src.Len)
+    if (src.Length)
     {
-        PWSTR psz = RefStr::Create(Len + src.Len);
+        PWSTR psz = RefStr::Create(Len + src.Length);
         MemCpy(psz, m_psz, Len);
-        MemCpy(psz + Len, src.Ptr, src.Len + 1);
+        MemCpy(psz + Len, src.Ptr, src.Length + 1);
         StringRelease(Interlocked<PWSTR>::ExchangePointer(&m_psz, psz));
     }
     return *this;

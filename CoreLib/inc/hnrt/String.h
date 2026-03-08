@@ -78,12 +78,12 @@ namespace hnrt
 
         PCWSTR get_Ptr() const;
         PWCHAR get_Buf() const;
-        SIZE_T get_Len() const;
-        void set_Len(SIZE_T);
+        SIZE_T get_Length() const;
+        void set_Length(SIZE_T);
 
         __declspec(property(get = get_Ptr)) PCWSTR Ptr;
         __declspec(property(get = get_Buf)) PWCHAR Buf;
-        __declspec(property(get = get_Len, put = set_Len)) SIZE_T Len;
+        __declspec(property(get = get_Length, put = set_Length)) SIZE_T Length;
 
     public:
 

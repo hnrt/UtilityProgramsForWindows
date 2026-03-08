@@ -28,7 +28,7 @@ static String FindJavaExe()
 	static const WCHAR JAVA_EXE[] = L"java.exe";
 
 	String JAVA_HOME = GetEnvironmentVariable(L"JAVA_HOME");
-	if (JAVA_HOME.Len)
+	if (JAVA_HOME.Length)
 	{
 		String javaExe = Path::Combine(JAVA_HOME, L"bin", JAVA_EXE);
 		if (Path::Exists(javaExe))
@@ -40,13 +40,13 @@ static String FindJavaExe()
 	}
 
 	String PATH = GetEnvironmentVariable(L"PATH");
-	if (PATH.Len)
+	if (PATH.Length)
 	{
 		Array<String> paths = SplitBy(PATH, L';');
 		for (DWORD dwIndex = 0; dwIndex < paths.Length; dwIndex++)
 		{
 			String next = paths[dwIndex];
-			if (next.Len)
+			if (next.Length)
 			{
 				String javaExe = Path::Combine(next, JAVA_EXE);
 				if (Path::Exists(javaExe))
@@ -68,7 +68,7 @@ static String FindJar(const wchar_t* pszExe)
 	String fileName = Path::GetFileName(pszExe);
 	String dirPath = Path::GetDirectoryName(pszExe);
 	int nExtension = 4; // .exe or .jar
-	int nBaseName = static_cast<int>(fileName.Len) - nExtension;
+	int nBaseName = static_cast<int>(fileName.Length) - nExtension;
 	String pattern = String::Format(L"%.*s*.jar", nBaseName, fileName);
 	Debug::Put(L"dir=%s", dirPath);
 	Debug::Put(L"file=%s", fileName);
@@ -80,7 +80,7 @@ static String FindJar(const wchar_t* pszExe)
 	for (DWORD dwIndex = 0; dwIndex < entries.Length; dwIndex++)
 	{
 		DirectoryEntry& entry = entries[dwIndex];
-		if (entry.szFileName.Len == fileName.Len)
+		if (entry.szFileName.Length == fileName.Length)
 		{
 			jarFile = entry.szFileName;
 			version = SemanticVersion(L"");
@@ -88,18 +88,18 @@ static String FindJar(const wchar_t* pszExe)
 		}
 		if (entry.szFileName.Ptr[nBaseName] == L'-')
 		{
-			int nVersion = static_cast<int>(entry.szFileName.Len) - nBaseName - 1 - nExtension;
+			int nVersion = static_cast<int>(entry.szFileName.Length) - nBaseName - 1 - nExtension;
 			String s = String::Format(L"%.*s", nVersion, entry.szFileName.Ptr + nBaseName + 1);
 			SemanticVersion v(s);
 			Debug::Put(L"candidate=%s major=%d minor=%d patch=%d prerelease=%s build=%s", entry.szFileName, v.Major, v.Minor, v.Patch, v.PreRelease, v.Build);
-			if (jarFile.Len == 0 || version < v)
+			if (jarFile.Length == 0 || version < v)
 			{
 				jarFile = entry.szFileName;
 				version = v;
 			}
 		}
 	}
-	if (jarFile.Len == 0)
+	if (jarFile.Length == 0)
 	{
 		return String::Empty;
 	}
@@ -169,13 +169,13 @@ static int ExecuteJava(String javaExe, String targetJar, int argc, wchar_t* argv
 int wmain(int argc, wchar_t* argv[])
 {
 	String javaExe = FindJavaExe();
-	if (javaExe.Len == 0)
+	if (javaExe.Length == 0)
 	{
 		fwprintf(stderr, L"ERROR: java.exe not found.\n");
 		return EXIT_FAILURE;
 	}
 	String targetJar = FindJar(argv[0]);
-	if (targetJar.Len == 0)
+	if (targetJar.Length == 0)
 	{
 		fwprintf(stderr, L"ERROR: jar file not found.\n");
 		return EXIT_FAILURE;

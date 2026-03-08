@@ -875,7 +875,7 @@ void ConfigurationDialogBox::LoadCredKeyCombo(HWND hwnd)
     m_cbCredentials.Add(DEFAULT_CREDENTIALS);
     for (size_t index = 0; index < m_tv.CredentialsList.Count; index++)
     {
-        if (m_tv.CredentialsList[index]->Key.Len > 0)
+        if (m_tv.CredentialsList[index]->Key.Length > 0)
         {
             m_cbCredentials.Add(m_tv.CredentialsList[index]->Key);
         }

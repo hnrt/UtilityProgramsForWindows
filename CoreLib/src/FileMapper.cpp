@@ -14,7 +14,7 @@ FileMapper::FileMapper(const String& szPath)
     , m_ptr(NULL)
     , m_len(0ULL)
 {
-    if (m_szPath.Len)
+    if (m_szPath.Length)
     {
         Open();
     }
@@ -30,7 +30,7 @@ FileMapper::~FileMapper()
 void FileMapper::Open()
 {
     Close();
-    if (!m_szPath.Len)
+    if (!m_szPath.Length)
     {
         throw Win32Exception(ERROR_INVALID_DATA, L"Failed to open a file due to no path specified.");
     }

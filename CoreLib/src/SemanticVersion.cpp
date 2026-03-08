@@ -62,9 +62,9 @@ String SemanticVersion::ToString() const
 	case 2:
 		return String::Format(L"%d.%d", m_Major, m_Minor);
 	case 3:
-		if (m_PreRelease.Len > 0)
+		if (m_PreRelease.Length > 0)
 		{
-			if (m_Build.Len > 0)
+			if (m_Build.Length > 0)
 			{
 				return String::Format(L"%d.%d.%d-%s+%s", m_Major, m_Minor, m_Patch, m_PreRelease, m_Build);
 			}
@@ -73,7 +73,7 @@ String SemanticVersion::ToString() const
 				return String::Format(L"%d.%d.%d-%s", m_Major, m_Minor, m_Patch, m_PreRelease);
 			}
 		}
-		else if (m_Build.Len > 0)
+		else if (m_Build.Length > 0)
 		{
 			return String::Format(L"%d.%d.%d+%s", m_Major, m_Minor, m_Patch, m_Build);
 		}
@@ -143,14 +143,14 @@ int SemanticVersion::CompareTo(const SemanticVersion& other) const
 	{
 		return d;
 	}
-	if (m_PreRelease.Len == 0)
+	if (m_PreRelease.Length == 0)
 	{
-		if (other.m_PreRelease.Len > 0)
+		if (other.m_PreRelease.Length > 0)
 		{
 			return 1;
 		}
 	}
-	else if (other.m_PreRelease.Len == 0)
+	else if (other.m_PreRelease.Length == 0)
 	{
 		return -1;
 	}
@@ -159,14 +159,14 @@ int SemanticVersion::CompareTo(const SemanticVersion& other) const
 	{
 		return d;
 	}
-	if (m_Build.Len == 0)
+	if (m_Build.Length == 0)
 	{
-		if (other.m_Build.Len > 0)
+		if (other.m_Build.Length > 0)
 		{
 			return 1;
 		}
 	}
-	else if (other.m_Build.Len == 0)
+	else if (other.m_Build.Length == 0)
 	{
 		return -1;
 	}

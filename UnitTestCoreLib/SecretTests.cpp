@@ -45,7 +45,7 @@ namespace UnitTestCoreLib
 		TEST_METHOD(Test2)
 		{
 			String szInput(L"Abracadabra2020$");
-			Debug::Put(L"Input=%s (%s)", szInput, ByteString(szInput.Ptr, (szInput.Len + 1) * sizeof(WCHAR)).ToHex());
+			Debug::Put(L"Input=%s (%s)", szInput, ByteString(szInput.Ptr, (szInput.Length + 1) * sizeof(WCHAR)).ToHex());
 			static const unsigned char key[SECRET_KEY_LENGTH] =
 			{
 				0x6f, 0x09, 0xc5, 0x65, 0x8c, 0x57, 0x42, 0x2b, 0xac, 0x84, 0x2d, 0x51, 0xa3, 0xa0, 0xc5, 0x40,
@@ -60,8 +60,8 @@ namespace UnitTestCoreLib
 			Assert::AreEqual(szInput.Ptr, ph.PlainText.Ptr);
 			Base64Decoder dec;
 			Assert::IsTrue(dec.Parse(ph.Encrypted));
-			Debug::Put(L"Encrypted=%s (%s)", ph.Encrypted, ByteString(ph.Encrypted, ph.Encrypted.Len).ToHex());
-			Debug::Put(L"Output=%s (%s)", ph.PlainText, ByteString(ph.PlainText.Ptr, (ph.PlainText.Len + 1) * sizeof(WCHAR)).ToHex());
+			Debug::Put(L"Encrypted=%s (%s)", ph.Encrypted, ByteString(ph.Encrypted, ph.Encrypted.Length).ToHex());
+			Debug::Put(L"Output=%s (%s)", ph.PlainText, ByteString(ph.PlainText.Ptr, (ph.PlainText.Length + 1) * sizeof(WCHAR)).ToHex());
 			ph.ClearPlainText();
 		}
 
@@ -98,9 +98,9 @@ namespace UnitTestCoreLib
 			dec.Parse(enc.Ptr);
 			Debug::Put(L"base64 encoded=%s", enc.Ptr);
 			Debug::Put(L"base64  in={%s}", ByteString(encrypted.Ptr, encrypted.Len).ToHex());
-			Debug::Put(L"base64 out={%s}", ByteString(dec.Ptr, dec.Len).ToHex());
-			Assert::AreEqual(encrypted.Len, dec.Len);
-			Assert::IsTrue(!memcmp(encrypted.Ptr, dec.Ptr, dec.Len));
+			Debug::Put(L"base64 out={%s}", ByteString(dec.Ptr, dec.Length).ToHex());
+			Assert::AreEqual(encrypted.Len, dec.Length);
+			Assert::IsTrue(!memcmp(encrypted.Ptr, dec.Ptr, dec.Length));
 			PasswordHolder ph(key, iv);
 			ph.PlainText = szInput;
 			Debug::Put(L"PH  in=%s", szInput);

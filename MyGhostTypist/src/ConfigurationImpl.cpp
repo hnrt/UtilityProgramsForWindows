@@ -458,7 +458,7 @@ void ConfigurationImpl::BuildCredentialsList(XmlDocument& document, MSXML2::IXML
 void ConfigurationImpl::BuildCredentials(XmlDocument& document, MSXML2::IXMLDOMElement* pParent, ULONG index)
 {
     MSXML2::IXMLDOMElementPtr pC = document.AppendElement(L"credentials", pParent);
-    if (m_CredentialsList[index]->Key.Len > 0)
+    if (m_CredentialsList[index]->Key.Length > 0)
     {
         XmlDocument::SetAttribute(pC, L"name", m_CredentialsList[index]->Key.Ptr);
     }
