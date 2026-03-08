@@ -48,6 +48,7 @@ StringBuffer::StringBuffer(SSIZE_T capacity, PCWSTR psz)
         if (m_len < m_cap)
         {
             MemCpy(m_ptr, psz, m_len);
+            MemSet(m_ptr + m_len, 0, m_cap - m_len);
         }
         else
         {

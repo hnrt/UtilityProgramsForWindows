@@ -37,8 +37,9 @@ namespace hnrt
 		void Decrypt();
 		void OnCopyOriginalData();
 		void OnCopyEncryptedData();
-		void OnAdjustKey();
-		void OnAdjustIV();
+		void OnFitKeyLength();
+		void OnFitIVLength();
+		void OnFitTagLength();
 		void ChangeChainingMode(int);
 		void OnKeyLengthChange(int);
 		void OnTagLengthChange(int);
@@ -63,6 +64,7 @@ namespace hnrt
 		void OnEncryptionFormatChange();
 		void InitializeCharsPerLineComboBox(int value) const;
 		void OnCharsPerLineChange();
+		void OnFlipWrapData();
 
 		static PCWSTR ControlIdToChainingMode(int);
 		static int ChainingModeToControlId(PCWSTR);

@@ -65,8 +65,8 @@ CryptographyDialogBox::CryptographyDialogBox()
 	, m_CodePage(CP_UTF8)
 	, m_LineBreak(LineBreak::CRLF)
 	, m_Mode(MODE_IDLE)
-	, m_szOriginalDataPath()
-	, m_szEncryptedDataPath()
+	, m_szOriginalDataPath(L"")
+	, m_szEncryptedDataPath(L"")
 	, m_bWrapData(TRUE)
 	, m_EncryptionFormatMode(0)
 	, m_CharsPerLine(0)
@@ -483,7 +483,7 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_CRPT_KEY_BUTTON:
 		if (idNotif == BN_CLICKED)
 		{
-			OnAdjustKey();
+			OnFitKeyLength();
 		}
 		else
 		{
@@ -493,7 +493,17 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 	case IDC_CRPT_IV_BUTTON:
 		if (idNotif == BN_CLICKED)
 		{
-			OnAdjustIV();
+			OnFitIVLength();
+		}
+		else
+		{
+			return FALSE;
+		}
+		break;
+	case IDC_CRPT_TAG_BUTTON:
+		if (idNotif == BN_CLICKED)
+		{
+			OnFitTagLength();
 		}
 		else
 		{
@@ -501,14 +511,7 @@ INT_PTR CryptographyDialogBox::OnCommand(WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case IDM_SETTINGS_WRAPDATA:
-		m_bWrapData ^= TRUE;
-		m_CharsPerLine = !m_bWrapData ? 0 : m_CharsPerLine > 0 ? m_CharsPerLine : 72;
-		m_menuSettings
-			.Modify(IDM_SETTINGS_WRAPDATA, MF_BYCOMMAND | (m_bWrapData ? MF_CHECKED : MFS_UNCHECKED), IDM_SETTINGS_WRAPDATA, ResourceString(IDS_MENU_WRAPDATA));
-		ComboBoxSetSelection(IDC_CRPT_CHARS_COMBO, m_CharsPerLine);
-		SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
-		SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
-		UpdateControlsState(1);
+		OnFlipWrapData();
 		break;
 	default:
 		return FALSE;
@@ -696,6 +699,7 @@ void CryptographyDialogBox::UpdateControlsState(int id)
 		//FALLTHROUGH
 	case IDC_CRPT_KEY_EDIT:
 	case IDC_CRPT_IV_EDIT:
+	case IDC_CRPT_TAG_EDIT:
 		if (m_Mode != MODE_ENCRYPTION)
 		{
 			bEnabled = FALSE;
@@ -735,11 +739,17 @@ void CryptographyDialogBox::UpdateControlsState(int id)
 		}
 		else if (IS_AES_CCM(m_hAlg.ChainingMode))
 		{
-			bEnabled = (m_Key.Length * 8 >= m_KeyLength && m_Nonce.Length >= AES_CCM_NONCE_LENGTH && m_EncryptedData.Length > 0) ? TRUE : FALSE;
+			bEnabled = (m_Key.Length * 8 >= m_KeyLength
+				&& m_Nonce.Length >= AES_CCM_NONCE_LENGTH
+				&& ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_TAGAPPEND) != 0 || m_Tag.Length >= m_CcmTagLength)
+				&& m_EncryptedData.Length > 0) ? TRUE : FALSE;
 		}
 		else if (IS_AES_GCM(m_hAlg.ChainingMode))
 		{
-			bEnabled = (m_Key.Length * 8 >= m_KeyLength && m_Nonce.Length >= AES_GCM_NONCE_LENGTH && m_EncryptedData.Length > 0) ? TRUE : FALSE;
+			bEnabled = (m_Key.Length * 8 >= m_KeyLength
+				&& m_Nonce.Length >= AES_GCM_NONCE_LENGTH
+				&& ((m_EncryptionFormatMode & ENCRYPTIONFORMAT_TAGAPPEND) != 0 || m_Tag.Length >= m_GcmTagLength)
+				&& m_EncryptedData.Length > 0) ? TRUE : FALSE;
 		}
 		else
 		{
@@ -1340,7 +1350,7 @@ void CryptographyDialogBox::OnCopyEncryptedData()
 }
 
 
-void CryptographyDialogBox::OnAdjustKey()
+void CryptographyDialogBox::OnFitKeyLength()
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	SIZE_T required = m_KeyLength / 8;
@@ -1363,7 +1373,7 @@ void CryptographyDialogBox::OnAdjustKey()
 }
 
 
-void CryptographyDialogBox::OnAdjustIV()
+void CryptographyDialogBox::OnFitIVLength()
 {
 	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
 	if (IS_AES_CBC(m_hAlg.ChainingMode) || IS_AES_CFB(m_hAlg.ChainingMode))
@@ -1405,6 +1415,21 @@ void CryptographyDialogBox::OnAdjustIV()
 		}
 	}
 	UpdateControlsState(IDC_CRPT_IV_EDIT);
+}
+
+
+void CryptographyDialogBox::OnFitTagLength()
+{
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+	int length = IS_AES_CCM(m_hAlg.ChainingMode) ? m_CcmTagLength : IS_AES_GCM(m_hAlg.ChainingMode) ? m_GcmTagLength : 0;
+	if (length && length != m_Tag.Length)
+	{
+		ByteString current = m_Tag;
+		m_Tag = ByteString(length);
+		memcpy_s(m_Tag, m_Tag.Length, current, current.Length < m_Tag.Length ? current.Length : m_Tag.Length);
+		SetText(IDC_CRPT_TAG_EDIT, m_Tag.ToHex(m_HexLetterCase));
+		UpdateControlsState(IDC_CRPT_TAG_EDIT);
+	}
 }
 
 
@@ -1886,18 +1911,6 @@ void CryptographyDialogBox::SetMode(int value)
 	switch (m_Mode)
 	{
 	case MODE_IDLE:
-		switch (prev)
-		{
-		case MODE_ENCRYPTION:
-			if (m_Tag.Length)
-			{
-				m_Tag.Resize(0);
-				SetText(IDC_CRPT_TAG_EDIT);
-			}
-			break;
-		default:
-			break;
-		}
 		if (m_OriginalData.Length)
 		{
 			m_OriginalData.Resize(0);
@@ -1907,6 +1920,11 @@ void CryptographyDialogBox::SetMode(int value)
 		{
 			m_EncryptedData.Resize(0);
 			SetText(IDC_CRPT_ENC_EDIT);
+		}
+		if (m_Tag.Length)
+		{
+			m_Tag.Resize(0);
+			SetText(IDC_CRPT_TAG_EDIT);
 		}
 		SetStatus(0, MASK_STATUS | MASK_PANE1 | MASK_PANE2, L"");
 		UpdateControlsState(1);
@@ -2168,6 +2186,21 @@ void CryptographyDialogBox::OnCharsPerLineChange()
 		.Modify(IDM_SETTINGS_WRAPDATA, MF_BYCOMMAND | (m_bWrapData ? MF_CHECKED : MFS_UNCHECKED), IDM_SETTINGS_WRAPDATA, ResourceString(IDS_MENU_WRAPDATA));
 	SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
 	SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
+	UpdateControlsState(1);
+}
+
+
+void CryptographyDialogBox::OnFlipWrapData()
+{
+	WhileInScope<int> wis(m_cProcessing, m_cProcessing + 1, m_cProcessing);
+	m_bWrapData ^= TRUE;
+	m_CharsPerLine = !m_bWrapData ? 0 : m_CharsPerLine > 0 ? m_CharsPerLine : 72;
+	m_menuSettings
+		.Modify(IDM_SETTINGS_WRAPDATA, MF_BYCOMMAND | (m_bWrapData ? MF_CHECKED : MFS_UNCHECKED), IDM_SETTINGS_WRAPDATA, ResourceString(IDS_MENU_WRAPDATA));
+	ComboBoxSetSelection(IDC_CRPT_CHARS_COMBO, m_CharsPerLine);
+	SetText(IDC_CRPT_ORG_EDIT, OriginalDataToString());
+	SetText(IDC_CRPT_ENC_EDIT, EncryptedDataToString());
+	UpdateControlsState(1);
 }
 
 
